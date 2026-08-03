@@ -1,0 +1,285 @@
+SCHEDULER_DONE: Fri Jul 31 09:16:25 UTC 2026
+
+############################################################
+# squad   (压缩比顺序: 1.0 0.75 0.5 0.4 0.3 0.2)
+############################################################
+--- fastkvzip ---
+
+Evaluate squad on 100 samples, qwen2.5-7b-instruct-1m_fastkvzip_chunk16k_w4096
+level: pair
+93.21
+93.91
+93.15
+94.19
+93.32
+92.65
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+100.74
+99.93
+101.05
+100.12
+99.40
+--- kvzip ---
+
+Evaluate squad on 100 samples, qwen2.5-7b-instruct-1m
+level: pair
+93.21
+93.33
+93.89
+94.12
+94.70
+93.33
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+100.13
+100.73
+100.98
+101.59
+100.13
+--- duoattn ---
+
+Evaluate squad on 100 samples, qwen2.5-7b-instruct-1m_head_chunk16k_w4096
+level: pair
+93.21
+93.93
+94.32
+93.73
+88.36
+49.28
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+100.77
+101.19
+100.56
+94.79
+52.87
+--- expected ---
+
+Evaluate squad on 100 samples, qwen2.5-7b-instruct-1m_expect_chunk16k_w4096
+level: adakv-layer
+93.21
+93.22
+91.23
+86.71
+72.98
+54.79
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+100.01
+97.88
+93.02
+78.30
+58.78
+--- snapkv ---
+
+Evaluate squad on 100 samples, qwen2.5-7b-instruct-1m_snap_chunk16k_w4096
+level: pair-head
+93.21
+79.65
+53.93
+42.75
+34.06
+25.58
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+85.45
+57.85
+45.86
+36.54
+27.44
+
+############################################################
+# scbench_many_shot   (压缩比顺序: 1.0 0.75 0.5 0.4 0.3 0.2)
+############################################################
+--- fastkvzip ---
+
+Evaluate scbench_many_shot on 54 samples, qwen2.5-7b-instruct-1m_fastkvzip_chunk16k_w4096
+level: pair
+37.78
+36.30
+37.78
+38.89
+35.93
+32.96
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+96.08
+100.00
+102.94
+95.10
+87.25
+--- kvzip ---
+
+Evaluate scbench_many_shot on 54 samples, qwen2.5-7b-instruct-1m
+level: pair
+37.78
+37.41
+35.93
+35.93
+34.81
+33.70
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+99.02
+95.10
+95.10
+92.16
+89.22
+--- duoattn ---
+
+Evaluate scbench_many_shot on 54 samples, qwen2.5-7b-instruct-1m_head_chunk16k_w4096
+level: pair
+37.78
+36.30
+35.93
+35.56
+32.96
+31.11
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+96.08
+95.10
+94.12
+87.25
+82.35
+--- expected ---
+
+Evaluate scbench_many_shot on 54 samples, qwen2.5-7b-instruct-1m_expect_chunk16k_w4096
+level: adakv-layer
+37.78
+36.67
+34.44
+35.19
+34.44
+33.70
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+97.06
+91.18
+93.14
+91.18
+89.22
+--- snapkv ---
+
+Evaluate scbench_many_shot on 54 samples, qwen2.5-7b-instruct-1m_snap_chunk16k_w4096
+level: pair-head
+37.78
+35.93
+36.30
+36.67
+34.81
+34.07
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+95.10
+96.08
+97.06
+92.16
+90.20
+
+############################################################
+# scbench_prefix_suffix   (压缩比顺序: 1.0 0.75 0.5 0.4 0.3 0.2)
+############################################################
+--- fastkvzip ---
+
+Evaluate scbench_prefix_suffix on 100 samples, qwen2.5-7b-instruct-1m_fastkvzip_chunk16k_w4096
+level: pair
+50.00
+36.80
+48.20
+57.80
+51.60
+39.20
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+73.60
+96.40
+115.60
+103.20
+78.40
+--- kvzip ---
+
+Evaluate scbench_prefix_suffix on 100 samples, qwen2.5-7b-instruct-1m
+level: pair
+50.00
+51.00
+41.20
+34.00
+23.00
+3.00
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+102.00
+82.40
+68.00
+46.00
+6.00
+--- duoattn ---
+
+Evaluate scbench_prefix_suffix on 100 samples, qwen2.5-7b-instruct-1m_head_chunk16k_w4096
+level: pair
+50.00
+51.60
+49.00
+38.20
+24.80
+2.00
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+103.20
+98.00
+76.40
+49.60
+4.00
+--- expected ---
+
+Evaluate scbench_prefix_suffix on 100 samples, qwen2.5-7b-instruct-1m_expect_chunk16k_w4096
+level: adakv-layer
+50.00
+51.80
+53.80
+39.40
+21.60
+0.80
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+103.60
+107.60
+78.80
+43.20
+1.60
+--- snapkv ---
+
+Evaluate scbench_prefix_suffix on 100 samples, qwen2.5-7b-instruct-1m_snap_chunk16k_w4096
+level: pair-head
+50.00
+14.80
+4.40
+4.60
+3.80
+3.40
+==================================================
+Averaged relative performance (note, MRCR is not included)
+100.00
+29.60
+8.80
+9.20
+7.60
+6.80
+
+PARSE_ALL_DONE
