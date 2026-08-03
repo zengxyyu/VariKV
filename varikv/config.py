@@ -10,6 +10,7 @@
     ----------------------------------------------------
     -              discard        KVzip / FastKVzip
     recency        point          Infini-attention / Tensor Cache
+    recency        moment         MomentKV（training-free 二阶矩）← 真实门槛
     free_energy    point          IndexMem 加强
     free_energy    dist           本方法
 """
@@ -36,6 +37,15 @@ class MemoryConfig:
     # γ<1 给旧证据打折，是贝叶斯滤波应对非平稳环境的标准手段，
     # 也对应认知科学的记忆衰减（theory §10.2）。
     precision_decay: float = 0.95
+    # 单次 absorb 对**单个槽**的精度贡献上限（有效样本量 / effective sample size）。
+    #
+    # 不设上限就会踩「伪重复计数」：一个 chunk 里被驱逐的几百个相邻 token 的 KV
+    # 高度相关，把它们当成几百个独立观测会严重高估精度。实测每槽单次就累到 ≈8，
+    # 稳态 τ=8/(1−γ)=160，于是 1/τ≈0.006、方差被压到 clamp 下界，
+    # 训练 60 步后 81~98% 的槽 logvar 焊死在 −4，方差彻底失去动态范围。
+    # 取 1.0 表示「一次吸收最多相当于一个独立观测」，稳态 τ≈1/(1−γ)=20，
+    # 对应 logvar≈−3，留出了动态范围。缩放同时作用于一阶、二阶矩，故均值不变。
+    max_eff_obs: float = 1.0
     # clamp 下界同时是精度硬上界 τ_max = e^{-logvar_min}。
     # 取 -4 → τ_max≈55，即「最多相当于 55 个观测的确信度」，
     # 把 KL 中 1/σ_p² 的放大倍数限制在可控范围（§11.4.3 数值稳定）。
@@ -53,6 +63,13 @@ class MemoryConfig:
     # 不能先把 K 个高斯平均成一个再算 KL —— 那会丢掉多峰性。
     keep_mixture_prior: bool = True
     prior_temperature: float = 1.0  # 相似度 → w_k 的 softmax 温度
+    # 缺口 B5：用 data-dependent 的 responsibility w_k 时，完整的混合模型 ELBO
+    # 还含一项「选哪个组件」的编码成本：
+    #     KL(q(c|e) ‖ p(c)) = Σ_k w_k·log(w_k·K) = log K − H(w)
+    # 只算 Σ_k w_k·KL(q‖p_k) 相当于默认组件分配免费，ELBO 不完整。
+    # 率失真视角下这一项就是码率的一部分：把证据归到某个具体槽本身要花比特，
+    # 分配越尖锐花得越多。留开关是因为它会改变行为，需要能做对照消融。
+    include_assignment_kl: bool = True
 
     # --- 写入门控（决策 B）---
     # 分配与强度解耦：gate_ik = w_ik · η_i，其中 η_i = sigmoid(α·zscore(KL_i) − β)。
@@ -124,7 +141,7 @@ class CacheConfig:
     """KV cache 的驱逐 / 吸收 / 读出策略。"""
 
     evict_policy: Literal["recency", "free_energy"] = "free_energy"
-    absorb_mode: Literal["discard", "point", "dist"] = "dist"
+    absorb_mode: Literal["discard", "point", "moment", "dist"] = "dist"
 
     budget: int = 512               # B：保留精确 KV 的数量
     local_window: int = 128         # 最近 window 内的 KV 永不驱逐（sink 式保护）
@@ -186,17 +203,22 @@ class Config:
     train: TrainConfig = field(default_factory=TrainConfig)
 
     def ablation(self, tier: int) -> "Config":
-        """返回 §11.7 四档杀手对比中的第 tier 档（1..4）的配置副本。"""
+        """返回 §11.7 杀手对比中的第 tier 档（1..5）的配置副本。
+
+        tier 3 是 2026-08-03 新增的 MomentKV 式 training-free 二阶矩 baseline ——
+        文献检索表明「打赢点均值记忆」已不构成贡献，真实门槛是打赢它。
+        """
         import copy
 
         c = copy.deepcopy(self)
         settings = {
             1: ("recency", "discard"),      # 丢弃：驱逐策略无关
             2: ("recency", "point"),
-            3: ("free_energy", "point"),
-            4: ("free_energy", "dist"),
+            3: ("recency", "moment"),       # MomentKV 式，training-free
+            4: ("free_energy", "point"),
+            5: ("free_energy", "dist"),
         }
         if tier not in settings:
-            raise ValueError(f"tier must be 1..4, got {tier}")
+            raise ValueError(f"tier must be 1..5, got {tier}")
         c.cache.evict_policy, c.cache.absorb_mode = settings[tier]
         return c

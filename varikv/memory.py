@@ -89,13 +89,17 @@ class DistributionalMemory(nn.Module):
         nn.init.normal_(self.to_mu.weight, std=0.02)
         nn.init.zeros_(self.to_mu.bias)
         nn.init.zeros_(self.to_logvar.weight)
-        nn.init.constant_(self.to_logvar.bias, cfg.logvar_init)
+        # bias 取 logit，使 _soft_bound 的输出初始恰为 logvar_init
+        _p = (cfg.logvar_init - cfg.logvar_min) / (cfg.logvar_max - cfg.logvar_min)
+        _p = min(max(_p, 1e-4), 1 - 1e-4)
+        nn.init.constant_(self.to_logvar.bias, math.log(_p / (1 - _p)))
 
         self.mu: Optional[torch.Tensor] = None
         self.logvar: Optional[torch.Tensor] = None
         # 每个槽所概括 token 的位置质心 [B,G,K]。读出时按它把 pre-RoPE 的 k̂
         # 重旋回一个有效位置（EPL 2409.14364 的 UPL 最优解即「该组的中心」）。
         self.pos: Optional[torch.Tensor] = None
+        self.var_content: Optional[torch.Tensor] = None
 
     # ------------------------------------------------------------------ 状态
 
@@ -111,6 +115,10 @@ class DistributionalMemory(nn.Module):
             self.slot_logvar_init.to(device=device, dtype=dtype)
             .expand(batch, groups, self.K, self.d_z).clone()
         )
+        # 槽内容的离散度（不是均值估计的不确定性）。见 absorb 里的说明。
+        self.var_content = torch.zeros(
+            batch, groups, self.K, self.d_z, device=device, dtype=dtype
+        )
         self.pos = torch.zeros(batch, groups, self.K, device=device, dtype=torch.float32)
         # 累计的标量精度，用于位置质心的加权平均（与 μ 的更新同权重）
         self._pos_tau = torch.full(
@@ -122,12 +130,27 @@ class DistributionalMemory(nn.Module):
         if self.mu is not None:
             self.mu = self.mu.detach()
             self.logvar = self.logvar.detach()
+        if self.var_content is not None:
+            self.var_content = self.var_content.detach()
         if self.pos is not None:
             self.pos = self.pos.detach()
             self._pos_tau = self._pos_tau.detach()
 
     def _clamp(self, logvar):
+        """硬 clamp —— 只用于从精度 τ 反推的槽 logvar（物理上限，非网络输出）。"""
         return logvar.clamp(self.cfg.logvar_min, self.cfg.logvar_max)
+
+    def _soft_bound(self, raw):
+        """把网络输出的 logvar 软约束到 [min, max]，梯度处处非零。
+
+        不能用硬 clamp：`to_logvar` 是可训练的，而 ELBO 的重建项持续驱使它
+        输出更小的方差，于是很快贴到下界；clamp 在边界处梯度为 0，logvar
+        从此不再更新。实测训练仅 60 步后 **99.3% 的槽 logvar 焊死在 −4**，
+        方差彻底失去动态范围 —— 那样 dist 相对 point 的优势会被抹平，
+        生死实验直接得出假阴性。
+        """
+        lo, hi = self.cfg.logvar_min, self.cfg.logvar_max
+        return lo + (hi - lo) * torch.sigmoid(raw)
 
     # ------------------------------------------------------------------ 推断
 
@@ -135,7 +158,7 @@ class DistributionalMemory(nn.Module):
         """证据 → latent 后验 q_φ(z|e)。evidence [B,G,N,d_kv] → mu/logvar [B,G,N,d_z]"""
         h = self.encoder(evidence)
         mu_q = self.to_mu(h)
-        logvar_q = self._clamp(self.to_logvar(h))
+        logvar_q = self._soft_bound(self.to_logvar(h))
         if self.mode == "point":
             # 点记忆：后验方差不携带信息（恒等于先验初值），
             # 但张量形状与 dist 完全一致，保证参数量与计算图对称。
@@ -158,10 +181,15 @@ class DistributionalMemory(nn.Module):
         return torch.softmax(sim / self.cfg.prior_temperature, dim=-1)
 
     def kl_to_mixture(self, mu_q, logvar_q, w):
-        """KL 到混合先验的上界：Σ_k w_k · KL(q ‖ N(μ_k, σ_k²))。
+        """混合模型的完整 KL：条件项 + 组件分配项。
 
-        这是 KL(q ‖ Σ_k w_k p_k) 的一个闭式上界（Jensen），
-        既保留了混合结构，又避免了对混合求 KL 的不可解性。
+            KL = Σ_k w_k·KL(q ‖ N(μ_k,σ_k²))  +  [ log K − H(w) ]
+                 └────── 条件项（Jensen 上界）──┘   └── 分配项（缺口 B5）──┘
+
+        条件项是 KL(q ‖ Σ_k w_k p_k) 的闭式上界，保留了混合结构、
+        又避开了对混合求 KL 的不可解性（已用蒙特卡洛验证上界成立）。
+        分配项是 KL(q(c|e) ‖ p(c))（p(c) 取均匀）—— 用 data-dependent 的
+        responsibility 时它必然存在，漏掉等于假设「选哪个槽」不花码率。
 
         返回 kl_per_slot [B,G,N,K] 和 kl [B,G,N]
         """
@@ -171,6 +199,10 @@ class DistributionalMemory(nn.Module):
         logvar_p = self.logvar.unsqueeze(2)
         kl_per_slot = gaussian_kl(mu_q_e, logvar_q_e, mu_p, logvar_p)  # [B,G,N,K]
         kl = (w * kl_per_slot).sum(-1)
+        if self.cfg.include_assignment_kl:
+            # log K − H(w) ≥ 0，w 越尖锐（越确定归属哪个槽）代价越高
+            ent = -(w * torch.log(w.clamp_min(1e-9))).sum(-1)
+            kl = kl + (math.log(self.K) - ent)
         return kl_per_slot, kl
 
     def decode(self, z, logvar):
@@ -257,12 +289,26 @@ class DistributionalMemory(nn.Module):
         # Σ_i η_ik · τ_obs_i  和  Σ_i η_ik · τ_obs_i · μ_q_i
         w_tau = gate.unsqueeze(-1) * tau_obs.unsqueeze(-2)          # [B,G,N,K,d_z]
         sum_tau = w_tau.sum(dim=2)                                  # [B,G,K,d_z]
-        sum_tau_mu = (w_tau * mu_q.unsqueeze(-2)).sum(dim=2)        # [B,G,K,d_z]
+        mu_e = mu_q.unsqueeze(-2)                                   # [B,G,N,1,d_z]
+        sum_tau_mu = (w_tau * mu_e).sum(dim=2)                      # [B,G,K,d_z]
+        sum_tau_mu2 = (w_tau * mu_e.pow(2)).sum(dim=2)              # 二阶矩，供离散度用
+
+        # 有效样本量修正：一个 chunk 内被驱逐的 token 高度冗余，不是独立观测。
+        # 同时缩放一阶与二阶矩，因此 μ 的更新完全不受影响，只压低精度累积。
+        if self.cfg.max_eff_obs > 0:
+            n_eff = gate.sum(dim=2)                                 # [B,G,K]
+            scale = (self.cfg.max_eff_obs / n_eff.clamp_min(1e-6)).clamp(max=1.0)
+            scale = scale.unsqueeze(-1)
+            sum_tau = sum_tau * scale
+            sum_tau_mu = sum_tau_mu * scale
+            sum_tau_mu2 = sum_tau_mu2 * scale
 
         # 遗忘因子：给旧证据的精度打折，防止流式吸收下精度无界累加。
         # 否则 τ_old 会一路涨到上界，记忆变得过度自信而拒绝一切新写入 ——
         # 那样 stage1 的 update 型样本（事实被改写）必然做不对。
         gamma = self.cfg.precision_decay
+        tau_old_raw = tau_old
+        self.mu_prev = self.mu
         tau_old = gamma * tau_old
         tau_new = tau_old + sum_tau
         mu_new = (tau_old * self.mu + sum_tau_mu) / tau_new.clamp_min(1e-8)
@@ -282,8 +328,20 @@ class DistributionalMemory(nn.Module):
 
         self.mu = mu_new
         if self.mode == "dist":
-            # 方差随证据收缩：吸收得越多越确定。point 档不更新方差。
-            self.logvar = self._clamp(-torch.log(tau_new.clamp_min(1e-8)))
+            # 槽的方差 = 均值估计的不确定性 (1/τ) + **内容本身的离散度**。
+            #
+            # 只用 1/τ 是错的：那等于认为「观测越多越确定」，可一个槽概括的
+            # 几百个 token 内容各异，把它们平均之后理应更**不**可靠而非更可靠。
+            # 实测只用 1/τ 时，训练 60 步后 98.3% 的槽 logvar 焊死在下界，
+            # 方差失去动态范围，dist 相对 point 的优势会被完全抹平。
+            # 用一阶/二阶矩递归维护离散度（加权方差的标准形式）：
+            #     S2/τ − μ²，其中旧值按 γ 折扣并带上自身的 μ²+var
+            s2_old = gamma * tau_old_raw * (self.mu_prev.pow(2) + self.var_content)
+            s2_new = s2_old + sum_tau_mu2
+            var_c = (s2_new / tau_new.clamp_min(1e-8) - mu_new.pow(2)).clamp_min(0.0)
+            self.var_content = var_c
+            var_total = 1.0 / tau_new.clamp_min(1e-8) + var_c
+            self.logvar = self._clamp(torch.log(var_total.clamp_min(1e-8)))
 
         # 变分自由能（ELBO 意义）：重建失真 + KL。
         #

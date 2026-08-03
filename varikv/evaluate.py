@@ -1,11 +1,16 @@
-"""四档消融评测（§11.7）。
+"""五档消融评测（§11.7）。
 
-    tier 1  discard                丢弃            KVzip / FastKVzip
-    tier 2  recency     + point    新近+点吸收      Infini-attention / Tensor Cache
-    tier 3  free_energy + point    自由能+点吸收    IndexMem 加强
-    tier 4  free_energy + dist     自由能+分布吸收  本方法
+    tier 1  discard                 丢弃              KVzip / FastKVzip
+    tier 2  recency     + point     新近+点吸收        Infini-attention / Tensor Cache
+    tier 3  recency     + moment    新近+二阶矩        MomentKV（training-free）← 真实门槛
+    tier 4  free_energy + point     自由能+点吸收      IndexMem 加强
+    tier 5  free_energy + dist      自由能+分布吸收    VariKV
 
-逐档递增 → 「自由能驱逐」与「分布式吸收」两个组件各自的增益被隔离证明。
+关键对比：
+    2→3  二阶矩相对点均值的增益（说明「存方差」这件事本身值多少）
+    3→5  **生死问题**：贝叶斯信念 vs 频率派矩统计，二阶信息两边都有，
+         自变量收敛到「KL 门控 + 方差感知读出」是否真的有用
+    4→5  自由能驱逐固定时，分布式吸收相对点吸收的增益
 结果按 kind(retain/update) × n_distract 分组：理论预测干扰强度越高、
 分布式相对点记忆的优势越大（stage1/data.py 的设计动机）。
 """
@@ -66,7 +71,8 @@ def evaluate(cfg: Config, tier: int, ckpt: str = None, limit: int = None):
         state = torch.load(ckpt, map_location=cfg.device)
         mem.load_state_dict(state["memory"])
         print(f"loaded {ckpt}")
-    elif tier != 1:
+    elif tier not in (1, 3):
+        # tier 1 丢弃、tier 3 training-free，本就没有 checkpoint
         print(f"[warn] tier {tier} 没有加载 checkpoint，评的是随机初始化的记忆模块")
 
     val = stage1_data.load(str(Path(__file__).parent.parent / "stage1/val.jsonl"))
@@ -91,7 +97,7 @@ def evaluate(cfg: Config, tier: int, ckpt: str = None, limit: int = None):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--tier", type=int, nargs="+", default=[1, 2, 3, 4])
+    ap.add_argument("--tier", type=int, nargs="+", default=[1, 2, 3, 4, 5])
     ap.add_argument("--model", type=str, default=None)
     ap.add_argument("--budget", type=int, default=None)
     ap.add_argument("--ckpt_dir", type=str, default="varikv/ckpt")

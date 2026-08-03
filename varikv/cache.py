@@ -22,6 +22,7 @@ from transformers import DynamicCache
 from .config import Config
 from .free_energy import FreeEnergyScorer
 from .memory import DistributionalMemory
+from .moment import MomentMemory
 from .rope import apply_rope, cos_sin_at, inverse_rope
 
 
@@ -43,7 +44,10 @@ class MemoryAugmentedCache(nn.Module):
 
         absorb = cfg.cache.absorb_mode
         self.absorb_mode = absorb
-        if absorb != "discard":
+        if absorb == "moment":
+            # training-free baseline，无可训练参数
+            self.memory = MomentMemory(self.d_kv, cfg.memory)
+        elif absorb != "discard":
             self.memory = DistributionalMemory(
                 self.d_kv, cfg.memory, mode=absorb
             )

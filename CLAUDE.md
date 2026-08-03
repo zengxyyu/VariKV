@@ -167,19 +167,26 @@ VariKV — variational free-energy eviction. Implements the §11 "Option 3 unifi
 
 The four-tier killer ablation (§11.7) is **two orthogonal switches, not four codepaths** — `Config.ablation(tier)` sets them:
 
-| tier | `evict_policy` | `absorb_mode` | degenerates to |
-|---|---|---|---|
-| 1 | — | `discard` | KVzip / FastKVzip |
-| 2 | `recency` | `point` | Infini-attention / Tensor Cache |
-| 3 | `free_energy` | `point` | IndexMem-like |
-| 4 | `free_energy` | `dist` | **this method** |
+| tier | `evict_policy` | `absorb_mode` | degenerates to | trains? |
+|---|---|---|---|---|
+| 1 | — | `discard` | KVzip / FastKVzip | no |
+| 2 | `recency` | `point` | Infini-attention / Tensor Cache | yes |
+| 3 | `recency` | `moment` | **MomentKV** (second moments) | **no — training-free** |
+| 4 | `free_energy` | `point` | IndexMem-like | yes |
+| 5 | `free_energy` | `dist` | **VariKV** | yes |
+
+Tier 3 was added 2026-08-03 after the literature sweep: MomentKV already keeps count + key mean + value mean + value-key covariance *without training*, so "beat a point-mean memory" no longer proves anything. **The decisive comparison is 3 vs 5** — both hold second-order information, so the independent variable collapses to "Bayesian belief with KL gating and variance-aware read-out" vs "frequentist moment statistics". `varikv/moment.py` is an approximate reimplementation under this repo's architecture (its query-dependent first-order correction `C·q/√d` cannot be expressed as a static effective KV); the paper must run the official implementation, not this.
 
 The 5th row of the §11.3 degeneracy table (drop the KL term → Expected Attention) needs no new tier: set `free_energy.lam = 0`. **This degeneracy is empirically verified**, not just asserted — at λ=0 the rank correlation of F with D is 1.000 and with KL is 0.056. Sweeping λ traces the rate-distortion working points (0.3 balances the two terms, hence the default; 3.0 makes KL dominate). That sweep is a ready-made sensitivity analysis for the paper.
 
 ```bash
-.venv/bin/python varikv/train.py --tier 4            # then 2, 3
-.venv/bin/python varikv/evaluate.py --tier 1 2 3 4
+.venv/bin/python varikv/train.py --tier 5            # then 2, 4 (1 and 3 need no training)
+.venv/bin/python varikv/evaluate.py --tier 1 2 3 4 5
 ```
+
+`scratch_stage1_driver.sh` chains the whole thing: wait for the Figure 11 sweep to free the GPUs → train tiers 2/4/5 in parallel on three cards → evaluate all five. Results land in `scratch_stage1_results.log`, per-tier logs in `scratch_stage1_logs/`.
+
+**Samples shorter than the budget never trigger eviction**, so memory never participates and the loss has no `grad_fn` at all — `train.py` skips them (in stage1, `n_distract=0` is only 109 tokens, a quarter of the data). Evaluation keeps them, as a check that memory does not *harm* contexts that already fit.
 
 Files: `config.py` (two switches + all hyperparameters), `memory.py` (slots, precision-weighted update, read-out), `free_energy.py` (F_i, expected attention, amortised predictor), `cache.py` (chunked prefill → evict → absorb → read back), `rope.py` (inverse/forward rotation — see below), `train.py`, `evaluate.py`.
 
@@ -194,7 +201,13 @@ Each of these let the code run, the loss fall, and numbers come out, while **sil
 3. **The write gate must use a chunk-wise z-score of KL, not raw KL.** Raw KL spans ~4 orders of magnitude as memory evolves (0.05 → 1589 measured), so any fixed (α, β) saturates: gate ≡ 0.12 early, ≡ 1.00 later, std ≈ 0 at both ends. The gate never operates in its sensitive band and `dist` silently degrades to unconditional full writing. After the fix, low- vs high-surprise write rates are 0.047 vs 0.994. Note `eta_beta` is consequently **0.0**, not the 2.0 that suited raw KL.
 4. **The write gate must be probability-normalised: `gate_ik = w_ik · η_i`.** Folding allocation and strength into one sigmoid let the row sum reach **K** (measured 0.66–16.0) — one observation writing at full strength into *every* slot, i.e. the same information counted K times. That breaks "independent observations have additive precision", the premise the whole Bayesian update rests on. Decoupled: `η_i` (scalar, how much this observation writes in total) × `w_ik` (softmax allocation, sums to 1) ⇒ row sum = η ≤ 1, with discrimination preserved (0.03 vs 0.99).
 5. **Memory keys must be stored pre-RoPE.** See the dedicated section below — this one threatens the method's core claim, not just its accuracy.
-6. **Normalising F by scale alone is not enough — it must be by *spread*.** Ranking is driven by dispersion, not by means. After dimensional normalisation alone, `std(D_n)` ≈ 0.69 constant while `std(KL_n)` grows 2e-4 → 7e-2, so F's ranking was 99% determined by D (rank corr with KL only 0.09) even though KL's *mean* had long overtaken D's. That is exactly the Expected-Attention degeneracy. Fix: divide each term by its own **running** std (`f_normalize="running"`). Running stats are a dataset-level quantity, so unlike a per-chunk z-score they keep `F_i` a function of `KV_i` and the memory state, preserving λ's meaning as the rate-distortion Lagrange multiplier.
+6. **The write gate's precision must be capped by effective sample size** (`max_eff_obs=1.0`). A chunk evicts hundreds of *adjacent, highly correlated* KV entries; treating them as that many independent observations is textbook pseudo-replication. Measured: each slot accumulated ≈8 per absorb, steady state `τ = 8/(1−γ) = 160`, so `1/τ ≈ 0.006` and the variance was crushed against the clamp. Scaling first and second moments together caps precision growth without touching the mean.
+7. **Slot variance must include content dispersion, not just `1/τ`.** Using only `1/τ` asserts "more observations ⇒ more certain", but a slot summarising hundreds of *heterogeneous* tokens should be **less** reliable, not more. Variance is now `1/τ + Var_content`, tracked by first/second-moment recursion. Verified: coherent content → logvar −3.05, dispersed content → −2.53.
+8. **`logvar` from the network needs a soft bound, not a hard clamp.** `to_logvar` is trainable and the ELBO reconstruction term keeps pushing it down; a hard clamp has exactly zero gradient at the boundary, so it welds shut. Fix: `lo + (hi−lo)·sigmoid(raw)`, with the bias initialised via logit so the initial output is still `logvar_init`.
+
+Bugs 6–8 all manifest as the same symptom — **variance collapse** — which would silently produce a false negative in the make-or-break experiment, since `dist`'s entire advantage over `point` lives in the variance. Measured progression of "fraction of slots pinned at the `logvar` lower bound" after 60 training steps: **99.3% → 98.3% → 81.4% → 0.0%**. Training also improved as a side effect (`lm_loss` after 60 steps: 4.42 → 3.82). If a future change makes variance collapse again, these three are where to look.
+
+9. **Normalising F by scale alone is not enough — it must be by *spread*.** Ranking is driven by dispersion, not by means. After dimensional normalisation alone, `std(D_n)` ≈ 0.69 constant while `std(KL_n)` grows 2e-4 → 7e-2, so F's ranking was 99% determined by D (rank corr with KL only 0.09) even though KL's *mean* had long overtaken D's. That is exactly the Expected-Attention degeneracy. Fix: divide each term by its own **running** std (`f_normalize="running"`). Running stats are a dataset-level quantity, so unlike a per-chunk z-score they keep `F_i` a function of `KV_i` and the memory state, preserving λ's meaning as the rate-distortion Lagrange multiplier.
 
 General lesson: eviction only ever uses the **ranking** of F, so any monotone transform is free — that is what licenses all the rescaling above. But *which* statistic you normalise by matters: per-chunk z-scoring is numerically safest yet forfeits F's absolute semantics, while running stats keep them at the cost of some lag (hence `v_scale_momentum=0.9` as a compromise; 0.95 lets KL dominate, 0.5 balances best but collapses back toward per-batch statistics).
 

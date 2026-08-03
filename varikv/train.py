@@ -92,7 +92,7 @@ def train(cfg: Config, tier: int, out_dir: str):
 
     params = mem.trainable_parameters()
     if not params:
-        print(f"[tier {tier}] absorb=discard 且无自由能驱逐 → 无可训练参数，跳过训练。")
+        print(f"[tier {tier}] 无可训练参数（discard 或 training-free 的 moment 档）→ 跳过训练。")
         return
     n_param = sum(p.numel() for p in params)
     print(f"[tier {tier}] evict={cfg.cache.evict_policy} absorb={cfg.cache.absorb_mode} "
@@ -115,6 +115,7 @@ def train(cfg: Config, tier: int, out_dir: str):
               f"（评测用完整长度；修好 RoPE 后记忆位置无关，短训长推成立）")
 
     step = 0
+    n_skipped = 0
     opt.zero_grad()
     while step < cfg.train.max_steps:
         for sample in train_set:
@@ -123,6 +124,14 @@ def train(cfg: Config, tier: int, out_dir: str):
             ctx, q, a = encode_sample(
                 tok, sample, cfg.device, cfg.train.max_train_context
             )
+            # 上下文短于预算就不会触发驱逐，记忆全程不参与，loss 连 grad_fn 都没有
+            # （stage1 里 n_distract=0 的样本只有 109 token，占数据的 1/4）。
+            # 这类样本对训练记忆零贡献，直接跳过；评测时仍保留，
+            # 用来检查「记忆不应损害本来就放得下的短上下文」。
+            min_len = cfg.cache.budget + cfg.cache.n_sink
+            if ctx.shape[1] <= min_len:
+                n_skipped += 1
+                continue
             lm_loss = forward_loss(model, mem, ctx, q, a)
 
             aux = mem.collect_aux_loss()
@@ -151,11 +160,13 @@ def train(cfg: Config, tier: int, out_dir: str):
     ckpt = Path(out_dir) / f"tier{tier}.pt"
     torch.save({"memory": mem.state_dict(), "tier": tier}, ckpt)
     print(f"saved {ckpt}")
+    if n_skipped:
+        print(f"（跳过 {n_skipped} 个短于预算 {cfg.cache.budget} 的样本 —— 它们不触发驱逐，训不到记忆）")
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--tier", type=int, default=4, help="§11.7 四档消融，1..4")
+    ap.add_argument("--tier", type=int, default=5, help="§11.7 消融档位 1..5（5=VariKV）")
     ap.add_argument("--model", type=str, default=None)
     ap.add_argument("--budget", type=int, default=None)
     ap.add_argument("--steps", type=int, default=None)
