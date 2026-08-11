@@ -81,9 +81,13 @@ class QueryStatistics:
 
 
 def _zscore(x: torch.Tensor) -> torch.Tensor:
-    """chunk 内标准化（沿 token 维）。驱逐只用排序，故单调变换不损失信息。"""
+    """chunk 内标准化（沿 token 维）。驱逐只用排序，故单调变换不损失信息。
+
+    unbiased=False：默认的无偏 std 在 n=1 时返回 NaN，clamp_min 挡不住
+    （NaN.clamp_min 还是 NaN）。见 memory.py 里 kl_z 处的详细说明。
+    """
     return (x - x.mean(dim=-1, keepdim=True)) / x.std(
-        dim=-1, keepdim=True
+        dim=-1, keepdim=True, unbiased=False
     ).clamp_min(1e-6)
 
 
@@ -203,7 +207,8 @@ class FreeEnergyScorer(nn.Module):
             D_n = D * (n ** 2) / self.v_scale.clamp_min(1e-6)
             KL_n = kl.float() / memory.d_z          # per-dim，与 d_latent 解耦
             with torch.no_grad():
-                ds, ks = D_n.std().clamp_min(1e-6), KL_n.std().clamp_min(1e-6)
+                ds = D_n.std(unbiased=False).clamp_min(1e-6)
+                ks = KL_n.std(unbiased=False).clamp_min(1e-6)
                 if self.std_init.item() == 0:
                     self.d_std.fill_(ds); self.kl_std.fill_(ks); self.std_init.fill_(1)
                 else:
@@ -253,21 +258,36 @@ class FreeEnergyScorer(nn.Module):
             aux["F_exact"] = F_exact
             aux["F_pred"] = F_pred
 
-            # 蒸馏目标 = **chunk 内的 z-score**，不是 F 的绝对值。
+            # 蒸馏目标 = **chunk 内的归一化秩**，不是 F 的值，也不是 z-score。
             #
-            # 这么做是因为驱逐只用 F 的排序，不用它的数值；而 F 的绝对尺度会随
-            # 记忆状态剧烈漂移（记忆还是初值时 μ_q≈μ_k、F≈0，吸收后 logvar 收缩、
-            # F 涨到 1e2 量级）。若拿跨 chunk 的 running 统计去标准化，分母会被
-            # 早期那些近乎 0 的方差污染，蒸馏损失直接爆掉。
-            # chunk 内标准化则天然免疫这种漂移：同一 chunk 内是单调变换，
-            # 排序信息一字不失，而目标恒定落在 O(1)。
-            # 预测器学的是「这批 KV 里谁相对更该留」—— 正是驱逐需要的信息。
+            # 动机同前：驱逐只用 F 的排序，而 F 的绝对尺度随记忆状态剧烈漂移
+            # （记忆还是初值时 μ_q≈μ_k、F≈0，吸收后 logvar 收缩、F 涨到 1e2）。
+            # 所以目标必须是 chunk 内的相对量。
+            #
+            # 但 z-score 不够（2026-08-07 实测，这是自由能驱逐失效的根因）：
+            # 它只修尺度、不修**形状**，而 chunk 内的 F 是灾难性重尾 ——
+            # 96.4% 的 token |z|<0.1，99.4% <0.5，而 99.9% 分位是 27.0，
+            # 峰度 702（正态=3）。0.16% 的 token 扛着全部方差。
+            # 再叠加 Huber 对离群值的梯度截断，「恒输出 0」几乎就是最优解：
+            # 实测 std(F_pred)=0.047 而 std(target)=1.0，
+            # predictor_loss 0.0419 vs 恒输出 0 的 0.0421 —— 只赢 0.5%。
+            # 预测器塌成常数 ⇒ 排序全是噪声 ⇒ ρ(pred,exact) 实测 **−0.28**
+            # （连训练长度上都是负的），驱逐拿到的是反向信号。
+            #
+            # 秩变换是对症的：它同样是 chunk 内的单调变换（排序信息一字不丢），
+            # 但天然有界、均匀、无离群值，重尾问题从根上消失。
             with torch.no_grad():
                 f = F_exact.detach().float()
-                target = (f - f.mean(dim=-1, keepdim=True)) / f.std(
-                    dim=-1, keepdim=True
-                ).clamp_min(1e-6)
-            # 用 Huber 而非 MSE：z-score 仍可能有离群值，避免其主导梯度。
+                n = f.shape[-1]
+                order = f.argsort(dim=-1)
+                ranks = torch.empty_like(f)
+                ranks.scatter_(
+                    -1, order,
+                    torch.arange(n, device=f.device, dtype=f.dtype).expand_as(f),
+                )
+                target = ranks / max(n - 1, 1) * 2.0 - 1.0        # → 均匀分布于 [-1,1]
+            # 目标已有界于 [-1,1]，Huber 在此区间内基本等同 MSE；保留它只为
+            # 防预测器早期输出跑飞时的梯度爆炸。
             aux["predictor_loss"] = torch.nn.functional.smooth_l1_loss(
                 F_pred.float(), target
             )

@@ -102,11 +102,19 @@ def build(n_per_cell, distract_levels, seed=0, kinds=("retain", "update")):
 
 
 def render(sample, tokenizer=None):
-    """拼成送进 LLM 的完整 prompt。答案单独返回，供 teacher forcing / 精确匹配。"""
+    """拼成送进 LLM 的完整 prompt。答案单独返回，供 teacher forcing / 精确匹配。
+
+    **prompt 不能以空格结尾**（2026-08-07 修）。BPE 里 "[ANSWER] " + "crimson"
+    分成 [..., ']', ' ', 'cr', 'imson']，而自然文本 "[ANSWER] crimson" 是
+    [..., ']', ' crimson'] —— 独立的空格 token(220) 后面几乎不可能接无前导空格的
+    'cr'。旧写法让 teacher forcing 的目标落在模型的分布之外，训练目标失真、
+    贪心解码则完全跑偏（评测五档全 0 的根因）。
+    空格归属答案的第一个 token，见 varikv/train.py:encode_sample。
+    """
     prompt = (f"{sample.context}\n\n"
               f"[QUERY] {sample.question}\n"
-              f"[ANSWER] ")
-    return prompt, sample.answer
+              f"[ANSWER]")
+    return prompt, " " + sample.answer
 
 
 def save(samples, path):

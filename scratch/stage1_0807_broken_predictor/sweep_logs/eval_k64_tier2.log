@@ -1,0 +1,101 @@
+Sliding Window Attention is enabled but not implemented for `eager`; unexpected results may be encountered.
+loaded varikv/ckpt/k64_tier2.pt
+
+=== tier 2  (K=64) ===
+  all/0                    nll  1.4559   em 0.925   n=40
+  all/200                  nll  3.0231   em 0.000   n=40
+  all/2000                 nll  3.6292   em 0.000   n=40
+  all/800                  nll  3.2469   em 0.000   n=40
+  overall                  nll  2.8388   em 0.231   n=160
+  retain/0                 nll  1.5018   em 1.000   n=19
+  retain/200               nll  3.0598   em 0.000   n=22
+  retain/2000              nll  3.7845   em 0.000   n=20
+  retain/800               nll  3.2266   em 0.000   n=24
+  retain/all               nll  2.9292   em 0.224   n=85
+  update/0                 nll  1.4143   em 0.857   n=21
+  update/200               nll  2.9781   em 0.000   n=18
+  update/2000              nll  3.4738   em 0.000   n=20
+  update/800               nll  3.2773   em 0.000   n=16
+  update/all               nll  2.7363   em 0.240   n=75
+
+=== 五档对比  K=64  (主指标 nll，越低越好) ===
+  tier 2: nll  2.8388   em 0.231
+{
+ "2": {
+  "update/0": {
+   "em": 0.8571428571428571,
+   "nll": 1.4143282685961043,
+   "n": 21
+  },
+  "update/all": {
+   "em": 0.24,
+   "nll": 2.736271980603536,
+   "n": 75
+  },
+  "all/0": {
+   "em": 0.925,
+   "nll": 1.4558801904320717,
+   "n": 40
+  },
+  "retain/0": {
+   "em": 1.0,
+   "nll": 1.5018059987770884,
+   "n": 19
+  },
+  "retain/all": {
+   "em": 0.2235294117647059,
+   "nll": 2.929185675873476,
+   "n": 85
+  },
+  "retain/200": {
+   "em": 0.0,
+   "nll": 3.0598351630297573,
+   "n": 22
+  },
+  "all/200": {
+   "em": 0.0,
+   "nll": 3.023053440451622,
+   "n": 40
+  },
+  "update/200": {
+   "em": 0.0,
+   "nll": 2.9780980017450123,
+   "n": 18
+  },
+  "retain/800": {
+   "em": 0.0,
+   "nll": 3.226629748940468,
+   "n": 24
+  },
+  "all/800": {
+   "em": 0.0,
+   "nll": 3.246897894144058,
+   "n": 40
+  },
+  "update/800": {
+   "em": 0.0,
+   "nll": 3.277300111949444,
+   "n": 16
+  },
+  "retain/2000": {
+   "em": 0.0,
+   "nll": 3.784549045562744,
+   "n": 20
+  },
+  "all/2000": {
+   "em": 0.0,
+   "nll": 3.6291979998350143,
+   "n": 40
+  },
+  "update/2000": {
+   "em": 0.0,
+   "nll": 3.4738469541072847,
+   "n": 20
+  },
+  "overall": {
+   "em": 0.23125,
+   "nll": 2.8387573812156917,
+   "n": 160
+  }
+ }
+}

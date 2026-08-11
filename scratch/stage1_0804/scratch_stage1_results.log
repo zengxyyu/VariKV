@@ -1,0 +1,77 @@
+STAGE1_DRIVER_START: Mon Aug  3 15:51:00 UTC 2026
+FIG11_DONE, GPUs free: Tue Aug  4 01:21:19 UTC 2026
+TRAIN_START: Tue Aug  4 01:21:49 UTC 2026  steps=1500 budget=256
+  tier2 → GPU0 (pid 430161)
+  tier4 → GPU1 (pid 430162)
+  tier5 → GPU2 (pid 430163)
+TRAIN_DONE: Tue Aug  4 01:49:02 UTC 2026
+  tier2 末行: step  1490  lm 3.9782  free_energy 89.9286 saved varikv/ckpt/tier2.pt （跳过 527 个短于预算 256 的样本 —— 它们不触发驱逐，训不到记忆） 
+  tier4 末行: step  1490  lm 2.7662  free_energy 26.2460  predictor 0.0433 saved varikv/ckpt/tier4.pt （跳过 527 个短于预算 256 的样本 —— 它们不触发驱逐，训不到记忆） 
+  tier5 末行: step  1490  lm 2.2535  free_energy 33.4893  predictor 0.0551 saved varikv/ckpt/tier5.pt （跳过 527 个短于预算 256 的样本 —— 它们不触发驱逐，训不到记忆） 
+
+EVAL_START: Tue Aug  4 01:49:02 UTC 2026  limit=120
+EVAL_DONE: Tue Aug  4 02:03:17 UTC 2026
+
+############ 结果 ############
+loaded varikv/ckpt/tier5.pt
+
+=== tier 5 ===
+  all/0                    0.000
+  all/200                  0.000
+  all/2000                 0.000
+  all/800                  0.000
+  overall                  0.000
+  retain/0                 0.000
+  retain/200               0.000
+  retain/2000              0.000
+  retain/800               0.000
+  retain/all               0.000
+  update/0                 0.000
+  update/200               0.000
+  update/2000              0.000
+  update/800               0.000
+  update/all               0.000
+
+=== 四档对比（overall）===
+  tier 1: 0.000
+  tier 2: 0.000
+  tier 3: 0.000
+  tier 4: 0.000
+  tier 5: 0.000
+{
+  "1": {
+    "update/0": 0.0,
+    "update/all": 0.0,
+    "all/0": 0.0,
+    "retain/2000": 0.0,
+    "retain/all": 0.0,
+    "all/2000": 0.0,
+    "retain/200": 0.0,
+    "all/200": 0.0,
+    "retain/800": 0.0,
+    "all/800": 0.0,
+    "retain/0": 0.0,
+    "update/2000": 0.0,
+    "update/200": 0.0,
+    "update/800": 0.0,
+    "overall": 0.0
+  },
+  "2": {
+    "update/0": 0.0,
+    "update/all": 0.0,
+    "all/0": 0.0,
+    "retain/2000": 0.0,
+    "retain/all": 0.0,
+    "all/2000": 0.0,
+    "retain/200": 0.0,
+    "all/200": 0.0,
+    "retain/800": 0.0,
+    "all/800": 0.0,
+    "retain/0": 0.0,
+    "update/2000": 0.0,
+    "update/200": 0.0,
+    "update/800": 0.0,
+    "overall": 0.0
+  },
+
+STAGE1_DRIVER_DONE: Tue Aug  4 02:03:17 UTC 2026

@@ -51,9 +51,13 @@ def encode_sample(tok, sample, device, max_context: int = 0):
     ctx_ids = tok(sample.context, return_tensors="pt", add_special_tokens=True).input_ids
     if max_context and ctx_ids.shape[1] > max_context:
         ctx_ids = ctx_ids[:, :max_context]
-    q_text = f"\n\n[QUERY] {sample.question}\n[ANSWER] "
+    # prompt 不带尾空格，空格并入答案的第一个 token —— 否则 q_ids+a_ids 的拼接
+    # 与自然文本的分词不一致，teacher forcing 会训练一个模型基本不会产生的
+    # token 序列。见 stage1/data.py:render 的说明（2026-08-07 修）。
+    q_text = f"\n\n[QUERY] {sample.question}\n[ANSWER]"
     q_ids = tok(q_text, return_tensors="pt", add_special_tokens=False).input_ids
-    a_ids = tok(sample.answer, return_tensors="pt", add_special_tokens=False).input_ids
+    a_ids = tok(" " + sample.answer, return_tensors="pt",
+                add_special_tokens=False).input_ids
     return ctx_ids.to(device), q_ids.to(device), a_ids.to(device)
 
 
@@ -157,8 +161,10 @@ def train(cfg: Config, tier: int, out_dir: str):
             step += 1
 
     os.makedirs(out_dir, exist_ok=True)
-    ckpt = Path(out_dir) / f"tier{tier}.pt"
-    torch.save({"memory": mem.state_dict(), "tier": tier}, ckpt)
+    # 文件名带上 K —— 不同 K 的槽参数形状不同，混用会 load_state_dict 报错
+    ckpt = Path(out_dir) / f"k{cfg.memory.num_slots}_tier{tier}.pt"
+    torch.save({"memory": mem.state_dict(), "tier": tier,
+                "num_slots": cfg.memory.num_slots}, ckpt)
     print(f"saved {ckpt}")
     if n_skipped:
         print(f"（跳过 {n_skipped} 个短于预算 {cfg.cache.budget} 的样本 —— 它们不触发驱逐，训不到记忆）")
@@ -170,6 +176,8 @@ if __name__ == "__main__":
     ap.add_argument("--model", type=str, default=None)
     ap.add_argument("--budget", type=int, default=None)
     ap.add_argument("--steps", type=int, default=None)
+    ap.add_argument("--num_slots", type=int, default=None,
+                    help="K：每个 (layer,kv_head) 的槽数。改 K 会改变槽参数形状，须重训")
     ap.add_argument("--out", type=str, default="varikv/ckpt")
     args = ap.parse_args()
 
@@ -180,4 +188,6 @@ if __name__ == "__main__":
         cfg.cache.budget = args.budget
     if args.steps:
         cfg.train.max_steps = args.steps
+    if args.num_slots:
+        cfg.memory.num_slots = args.num_slots
     train(cfg, args.tier, args.out)

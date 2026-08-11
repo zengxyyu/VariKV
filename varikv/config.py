@@ -212,7 +212,12 @@ class Config:
 
         c = copy.deepcopy(self)
         settings = {
-            1: ("recency", "discard"),      # 丢弃：驱逐策略无关
+            # 注意：这是「滑动窗口 + 丢弃」，**不是 KVzip**。
+            # 曾把这里注释成「丢弃：驱逐策略无关」，那是错的 —— 什么都不吸收时，
+            # 保留哪些 KV 恰恰是唯一决定性能的因素，不是无关而是唯一变量。
+            # 真正的 KVzip 用重建注意力打分，比 recency 强得多。
+            # 因此「Δ vs tier1」量的是相对滑动窗口的差距，不能当作赢过 KVzip。
+            1: ("recency", "discard"),
             2: ("recency", "point"),
             3: ("recency", "moment"),       # MomentKV 式，training-free
             4: ("free_energy", "point"),

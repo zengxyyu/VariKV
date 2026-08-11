@@ -40,8 +40,22 @@ def gaussian_kl(mu_q, logvar_q, mu_p, logvar_p):
 
 
 class DistributionalMemory(nn.Module):
-    def __init__(self, d_kv: int, cfg: MemoryConfig, mode: str = "dist"):
+    def __init__(self, d_kv: int, cfg: MemoryConfig, mode: str = "dist",
+                 n_groups: int = 0):
         super().__init__()
+        # 输出端残差融合用的门（每个 (layer, kv_head) 一个标量）。
+        #
+        # 为什么需要它：把记忆当额外 KV 塞进 softmax 时，它**永远**要和真实 KV
+        # 抢注意力质量，而且没有退出机制 —— 实测即使把读出内容全部置零，
+        # 仍要付 30~40 点（scbench_many_shot，2026-08-09 零读出消融）。
+        # 改成 `o = o_attn + sigmoid(gate)·m(q)` 之后，gate→−∞ 时精确退回基线，
+        # 代价归零。IndexMem(ICML'26)/Tensor Cache/Infini-attention 都是这个形态。
+        #
+        # 初始化 −4 ⇒ sigmoid≈0.018：起点几乎等于基线（不会一上来就拖累），
+        # 又保留可观的梯度让它能被学开（−8 会让 sigmoid' 太小、学不动）。
+        self.residual_gate = (
+            nn.Parameter(torch.full((n_groups,), -4.0)) if n_groups else None
+        )
         assert mode in ("point", "dist"), mode
         self.cfg = cfg
         self.mode = mode
@@ -225,7 +239,8 @@ class DistributionalMemory(nn.Module):
     # ------------------------------------------------------------------ 写入
 
     def absorb(self, evidence: torch.Tensor, expected_attn: Optional[torch.Tensor] = None,
-               positions: Optional[torch.Tensor] = None):
+               positions: Optional[torch.Tensor] = None,
+               valid: Optional[torch.Tensor] = None):
         """把一批被驱逐的 KV 写入记忆（决策 B）。
 
         expected_attn [B,G,N]：期望注意力 ā_i。传入后，ELBO 的重建项会按 ā 加权，
@@ -263,9 +278,26 @@ class DistributionalMemory(nn.Module):
             # 其他 KV 有多意外」，这是个不随记忆漂移的稳定信号。
             # w*K 把分配权重归一化到均值 1，避免 K 变化时需要重调 α。
             kl_d = kl.detach()
-            kl_z = (kl_d - kl_d.mean(dim=-1, keepdim=True)) / kl_d.std(
-                dim=-1, keepdim=True
-            ).clamp_min(1e-6)
+            # unbiased=False 是必须的，不是风格问题：默认的无偏 std 在**只有一个
+            # 元素**时返回 NaN，而 NaN.clamp_min(1e-6) 仍是 NaN —— clamp 挡的是
+            # std=0，挡不住 std=NaN。当上下文长度 ≡ 1 (mod prefill_chunk) 时最后
+            # 一块只有 1 个 token，整个记忆会被一次污染成 NaN（2026-08-07 实测：
+            # 34305 = 67×512+1 的样本必坏，34405 的最后一块 101 个则正常）。
+            # 总体标准差在 n=1 时为 0，交给 clamp 兜住，z-score 退化成 0，
+            # 语义上也正确：只有一个观测时「相对同批其他 KV 的意外程度」无从谈起。
+            if valid is None:
+                kl_z = (kl_d - kl_d.mean(dim=-1, keepdim=True)) / kl_d.std(
+                    dim=-1, keepdim=True, unbiased=False
+                ).clamp_min(1e-6)
+            else:
+                # padding 必须排除在 chunk 统计之外。Stage 2b 里各 head 被驱逐的
+                # 数量不同，为凑成矩形张量要补零；若把这些零算进均值/标准差，
+                # z-score 会被 padding 比例牵着走，门控随之失真。
+                vf = valid.to(kl_d.dtype)
+                cnt = vf.sum(dim=-1, keepdim=True).clamp_min(1.0)
+                m = (kl_d * vf).sum(dim=-1, keepdim=True) / cnt
+                var = ((kl_d - m).pow(2) * vf).sum(dim=-1, keepdim=True) / cnt
+                kl_z = (kl_d - m) / var.sqrt().clamp_min(1e-6)
             # 分配与强度**解耦**（缺口 B4）：
             #   η_i  = sigmoid(α·z(KL_i) − β)  标量，"这个观测总共写入多少"
             #   w_ik = softmax over k          分配比例，Σ_k w_ik = 1
@@ -285,6 +317,12 @@ class DistributionalMemory(nn.Module):
             gate = w * torch.sigmoid(self.point_gate_logit)
             tau_obs = torch.ones_like(logvar_q)
             tau_old = torch.ones_like(self.logvar)
+
+        if valid is not None:
+            # padding 观测写入强度归零 —— 后面所有的 Σ_i 累加（sum_tau、
+            # sum_tau_mu、二阶矩、位置质心、有效样本量）都以 gate 为权重，
+            # 所以在这里截断一次就够，不必逐处再判。
+            gate = gate * valid.to(gate.dtype).unsqueeze(-1)
 
         # Σ_i η_ik · τ_obs_i  和  Σ_i η_ik · τ_obs_i · μ_q_i
         w_tau = gate.unsqueeze(-1) * tau_obs.unsqueeze(-2)          # [B,G,N,K,d_z]
@@ -316,7 +354,16 @@ class DistributionalMemory(nn.Module):
         # 位置质心与 μ 用同一套精度权重更新，保证「槽的位置」确实是
         # 它所概括的那些 token 的加权中心。
         if positions is not None:
-            pos_i = positions.float().view(1, 1, -1)                 # [1,1,N]
+            # [N] → 各组共享（stage1 的 per-token 驱逐）；
+            # [B,G,N] / [G,N] → 每组各自的位置（Stage 2b 的 per-head 驱逐，
+            # 各 head 保留/驱逐的 token 不同，位置自然也不同）。
+            p = positions.float()
+            if p.dim() == 1:
+                pos_i = p.view(1, 1, -1)                             # [1,1,N]
+            elif p.dim() == 2:
+                pos_i = p.unsqueeze(0)                               # [1,G,N]
+            else:
+                pos_i = p                                            # [B,G,N]
             tau_s_obs = tau_obs.mean(-1)                             # [B,G,N]
             wgt = gate.detach().float() * tau_s_obs.detach().float().unsqueeze(-1)
             num = (wgt * pos_i.unsqueeze(-1)).sum(dim=2)             # [B,G,K]
@@ -358,15 +405,34 @@ class DistributionalMemory(nn.Module):
         recon = self.decode(mu_q, logvar_q)[..., : self.d_kv]
         sq_err = (recon - evidence).pow(2).mean(-1)                 # [B,G,N]
         if expected_attn is not None:
-            n = sq_err.shape[-1]
-            w_attn = (expected_attn.detach().float() * n).clamp(0.0, float(n))
-            recon_err = (w_attn * sq_err.float()).mean()
+            # N·ā 的归一化前提是「ā 在这 N 个观测上和为 1」，所以 N 必须是**有效**
+            # 个数，不能是补齐后的长度 —— 否则各组按各自的 padding 比例被错误缩放
+            # （实测：7 个有效 + 5 个 padding 时 F 差 2.60）。
+            if valid is None:
+                n = torch.tensor(
+                    float(sq_err.shape[-1]), device=sq_err.device, dtype=torch.float32
+                ).view(1, 1, 1)
+            else:
+                n = valid.to(torch.float32).sum(dim=-1, keepdim=True).clamp_min(1.0)
+            w_attn = (expected_attn.detach().float() * n).clamp(min=0.0)
+            w_attn = torch.minimum(w_attn, n)
+            terms = w_attn * sq_err.float()
         else:
             # recency 驱逐档没有 ā（不算自由能），退回未加权重建
-            recon_err = sq_err.mean()
+            terms = sq_err.float()
+        if valid is None:
+            recon_err = terms.mean()
+            kl_mean = kl.mean()
+        else:
+            # padding 的重建误差不该计入 —— 它是补出来的零，学它没有意义，
+            # 而且各 head 驱逐数量差异越大，被稀释得越厉害
+            vf = valid.to(terms.dtype)
+            den = vf.sum().clamp_min(1.0)
+            recon_err = (terms * vf).sum() / den
+            kl_mean = (kl * valid.to(kl.dtype)).sum() / den.to(kl.dtype)
         # KL 取 per-dim 平均，使量级与 d_latent 解耦；否则换个 d_z 就得重调权重，
         # 且 d_z 较大时辅助项会盖过 lm_loss，把训练带向 posterior collapse。
-        free_energy = recon_err + kl.mean() / self.d_z
+        free_energy = recon_err + kl_mean / self.d_z
         return kl, free_energy
 
     # ------------------------------------------------------------------ 读出
