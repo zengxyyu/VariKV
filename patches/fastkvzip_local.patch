@@ -1,0 +1,336 @@
+diff --git a/.gitignore b/.gitignore
+deleted file mode 100644
+index a3dcc6c..0000000
+--- a/.gitignore
++++ /dev/null
+@@ -1,12 +0,0 @@
+-*.pt
+-*.png
+-*.pdf
+-**/__pycache__
+-*.json
+-*.jsonl
+-*.csv
+-
+-!math/data/*.jsonl
+-!prefill/utils/head_score/*.pt
+-!data/method.png
+-**/test*.sh
+diff --git a/prefill/args.py b/prefill/args.py
+index 81cd1b9..c642863 100644
+--- a/prefill/args.py
++++ b/prefill/args.py
+@@ -36,6 +36,21 @@ parser.add_argument(
+     "--num", type=int, default=100, help="the total number of eval data"
+ )
+ parser.add_argument("--tag", type=str, default="", help="evaluation folder name tag")
++# --- VariKV（本地新增，Stage 2b）---
++# 给出 ckpt 即启用分布式记忆：驱逐决策仍完全由上游门控决定，
++# 我们只接管「被驱逐的 KV 是丢弃还是吸收」，其余参数与基线逐字相同。
++parser.add_argument("--varikv_ckpt", type=str, default="",
++                    help="VariKV 记忆 checkpoint；给出则 kv_type 自动切到 memory")
++parser.add_argument("--varikv_slots", type=int, default=16, help="每 head 的记忆条数 M")
++# 默认 memory_retain：Figure 11 的基线全部跑在 kv_type="retain" 上（args.py 默认值，
++# run.sh 不覆盖），所以方法也应挂在同一套机制上才逐项可比。
++parser.add_argument("--varikv_kv_type", type=str, default="memory_retain",
++                    choices=["memory", "memory_retain"])
++# 消融：zero = 保持完全相同的驱逐与预算，但把读出的等效 KV 置零
++parser.add_argument("--varikv_readout", type=str, default="normal",
++                    choices=["normal", "zero"])
++# 输出端门控残差：记忆不进 cache，改为 o = o_attn + sigmoid(g)·m(q)
++parser.add_argument("--varikv_residual", action="store_true")
+ args = parser.parse_args()
+ 
+ 
+diff --git a/prefill/attention/attn.py b/prefill/attention/attn.py
+index 9f287fa..c17a6e1 100644
+--- a/prefill/attention/attn.py
++++ b/prefill/attention/attn.py
+@@ -95,6 +95,10 @@ def llama_qwen_attn_forward(
+     if getattr(past_key_value, "get_score", None):  # calculate KVzip importance score
+         past_key_value._get_score(query_states, key_states, self.layer_idx)
+ 
++    # VariKV（本地新增）：残差模式下要用 prepare 之前的 query（post-RoPE，
++    # 形状 [B,HQ,T,d]）去读记忆，prepare 会就地改写它，所以先留一份。
++    _varikv_q = query_states if getattr(past_key_value, "residual_mode", False) else None
++
+     if getattr(past_key_value, "flatten", None):  # attention with pruned cache
+         query_states, key_states, value_states, info = past_key_value.prepare(
+             query_states, key_states, value_states, self.layer_idx
+@@ -137,7 +141,14 @@ def llama_qwen_attn_forward(
+         )  # bsz, seq, head, dim
+     ###################################################################
+ 
++    # VariKV（本地新增）：输出端门控残差 o = o_attn + sigmoid(g)·m(q)。
++    # 记忆不进 cache、不参与上面那次 softmax，因此不抢注意力质量；
++    # g→−∞ 时残差→0，精确退回基线。默认路径 residual_mode=False，此块不执行。
+     attn_output = attn_output.contiguous().view(bsz, q_len, -1)
++    if _varikv_q is not None:
++        attn_output = attn_output + past_key_value.memory_residual(
++            _varikv_q, self.layer_idx
++        ).to(attn_output.dtype)
+     attn_output = self.o_proj(attn_output)
+ 
+     attn_weights = None
+diff --git a/prefill/data/load.py b/prefill/data/load.py
+index 5524857..c53ff6b 100644
+--- a/prefill/data/load.py
++++ b/prefill/data/load.py
+@@ -43,7 +43,20 @@ def load_dataset_all(name, tokenizer, n_data=100):
+ 
+ 
+ def load_squad(n_data):
+-    data = load_dataset("rajpurkar/squad", split="train")
++    try:
++        data = load_dataset("rajpurkar/squad", split="train")
++    except (ValueError, TypeError) as e:
++        # 同 load_scbench：datasets 3.6.0 解析不了 4.x 写的 `List` feature type。
++        # 升级 datasets 会牵动 transformers 4.51.3，所以直接读 parquet。
++        print(f"datasets failed on squad ({e}); falling back to pyarrow")
++        import pyarrow.parquet as pq
++        from huggingface_hub import hf_hub_download
++
++        path = hf_hub_download(
++            "rajpurkar/squad", "plain_text/train-00000-of-00001.parquet",
++            repo_type="dataset",
++        )
++        data = pq.read_table(path).to_pylist()
+ 
+     pool = dict()
+     dataset = {"context": [], "question": [], "answers": []}
+@@ -91,11 +104,25 @@ def load_gsm(tokenizer, n_data):
+ 
+ def load_scbench(name):
+     check_scbench_name(name)
+-    samples = load_dataset(
+-        "Jang-Hyun/SCBench-preprocessed",
+-        data_files=f"{name}.parquet",
+-        split="train",
+-    )
++    try:
++        samples = load_dataset(
++            "Jang-Hyun/SCBench-preprocessed",
++            data_files=f"{name}.parquet",
++            split="train",
++        )
++    except (ValueError, TypeError) as e:
++        # Some shards (e.g. scbench_mf_mid) were written by datasets 4.x and use a
++        # `List` feature type that datasets 3.6.0 cannot resolve. Upgrading datasets
++        # would break transformers 4.51.3, so read the parquet directly instead --
++        # the columns we need (prompts, ground_truth) are plain arrow lists.
++        print(f"datasets failed on {name} ({e}); falling back to pyarrow")
++        import pyarrow.parquet as pq
++        from huggingface_hub import hf_hub_download
++
++        path = hf_hub_download(
++            "Jang-Hyun/SCBench-preprocessed", f"{name}.parquet", repo_type="dataset"
++        )
++        samples = pq.read_table(path).to_pylist()
+ 
+     dataset = []
+     for data in samples:
+@@ -165,6 +192,10 @@ def load_fineweb(name):
+     text, token_count = "", 0
+     num = 0
+     for i in valid:
++        # datasets 3.x 不接受 numpy.int64 作为索引键（valid 来自 np.arange）。
++        # 上游未遇到是因为其 datasets 版本更宽松；本地必须显式转 int，
++        # 否则 load_fineweb 直接 TypeError —— 说明这个加载器在本环境从没被跑过。
++        i = int(i)
+         if "cat" in name:
+             if token_count < 100000:
+                 text += "\n\n" + samples[i]["text"].strip()
+diff --git a/prefill/eval.py b/prefill/eval.py
+index 0f3f446..47f2859 100644
+--- a/prefill/eval.py
++++ b/prefill/eval.py
+@@ -5,6 +5,14 @@ from collections import defaultdict
+ 
+ 
+ def set_ratios():
++    # 本地新增（Stage 2b）：允许用环境变量覆盖比例序列，默认行为与上游完全一致。
++    # 动机：基线在 ratio≥0.3 处相对性能已是 100.5（扔掉 70% KV 毫无损失），
++    # 也就是「被驱逐集合里没有可回收的信息」——在那里做吸收，最好也只是 +0。
++    # 可回收空间只在更激进的压缩比出现（0.2 处平均 93.78，scbench_kv 仅 66.28）。
++    import os
++    env = os.environ.get("VARIKV_RATIOS")
++    if env:
++        return [float(x) for x in env.split(",")]
+     ratios = [0.75, 0.5, 0.4, 0.3, 0.2]
+     return ratios
+ 
+diff --git a/prefill/eval_chunk.py b/prefill/eval_chunk.py
+index 0c7d7c7..b0ba004 100644
+--- a/prefill/eval_chunk.py
++++ b/prefill/eval_chunk.py
+@@ -16,7 +16,48 @@ if __name__ == "__main__":
+     args.tag += f"_chunk{args.prefill_chunk//1000}k_w{args.window_size}"
+     print(f"tag: {args.tag}")
+ 
+-    model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
++    # --- VariKV 注入（本地新增）：除 kv_type 外所有评测参数与基线完全一致 ---
++    if args.varikv_ckpt:
++        import sys as _sys, torch as _torch
++        _sys.path.insert(0, "/home/ubuntu/zxy/vlm-memory")
++        from varikv.config import Config as _Cfg
++        from varikv.memory import DistributionalMemory as _DM
++
++        args.kv_type = args.varikv_kv_type
++        model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
++        _ck = _torch.load(args.varikv_ckpt, map_location=model.device)
++        # mode 必须进 tag：否则 dist 与 point 写进同一个结果目录互相覆盖
++        args.tag += f"_varikv{_ck.get('mode','dist')}{args.varikv_slots}"
++        _cfg = _Cfg(); _cfg.memory.num_slots = args.varikv_slots
++        _H = model.config.num_key_value_heads
++        _L = model.config.num_hidden_layers
++        _hd = getattr(model.config, "head_dim",
++                      model.config.hidden_size // model.config.num_attention_heads)
++        # n_groups 决定是否创建 residual_gate。残差模式的 ckpt 里带这个键，
++        # 不传 n_groups 就会 "Unexpected key(s): residual_gate" 直接崩。
++        _mem = _DM(2 * _hd, _cfg.memory, mode=_ck.get("mode", "dist"),
++                   n_groups=(_L * _H) if args.varikv_residual else 0).to(
++            model.device, dtype=_torch.float32)
++        _miss = _mem.load_state_dict(_ck["memory"], strict=False)
++        if _miss.missing_keys or _miss.unexpected_keys:
++            print(f"[VariKV] 缺失键 {list(_miss.missing_keys)} "
++                  f"多余键 {list(_miss.unexpected_keys)}")
++        _mem.eval()
++        _mem.reset(1, _L * _H, device=model.device, dtype=_torch.float32)
++        model.varikv_memory = _mem
++        model.varikv_M = args.varikv_slots
++        model.varikv_readout = args.varikv_readout
++        model.varikv_residual = args.varikv_residual
++        if args.varikv_residual:
++            args.tag += "_res"
++        if args.varikv_readout != "normal":
++            args.tag += f"_ro{args.varikv_readout}"
++        _rot = getattr(model.model.model, "rotary_emb", None)
++        model.varikv_inv_freq = _rot.inv_freq.detach().clone() if _rot else None
++        print(f"[VariKV] loaded {args.varikv_ckpt} mode={_ck.get('mode')} "
++              f"M={args.varikv_slots}")
++    else:
++        model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
+ 
+     for args.data in get_data_list(args.data, model.name):
+         dataset = load_dataset_all(args.data, model.tokenizer)  # list of data
+diff --git a/prefill/eval_chunk_mrcr.py b/prefill/eval_chunk_mrcr.py
+index edd6352..ad4a4a1 100644
+--- a/prefill/eval_chunk_mrcr.py
++++ b/prefill/eval_chunk_mrcr.py
+@@ -35,10 +35,14 @@ if __name__ == "__main__":
+     dataset = load_dataset_all(args.data, model.tokenizer, n_data=2400)
+ 
+     tt = TimeStamp(True)
+-    print("=" * 80, f"\nStart evaluation with {len(dataset)} samples")
++    # 本地改动：原版跑 range(args.idx, len(dataset))，即全部 2400 条 × 6 个压缩比，
++    # 在 128K 上下文下约 300 GPU-hours。args.py 早已定义 --num（默认 100），
++    # 其余 eval 脚本都用了，只有本脚本漏用；这里补齐，与 eval.py/eval_chunk.py 语义一致。
++    max_idx = min(args.idx + args.num, len(dataset))
++    print("=" * 80, f"\nStart evaluation with {args.idx}~{max_idx} samples")
+ 
+     scores_by_ratio = defaultdict(list)
+-    for data_idx in range(args.idx, len(dataset)):
++    for data_idx in range(args.idx, max_idx):
+         sample = dataset[data_idx]
+         ctx_ids = model.encode(sample["prompt"])
+         query_ids = model.apply_template(sample["query"])
+@@ -82,3 +86,7 @@ if __name__ == "__main__":
+         if scores:
+             avg_score = sum(scores) / len(scores)
+             print(f"Ratio {ratio}: {avg_score * 100:.2f}")
++
++    # 本地改动：原版不打印这行，而 scratch_repro_full.py 以日志出现 "Finished."
++    # 作为作业成功的判据（与 eval.py/eval_chunk.py 一致）。
++    print("Finished.")
+diff --git a/prefill/model/wrapper.py b/prefill/model/wrapper.py
+index a529bad..f53b118 100644
+--- a/prefill/model/wrapper.py
++++ b/prefill/model/wrapper.py
+@@ -142,6 +142,36 @@ class ModelKVzip:
+                 kv = RetainCache(self.model, evict_range)
+             elif self.kv_type == "evict":
+                 kv = EvictCache(self.model, evict_range)
++            elif self.kv_type == "memory_retain":
++                # VariKV 建在 RetainCache 上（本地新增）——与 Figure 11 基线所用的
++                # kv_type="retain" 完全同一套机制，除「被掩掉的 KV 丢弃还是吸收」外无差异。
++                from attention.memcache_retain import MemoryRetainCache
++
++                kv = MemoryRetainCache(
++                    self.model, evict_range,
++                    getattr(self, "varikv_memory", None),
++                    rope_inv_freq=getattr(self, "varikv_inv_freq", None),
++                    n_mem_per_head=getattr(self, "varikv_M", 16),
++                    absorb_enabled=getattr(self, "varikv_memory", None) is not None,
++                )
++                kv.detach_readback = getattr(self, "varikv_detach_readback", False)
++                kv.readout_mode = getattr(self, "varikv_readout", "normal")
++                kv.residual_mode = getattr(self, "varikv_residual", False)
++                kv.train_write = getattr(self, "varikv_train", False)
++            elif self.kv_type == "memory":
++                # VariKV（Stage 2b，本地新增）：被驱逐的 KV 吸收进分布式记忆而非丢弃。
++                # varikv_memory / varikv_M 由外部驱动脚本注入，见 attention/memcache.py
++                from attention.memcache import MemoryEvictCache
++
++                kv = MemoryEvictCache(
++                    self.model,
++                    evict_range,
++                    getattr(self, "varikv_memory", None),
++                    rope_inv_freq=getattr(self, "varikv_inv_freq", None),
++                    n_mem_per_head=getattr(self, "varikv_M", 16),
++                    absorb_enabled=getattr(self, "varikv_memory", None) is not None,
++                )
++                kv.detach_readback = getattr(self, "varikv_detach_readback", False)
+             elif self.kv_type == "hybrid_static":
+                 max_size = 190000
+                 kv = RetainHybridCache(self.model.model, evict_range, max_size)
+@@ -152,8 +182,20 @@ class ModelKVzip:
+                 raise NotImplementedError(f"type {self.kv_type} is not implemented")
+         return kv
+ 
+-    @torch.inference_mode()
+-    def prefill(
++    def prefill(self, *args, **kwargs):
++        """默认仍是 inference_mode；置 `self.varikv_train=True` 时放开梯度。
++
++        原实现直接用 @torch.inference_mode() 装饰。inference_mode 下创建的是
++        inference tensor，**永久**不能参与自动微分（退出上下文也不行），
++        所以要在这条管线里训练记忆模块，必须能绕开它。
++        （本地新增，Stage 2b；默认路径行为与上游完全一致。）
++        """
++        if getattr(self, "varikv_train", False):
++            return self._prefill_impl(*args, **kwargs)
++        with torch.inference_mode():
++            return self._prefill_impl(*args, **kwargs)
++
++    def _prefill_impl(
+         self,
+         ctx_ids: Union[str, torch.Tensor],
+         prefill_chunk_size: int = 16000,
+@@ -204,7 +246,9 @@ class ModelKVzip:
+                 kv.prune_chunk(chunk_ratio, (start_idx, end_idx), level)
+                 start_idx = end_idx
+ 
+-        if chunk_ratio < 1.0 and self.kv_type != "evict":
++        # "memory" 是 EvictCache 的子类（本地新增），kv.valid 同样是嵌套 list
++        # 而非张量，必须和 "evict" 一并排除，否则这里会按 RetainCache 的布局索引
++        if chunk_ratio < 1.0 and self.kv_type not in ("evict", "memory"):
+             valid = torch.ones_like(kv.valid[..., :window_size])
+             kv.valid = torch.cat([kv.valid, valid], dim=-1)
+             assert kv.valid.size(-1) == kv.ctx_len
+diff --git a/prefill/results/parse.py b/prefill/results/parse.py
+index fe9235a..39b4366 100644
+--- a/prefill/results/parse.py
++++ b/prefill/results/parse.py
+@@ -130,6 +130,12 @@ def sum_list_of_list(l):
+ 
+ 
+ def set_ratios():
++    # 本地新增：与 eval.py 的 VARIKV_RATIOS 覆盖配套（解析端也要认同一组比例，
++    # 否则自定义比例的结果会被静默解析成 0.00）。1.0 恒保留为参照系。
++    import os
++    env = os.environ.get("VARIKV_RATIOS")
++    if env:
++        return [1.0] + [float(x) for x in env.split(",")]
+     ratios = [1.0, 0.75, 0.5, 0.4, 0.3, 0.2]
+     return ratios
+ 
