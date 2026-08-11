@@ -1,0 +1,172 @@
+=== P0-B 报告 ===
+载入 20 样本 / 100 个 query，上下文 169014–169456 tok
+
+================================================================================================
+一、遗漏质量 M 的分布（逐 (层, q-head, token)，全部点）
+  M = D_E/(D_R+D_E)      n=4208512  mean=  0.31602  median=  0.22067  P90=  0.77032  P95=  0.86191  P99=  0.96537  max=  1.00000
+  C = ‖o_E−o_R‖          n=4208512  mean=  5.44109  median=  4.07858  P90= 11.73784  P95= 15.84976  P99= 26.23099  max= 66.54770
+  G = M·C (value 空间)     n=4208512  mean=  1.47925  median=  0.66076  P90=  3.41071  P95=  5.65240  P99= 12.85454  max= 54.08601
+  G_proj = ‖W_O·Δo‖      n=4208512  mean=  1.56986  median=  0.62019  P90=  3.54148  P95=  6.40613  P99= 15.27395  max= 70.21099
+
+二、条件分布：驱逐真正伤到行为的 query 上，M 是否更大？
+  M_mean         B∈top10% 均值    0.32950   B∈bottom50% 均值    0.31854   比值    1.03×
+  M_p90          B∈top10% 均值    0.76544   B∈bottom50% 均值    0.75991   比值    1.01×
+  C_mean         B∈top10% 均值    5.43714   B∈bottom50% 均值    5.43636   比值    1.00×
+  G_mean(value)  B∈top10% 均值    1.57666   B∈bottom50% 均值    1.46636   比值    1.08×
+  G_proj_max     B∈top10% 均值   23.86317   B∈bottom50% 均值   22.65820   比值    1.05×
+  G_proj_top10   B∈top10% 均值   17.73063   B∈bottom50% 均值   16.73183   比值    1.06×
+  G_proj_sum     B∈top10% 均值 1311.87758   B∈bottom50% 均值 1218.48820   比值    1.08×
+  G_layer_max    B∈top10% 均值   48.37428   B∈bottom50% 均值   44.78063   比值    1.08×
+  G_layer_mean   B∈top10% 均值   10.46751   B∈bottom50% 均值    9.89182   比值    1.06×
+
+三、token 级相关（每个 query token 一个观测，**不 flatten**）
+  观测数 n = 5368
+  spearman(B, G_mean (value 空间)   ) = -0.0308
+  spearman(B, G_proj_max          ) = +0.0297
+  spearman(B, G_proj_top10        ) = +0.0117
+  spearman(B, G_proj_sum          ) = -0.0232
+  spearman(B, G_layer_max         ) = +0.0170
+  spearman(B, G_layer_mean        ) = -0.0508
+  spearman(B, M_mean              ) = -0.1190
+  spearman(B, M_p90               ) = -0.1814
+  spearman(B, C_mean              ) = +0.1265
+
+四、逐层（G_proj 均值降序，前 10 与后 5）
+  layer     G_proj均值        M均值    G_layer均值
+     27      9.83818    0.44615     44.45411
+     26      6.46710    0.35614     37.39161
+     25      3.18117    0.26827     21.23005
+     21      2.17071    0.35067     16.37909
+     24      1.63194    0.17753     14.10862
+      9      1.61887    0.48563     12.15741
+     22      1.45972    0.26940     10.99972
+     23      1.35735    0.18735      9.89012
+     19      1.35316    0.32208      8.04602
+     14      1.32481    0.40346      8.78483
+     …
+      2      0.53754    0.62847      2.90967
+      3      0.47333    0.47915      2.70021
+      4      0.36260    0.23052      2.98933
+      1      0.18633    0.34833      1.90546
+      0      0.08018    0.34848      0.53166
+
+五、跨头相消：Σ_h‖W_O Δo_h‖  vs  ‖Σ_h W_O Δo_h‖
+  ‖Σ‖ / Σ‖·‖             n=150304   mean=  0.25261  median=  0.24818  P90=  0.31170  P95=  0.33226  P99=  0.43086  max=  0.51161
+  （≪1 ⇒ 跨头显著相消 ⇒ 逐头独立修正在对抗相消，见 v5 §1.6）
+
+六、三张联合图的数值版：按 M 分箱看 C 与 B
+
+  按 M_mean 五分箱：
+                        分箱     n     C_mean  G_proj_top10  G_layer_mean        B均值        B中位
+  [   0.1793,   0.2644]  1074     5.7160       14.0422        6.9636     0.4683     0.0944
+  [   0.2644,   0.3203]  1073     5.4680       16.9126        9.5125     0.5910     0.0352
+  [   0.3203,   0.3398]  1074     5.3481       17.7773       10.3329     0.5590     0.0042
+  [   0.3398,   0.3566]  1073     5.3246       17.8170       10.7583     0.5307     0.0025
+  [   0.3566,   0.4912]  1074     5.3487       18.5147       11.8035     0.5468     0.1172
+
+  按 G_proj_top10 五分箱：
+                        分箱     n     C_mean  G_proj_top10  G_layer_mean        B均值        B中位
+  [   6.1951,  13.6894]  1074     5.4805       11.6025        7.8688     0.4634     0.0320
+  [  13.6894,  15.5760]  1073     5.3368       14.6641        9.5192     0.4632     0.0499
+  [  15.5760,  17.5717]  1074     5.3792       16.4628        9.8408     0.5311     0.0470
+  [  17.5717,  20.4229]  1073     5.4756       18.9713       10.4894     0.5498     0.0206
+  [  20.4229,  40.3297]  1074     5.5333       23.3621       11.6525     0.6882     0.0852
+
+七、只看问题末 token（答案开始处），n = 100
+  B (末 token)            n=100      mean=  2.48461  median=  2.10927  P90=  5.85060  P95=  7.06099  P99=  9.62329  max= 10.77892
+  token 级 spearman：
+    spearman(B, G_proj_max      ) = -0.1750
+    spearman(B, G_proj_top10    ) = -0.1721
+    spearman(B, G_proj_sum      ) = -0.0824
+    spearman(B, G_layer_max     ) = -0.1238
+    spearman(B, G_layer_mean    ) = -0.0642
+    spearman(B, M_mean          ) = +0.0670
+    spearman(B, M_p90           ) = +0.0087
+    spearman(B, C_mean          ) = -0.2434
+  条件对比（末 token 内部，B 上四分位 vs 下半）：
+    M_mean         高B    0.26944   低B    0.26944   比值   1.00×
+    C_mean         高B    5.66005   低B    5.71172   比值   0.99×
+    G_proj_top10   高B   20.99957   低B   21.93520   比值   0.96×
+    G_layer_mean   高B   10.01858   低B   10.17383   比值   0.98×
+================================================================================================
+
+=== P0-B' top-head intervention Tue Aug 11 15:07:24 UTC 2026 ===
+[选头] top-5 by G_proj: L27H2(17.0671), L27H24(16.7468), L27H27(16.6897), L27H6(16.6301), L27H22(13.5583)
+[选头] 低 G_proj 对照:            L22H1(0.0000), L22H6(0.0000), L22H5(0.0000), L22H2(0.0000), L27H10(0.0000)
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.02it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.06it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.06it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.14it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.10it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: retain
+
+scbench_kv loaded, #data: 100
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:07,  1.40it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:07,  1.21it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:08,  1.03s/it]Prefill:  36%|███▋      | 4/11 [00:04<00:08,  1.26s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:09,  1.51s/it]Prefill:  55%|█████▍    | 6/11 [00:08<00:08,  1.79s/it]Prefill:  64%|██████▎   | 7/11 [00:11<00:08,  2.08s/it]Prefill:  73%|███████▎  | 8/11 [00:14<00:07,  2.38s/it]Prefill:  82%|████████▏ | 9/11 [00:17<00:05,  2.69s/it]Prefill:  91%|█████████ | 10/11 [00:21<00:03,  3.02s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  3.04s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.24s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-0: 169035 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:07,  1.33it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:07,  1.19it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.15it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.11it/s]Prefill:  45%|████▌     | 5/11 [00:04<00:05,  1.09it/s]Prefill:  55%|█████▍    | 6/11 [00:05<00:04,  1.05it/s]Prefill:  64%|██████▎   | 7/11 [00:06<00:03,  1.02it/s]Prefill:  73%|███████▎  | 8/11 [00:07<00:03,  1.00s/it]Prefill:  82%|████████▏ | 9/11 [00:08<00:02,  1.03s/it]Prefill:  91%|█████████ | 10/11 [00:09<00:01,  1.06s/it]Prefill: 100%|██████████| 11/11 [00:10<00:00,  1.06it/s]Prefill: 100%|██████████| 11/11 [00:10<00:00,  1.05it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-0: 169035 tokens, KV cache 9.7 GB, torch.bfloat16
+  样本0 问题0: none B[last]=0.5501  top B[last]=0.5620  low B[last]=0.5501
+  样本0 问题1: none B[last]=1.7341  top B[last]=1.5887  low B[last]=1.7341
+  样本0 问题2: none B[last]=4.5875  top B[last]=3.6386  low B[last]=4.5875
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  2.58it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.43it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:08,  1.04s/it]Prefill:  36%|███▋      | 4/11 [00:04<00:09,  1.40s/it]Prefill:  45%|████▌     | 5/11 [00:07<00:10,  1.76s/it]Prefill:  55%|█████▍    | 6/11 [00:09<00:10,  2.12s/it]Prefill:  64%|██████▎   | 7/11 [00:13<00:09,  2.49s/it]Prefill:  73%|███████▎  | 8/11 [00:16<00:08,  2.70s/it]Prefill:  82%|████████▏ | 9/11 [00:19<00:05,  2.92s/it]Prefill:  91%|█████████ | 10/11 [00:23<00:03,  3.18s/it]Prefill: 100%|██████████| 11/11 [00:26<00:00,  3.16s/it]Prefill: 100%|██████████| 11/11 [00:26<00:00,  2.42s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-1: 169258 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:07,  1.39it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:07,  1.23it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.17it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.12it/s]Prefill:  45%|████▌     | 5/11 [00:04<00:05,  1.09it/s]Prefill:  55%|█████▍    | 6/11 [00:05<00:04,  1.06it/s]Prefill:  64%|██████▎   | 7/11 [00:06<00:03,  1.03it/s]Prefill:  73%|███████▎  | 8/11 [00:07<00:02,  1.00it/s]Prefill:  82%|████████▏ | 9/11 [00:08<00:02,  1.03s/it]Prefill:  91%|█████████ | 10/11 [00:09<00:01,  1.06s/it]Prefill: 100%|██████████| 11/11 [00:10<00:00,  1.06it/s]Prefill: 100%|██████████| 11/11 [00:10<00:00,  1.06it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-1: 169258 tokens, KV cache 9.7 GB, torch.bfloat16
+  样本1 问题0: none B[last]=4.8733  top B[last]=3.6672  low B[last]=4.8744
+  样本1 问题1: none B[last]=0.0840  top B[last]=0.1063  low B[last]=0.0871
+  样本1 问题2: none B[last]=4.5017  top B[last]=3.2982  low B[last]=4.3908
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  2.56it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.43it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:07,  1.04it/s]Prefill:  36%|███▋      | 4/11 [00:04<00:08,  1.21s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:08,  1.48s/it]Prefill:  55%|█████▍    | 6/11 [00:08<00:08,  1.77s/it]Prefill:  64%|██████▎   | 7/11 [00:11<00:08,  2.07s/it]Prefill:  73%|███████▎  | 8/11 [00:14<00:07,  2.38s/it]Prefill:  82%|████████▏ | 9/11 [00:17<00:05,  2.70s/it]Prefill:  91%|█████████ | 10/11 [00:21<00:03,  3.03s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  3.05s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.22s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-2: 169016 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:07,  1.39it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:07,  1.23it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.17it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.13it/s]Prefill:  45%|████▌     | 5/11 [00:04<00:05,  1.09it/s]Prefill:  55%|█████▍    | 6/11 [00:05<00:04,  1.06it/s]Prefill:  64%|██████▎   | 7/11 [00:06<00:03,  1.03it/s]Prefill:  73%|███████▎  | 8/11 [00:07<00:03,  1.00s/it]Prefill:  82%|████████▏ | 9/11 [00:08<00:02,  1.03s/it]Prefill:  91%|█████████ | 10/11 [00:09<00:01,  1.06s/it]Prefill: 100%|██████████| 11/11 [00:10<00:00,  1.06it/s]Prefill: 100%|██████████| 11/11 [00:10<00:00,  1.06it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-2: 169016 tokens, KV cache 9.7 GB, torch.bfloat16
+  样本2 问题0: none B[last]=3.3153  top B[last]=2.6451  low B[last]=3.3090
+  样本2 问题1: none B[last]=2.8323  top B[last]=2.4020  low B[last]=2.8325
+  样本2 问题2: none B[last]=0.2609  top B[last]=0.2744  low B[last]=0.2410
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  2.56it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.44it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:07,  1.05it/s]Prefill:  36%|███▋      | 4/11 [00:04<00:08,  1.22s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:08,  1.49s/it]Prefill:  55%|█████▍    | 6/11 [00:08<00:08,  1.77s/it]Prefill:  64%|██████▎   | 7/11 [00:11<00:08,  2.06s/it]Prefill:  73%|███████▎  | 8/11 [00:14<00:07,  2.38s/it]Prefill:  82%|████████▏ | 9/11 [00:17<00:05,  2.70s/it]Prefill:  91%|█████████ | 10/11 [00:21<00:03,  3.03s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  3.05s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.22s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-3: 169238 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:07,  1.38it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:07,  1.23it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.17it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.13it/s]Prefill:  45%|████▌     | 5/11 [00:04<00:05,  1.09it/s]Prefill:  55%|█████▍    | 6/11 [00:05<00:04,  1.06it/s]Prefill:  64%|██████▎   | 7/11 [00:06<00:03,  1.03it/s]Prefill:  73%|███████▎  | 8/11 [00:07<00:02,  1.00it/s]Prefill:  82%|████████▏ | 9/11 [00:08<00:02,  1.03s/it]Prefill:  91%|█████████ | 10/11 [00:09<00:01,  1.06s/it]Prefill: 100%|██████████| 11/11 [00:10<00:00,  1.06it/s]Prefill: 100%|██████████| 11/11 [00:10<00:00,  1.06it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-3: 169238 tokens, KV cache 9.7 GB, torch.bfloat16
+  样本3 问题0: none B[last]=0.6311  top B[last]=0.6420  low B[last]=0.6321
+  样本3 问题1: none B[last]=1.1146  top B[last]=0.9626  low B[last]=1.1079
+  样本3 问题2: none B[last]=0.4258  top B[last]=0.4011  low B[last]=0.4274
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  2.59it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.44it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:07,  1.05it/s]Prefill:  36%|███▋      | 4/11 [00:04<00:08,  1.21s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:08,  1.48s/it]Prefill:  55%|█████▍    | 6/11 [00:08<00:08,  1.77s/it]Prefill:  64%|██████▎   | 7/11 [00:11<00:08,  2.07s/it]Prefill:  73%|███████▎  | 8/11 [00:14<00:07,  2.37s/it]Prefill:  82%|████████▏ | 9/11 [00:17<00:05,  2.70s/it]Prefill:  91%|█████████ | 10/11 [00:21<00:03,  3.03s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  3.05s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.22s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-4: 169084 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:07,  1.38it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:07,  1.23it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.17it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.13it/s]Prefill:  45%|████▌     | 5/11 [00:04<00:05,  1.09it/s]Prefill:  55%|█████▍    | 6/11 [00:05<00:04,  1.06it/s]Prefill:  64%|██████▎   | 7/11 [00:06<00:03,  1.03it/s]Prefill:  73%|███████▎  | 8/11 [00:07<00:03,  1.00s/it]Prefill:  82%|████████▏ | 9/11 [00:08<00:02,  1.03s/it]Prefill:  91%|█████████ | 10/11 [00:09<00:01,  1.06s/it]Prefill: 100%|██████████| 11/11 [00:10<00:00,  1.06it/s]Prefill: 100%|██████████| 11/11 [00:10<00:00,  1.06it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-4: 169084 tokens, KV cache 9.7 GB, torch.bfloat16
+  样本4 问题0: none B[last]=1.8957  top B[last]=1.7803  low B[last]=1.8957
+  样本4 问题1: none B[last]=1.8315  top B[last]=1.5070  low B[last]=1.8315
+  样本4 问题2: none B[last]=0.6925  top B[last]=0.5907  low B[last]=0.6925
+
+==============================================================================
+   arm    n    B[last]    B[mean]     B[max]      vs none
+  none   15     1.9554     0.5099     5.0610         0.0%
+   top   15     1.6044     0.5122     4.8708       -17.9%
+   low   15     1.9462     0.5091     5.0567        -0.5%
+==============================================================================
+判读：top 相对 none 的 B 显著下降 ⇒ 局部损伤是因果的、值得恢复；
+      几乎不变 ⇒ 局部损伤不是任务关键，整个后驱逐重建方向危险（v5 Q1）。
+CHAIN DONE Tue Aug 11 15:10:49 UTC 2026

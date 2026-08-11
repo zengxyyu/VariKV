@@ -134,6 +134,9 @@ def main():
     ap.add_argument("--level", default="pair")
     ap.add_argument("--probe", default="scratch_probe_damage.pt")
     ap.add_argument("--topk", type=int, default=5)
+    ap.add_argument("--curve", type=int, nargs="*", default=None,
+                    help="恢复曲线：给出若干 top-N（如 5 20 80），并自动加 all 与 low 对照。"
+                         "all 量的是'局部反事实修正能解释多少行为分歧'——即局部可修 vs 继承漂移")
     ap.add_argument("--n_samples", type=int, default=5)
     ap.add_argument("--n_queries", type=int, default=3)
     args = ap.parse_args()
@@ -156,7 +159,14 @@ def main():
     ds = load_dataset_all(args.data, m.tokenizer)
     dw = DataWrapper(args.data, ds, m)
 
-    arms = {"none": [], "top": top_heads, "low": low_heads}
+    if args.curve:
+        arms = {"none": []}
+        for n in args.curve:
+            arms[f"top{n}"] = pick_heads(args.probe, n, "top")[0]
+        arms["all"] = [(l, h) for l in range(L) for h in range(m.config.num_attention_heads)]
+        arms["low"] = low_heads
+    else:
+        arms = {"none": [], "top": top_heads, "low": low_heads}
     res = {k: [] for k in arms}
 
     for si in range(args.n_samples):
