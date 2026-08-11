@@ -1,16 +1,23 @@
 # VariKV 下一步：优化路线与待办
 
-> **v4**，2026-08-11（当天四轮外部评审后修订）。
+> **v5（冻结版）**，2026-08-11（当天五轮外部评审后修订）。
+> **这份文件到此冻结为 roadmap + 可被数据推翻的 hypotheses，不再继续纸上迭代。**
+> 继续改的边际价值已低于跑第一批真实诊断。
 > 目的：把"接下来做什么、为什么、做到什么程度算过关"固定下来，避免忘记或反复重推。
 > 相关：`CLAUDE.md`（实验记录）、`varikv_method_spec.md`（方法的代码级公式）、
 > `kv_inference_acceleration_2026.md`（竞品全景）。
 >
-> **v4 的五处关键修订**：
-> 1. 严格区分**局部反事实**（单一轨迹内、恒等式精确成立）与**全局轨迹分歧**（两次真实前向）。
-> 2. 修正"gap target 是 off-policy"这个说法——它其实是 on-policy 的，真正的问题是另外两条。
-> 3. H1 的核心改成**固定比特预算下的率-失真问题**：同样的 memory，存更多原型还是更少但更富的分布？
-> 4. MGF 误设诊断改为 **query 投影后的一维累积量残差**，不是原始 key 峰度。
-> 5. H2 之前必须先做**偏差-方差分解**——若偏差主导，贝叶斯后验方差是错的工具。
+> **v5 的五处关键修订**：
+> 1. **一切损伤量必须经 `W_O` 投影**。value 空间的 `‖Δo_h‖` 不能跨 head/layer 比较。
+>    **回溯后果：我们 `R_opt` 探针的"信号只在 layer 24/26/27"结论需带投影重算**（§1.6）。
+> 2. **`G` 与 `B` 的相关性不能 flatten**：784 个 `(l,h)` 点共享同一个 `B_t`，是伪重复（§4.2）。
+> 3. **固定 K 与 position-local clustering 在 `N→∞` 时冲突**，必须做 context-scaling oracle（§2.B.5）。
+> 4. **equal-bytes 要按实际 dtype 的运行时字节算**，不是 scalar 计数；且写入 FLOPs 与读出分开（§3.2）。
+> 5. **COBS (2607.09052) 已用累积量展开 + 每块二阶统计量估计 attention mass** ⇒
+>    我们剩下的新意收窄到**分子的联合 key–value 指数矩** + 等预算框架（§10）。
+>
+> v4 的五点（局部/全局分离、gap target 措辞修正、H1 改成率-失真、MGF 诊断改到 query 投影、
+> H2 前的偏差-方差检查）全部保留。
 
 ---
 
@@ -87,10 +94,42 @@ B(t) = KL( p_full(·|x≤t) ‖ p_FastKVzip(·|x≤t) )      全局行为分歧
 （在压缩轨迹上单独恢复某个 head 的 `o_all`，看最终 `ΔKL`）。第一阶段**只报 `B(t)`**，
 名字就叫 behavioral divergence，**不要叫 task sensitivity**；intervention 留到 §12.4。
 
+### 1.6 **一切损伤量必须经 `W_O` 投影**（v5 新增，最重要的一条）
+
+单个 head 产生 `o_h ∈ R^{d_head}`，但真正进入残差流的是拼接后过输出投影：
+
+```
+Δy = W_O · concat(Δo_1, …, Δo_H) = Σ_h W_O^{(h)} Δo_h
+```
+
+所以 **value 空间的 `‖Δo_h‖` 不能跨 head、跨 layer 比较**——某个 head 的 `‖Δo_h‖` 可以很大，
+而它对应的 `W_O^{(h)}` 块奇异值很小，实际贡献微乎其微；反之亦然。
+
+必须额外记录两个量：
+
+```
+G_proj(l,h,t)  = ‖ W_O^{(h)} Δo_{l,h,t} ‖              逐 head 投影后的损伤
+G_layer(l,t)   = ‖ W_O concat_h(Δo_{l,h,t}) ‖          整层进入残差流的扰动
+```
+
+`G_layer` 单独重要，因为**跨头扰动可以互相增强也可以互相抵消**，所以
+`Σ_h ‖W_O^{(h)}Δo_h‖` 绝不等于 `‖Σ_h W_O^{(h)}Δo_h‖`。
+
+**回溯后果：我们 `R_opt` 探针的结论需要带投影重算。** `scratch_probe_gap_target.py` 算的是
+**value 空间**的 MSE，正是未投影的量。所以"信号只在 layer 24 / 26 / 27，其余 22 层 <1%"
+这个今天被反复引用的分布**可能是投影缺失造成的假象**。重算前不要再拿它当依据。
+
+**一个设计层面的推论**：若实测 `‖Σ_h W_O^{(h)}Δo_h‖ ≪ Σ_h ‖W_O^{(h)}Δo_h‖`（跨头显著相消），
+那么**逐头独立修正是在跟相消作斗争**——每个头都"修对了"却可能让层输出更差。
+所有这类方法（ResKV / IndexMem / 我们）都是逐头独立的，这是一个未被讨论的共同弱点。
+
 ### 1.4 修正："gap target 是 off-policy" 这个说法不准确
 
-`_attn_gap` 的两项来自同一轨迹、同一 cache，**所以它是 on-policy 的局部反事实**。
-真正的问题是另外两条，都比"off-policy"更精确：
+`_attn_gap` 的两项来自同一轨迹、同一 cache，**所以它是"同状态反事实"（same-state
+counterfactual）目标**。
+（**术语**：不要用 on-policy / off-policy，那是 RL 词汇，容易纠缠。
+写 *same-state counterfactual attention target* 或 *trajectory-conditioned local counterfactual*。）
+真正的问题是另外两条：
 
 1. **轨迹已经漂移**：修好 `Δo_l` 只恢复"该层若能看到自己的被驱逐 KV 会输出什么"，
    **不恢复** `o_l^full`，因为进入该层的隐状态已经不是 full 的。局部恢复 ≠ 全局恢复。
@@ -168,6 +207,14 @@ log E[e^δ] = κ₂/2 + κ₃/6 + κ₄/24 + …     ⇒  ε_MGF = κ₃/6 + κ�
 **这直接回答"高斯失败是否因为高阶累积量"**，比"原始 key 峰度"强得多——
 key 分布在 128 维里可以很不高斯，而沿特定方向 `a` 近乎高斯。
 
+同时报归一化版本，看图更直观：
+
+```
+r_MGF = exp(ε_MGF) = E_emp[e^δ] / e^{Var(δ)/2}
+```
+
+`r=1` 精确；`r=2` 表示高斯把该 cluster 的分母**低估 2 倍**；`r=0.5` 高估 2 倍。
+
 若 `ε_MGF ≈ 0` ⇒ 二阶分布式摘要成立。若 `ε_MGF ≫ 0` 但 `κ₃/κ₄` 能显著修复 ⇒
 研究问题可升级为 **"重建被驱逐的指数注意力统计量需要几阶矩？"**（截断累积量展开）。
 **先测，不要先实现。**
@@ -188,9 +235,48 @@ MGF 里的 `k` 必须是**实际进入 score 的 key**，即 post-RoPE `k_p = R_
 `W·θ_j`——**低频维可容忍宽 cluster，高频维即使很小的 `W` 也会绕多圈**。所以可能需要
 **按 RoPE 频段分开处理**（高频维在平均后基本是噪声）。这也是一条设计线索。
 
+**但"高频/低频"必须从模型实际读，不能凭维度下标口头判断。** Qwen2.5-7B-**1M** 极可能带
+long-context RoPE scaling（YaRN 类），角频率 `θ_j` 与标准 RoPE 不同。
+代码里已经存了 `m.varikv_inv_freq = rotary_emb.inv_freq`，分析时直接用它。
+
 **后续可做的漂亮变体**：用 `|ε_MGF|` 过大来触发 cluster 分裂，即
 **adaptive cluster splitting by exponential-moment error** —— 目标对齐的是注意力指数矩误差，
 而不是欧氏失真。**不要第一版就加。**
+
+#### 2.B.5 **固定 K 与 position-local clustering 在长上下文下冲突**（v5 新增）
+
+两个需求在 `N→∞` 时不可兼得：
+
+- 要 `O(1)` 显存 ⇒ cluster 数 `K` 固定
+- 要减少 RoPE 相位混合 ⇒ cluster 的位置跨度 `W` 要小
+
+但固定 `K` 时 `W ~ N/K`：`N=128k, K=16 ⇒ W≈8000`；`N=1M ⇒ W≈62500`。
+固定 `W` 则 `K=O(N)`，固定预算的故事就没了。而 `ε_MGF` 很可能**随 `W` 系统性恶化**。
+
+**所以 P1 不能只扫 `W` 挑一个最好的，必须做 context-scaling oracle**：
+固定同一个 `K`，在 `N ∈ {16k, 32k, 64k, 128k}` 上测 `ε_MGF(N)` 与 `D_E` 重建误差。
+**若误差随 `N` 快速恶化 ⇒ 固定 K 的高斯 cluster 表示本身不具备长度可扩展性**，
+这比任何单点 128k 实验都重要。
+
+若真出现，四条出路：
+
+| 路线 | 做法 | 代价 |
+|---|---|---|
+| A. 固定 K + 在线合并 | 新 cluster 来了就合并两个，**合并准则用 `Δε_MGF` 或期望注意力重建失真**，不用欧氏距离 | 合并准则本身可能成为方法的一部分 |
+| B. 对数时间分箱 | age bins `1,2,4,8,…` ⇒ `O(log N)` | 不再严格 `O(1)`，但 KV Means 已提示固定状态在超长上下文可能不够，别为了 O(1) 硬撑 |
+| C. 位置感知充分统计量 | 保存与 RoPE 频率对齐的统计量 | 理论最漂亮、工程最复杂，**第一版不做** |
+| **D. 更多但更穷的 cluster**（我们自己补的） | 总字节固定，`N` 增大时用**更多、每个更简陋**的 cluster（如降 `r_c` 或去掉 `Σ_kk`） | **这正是 H1 的率-失真权衡沿上下文长度轴的应用**，且保住 `O(1)` 总预算 |
+
+路线 D 最自然：它把"固定预算下存原型还是存分布"这个问题从"给定 N"推广到"沿 N 变化"。
+
+#### 2.B.6 有限样本措辞
+
+`D̂_c = n_c·E_Gaussian[e^{aᵀk}]` **不是**对 cluster 内有限 token 集的精确恒等式，
+而是"把有限经验分布视为某高斯总体的样本，再用拟合分布的期望近似经验指数和"。
+论文写法：*Under a joint-Gaussian approximation to the within-cluster empirical key–value
+distribution, the omitted numerator and denominator admit closed-form exponential-moment
+estimates.* **不要**写 "Gaussian modeling analytically reconstructs `D_c`"。
+（与 §2.A 的 "sufficient statistics" 措辞问题同类。）
 
 #### 2.B.4 `Σ_kk` 是 aleatoric，不是 epistemic
 
@@ -213,6 +299,20 @@ MGF 里的 `k` 必须是**实际进入 score 的 key**，即 post-RoPE `k_p = R_
 **1 个高斯 cluster ≈ 5.5 个点 cluster 的存储。** 所以"16 高斯 vs 16 点"里高斯赢**不能**证明
 分布式更好——审稿人会直接说 *You simply gave the distributional representation ~5× more state.*
 
+**但 5.5× 是 scalar 计数，真实差距可能 >10×。必须按实际运行时字节和 dtype 算：**
+
+| 状态项 | 点原型 dtype | 高斯 dtype | 说明 |
+|---|---|---|---|
+| `count` | int32/fp32 | int32/fp32 | |
+| `μ_k` | bf16 可行 | **可能需 fp32** | |
+| `μ_v` | bf16 可行 | bf16 可行 | |
+| **方差累加器** | — | **必须 fp32** | 流式 `E[x²]−E[x]²` 在 bf16 下有严重相消误差 |
+| 低秩 `B = UVᵀ` | — | bf16/fp32 | |
+| cluster 元数据 | 位置边界 / age / assignment | 同 | **两边都要算进去，别漏** |
+
+所以 equal-bytes 表必须逐项列 dtype 与字节数，否则审稿人仍可攻击
+*equal scalars is not equal memory*。
+
 ### 3.2 必须做两种比较
 
 | 比较 | 设置 | 回答什么 |
@@ -220,7 +320,13 @@ MGF 里的 `k` 必须是**实际进入 score 的 key**，即 post-RoPE `k_p = R_
 | **same-K**（机制消融） | `K_dist = K_point` | 相同分组下，高阶矩本身是否有价值 |
 | **equal-bytes**（真正的 H1） | 如 8 高斯 vs ~44 点 | **同样比特，存更多原型还是更富的分布？** |
 
-再加 **equal-FLOPs**：MGF 读出除 `aᵀμ_k` 还要 `aᵀΣ_kk a` 和 `U(Vᵀa)`，算力也更大。
+再加 **equal-FLOPs，而且读写必须分开报**：
+
+- **读出（decode 侧）**：MGF 除 `aᵀμ_k` 还要 `aᵀΣ_kk a` 与 `U(Vᵀa)`。
+- **写入（prefill 侧）**：这是流式记忆，点原型写入约 `O(d)`，而高斯要维护 `μ, Σ, B`，
+  约 `O(d·r_c)` 甚至更多。**v4 只强调了读出 FLOPs，这是漏项。**
+
+系统表至少分 `prefill/write FLOPs` 与 `decode/read FLOPs` 两栏。
 inference 论文最终必须回答"同 memory / 同 latency 下谁最好"。ResKV 明确在**固定 KV 预算**下
 比较并报峰值显存与解码吞吐，这一维绕不过去。
 
@@ -252,9 +358,45 @@ ratio-1.0 分数逐字相同、不同 ckpt 不同（68.20/66.80/68.60/67.20/67.8
 
 `scbench_kv` @ ratio 0.1，20–30 样本。
 
-**局部**（在**同一轨迹**内，复用 `_attn_gap` 的结构）逐 `(l, h_kv, h_q, t)` 记录
-`M, C, G`。**全局**（两次真实前向）记录 `B(t)`。然后研究 `corr(G_{lht}, B_t)` 与
-`P(B_t | G_{lht})`。
+**局部**（在**同一轨迹**内，复用 `_attn_gap` 的结构）逐 `(l, h_kv, h_q, t)` 记录**五个量**：
+
+```
+M, C, G = M·C          （value 空间，保留：有明确的 attention-level 解释）
+G_proj  = ‖W_O^{(h)}Δo_h‖        ← v5 新增，跨 head/layer 唯一可比的量
+G_layer = ‖W_O concat_h(Δo_h)‖   ← v5 新增，含跨头相消
+```
+
+**全局**（两次真实前向）记录 `B(t)`。
+
+**首要要看的是 `G_proj` 与 `G_layer`，不是 `G`。** 若
+`corr(G_proj, B) ≫ corr(G_raw, B)`，那我们之前很多 layer/head 探针的"奇怪结论"就有解释了。
+
+#### 伪重复：`G` 与 `B` 的相关性绝不能 flatten
+
+对一个 token `t`，`B_t` 会被 28 层 × 28 q-head = **784 个点共享**。直接 flatten
+`(G_lht, B_t)` 报 Pearson/Spearman 是严重的伪重复，有效样本量被夸大近三个数量级。
+（同一类错误我们在 `absorb` 的 `n_eff_max` 上已经踩过一次。）
+
+正确做法两层：
+
+1. **query 级相关**：先聚合成每 token 一个观测，如 `G_t^max = max_{l,h} G_proj`、
+   `G_t^sum`、`G_t^{layermax}`，再算 `corr(G_t^agg, B_t)`。
+2. **head 级论断**：不用相关系数，用条件对比
+   `E[G_proj(l,h,·) | B ∈ top10%]` vs `E[G_proj(l,h,·) | B ∈ bottom50%]`。
+   真正的因果性交给 intervention（见 P0-B'）。
+
+### P0-B' Top-head intervention 【提前到这里做，不要拖到最后】
+
+这是最便宜的因果检验，`P0-B` 一出结果就做，只挑少量 head：
+
+- **正向**：在**压缩轨迹**上，把某 head 的输出换成它的 `o_all`，看最终 `ΔKL`。
+- **反向**（我们自己补的）：在**满缓存轨迹**上，把某 head 换成 `o_R`，看最终 `ΔKL`。
+  这一向隔离了该 head 驱逐的因果效应，不含压缩轨迹累积漂移的混淆。两向合起来给出上下界。
+
+挑选：top-`G_proj` 的 3–5 个、top-`G_layer` 的层、以及低 `G` 的对照。
+
+判读：`G` 大但 restore 后 `B` 几乎不变 ⇒ 局部损伤不是任务关键；`G` 中等但 restore 后
+`B` 掉 60% ⇒ 真正重要。**这比纯相关快得多，也硬得多。**
 
 **四条实现要求：**
 
@@ -272,10 +414,24 @@ ratio-1.0 分数逐字相同、不同 ckpt 不同（68.20/66.80/68.60/67.20/67.8
 
 ### P0-C 继承漂移 vs 局部损伤（我们自己加的一项）
 
-逐层同时测：(a) 进入该层的隐状态在 full 与 pruned 之间的分歧；(b) 该层的局部损伤 `G`。
-若**继承漂移在浅层就占主导**，那么逐层局部修正是在打一场必败的仗，修正必须放在最早的层。
+逐层同时测：(a) 进入该层的隐状态在 full 与 pruned 之间的分歧；(b) 该层的局部损伤 `G_proj`。
 
-这条直接关系到 `R_opt` 那个"信号只在 layer 24/26/27"的发现——在漂移累积的视角下那个分布很可疑。
+**测什么**（不要只测 `‖h^F−h^P‖`，Transformer 隐状态的 norm/旋转变动很大）：
+
+```
+相对漂移     D_h(l,t) = ‖h_l^F − h_l^P‖ / (‖h_l^F‖ + ε)
+方向         cos(h_l^F, h_l^P)
+post-RMSNorm 上面两项在 RMSNorm(h_l) 上再算一遍   ← 这才直接决定 q,k,v
+query 侧      ‖q_l^F − q_l^P‖ / ‖q_l^F‖           ← 比 raw hidden 更贴 attention 机制
+```
+
+**措辞要准确**：若继承漂移在浅层已占主导，结论**不是**"局部修正必败"——一个足够强的记忆
+理论上仍可能把 `f(h_l^P, M)` 拉回更好的区域，数学上并非不可能。准确说法是
+**"用独立定义的逐层局部 target 去恢复完整轨迹会变得越来越 ill-conditioned"**，
+真正的病根是 §1.4 第 2 条：上游一旦修正，下游 target 就过期。
+
+这条也直接关系到 `R_opt` 那个"信号只在 layer 24/26/27"的发现——在漂移累积 + 缺 `W_O` 投影
+（§1.6）双重视角下，那个分布很可疑，需要重算。
 
 ### P0-D SVD 谱（diagnostic，不作判据）
 
@@ -425,6 +581,8 @@ calibration curve、risk-coverage curve。**若 `u(q)` 与真实误差不相关 
 | **Tensor Cache** (2605.22884) | exact 滑窗 + 驱逐 KV 写入固定大小外积矩阵、learned gate | 未见 |
 | **IndexMem** (ICML'26) | learned indexer + fast-weight 矩阵 + stabilizer + 残差读出 | 未见 |
 | **Still** (2606.07878) | 冻结骨干 + 小 compactor + 单次前向，8×–200× | 未见 |
+| **COBS** (2607.09052, 07-10) | **累积量展开近似 attention mass**；指出已有方法困于一阶；**每块存压缩的二阶统计量**。32k RULER：NSA 0.2999 → **0.8195**（补上 dense 0.9040 差距的 86%），KV 读流量 1.21× NSA。**只做分母/质量，用于 block selection，不重建 value** | 未见 |
+| **MGF-softmax（同态加密）** (2602.01621) | 用 MGF 近似 softmax 分母 | — |
 | **Attention Matching** (2602.16284) | 免训练闭式匹配 attention 输出/质量，最高约 50× | **有（MIT）** |
 
 **四个后果：**
@@ -432,7 +590,14 @@ calibration curve、risk-coverage curve。**若 `u(q)` 与真实误差不相关 
 1. **`1−λ` 已被 QEvict 命名 "Future Missed Mass"** ⇒ 测它是复现别人的诊断；必须引用，**别用那个名字**。
 2. **"evicted KV → matrix associative memory" 不是新点**（Tensor Cache / IndexMem）。
 3. **"uncertainty-aware KV cache" 也不够**（RetentiveKV / InfoKV 已用熵）。
-4. **除 Attention Matching 外都无代码** ⇒ 对照只能概念覆盖或自行重实现。
+4. **`ε_MGF` 的累积量推导和"二阶统计量估分母"也不是新点** —— **COBS 一个月前就做了**
+   （2026-07-10）。而且"用 MGF 近似 softmax 分母"这个想法本身在同态加密领域也已出现
+   （2602.01621）。**所以绝不能把"我们首次用 MGF/累积量处理 softmax"当作 novelty。**
+5. **除 Attention Matching 外都无代码** ⇒ 对照只能概念覆盖或自行重实现。
+
+**COBS 划定了我们剩余空间的边界，同时也支持这条路线**：它证明二阶块统计量能在 32k RULER 上
+补回 86% 的差距——机器是有效的，只要用在对的目标上。它没做的是**分子**：
+`Σ_{i∈E} e^{q·k_i} v_i`，以及 **key→value 关联**。
 
 **两处公平性表述必须收紧：**
 
@@ -447,10 +612,14 @@ calibration curve、risk-coverage curve。**若 `u(q)` 与真实误差不相关 
 
 ### 唯一可能独占的 claim
 
-> **H1**: *Fixed-budget exponential-moment reconstruction of evicted attention* — at equal state
-> bytes, does richer within-cluster distributional geometry (`Σ_kk`, key→value regression) yield
-> lower softmax reconstruction distortion than spending the same budget on additional point
-> prototypes?
+> **H1**: At a fixed residual-memory budget, does modeling **joint key–value exponential moments**
+> — i.e. `E[v e^{aᵀk}] = (μ_v + BΣ_kk a)·exp(aᵀμ_k + ½aᵀΣ_kk a)`, which reconstructs the omitted
+> **numerator** and the key→value association, not only the mass — improve reconstruction over
+> allocating the same bytes to additional point prototypes?
+
+**"joint key–value" 这四个字是必须的**：COBS 已占 key 侧累积量（分母/质量），
+ResKV 已占分子/分母残差，MomentKV 已占 key-value 协方差的一阶校正。
+我们的组合必须真正产生一个**解析上不同的估计器**，而 `BΣ_kk a` 那一项是唯一的候选。
 >
 > **H2**: Is the reconstruction error *predictable* (empirically calibrated, not necessarily
 > Bayesian-posterior), and does that prediction improve when/how much the residual is trusted?
@@ -525,6 +694,17 @@ summaries retain the within-gist covariance required for cue-dependent reconstru
   ②顺序修正使后续层的 target 过期。见 §1.4。
 - ~~`T(t)=KL(p_full‖p_FKV)` 是 layer/head 的任务敏感度~~ —— 它是 **token 级全局行为分歧**，
   改名 `B(t)`；真正的敏感度要 Jacobian 或 head intervention。见 §1.3。
+- ~~value 空间的 `‖Δo_h‖` 可以跨 head/layer 比较~~ —— **不能**，必须经 `W_O` 投影。
+  **`R_opt` 探针的"信号只在 layer 24/26/27"结论因此需要重算**。见 §1.6。
+- ~~可以把 `(G_lht, B_t)` flatten 起来算相关~~ —— 784 个 `(l,h)` 点共享一个 `B_t`，
+  伪重复。先聚合到 token 级。见 P0-B。
+- ~~"`ε_MGF` / 累积量展开是我们的新推导"~~ —— **COBS (2607.09052) 一个月前就做了**
+  （二阶块统计量估 attention mass）；MGF 近似 softmax 分母在同态加密领域也已出现。
+- ~~`D̂_c = n_c·E_Gaussian[e^{aᵀk}]` 是解析恒等式~~ —— 是对**有限经验分布**的高斯近似，
+  措辞见 §2.B.6。
+- ~~继承漂移大 ⇒ 逐层局部修正"必败"~~ —— 太绝对。准确说法是"用独立定义的局部 target
+  恢复完整轨迹会越来越 ill-conditioned"，病根是上游修正使下游 target 过期。
+- ~~固定 K 与 position-local clustering 可以兼得~~ —— `N→∞` 时冲突（`W~N/K`）。见 §2.B.5。
 
 ### 12.4 待办：真正的 head 因果敏感度
 
@@ -547,27 +727,46 @@ summaries retain the within-gist covariance required for cue-dependent reconstru
 | 局部估计都好但下游不涨 | 局部重建与端到端效用错配 ⇒ teacher KL / trajectory 是主问题 |
 | teacher KL 后仍不涨 | 在 FastKVzip + 冻结 Qwen 这个设定下，整个后驱逐重建方向应停 |
 | bias² ≫ variance（§7.1） | H2 改做经验误差标定，不做贝叶斯后验 |
+| **`corr(G_proj,B) ≫ corr(G_raw,B)`** | 之前所有 value 空间的 layer/head 诊断都要重算（含 `R_opt`） |
+| **跨头显著相消**（`‖Σ_h W_O Δo_h‖ ≪ Σ_h‖W_O Δo_h‖`） | 逐头独立修正在对抗相消 ⇒ 需要层级联合修正，这是所有同类方法的共同弱点 |
+| **`ε_MGF(N)` 随 N 快速恶化** | 固定 K 的高斯 cluster 无长度可扩展性 ⇒ 走 §2.B.5 的路线 D（更多更穷的 cluster） |
+| **intervention：`G` 大但 restore 后 `B` 不变** | 局部损伤非任务关键 ⇒ **整个后驱逐重建方向很危险** |
 
 ---
 
 ## 14. 立即可执行顺序
 
+**未来 24 小时压成四步，做完再决定是否正式实现 E1–E5：**
+
 ```
-1. 修 empty-memory 注入 bug                                        ~30 min（阻塞项）
-2. Local Damage × Global Divergence 探针（复用 _attn_gap 结构）
+1. 修 empty-memory 注入 bug                                     ~30 min（阻塞项）
+2. Local counterfactual probe（复用 _attn_gap 结构）
    scbench_kv @0.1，20–30 样本，逐 (l,h_kv,h_q,t)
-   logsumexp 算 M；报 median/P90/P95/P99/max + heatmap + E[M|B top10%]
-   出三张联合图                                                     ~2 h  ★分水岭
-3. 继承漂移 vs 局部损伤（P0-C）                                     ~1 h
-4. SVD 谱 heatmap                                                  ~30 min
-5. 先把 equal-bytes 预算表算清楚，定下高斯的 K 与点 baseline 的 K   ~30 min（纸上）
-6. 免训练局部统计 oracle E0→E5（含 E1b equal-bytes）
-   + ε_MGF 诊断 + position-local clustering 的 W 扫描              ~半天
-7. 最优 1–2 个表示，免训练跑 scbench_kv @0.1                        ~1 GPU-h
-   └ HRR ≳ 21%（32.6→40+）才继续
-8. M2 / M6 的 teacher KL                                           各 ~1 h 训练
-9. 只有 H1 成立才做 M7（§7.1 的偏差-方差前置检查 → §7.3 标定）
-10. 最后才扩 LongBench/RULER、多模型、系统效率
+   记录 M, C, G, **G_proj, G_layer**；全局 B(t)
+   logsumexp 算 M；报 median/P90/P95/P99/max + heatmap
+   相关性**先聚合到 token 级**，不 flatten                        ~2–3 h
+3. **Top-head intervention**（正向 + 反向，各 3–5 个 head）        ~1 h  ★最硬的因果检验
+4. MGF feasibility probe：只算 ε_MGF / r_MGF，不实现方法
+   看 W、N、RoPE 频段对它的影响（含 context-scaling）             ~2 h
+```
+
+**这四步要回答三个问题，每个都是潜在的 NO-GO：**
+
+| Q | 问题 | 若答案为否 |
+|---|---|---|
+| **Q1** | FastKVzip 的失败是否真的伴随 `G_proj > 0`，且 intervention restore 有因果收益？ | **整个后驱逐重建方向很危险** |
+| **Q2** | 在 relevant query 上 `r_MGF ≈ 1` 吗？ | **高斯 H1 很危险** |
+| **Q3** | 这个近似在 `16k → 128k` 上稳定吗？ | **固定 K 的高斯残差不适合长上下文设定** |
+
+**之后**（仅在上面过关时）：
+
+```
+5. 算清 equal-bytes 预算表（含 dtype 与元数据），定 K_dist 与 K_point   ~30 min（纸上）
+6. 免训练局部统计 oracle E0→E5（含 E1b equal-bytes）                  ~半天
+7. 最优 1–2 个表示，免训练跑 scbench_kv @0.1；HRR ≳ 21% 才继续         ~1 GPU-h
+8. M2 / M6 的 teacher KL                                             各 ~1 h 训练
+9. 只有 H1 成立才做 M7（§7.1 偏差-方差前置检查 → §7.3 标定）
+10. 最后才扩 LongBench/RULER、多模型、系统效率（读写 FLOPs 分开报）
 ```
 
 评测成本可压：比例从 5 个砍到 1–3 个省一半以上（固定开销只有一份满缓存前填）。
