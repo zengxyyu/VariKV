@@ -724,17 +724,30 @@ From the 9-dataset sweep (`ckpt_stage2b_matched`, KV-injection read-out, 27 jobs
 
 `scbench_kv` (169,035-token contexts, 100 samples), absolute accuracy, paired bootstrap vs the `rb` baseline. Report script: `scratch_kvres_report.py` (self-checks its per-sample parse against `results.parse`'s absolute rows).
 
-| ratio | baseline | `ckpt_stage2b_res` dist (gate σ 0.186) | same, point (σ 0.287) | `gap_*` (σ 0.014–0.032) |
-|---|---|---|---|---|
-| 0.75 | 68.80 | 11.00 (−57.80★) | 11.20 (−57.60★) | not run |
-| 0.5 | 71.60 | 4.60 (−67.00★) | 3.60 (−68.00★) | not run |
-| 0.4 | 66.40 | 5.00 (−61.40★) | 3.00 (−63.40★) | not run |
-| 0.3 | 65.40 | 9.60 (−55.80★) | 2.60 (−62.80★) | not run |
-| 0.2 | 45.20 | 8.60 (−36.60★) | 2.60 (−42.60★) | not run |
-| 0.1 | 32.60 | 7.60 (−25.00★) | 0.80 (−31.80★) | 30.60 / 32.00 / 32.40, none separated |
-| 0.05 | 2.00 | 0.80 | 0.40 | 2.20 (baseline itself is at the floor) |
+**The `gap_*` column is complete as of 11:22 UTC 2026-08-11** — `scratch_gapstd_eval.sh`, three ckpts × 100 samples × the standard interval, 7h10m on 3 GPUs, all `Finished.`.
 
-★ = 95% CI excludes zero. So the residual read-out **softened** the collapse on `many_shot` (−5…−18) but does nothing of the kind on retrieval data: with the gate actually open it is −56…−68. The earlier conclusion "KV injection was the whole cause of the 30–45 point collapse" must be narrowed to "…on `many_shot`". The dichotomy stands unchanged: **gate closed ⇒ baseline, gate open ⇒ much worse, training ⇒ closes the gate.**
+| ratio | baseline | `stage2b_res` dist (σ 0.186) | same, point (σ 0.287) | `gapf` dist (σ 0.032) | `gapr` dist (σ 0.014) | `gapr` point (σ 0.024) |
+|---|---|---|---|---|---|---|
+| 0.75 | 68.80 | 11.00 (−57.80★) | 11.20 (−57.60★) | 67.40 (−1.40) | 68.60 (−0.20) | 69.00 (+0.20) |
+| 0.5 | 71.60 | 4.60 (−67.00★) | 3.60 (−68.00★) | 67.80 (**−3.80★**) | 71.40 (−0.20) | 72.20 (+0.60) |
+| 0.4 | 66.40 | 5.00 (−61.40★) | 3.00 (−63.40★) | 63.20 (**−3.20★**) | 67.00 (+0.60) | 66.20 (−0.20) |
+| 0.3 | 65.40 | 9.60 (−55.80★) | 2.60 (−62.80★) | 64.00 (−1.40) | 65.60 (+0.20) | 66.80 (+1.40) |
+| 0.2 | 45.20 | 8.60 (−36.60★) | 2.60 (−42.60★) | 43.80 (−1.40) | 45.60 (+0.40) | 46.00 (+0.80) |
+| 0.1 | 32.60 | 7.60 (−25.00★) | 0.80 (−31.80★) | 30.60 (−2.00) | 32.00 (−0.60) | 32.40 (−0.20) |
+| 0.05 | 2.00 | 0.80 | 0.40 | 2.20 | 2.20 | 2.20 (baseline is at the floor) |
+
+★ = 95% CI excludes zero.
+
+**This is the decisive cell, and it is a null result.** `scbench_kv` is the *only* dataset with real headroom inside the paper's ratio range (23 absolute points at ratio 0.2). The three current ckpts land exactly on the baseline there: across `gapr`'s ten cells the largest deviation is +1.40 and **not one is separated**. There is no longer a "wrong dataset / no headroom" escape.
+
+Two regularities now replicated on four datasets:
+
+- **Gate closed ⇒ baseline, gate open ⇒ worse, training ⇒ closes the gate.** Holds on `many_shot`, `scbench_kv`, `prefix_suffix` and the low-ratio interval.
+- **The more open the gate, the worse the score.** `gapf` (σ 0.032) is the only config here with separated cells and both are negative; on `prefix_suffix` it loses 3.3–6.6 points where `gapr` (σ 0.014) loses 1.4–2.8. Monotone in the gate, on two independent datasets.
+
+**It also confirms the probe, and the two measurements are independent.** The 2026-08-11 probe put `R_opt` at 11–15% with the signal confined to 3 of 28 layers; a repair of that size, pushed through `o_proj`, is not measurable downstream — which is exactly this table. And note the direction *reverses* between the two: `gapf` looks **better** on the probe (R_opt 15.5% vs 11.0%) and is **worse** downstream. Fitting the attention gap more closely does not make the model more accurate — direct evidence that the `gap` objective is misaligned with the downstream metric, separate from the fact that its loss sits near the trivial solution.
+
+So the residual read-out **softened** the collapse on `many_shot` (−5…−18) but does nothing of the kind on retrieval data: with the gate actually open it is −56…−68. The earlier conclusion "KV injection was the whole cause of the 30–45 point collapse" must be narrowed to "…on `many_shot`".
 
 ### Measured: the `gap` loss is ~90% of the trivial solution, but the **gate is near-optimal and capacity is the real bottleneck**
 
@@ -804,7 +817,7 @@ It justifies skipping the standard interval for the `gap_*` ckpts with "gate-clo
 
 Both runs use the three `gap_*` ckpts with `--varikv_residual`, tags `gfsd` / `grsd` / `grsp` (distinct per ckpt because `gap_fix03/dist` and `gap_rand/dist` are both `dist` mode and result dirs carry only the mode).
 
-- `scratch_gapstd_eval.sh` — the three ckpts × `scbench_kv` × standard interval (0.75→0.2). 3 GPUs, ~208 s/sample, ETA ~10:00 UTC.
+- ~~`scratch_gapstd_eval.sh` — the three ckpts × `scbench_kv` × standard interval.~~ **Finished 11:22 UTC, 7h10m, all three `rc=0` — results in the table above.**
 - `scratch_gapsweep.py` — the three ckpts × the other 9 datasets, 27 jobs, marker-resumable, longest-first. Baselines are **not** re-run (the `_full` tag from `scratch_stage2b_sweep.py` is the same configuration). 56.7 GPU-h total; workers on GPUs 0–2 wait for the `scbench_kv` run to print `ALL DONE` before taking work. ETA ~13:30–14:00 UTC.
 
 Measured per-dataset cost for one config over 5 ratios, useful for planning any future grid: `repoqa` 5.83 h, `prefix_suffix` 3.23, `mf` 2.97, `vt` 2.20, `summary` 1.88, `gsm` 1.19, `qa_eng` 0.60, `squad` 0.55, `choice_eng` 0.44 — **18.9 GPU-h per config for those 9**, plus ~5.8 h for `scbench_kv`.
