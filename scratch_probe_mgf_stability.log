@@ -1,0 +1,41 @@
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.67it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.67it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.69it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.84it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.78it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: retain
+
+scbench_kv loaded, #data: 100
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:08,  1.13it/s]Prefill:  18%|█▊        | 2/11 [00:02<00:09,  1.06s/it]Prefill:  27%|██▋       | 3/11 [00:03<00:09,  1.22s/it]Prefill:  36%|███▋      | 4/11 [00:05<00:10,  1.43s/it]Prefill:  45%|████▌     | 5/11 [00:07<00:10,  1.68s/it]Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.96s/it]Prefill:  64%|██████▎   | 7/11 [00:12<00:09,  2.25s/it]Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.57s/it]Prefill:  82%|████████▏ | 9/11 [00:19<00:05,  2.89s/it]Prefill:  91%|█████████ | 10/11 [00:23<00:03,  3.24s/it]Prefill: 100%|██████████| 11/11 [00:26<00:00,  3.25s/it]Prefill: 100%|██████████| 11/11 [00:26<00:00,  2.44s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-0: 169035 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:03,  1.11it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.02it/s]Prefill:  60%|██████    | 3/5 [00:02<00:02,  1.01s/it]Prefill:  80%|████████  | 4/5 [00:04<00:01,  1.03s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.41it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+样本0: W2048:600簇 W8192:160簇
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:04,  2.17it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:07,  1.24it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:08,  1.08s/it]Prefill:  36%|███▋      | 4/11 [00:04<00:09,  1.35s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:09,  1.63s/it]Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.93s/it]Prefill:  64%|██████▎   | 7/11 [00:12<00:08,  2.24s/it]Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.56s/it]Prefill:  82%|████████▏ | 9/11 [00:19<00:05,  2.89s/it]Prefill:  91%|█████████ | 10/11 [00:23<00:03,  3.24s/it]Prefill: 100%|██████████| 11/11 [00:26<00:00,  3.25s/it]Prefill: 100%|██████████| 11/11 [00:26<00:00,  2.40s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-1: 169258 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:03,  1.17it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.07it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.02it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.00s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+样本1: W2048:1200簇 W8192:320簇
+
+========================================================================================
+ε_MGF 的方差分解：簇内跨 query  vs  跨簇
+  W=2048   簇数=1200    ε均值中位= -0.0778  簇内 std 中位=  0.1323  跨簇 std=  0.8892  比值 within/across=  0.15
+  W=8192   簇数=320     ε均值中位= -0.0958  簇内 std 中位=  0.1431  跨簇 std=  0.8745  比值 within/across=  0.16
+========================================================================================
+判读：比值 ≪1 ⇒ ε 主要是簇属性 ⇒ **每簇存一个 log 校正标量可行**（几乎免费）。
+      比值 ≳1 ⇒ ε 是 (簇, query) 联合属性 ⇒ 存标量无用，必须读出时现算。
