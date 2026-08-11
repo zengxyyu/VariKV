@@ -13,11 +13,11 @@ A research workspace whose core contribution is `FreeEnergyMemory` — a probabi
 ## Two Codebases in This Workspace
 
 1. **The research module** (`memory_module.py`, `stage1/`, and the `.md` docs) — the local, hand-written work. This is what most edits touch. Local code and comments are written in Chinese; match that when editing.
-2. **`external/` — vendored upstream clones**, the code base for the active KV direction (each keeps its own `.git`; do not treat this repo as their parent):
-   - `external/FastKVzip/` — clone of `github.com/Janghyun1230/FastKVzip`. **This is the intended fork base for Path B.** The real eviction code to modify is `prefill/attention/kvcache.py` (676 lines, gate branch).
-   - `external/KVzip/` — clone of `github.com/snu-mllab/KVzip` (Fast KVzip's ancestor). Cleaner API sample; `demo.py` is the clearest end-to-end template.
-   - Neither is a dependency of `memory_module.py`; they are read/reproduced/modified per the KV plan. Note: FastKVzip ships **no LICENSE file** — clear code license with the author before publishing anything derived from it.
-   - The FastKVzip clone **already carries local edits** (loader fix, MRCR support) — see "Local modifications to the vendored FastKVzip clone" below before re-cloning or pulling.
+2. **`external/` — vendored upstream code, now committed into this repo** (changed 2026-08-11; previously excluded by `.gitignore`, and each clone kept its own `.git`. Both `.git` directories have since been **deleted**, so these are plain directories under this repo's history now — there is no upstream remote to diff or pull from):
+   - `external/FastKVzip/` — from `github.com/Janghyun1230/FastKVzip`. **This is the intended fork base for Path B.** The real eviction code to modify is `prefill/attention/kvcache.py` (676 lines, gate branch).
+   - `external/KVzip/` — from `github.com/snu-mllab/KVzip` (Fast KVzip's ancestor). Cleaner API sample; `demo.py` is the clearest end-to-end template. **Never modified by us.**
+   - Neither is a dependency of `memory_module.py`; they are read/reproduced/modified per the KV plan. FastKVzip ships **no LICENSE file** and is still a preprint; it has nevertheless been pushed to `github.com/zengxyyu/VariKV` by the owner's decision.
+   - The FastKVzip tree **carries substantial local edits** (loader fixes, MRCR support, and the whole VariKV integration) — see "Local modifications to the vendored FastKVzip clone" below, and `patches/` for the replayable diff against upstream.
 
 **Path B insertion anchor** (verified in local source 2026-07-30): `external/FastKVzip/prefill/attention/kvcache.py`, class **`EvictCache`**, method **`_sample_cache` (lines 190-193)** — `mask = torch.cat(valid_list)` then `key_cache[layer_idx] = key_cache[layer_idx][mask]`. The `[~mask]` entries are dropped and stored nowhere; write them into the distributional memory *before* the mask is applied. Two caveats: (1) the layout is **per-head variable-length** (cache flattened to `[Σ_heads len_k_head, dim]`, boundaries in `cu_seqlens_k`), so evicted KV is not a rectangular tensor and the write must decide head/layer aggregation; (2) this path calls the AdaKV kernel, so `csrc` must be built (nvcc) first.
 
@@ -263,11 +263,21 @@ Adding memory **costs 15–25 points at every ratio**, and `point` ≥ `dist` at
 
 ### Local modifications to the vendored FastKVzip clone
 
-`external/FastKVzip/` keeps its own `.git` and has no LICENSE file. Local edits made so far — re-apply if it is ever re-cloned:
+**The vendoring situation changed on 2026-08-11 — read this before editing anything under `external/`.** The clones are now **committed into this repo** (commit `9914cc1`, 237 files, 9.2 MB), by the repo owner's decision, and both clones' own `.git` directories were **deleted**. Consequences:
+
+- **Upstream diff and pull are no longer possible.** The upstream commits at the moment of deletion were FastKVzip `e04afaa`, KVzip `5d84729`, recorded in `patches/fastkvzip_upstream_commit.txt`.
+- **`patches/fastkvzip_local.patch`** (176 added / 12 removed across 9 files) is the mechanically-replayable record of our edits to *upstream-tracked* files. **It is incomplete by construction**: the three files we *added* (`attention/memcache.py`, `attention/memcache_retain.py`, `eval_mrcr.py`) were untracked in the clone's git, so `git diff` never saw them. They are ordinary files in this repo now, so they are safe — but do not treat the patch as a full inventory.
+- **`patches/kvzip_local.patch` contains no code changes.** Its 178 lines are entirely the deletion of KVzip's own `.gitignore`; the KVzip clone has never been modified. (An earlier note claimed KVzip carried 178 lines of local modifications — that was a misreading of the patch.)
+- Both clones' own `.gitignore` files were deleted too. Harmless: this repo's root `.gitignore` still excludes `results/`, `*.pt` and `__pycache__/` recursively, which is why the 223 MB of eval outputs under `external/FastKVzip/prefill/results/` stayed out of the commit.
+- **The workflow is now "edit in place and commit".** There is no re-clone scenario to re-apply patches to. If you change an upstream file, refresh the patch (`cd external/FastKVzip && git diff` no longer works — regenerate by diffing against a fresh upstream clone in a temp dir, or just rely on this repo's history).
+- FastKVzip still ships no LICENSE and is still a preprint (arXiv 2601.17668). It is now pushed to `github.com/zengxyyu/VariKV` on `main`; that was the owner's call and is not to be re-litigated.
+
+Local edits, for orientation:
 
 | File | Change |
 |---|---|
-| `data/load.py` | pyarrow fallback for `scbench_mf_mid` and `squad` (datasets 4.x wrote their parquet; `Feature type 'List' not found` under datasets 3.6.0) |
+| `attention/attn.py` | **the residual read-out hook** — stashes the pre-`prepare` post-RoPE query as `_varikv_q` when `residual_mode`, then `attn_output += past_key_value.memory_residual(_varikv_q, layer_idx)` at line 149. **Called unconditionally**, with no "nothing absorbed yet" guard — this is the empty-memory injection documented in the 2026-08-11 section. Was missing from this table until 2026-08-11 |
+| `data/load.py` | pyarrow fallback for `scbench_mf_mid` and `squad` (datasets 4.x wrote their parquet; `Feature type 'List' not found` under datasets 3.6.0); `load_fineweb` takes `int(i)` (numpy.int64 indexing broke under datasets 3.6.0) |
 | `eval_chunk_mrcr.py` | honour `--num`; print `Finished.` |
 | `eval_mrcr.py` | **new file** — unchunked MRCR eval for the KVzip baseline |
 | `attention/memcache.py` | **new file** — `MemoryEvictCache`, the VariKV integration (Stage 2b) |
