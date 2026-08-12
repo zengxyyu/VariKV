@@ -1002,6 +1002,63 @@ plain baseline that is +9.60 / +11.00. Two facts fall out:
   components; inverse-rotating re-imposes a single phase on components that are already
   decorrelated. Do not "fix" this.
 
+### The learned memory never reconstructs the evicted KV — measured, and it reframes everything
+
+`scratch_probe_forensic.py`, training-free, on the target 7B with the real gate.
+**Everything is compared in the read-out frame** — the learned slots are `apply_rope`'d
+to their position centroid exactly as `memory_residual` does at inference. This matters:
+`memcache_retain` stores keys **pre-RoPE** (inverse-rotated on write) while
+`centroid.py`'s default `post` mode stores them **post-RoPE**, and the two frames differ
+by 74–93%, so a raw `cos(k_i, k̂_j)` between them would measure rotation rather than
+content.
+
+| metric | | **Retr.KV** (memory scores **+21.60**) | **Retr.Prefix-Suffix** (memory −0.60) | random baseline |
+|---|---|---|---|---|
+| **A. addressability** `mean_i max_j cos(k_i, k̂_j)` | learned | **0.0810** | **0.0745** | **0.1545** |
+| | centroid | 0.7689 | 0.7829 | |
+| **C. value direction** `cos(m(q), o_E(q))` | learned | **−0.0124** | **0.0208** | ~0 |
+| | centroid | 0.7864 | 0.7910 | |
+
+(140 and 133 (layer, head, group) triples; the random baseline is `max` over 16 random
+unit vectors in R^128, which is 0.1545 — so **the learned memory is *below* chance**.)
+
+**The learned memory does not reconstruct the evicted KV, anywhere — including on the
+panel where it gains 21.60 points.** Its value output is orthogonal to the true evicted
+attention output (−0.0124 on Retr.KV, i.e. very slightly *anti*-aligned). The
+training-free centroid does reconstruct (0.77–0.79 on both) and gains only +11.00.
+
+So the project's narrative — "absorb the evicted KV and put the lost information back" —
+is **not what the working checkpoint does.** teacher KL only asks for a vector that moves
+the output distribution toward the full-cache model on the training query distribution;
+nothing in it asks the memory to preserve anything. It learned a highly task-specific
+lookup instead. Three previously separate facts fall out of this one:
+
+1. **Why learned beats faithful reconstruction on Retr.KV** (+21.60 vs +11.00): it is not
+   constrained to resemble the original KV, so it can emit whatever helps those queries.
+2. **Why it does not transfer**: the lookup is fitted to the training distribution; on
+   another task it is noise.
+3. **Why it costs 18.36 points on Retr.MultiHop**: injecting content-independent vectors
+   into a task where compression already helps is pure noise injection.
+
+**A pre-registered reading of mine is refuted by this.** The probe's criterion said "A low
+⇒ the `d_z=64` bottleneck is worth testing". Both panels have A at or below chance while
+one of them gains 21.60 downstream, so **A has no causal relation to the downstream
+score** and widening `d_z` would not make the memory reconstruct something the objective
+never asked for. To separate "cannot" from "was not asked to", train a plain autoencoder
+on evicted KV at the same `d_z=64` and same 16 slots and see whether it reaches the
+centroid's 0.78 — cheap, and it decides whether `d_z` is a real constraint or a red
+herring.
+
+**Consequence for the method.** Adding a structure term is now motivated by measurement
+rather than taste:
+
+    L = KL(p_full ‖ p_memory) + λ·L_structure
+
+where `L_structure` forces the thing the memory currently does not do at all, and the
+training-free centroid is a ready-made, faithful (0.78) teacher for it. Do not start this
+before v2b settles whether the +21.60 itself reproduces — if it does not, the premise
+("the lookup is extremely effective on Retr.KV") is not even established.
+
 ### Scheduler lesson
 
 Judging a GPU idle by "memory used < 2 GB" is wrong: an eval job's memory dips below

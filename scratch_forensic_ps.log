@@ -1,0 +1,35 @@
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.31it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.34it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.33it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.47it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.41it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: memory_retain
+
+scbench_prefix_suffix loaded, #data: 100
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:02<00:18,  2.64s/it]Prefill:  25%|██▌       | 2/8 [00:05<00:16,  2.68s/it]Prefill:  38%|███▊      | 3/8 [00:08<00:13,  2.70s/it]Prefill:  50%|█████     | 4/8 [00:10<00:10,  2.72s/it]Prefill:  62%|██████▎   | 5/8 [00:13<00:08,  2.75s/it]Prefill:  75%|███████▌  | 6/8 [00:16<00:05,  2.80s/it]Prefill:  88%|████████▊ | 7/8 [00:19<00:02,  2.83s/it]Prefill: 100%|██████████| 8/8 [00:20<00:00,  2.23s/it]Prefill: 100%|██████████| 8/8 [00:20<00:00,  2.54s/it]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-0: 112577 tokens, KV cache 6.5 GB, torch.bfloat16
+
+================================================================================================
+取证：scbench_prefix_suffix @ratio 0.1　样本 0　140 个 (层,头,组)　learned M=16，质心 16 块
+**全部在读出帧里比较** —— learned 槽已 apply_rope 到位置质心，与推理一致
+------------------------------------------------------------------------------------------------
+指标                                           learned          质心        倍数
+A. 可寻址性 mean_i max_j cos(k_i, k̂_j)           0.0745      0.7829     10.51×
+C. value 方向 cos(m(q), o_E(q))                 0.0208      0.7910     38.06×
+参考：真实 top-10% 被驱逐 token 占的质量                  0.8820
+================================================================================================
+判读：
+  A 明显更低 ⇒ **encoder/槽/decoder 洗掉了 key 身份** ⇒ d_z=64 瓶颈值得测
+  A 相当但 C 更低 ⇒ 寻址没坏、**value 重建/读出**坏了 ⇒ 改读出而非维度
+  两个都相当却下游不涨 ⇒ 问题在注入方式或选择性，不在表示
