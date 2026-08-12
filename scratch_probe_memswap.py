@@ -46,6 +46,7 @@ from data.load import load_dataset_all                   # noqa: E402
 from data.wrapper import DataWrapper, get_query          # noqa: E402
 from results.parse import parse_answer, evaluate_answer  # noqa: E402
 
+DBG = []
 STATE = ("mu", "logvar", "var_content", "pos", "_pos_tau")
 _MUTE = contextlib.redirect_stdout(io.StringIO())
 
@@ -76,7 +77,7 @@ def main():
     ap.add_argument("--ckpt", default="varikv/ckpt_kl/s2b_point_k16.pt")
     ap.add_argument("--gate_scale", type=float, default=0.5)
     ap.add_argument("--data", default="scbench_kv")
-    ap.add_argument("--n", type=int, default=8)
+    ap.add_argument("--n", type=int, default=8)   # 必须 ≥2，否则供体退化成自己
     ap.add_argument("--ratio", type=float, default=0.1)
     ap.add_argument("--keep_pos", action="store_true")
     a = ap.parse_args()
@@ -115,6 +116,8 @@ def main():
         for q in list(ds[i]["question"]):
             ids = m.apply_template(get_query("qa", q)).to(m.device)
             preds.append(m.generate(ids, kv))
+        if DBG:
+            print(f"      [{DBG[0]}] {preds[0][:52]!r}", flush=True)
         gold = ANSW[i] if ANSW else list(ds[i]["answers"])
         with _MUTE:
             return float(np.mean(evaluate_answer(preds, gold, a.data, "qa",
@@ -122,9 +125,8 @@ def main():
 
     rows = []
     for i in range(a.n):
-        j = (i + a.n // 2) % a.n            # 配对：拿另一条样本的记忆
-        if j == i:
-            j = (i + 1) % a.n
+        j = (i + 1) % a.n                   # 配对：拿**另一条**样本的记忆
+        assert j != i, "供体必须与受试不同（n=1 时旧逻辑会退化成自己）"
         # ① 供体：预填 j，快照它的记忆
         kv_j = dw.prefill_context(j, prefill_chunk=16000, window_size=4096,
                                   chunk_ratio=a.ratio, level="pair")
@@ -133,23 +135,35 @@ def main():
         # ② 正常：预填 i
         kv = dw.prefill_context(i, prefill_chunk=16000, window_size=4096,
                                 chunk_ratio=a.ratio, level="pair")
+        DBG[:] = ["正常"]
         s_norm = score(i, kv)
         S_i = snap(mem)
         # ③ 换成 j 的记忆（缓存仍是 i 的）
         restore(mem, S_j, keep_pos=a.keep_pos)
+        DBG[:] = ["换记忆"]
         s_swap = score(i, kv)
         # ④ 空记忆（清零但仍注入）
         zero_state(mem)
+        DBG[:] = ["空记忆"]
         s_empty = score(i, kv)
-        # ⑤ 基线：完全不注入
-        kv.residual_mode = False
-        s_base = score(i, kv)
-        kv.residual_mode = True
+        del kv; torch.cuda.empty_cache()
+        # ⑤ **真基线：必须重新预填一次、全程无记忆。**
+        # 不能只在生成时关 residual_mode —— 预填期间 attn.py 每个 chunk 都调过
+        # memory_residual，记忆因此已影响 hidden states → 门控分数 → 哪些 KV 被驱逐。
+        # 那样得到的是"记忆影响过的预填 + 生成时不读出"，实测比真基线高很多
+        # （样本 0：假基线 100.0，而 harness 的真基线是 60.0）。
+        _kt = m.kv_type
+        m.kv_type = "retain"
+        kv_b = dw.prefill_context(i, prefill_chunk=16000, window_size=4096,
+                                  chunk_ratio=a.ratio, level="pair")
+        m.kv_type = _kt
+        DBG[:] = ["真基线"]
+        s_base = score(i, kv_b)
+        del kv_b; torch.cuda.empty_cache()
         restore(mem, S_i)
         rows.append((i, j, s_base * 100, s_norm * 100, s_swap * 100, s_empty * 100))
         print(f"  样本{i}(供体{j}): 基线 {s_base*100:5.1f}  正常 {s_norm*100:5.1f}  "
               f"换记忆 {s_swap*100:5.1f}  空记忆 {s_empty*100:5.1f}", flush=True)
-        del kv; torch.cuda.empty_cache()
 
     A = np.array(rows)
     print("\n" + "=" * 78)
