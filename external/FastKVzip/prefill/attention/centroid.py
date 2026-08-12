@@ -33,11 +33,27 @@
    这是**忠实复现 E1b**：阶梯里的修正是在 query 前向上用 o_proj 钩子施加的，
    预填走的是普通剪枝预填。也顺带避免 16000-token chunk 上的额外注意力开销。
 2. **key 默认直接用缓存里的 post-RoPE key 做平均**（`rope_mode="post"`）。
-   E1b 就是这么做的，第一轮必须严格复现。注意这与 `CLAUDE.md` 的 RoPE 一节
-   有张力：post-RoPE key 的平均在一般情况下不是任何位置的合法 key（MemRoPE）。
-   它在这里能用，是因为簇是**位置局部**的，簇内相位跨度有界。
-   **后果：K 越大簇越窄 ⇒ 内容分辨率与相位一致性同时改善，容量曲线混淆两个效应。**
-   `rope_mode="inv"` 是分开它们的对照臂（逆旋到无位置帧再按位置质心旋回）。
+   E1b 就是这么做的，第一轮必须严格复现。但这**不是**因为它没问题 ——
+   `CLAUDE.md` 的 RoPE 一节说得对，post-RoPE key 的平均不是任何位置的合法 key。
+
+   **实测（2026-08-12，真实 `rope_theta=1e7`，`inv_freq` 跨 1.0 … 1.3e-7 rad/token）：**
+
+   | 簇宽 W | ‖post−inv‖/‖inv‖ | ‖平均 key‖ | 最快频相位跨度 |
+   |---|---|---|---|
+   | 64 | **0.739** | 1.415 | 10.2 圈 |
+   | 256 | 0.755 | 0.770 | 40.7 圈 |
+   | 2048 | **0.926** | 0.251 | 326 圈 |
+   | 16384 | 0.919 | 0.082 | 2608 圈 |
+
+   两条结论。**（a）"簇是位置局部的所以相位跨度有界"这个辩护是错的**：
+   最快的 RoPE 分量是 1.0 rad/token，任何宽于 ~6 个 token 的簇都已让它转满一圈，
+   到 W=64 就是 10 圈。高频那一半在任何实用簇宽下都完全去相关。
+   **（b）宽簇的主要代价其实是范数收缩**（1.42 → 0.08，17×）：方向随机的 key
+   相加互相抵消，质心的 logit 因此被系统性压低 —— 这与 P1 "更细的簇不降低簇内
+   打分离散度"是同一现象的两面。
+
+   ⇒ `rope_mode="inv"` 不是装饰性对照，两者差 74–93%，是**两个不同的向量**。
+   它同时也是分开"内容分辨率"与"相位一致性"两个效应的唯一手段。
 3. **簇 = 位置局部块，宽度 W 自适应倍增。** 块号 = pos // W；当占用块数将超过 K 时
    W 翻倍并把相邻两块合并（和与计数直接相加 ⇒ 合并无损）。这样无需预知上下文长度，
    收敛结果与 E1b 的固定宽度分块一致。
@@ -45,9 +61,19 @@
 **因果性**：被驱逐的全是 context token，全部先于 query token，且 harness 每问一次
 就 `slice()` 回滚，所以「簇只概括 i<t」自动成立。`assert_causal()` 把它钉死。
 """
+import sys
+from pathlib import Path
+
 import torch
 
 from .kvcache import RetainCache
+
+# eval_chunk.py 从 prefill/ 启动，仓库根不在 sys.path 上，`import varikv` 会失败。
+# 复用 varikv/rope.py 而不是在这里重抄一份 —— 那份实现验证过与 HF 的
+# apply_rotary_pos_emb 逐位相同（误差 0.00e+00），重抄有分叉风险。
+_ROOT = Path(__file__).resolve().parents[4]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
 
 
 class CentroidRetainCache(RetainCache):
@@ -152,9 +178,8 @@ class CentroidRetainCache(RetainCache):
             vv = v_all[0, h, pos].float()
             if self.rope_mode == "inv":
                 from varikv.rope import cos_sin_at, inverse_rope
-                cos, sin = cos_sin_at(self.inv_freq, pos.float().view(1, -1),
-                                      dtype=kk.dtype)
-                kk = inverse_rope(kk.view(1, 1, -1, kk.shape[-1]), cos, sin)[0, 0]
+                cos, sin = cos_sin_at(self.inv_freq, pos.float(), dtype=kk.dtype)
+                kk = inverse_rope(kk, cos, sin)          # [n,d] × [n,d]
             b = (pos // self.W).clamp_(max=self.K - 1)
             self.c_sum_k[layer_idx][h].index_add_(0, b, kk)
             self.c_sum_v[layer_idx][h].index_add_(0, b, vv)
@@ -179,8 +204,8 @@ class CentroidRetainCache(RetainCache):
         if self.rope_mode == "inv":
             from varikv.rope import cos_sin_at, apply_rope
             pbar = self.c_sum_p[layer_idx] / cnt.clamp_min(1.0)   # 位置质心
-            cos, sin = cos_sin_at(self.inv_freq, pbar, dtype=kbar.dtype)
-            kbar = apply_rope(kbar.unsqueeze(0), cos, sin)[0]
+            cos, sin = cos_sin_at(self.inv_freq, pbar, dtype=kbar.dtype)  # [H,K,d]
+            kbar = apply_rope(kbar, cos, sin)
         # 空簇用**大负有限值**而不是 −inf：一个头若所有簇都空，全 −inf 的行
         # 经 softmax 会得到 NaN，再乘 (1−λ)=0 仍是 NaN，会污染整个输出（实测踩到）。
         # −1e30 下 softmax 权重精确为 0、logsumexp 有限、λ 精确为 1，语义与 −inf 相同。
