@@ -46,6 +46,12 @@ class MemoryRetainCache(RetainCache):
         self._absorbed_upto = 0          # 已吸收到的 context 位置（绝对坐标）
         self.stats = {"absorbed": 0, "calls": 0}
         self.detach_readback = False
+        # 每 N 个 chunk 才截断一次记忆递归。**原先是每 chunk 无条件 detach**，
+        # 与 scratch_stage2b_train.py 顶部 docstring 承诺的 --detach_every 不符：
+        # 那样只有最后一个 chunk 的 absorb 计算图还连着 encoder，跨 chunk 的
+        # 「记忆如何影响后续轨迹」完全拿不到梯度。1 = 旧行为。
+        self.detach_every = 1
+        self._chunk_i = 0
         # 消融用：'normal' 正常读出；'zero' 把等效 KV 置零。
         # 置零后 key=0 ⇒ 所有 query 的 logit 恒为 0（仍分走 softmax 质量），
         # 而 value=0 ⇒ 对输出不贡献内容。用来把「抢注意力」与「内容有害」拆开。
@@ -120,11 +126,12 @@ class MemoryRetainCache(RetainCache):
         s, e = lo - self.sink, hi - self.sink     # self.valid 的坐标（不含 sink）
         if e <= s:
             return out
-        if self.train_write:
-            # 截断 BPTT：每轮开始前切断上一轮的图，否则 11 个 chunk × 28 层的
-            # encoder 激活会一路累积。梯度因此只经由**最后一个 chunk** 的 absorb
-            # 回传到 encoder —— 标准取舍，与训练侧 truncate_bptt 同一动机。
+        if self.train_write and (self._chunk_i % max(self.detach_every, 1) == 0):
+            # 截断 BPTT：切断上一段的图，否则 11 个 chunk × 28 层的 encoder 激活
+            # 会一路累积。detach_every=1 时梯度只经由**最后一个 chunk** 的 absorb
+            # 回传；调大它可让 encoder 看到跨 chunk 的记忆递归，代价是显存。
             self.mem.detach_state()
+        self._chunk_i += 1
         for l in range(self.n_layers):
             self._absorb_layer(l, s, e)
             self._refresh_memory(l)

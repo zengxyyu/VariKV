@@ -158,6 +158,7 @@ class ModelKVzip:
                 kv.readout_mode = getattr(self, "varikv_readout", "normal")
                 kv.residual_mode = getattr(self, "varikv_residual", False)
                 kv.train_write = getattr(self, "varikv_train", False)
+                kv.detach_every = getattr(self, "varikv_detach_every", 1)
             elif self.kv_type == "centroid":
                 # 带计数的点质心 + 归一化感知读出（P1 的 E1b），免训练。见 attention/centroid.py
                 from attention.centroid import CentroidRetainCache

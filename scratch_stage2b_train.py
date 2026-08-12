@@ -14,6 +14,7 @@ import sys
 import time
 from pathlib import Path
 
+import numpy as np
 import torch
 
 ROOT = Path(__file__).resolve().parent
@@ -43,8 +44,17 @@ def build(args):
         m.device, dtype=torch.float32          # 记忆用 fp32：bf16 下精度累加有
     )                                          # 5.98% 相对误差（CLAUDE.md）
     mem.reset(1, L * H, device=m.device, dtype=torch.float32)
+    # **真正冻结 backbone。** 原先只有 model.eval()，参数仍是 requires_grad=True，
+    # 于是目标段前向会为整个 7B 计算参数梯度（bf16 下 .grad 缓冲约 15 GB），
+    # 而 optimizer 只管 mem.parameters() => 这些梯度既没人用、也不会被 zero_grad
+    # 清掉。数学上不影响结果（没人读它们），但白烧显存，且与论文 frozen backbone
+    # 的说法不符。
+    for q in m.model.parameters():
+        q.requires_grad_(False)
     for p in mem.parameters():
         p.requires_grad_(True)
+    assert not any(q.requires_grad for q in m.model.parameters()), "backbone 未冻结"
+    assert any(p.requires_grad for p in mem.parameters()), "记忆参数未开梯度"
     m.varikv_memory = mem
     m.varikv_M = args.num_slots
     m.varikv_train = True                      # 绕开 prefill 的 inference_mode
@@ -52,6 +62,7 @@ def build(args):
     m.varikv_inv_freq = rot.inv_freq.detach().clone() if rot else None
     m.varikv_detach_readback = not args.residual   # 残差模式记忆不进 cache
     m.varikv_residual = args.residual
+    m.varikv_detach_every = args.detach_every
     if args.residual and args.init_ckpt:
         sd = torch.load(args.init_ckpt, map_location=m.device)["memory"]
         miss = mem.load_state_dict(sd, strict=False)
@@ -206,9 +217,30 @@ def main():
                          "KL(p_F‖p_P)；top 只用该量最大的一半位置")
     ap.add_argument("--kl_tau", type=float, default=1.0,
                     help="sensitive 权重的温度：w ∝ d_t^tau")
-    ap.add_argument("--ctx_pos", default="tail", choices=["tail", "random"],
+    # default=None 而不是 "tail"：help 说 kl 默认 random，但默认值写的是 tail，
+    # 忘记显式传参就会静默退回“永远训文档尾部”。改成按 obj 解析并打印出来。
+    ap.add_argument("--ctx_pos", default=None, choices=["tail", "random"],
                     help="上下文窗口取文档尾部还是随机位置。原 lm 目标只取尾部，"
-                         "监督位置因此毫无多样性；kl 目标默认 random")
+                         "监督位置因此毫无多样性；未指定时 kl 取 random、其余取 tail")
+    ap.add_argument("--seed", type=int, default=42,
+                    help="采样计划的种子。dist/point 两个 run 必须看到逐字相同的"
+                         "(文档, 起点, ratio) 序列，否则 ablation 混入采样噪声")
+    ap.add_argument("--detach_every", type=int, default=1,
+                    help="每 N 个 chunk 截断一次记忆递归。1 = 旧行为（只有最后一个 "
+                         "chunk 的 absorb 图连着 encoder）")
+    ap.add_argument("--min_chunks", type=int, default=1,
+                    help="跳过短于 N 个 chunk 的样本。实测 max_ctx=32768/chunk=16000 "
+                         "恒定只有 1 次驱逐 => 流式长程记忆根本没被测到")
+    ap.add_argument("--val_windows", type=int, default=8,
+                    help="固定验证窗口数。gap_v 只在开训前算一次，之后每 --val_every "
+                         "步只算 resid_v => 恢复率曲线不再被在线采样噪声淹没")
+    ap.add_argument("--val_every", type=int, default=100)
+    # 语料取用篇数。默认 29/5 = FastKVzip feature.py 写死的组成（论文 A.1）。
+    # 实测：fineweb_10k 的 68 篇**全部 <32,256 token**，所以在 chunk=16000 下
+    # 「一次以上的驱逐」只能来自 fineweb_10k_cat（10 篇，103k–122k）。
+    # 要训练流式记忆就必须 --n_short 0 --n_long 10。
+    ap.add_argument("--n_short", type=int, default=29)
+    ap.add_argument("--n_long", type=int, default=5)
     ap.add_argument("--steps", type=int, default=300)
     ap.add_argument("--lr", type=float, default=1e-4)
     ap.add_argument("--gate_lr", type=float, default=0.02,
@@ -218,6 +250,13 @@ def main():
     ap.add_argument("--out", default="varikv/ckpt_stage2b")
     ap.add_argument("--probe", action="store_true", help="只跑几步测显存")
     args = ap.parse_args()
+
+    if args.ctx_pos is None:
+        args.ctx_pos = "random" if args.obj == "kl" else "tail"
+        print(f"[cfg] --ctx_pos 未指定 => 按 obj={args.obj} 取 {args.ctx_pos}")
+    random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
 
     m, mem, cfg, G = build(args)
     params = [p for p in mem.parameters() if p.requires_grad]
@@ -239,12 +278,53 @@ def main():
     # （load_fineweb 里的 `total > 10**6` 只是加载器返回上限，
     #   训练实际只消费前 29 / 前 5 篇 —— 论文与代码并不矛盾。）
     train = []
-    for src_name, n_take in (("fineweb_10k", 29), ("fineweb_10k_cat", 5)):
+    for src_name, n_take in (("fineweb_10k", args.n_short),
+                             ("fineweb_10k_cat", args.n_long)):
+        if n_take <= 0:
+            continue
         for d in load_fineweb(src_name)[:n_take]:
             ids = m.encode(d["context"])[0].tolist()   # 与评测同口径 add_special_tokens=False
             train.append(realdata.RealSample(ids=ids, n_tokens=len(ids)))
     print(f"训练文档 {len(train)} 篇，共 {sum(x.n_tokens for x in train)/1e6:.2f}M token "
           f"(长度 {min(x.n_tokens for x in train)}-{max(x.n_tokens for x in train)})")
+
+    # **预生成采样计划**，而不是训练循环里现场 random。
+    # 原因：dist 与 point 是两个独立进程，各自的 random 状态不同，会抽到不同的
+    # (文档, 起点)，于是 "dist vs point" 的差里混着采样噪声。用同一个 seed
+    # 预生成同一份计划，两个 run 就看到逐字相同的数据。
+    need = args.max_ctx + args.target_len
+    rng = random.Random(args.seed)
+    n_steps = 5 if args.probe else args.steps
+    # 按 min_chunks 过滤：上下文至少要能切出 N 个 chunk，否则驱逐次数太少
+    need_ctx = max(args.min_chunks * args.chunk, 1)
+    pool = [i for i, s in enumerate(train) if s.n_tokens >= need_ctx + args.target_len]
+    if not pool:
+        raise SystemExit(f"没有文档长于 {need_ctx + args.target_len} token；"
+                         f"降低 --min_chunks 或 --chunk")
+    print(f"[计划] min_chunks={args.min_chunks} => 可用文档 {len(pool)}/{len(train)} 篇"
+          f"（需 ≥{need_ctx + args.target_len} token）")
+    sched = []
+    for k in range(n_steps):
+        di = pool[k % len(pool)]
+        L_doc = train[di].n_tokens
+        want = min(args.max_ctx, L_doc - args.target_len)
+        if args.ctx_pos == "random" and L_doc > want + args.target_len:
+            a = rng.randrange(0, L_doc - want - args.target_len)
+        else:
+            a = L_doc - want - args.target_len
+        r = (rng.choice(args.ratio_choices) if args.ratio_mode == "random"
+             else args.ratio)
+        sched.append((di, a, want, r))
+    # 固定验证窗口：gap_v 只算一次，之后每 val_every 步只算 resid_v
+    vrng = random.Random(args.seed + 1)
+    val_sched = []
+    for _ in range(args.val_windows):
+        di = pool[vrng.randrange(len(pool))]
+        L_doc = train[di].n_tokens
+        want = min(args.max_ctx, L_doc - args.target_len)
+        a = (vrng.randrange(0, L_doc - want - args.target_len)
+             if L_doc > want + args.target_len else 0)
+        val_sched.append((di, a, want, args.ratio))
 
     # 门必须用单独的、大得多的学习率。
     #
@@ -268,26 +348,52 @@ def main():
     ratio_hist = {}
     peak = 0.0
 
-    while step < (5 if args.probe else args.steps):
-        for s in train:
-            if step >= (5 if args.probe else args.steps):
-                break
-            ids = s.ids
-            need = args.max_ctx + args.target_len
-            if args.ctx_pos == "random" and len(ids) > need:
-                a = random.randrange(0, len(ids) - need)
-                ctx_ids = ids[a:a + args.max_ctx]
-                tgt = ids[a + args.max_ctx:a + need]
-            else:
-                ctx_ids = ids[-need:-args.target_len]
-                tgt = ids[-args.target_len:]
+    val_gap = None
+    while step < n_steps:
+        for _plan in [None]:      # 单次迭代的壳子：保留原缩进，避免大范围重排
+            di, a, want, cur_ratio = sched[step]
+            ids = train[di].ids
+            ctx_ids = ids[a:a + want]
+            tgt = ids[a + want:a + want + args.target_len]
             ctx_t = torch.tensor([ctx_ids], device=m.device)
             tgt_t = torch.tensor([tgt], device=m.device)
 
-            if args.ratio_mode == "random":
-                cur_ratio = random.choice(args.ratio_choices)
-            else:
-                cur_ratio = args.ratio
+            # ---- 固定验证窗口上的恢复率（去掉在线采样噪声）----
+            if args.obj == "kl" and (step % args.val_every == 0):
+                if val_gap is None:
+                    val_gap = []
+                    _kt0 = m.kv_type
+                    m.kv_type = "retain"
+                    for (vd, va, vw, vr) in val_sched:
+                        vi = train[vd].ids
+                        c = torch.tensor([vi[va:va + vw]], device=m.device)
+                        g = torch.tensor([vi[va + vw:va + vw + args.target_len]],
+                                         device=m.device)
+                        pf = _logprobs(m, c, g)
+                        pp = _logprobs(m, c, g, args.chunk, vr, args.window, args.level)
+                        val_gap.append((c.cpu(), g.cpu(), pf.cpu(),
+                                        float(_kl_rows(pf, pp).mean())))
+                        del pf, pp
+                    m.kv_type = _kt0
+                    print(f"[val] {len(val_gap)} 个固定窗口，"
+                          f"gap 均值 {np.mean([x[3] for x in val_gap]):.4f}", flush=True)
+                rs, gs = [], []
+                for (c, g, pf, gp) in val_gap:
+                    with torch.no_grad():
+                        kvv = m.prefill(c.to(m.device), prefill_chunk_size=args.chunk,
+                                        do_score=True, chunk_ratio=args.ratio,
+                                        window_size=args.window, level=args.level)
+                        lg = m.model(g.to(m.device),
+                                     past_key_values=kvv).logits[0, :-1].float()
+                    rs.append(float(_kl_rows(pf.to(m.device),
+                                             torch.log_softmax(lg, -1)).mean()))
+                    gs.append(gp)
+                    del kvv, lg
+                    torch.cuda.empty_cache()
+                print(f"[val] step {step:4d}  gap {np.mean(gs):.4f}  "
+                      f"resid {np.mean(rs):.4f}  "
+                      f"**恢复 {100*(1-np.sum(rs)/max(np.sum(gs),1e-9)):+.1f}%**",
+                      flush=True)
             mem.reset(1, G, device=m.device, dtype=torch.float32)
             opt.zero_grad(set_to_none=True)
             try:
@@ -325,9 +431,14 @@ def main():
                     logits = None
                     g_w = float((w * gap).sum())
                     r_w = float((w * resid).sum())
+                    # 也报 uniform：**不能只用训练所用的同一套权重给自己打分**，
+                    # 否则 sensitive 加权很容易只是在当前窗口上过拟合。
+                    g_u = float(gap.mean()); r_u = float(resid.mean())
+                    nch = kv.stats["calls"] / max(kv.n_layers, 1)
                     extra = (f" gap {g_w:.4f} resid {r_w:.4f} "
                              f"recov {100*(1-r_w/max(g_w,1e-9)):+.1f}% "
-                             f"gap_med {float(gap.median()):.4f}")
+                             f"(unif {100*(1-r_u/max(g_u,1e-9)):+.1f}%) "
+                             f"ch {nch:.0f}")
                     del pF, pP, qlog, resid, gap, w
                 elif args.obj == "gap":
                     # IndexMem 式目标：直接回归被驱逐造成的注意力缺口。
