@@ -898,6 +898,118 @@ Both runs use the three `gap_*` ckpts with `--varikv_residual`, tags `gfsd` / `g
 - ~~`scratch_gapstd_eval.sh` — the three ckpts × `scbench_kv` × standard interval.~~ **Finished 11:22 UTC, 7h10m, all three `rc=0` — results in the table above.**
 - `scratch_gapsweep.py` — the three ckpts × the other 9 datasets, 27 jobs, marker-resumable, longest-first. Baselines are **not** re-run (the `_full` tag from `scratch_stage2b_sweep.py` is the same configuration). 56.7 GPU-h total; workers on GPUs 0–2 wait for the `scbench_kv` run to print `ALL DONE` before taking work. ETA ~13:30–14:00 UTC.
 
+## 2026-08-12 — the teacher-KL round: one panel works, and nothing else does
+
+**Read `MODELS.md` for the checkpoint-by-checkpoint table.** This section records only
+what a future Claude must not re-derive.
+
+### What was built
+
+- **`--obj kl`** in `scratch_stage2b_train.py`: `L = Σ_t w_t·KL(p_full ‖ p_pruned+memory)`,
+  supervising ~255 positions after a randomly-placed context window instead of a
+  document's last 128 tokens. Every step also forwards a **pruned-but-memoryless**
+  reference so the log reports `gap = KL(p_F‖p_P)`, `resid = KL(p_F‖p_V)` and
+  `recov = 1−resid/gap`. That third number exists because of the gap-objective trap
+  (loss 0.003 was only 10–15% better than the trivial `m ≡ 0`); **never report a KL
+  loss without the size of its target beside it.**
+- **`attention/centroid.py`**: `CentroidRetainCache`, the training-free
+  count-aware-centroid estimator with normalization-aware read-out
+  (`r_j = a·k̄_j + log n_j`, `o = λ o_R + (1−λ) o_E`, `L_R` from flash's `softmax_lse`).
+  Four acceptance checks pass, including "swap the summary for the exact evicted set
+  ⇒ recovers full-cache attention to 3.7e-06".
+- Eval-time surgery switches: `--varikv_gate_scale`, `--varikv_gate_from`,
+  `--varikv_ablate {logvar,precision,eta}` (all enter the tag).
+
+### The one positive result, and its four limits
+
+`ckpt_kl/dist` on **Retr.KV** @ratio 0.1: 32.60 → **54.20** (+21.60, CI
+[+15.20,+27.60], HRR 60.7%). Same architecture and same eval as the `lm`-objective
+checkpoint that scored −43; only the objective changed. **So "was the training wrong"
+is answered: yes, it was a first-order cause.**
+
+Then it fails four ways:
+
+1. **It does not generalize.** Eight panels, each with its own same-batch ratio-0.1
+   baseline: **1 significantly positive, 1 significantly negative, 6 unseparated,
+   mean Δ +1.41.**
+2. **"No headroom" is not the excuse.** Retr.Prefix-Suffix (+41.40) and Code.RepoQA
+   (+46.35) have *more* headroom at ratio 0.1 than Retr.KV (+35.60) — their baselines
+   collapse to 8.60 and 12.71 — and the memory recovers nothing (−0.60, −0.71).
+   So the selectivity is about **what kind of content must be recovered**.
+3. **It actively harms a panel where compression helps.** **Retr.MultiHop**'s
+   ratio-0.1 baseline (49.47) beats full cache (41.07); the memory drags it to 31.11,
+   **−18.36★, ten points below full cache.** The design has no mechanism for deciding
+   whether to speak — the gate is one constant per (layer, kv-head) and never sees the
+   query. Same disease as the centroid run's 36-better/20-worse split.
+4. **It has not been reproduced.** `ckpt_kl_v2a` (fixed code, byte-identical sampling)
+   scores **−13.20★**. That run is confounded by a `min_chunks=1` default that silently
+   cut the corpus from 34 documents to 14, which is why `ckpt_kl_v2b` exists.
+
+### "Distributional beats point" now has zero support
+
+| | `dist − point` | training data |
+|---|---|---|
+| v1 | **+39.60 [+33.60,+45.80] ★** | sampling **not** matched (no seed, two processes) |
+| v2a | +2.80 [−1.40,+6.80] **unseparated** | byte-identical |
+| v2s | −2.60 [−5.80,+0.60] **unseparated** | byte-identical |
+
+The v1 gap was sampling noise plus gate amplitude: point's gate learns σ=0.265 against
+dist's 0.131, and point's generations are 48.9 characters against the baseline's 120.5
+— degenerate output. Combined with the four-way difference between the two modes
+(see `varikv/memory.py`'s header), **the claimed contribution remains unsupported.**
+
+### Two standing warnings this round produced
+
+- **Training-side metrics anti-correlate with downstream.** `ckpt_kl_v2a/dist` has the
+  best fixed-validation recovery of six checkpoints (**+10.5%**) and the worst
+  downstream score (**−13.20**); `ckpt_kl_v2s/dist` has the worst validation
+  (**−145.7%**) and is nearly neutral downstream (−2.00). A validation curve is not
+  evidence about a benchmark, not even directionally.
+- **Report absolute scores only when every arm has all its samples.** The paired Δ is
+  stable across subsets (+23.44 at n=93, +21.60 at n=100) while the absolute baseline
+  moves 29.68 → 32.60, because the intersection drops whichever samples the slowest
+  arm has not reached. Evaluation itself is deterministic (greedy decoding; verified
+  byte-identical across GPUs), so a changing number always means a changing sample set.
+
+### Streaming training made things worse, not better
+
+`max_ctx=32768 / chunk=16000` gives exactly 2 chunks and **one** eviction per step, so
+v1/v2a never exercised streaming at all (measured: 1.03 prune_chunk calls per prefill).
+`ckpt_kl_v2s` fixes that (10 long documents, 5 chunks, 4 evictions) and is **worse**:
+validation recovery −145.7% and downstream ≈ baseline. Corpus constraint worth knowing:
+**all 68 `fineweb_10k` documents are under 32,256 tokens**, so at chunk 16000 more than
+one eviction can only come from `fineweb_10k_cat`, which holds 10 documents of 103k–122k
+(not the 5 that `feature.py` takes). Hence `--n_short` / `--n_long`.
+`--detach_every 4` OOMs: `kl_to_mixture` builds a `[B,G,N,K]` tensor that is 7 GB alone
+at N=16000.
+
+### The training-free centroid arm is the one clean positive
+
+On Retr.KV @0.1 against an **equal-byte** control (spend the same bytes retaining more
+exact KV, ratio 0.1061 → 35.60): K=16 gives **+6.60★**, K=1024 **+8.00★**. Against the
+plain baseline that is +9.60 / +11.00. Two facts fall out:
+
+- **A count-aware centroid costs 257 scalars against an exact KV entry's 256**, so
+  "K centroids vs K exact KV" is a fair fight at every K, and retained is 16,903 per
+  (layer, kv-head) at ratio 0.1 — so even K=1024 is only +6.08% of the budget.
+- **Capacity is not the bottleneck**: 64× more capacity buys +1.40 points. What mattered
+  was the algebra — `log n_j` alone is worth **67×** in recovered missing mass (true
+  median 0.715, centroid estimate 0.239, drop `log n_j` and it collapses to 0.0037).
+- **Naive post-RoPE averaging beats the theoretically-correct position-free frame**
+  (+6.80 vs +1.20, the latter unseparated), even though the fastest `inv_freq` component
+  is 1.0 rad/token so any cluster wider than ~6 tokens fully decorrelates it. The
+  averaging acts as an implicit low-pass filter that keeps only the phase-coherent
+  components; inverse-rotating re-imposes a single phase on components that are already
+  decorrelated. Do not "fix" this.
+
+### Scheduler lesson
+
+Judging a GPU idle by "memory used < 2 GB" is wrong: an eval job's memory dips below
+that during generation, and a second job gets dispatched onto the same card (observed).
+Use `nvidia-smi --query-compute-apps` — process presence is binary — and require two
+readings 20 s apart. Also, two schedulers that both claim "the first free GPU" will
+race; give them disjoint candidate lists.
+
 ## Literature sweep 2026-08-11 — the objective is what is wrong, and two papers already did this correctly
 
 Run after the `scbench_kv` results above. Conclusion: **the architecture is fine and the niche is nearly closed; what we got wrong is the training objective (LM continuation instead of answer-side distillation) and the capacity schedule (fixed K instead of scaling with context).** Every claim below was read out of the paper, not inferred from a title. Full competitor analysis, with per-paper open-source status, is in `kv_inference_acceleration_2026.md`.
