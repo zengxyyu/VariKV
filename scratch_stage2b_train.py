@@ -60,6 +60,71 @@ def build(args):
 
 
 
+KL_DOC = """答案端多位置 teacher KL（--obj kl）
+
+**它回答的问题：当初 `lm` 目标的失败，有多少要归给目标本身？**（GPT 2026-08-12 的
+"平反实验"。架构一个字不改，只换监督。）
+
+原来的 `lm` 目标是对文档**最后 128 个 token** 做 CE。问题不在 CE 而在位置：
+局部窗口 (window_size) 是被强制保留的，而紧邻目标的上下文正是最强的预测因子，
+所以最后 128 个 token 基本不需要远处内容 —— 记忆对损失近乎无关，
+optimizer 最省事的解就是把门关掉。实测 σ(gate)=0.014，低于 0.018 的初值。
+
+teacher KL 换成的目标是：
+
+    L = Σ_t w_t · KL( p_F(·|x_<t) ‖ p_V(·|x_<t) )
+
+p_F 是**满缓存**的同一个冻结模型，p_V 是 FastKVzip 剪枝 + 记忆。这与研究目标
+直接对齐 —— 我们要补偿的正是"驱逐让冻结 LLM 的行为发生了什么变化"，
+而不是让 0.33M 参数去学 FineWeb 的语言建模。
+
+**本实现额外做一件 GPT 没提、但决定这个实验有没有意义的事：同时前向一份
+"剪枝但不带记忆"的参照 p_P，于是每步都能报出**
+
+    gap_t  = KL(p_F ‖ p_P)          驱逐真正造成的分布损伤（记忆的靶子）
+    resid_t= KL(p_F ‖ p_V)          记忆之后还剩多少
+    recov  = 1 − Σw·resid / Σw·gap  **记忆补回了百分之几**
+
+理由：`gap` 目标那次的教训是"loss 0.003"看着收敛、其实只比平凡解好 10–15%
+（P0_FINDINGS §4）。KL 损失有同样的陷阱，**必须把靶子的大小并排报出来**。
+而且 `gap_t` 本身就是判据：若 fineweb 文档尾部的 gap ≈ 0，那么
+**这份数据上任何目标都不可能有信号**，10 步就能知道，不必跑 1500 步。
+
+位置加权（`--kl_weight`）也来自同一诊断：`sensitive` 让权重 ∝ gap_t，
+把监督压到驱逐真正破坏了预测的位置上，这正是原目标缺的东西。
+"""
+
+
+def _kl_rows(pF_log, q_log):
+    """逐位置 KL(p_F‖q)，两个输入都是 log-softmax。返回 [T]。"""
+    pF = pF_log.exp()
+    return (pF * (pF_log - q_log)).sum(-1)
+
+
+@torch.no_grad()
+def _logprobs(m, ctx_t, tgt_t, chunk=None, ratio=None, window=None, level=None,
+              absorb=None):
+    """前向一段目标，返回 log_softmax [T-1, V]（预测 tgt[1:]）。
+
+    ratio=None ⇒ 满缓存（teacher）；否则分块剪枝预填。
+    absorb=False ⇒ 剪枝但**不吸收**（参照 p_P，用来量驱逐造成的损伤）。
+    """
+    if ratio is None:
+        kv = m.prefill(ctx_t, do_score=False)
+    else:
+        if absorb is not None:
+            m.varikv_absorb_override = absorb
+        kv = m.prefill(ctx_t, prefill_chunk_size=chunk, do_score=True,
+                       chunk_ratio=ratio, window_size=window, level=level)
+        if absorb is not None:
+            m.varikv_absorb_override = None
+    lg = m.model(tgt_t, past_key_values=kv).logits[:, :-1].float()
+    out = torch.log_softmax(lg[0], -1)
+    del kv, lg
+    torch.cuda.empty_cache()
+    return out
+
+
 def _grad_report(mem):
     """分模块梯度统计 + 门的分布。
 
@@ -105,7 +170,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="Qwen/Qwen2.5-7B-Instruct-1M")
     ap.add_argument("--gate", default="fastkvzip")
-    ap.add_argument("--obj", default="lm", choices=["lm", "gap"],
+    ap.add_argument("--obj", default="lm", choices=["lm", "gap", "kl"],
                     help="lm=语言建模CE；gap=回归注意力缺口(IndexMem式)")
     ap.add_argument("--residual", action="store_true",
                     help="输出端门控残差：记忆不进 cache")
@@ -134,6 +199,16 @@ def main():
     ap.add_argument("--chunk", type=int, default=2048)
     ap.add_argument("--window", type=int, default=256)
     ap.add_argument("--target_len", type=int, default=128)
+    # --- 答案端/多位置 teacher KL（2026-08-12 新增，见下方 KL_DOC） ---
+    ap.add_argument("--kl_weight", default="sensitive",
+                    choices=["uniform", "sensitive", "top"],
+                    help="按位置加权：uniform 全等权；sensitive 权重 ∝ 驱逐造成的 "
+                         "KL(p_F‖p_P)；top 只用该量最大的一半位置")
+    ap.add_argument("--kl_tau", type=float, default=1.0,
+                    help="sensitive 权重的温度：w ∝ d_t^tau")
+    ap.add_argument("--ctx_pos", default="tail", choices=["tail", "random"],
+                    help="上下文窗口取文档尾部还是随机位置。原 lm 目标只取尾部，"
+                         "监督位置因此毫无多样性；kl 目标默认 random")
     ap.add_argument("--steps", type=int, default=300)
     ap.add_argument("--lr", type=float, default=1e-4)
     ap.add_argument("--gate_lr", type=float, default=0.02,
@@ -198,8 +273,14 @@ def main():
             if step >= (5 if args.probe else args.steps):
                 break
             ids = s.ids
-            ctx_ids = ids[-(args.max_ctx + args.target_len):-args.target_len]
-            tgt = ids[-args.target_len:]
+            need = args.max_ctx + args.target_len
+            if args.ctx_pos == "random" and len(ids) > need:
+                a = random.randrange(0, len(ids) - need)
+                ctx_ids = ids[a:a + args.max_ctx]
+                tgt = ids[a + args.max_ctx:a + need]
+            else:
+                ctx_ids = ids[-need:-args.target_len]
+                tgt = ids[-args.target_len:]
             ctx_t = torch.tensor([ctx_ids], device=m.device)
             tgt_t = torch.tensor([tgt], device=m.device)
 
@@ -218,7 +299,37 @@ def main():
                 # 的读回：梯度经 loss → 目标前向 → 记忆KV → decoder 回传。
                 if not args.residual:
                     kv.refresh_with_grad()   # 残差模式记忆不在 cache，无需补写
-                if args.obj == "gap":
+                if args.obj == "kl":
+                    # ---- teacher（满缓存）与参照（剪枝但无记忆），都不带梯度 ----
+                    # 用 kv_type="retain" 拿 p_P：那就是评测基线本身，比加一个
+                    # absorb 开关更少假设。
+                    _kt = m.kv_type
+                    m.kv_type = "retain"
+                    pF = _logprobs(m, ctx_t, tgt_t)                    # 满缓存
+                    pP = _logprobs(m, ctx_t, tgt_t, args.chunk, cur_ratio,
+                                   args.window, args.level)            # 剪枝无记忆
+                    m.kv_type = _kt
+                    gap = _kl_rows(pF, pP)                             # [T-1]
+                    if args.kl_weight == "uniform":
+                        w = torch.ones_like(gap)
+                    elif args.kl_weight == "top":
+                        w = (gap >= gap.median()).float()
+                    else:
+                        w = gap.clamp_min(0).pow(args.kl_tau)
+                    w = w / w.sum().clamp_min(1e-9)
+                    # ---- student（带记忆，带梯度）----
+                    out = m.model(tgt_t, past_key_values=kv)
+                    qlog = torch.log_softmax(out.logits[0, :-1].float(), -1)
+                    resid = _kl_rows(pF, qlog)
+                    loss = (w * resid).sum()
+                    logits = None
+                    g_w = float((w * gap).sum())
+                    r_w = float((w * resid).sum())
+                    extra = (f" gap {g_w:.4f} resid {r_w:.4f} "
+                             f"recov {100*(1-r_w/max(g_w,1e-9)):+.1f}% "
+                             f"gap_med {float(gap.median()):.4f}")
+                    del pF, pP, qlog, resid, gap, w
+                elif args.obj == "gap":
                     # IndexMem 式目标：直接回归被驱逐造成的注意力缺口。
                     # 只跑 model.model（不需要 lm_head），损失由各层累加。
                     kv.collect_residual_loss = True
@@ -230,11 +341,13 @@ def main():
                         continue
                     loss = torch.stack(kv.residual_losses).mean()
                     out = logits = None
+                    extra = ""
                 else:
                     out = m.model(tgt_t, past_key_values=kv)
                     logits = out.logits[:, :-1].float()
                     loss = lossf(logits.reshape(-1, logits.size(-1)),
                                  tgt_t[:, 1:].reshape(-1))
+                    extra = ""
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(params, 1.0)
                 opt.step()
@@ -249,9 +362,9 @@ def main():
             if step % args.log_every == 0 or args.probe:
                 g = max((p.grad.abs().max().item() for p in params if p.grad is not None),
                         default=0.0)
-                print(f"step {step:4d} lm {loss.item():.4f} |g|{g:.1e} "
+                print(f"step {step:4d} {args.obj} {loss.item():.4f} |g|{g:.1e} "
                       f"{peak:.0f}GB {(time.time()-t0)/(step+1):.1f}s"
-                      + _grad_report(mem)
+                      + extra + _grad_report(mem)
                       + (f" r{cur_ratio}" if args.ratio_mode == "random" else ""),
                       flush=True)
             step += 1
@@ -264,7 +377,10 @@ def main():
     outd = Path(args.out); outd.mkdir(parents=True, exist_ok=True)
     ck = outd / f"s2b_{args.mode}_k{args.num_slots}.pt"
     torch.save({"memory": mem.state_dict(), "mode": args.mode,
-                "num_slots": args.num_slots, "model": args.model}, ck)
+                "num_slots": args.num_slots, "model": args.model,
+                # 训练配置必须随 ckpt 存：旧 ckpt 只有前四项，max_ctx/lr/steps/obj
+                # 都只能从日志副作用反推（CLAUDE.md 记过这个缺口）
+                "args": vars(args)}, ck)
     print(f"saved {ck}")
     if args.ratio_mode == "random":
         print(f"[ratio 分布] {dict(sorted(ratio_hist.items()))}")
