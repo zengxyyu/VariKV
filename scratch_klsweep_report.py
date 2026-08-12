@@ -46,15 +46,33 @@ DATASETS = [
     ("scbench_kv", +23.00), ("scbench_prefix_suffix", +10.80), ("gsm", +7.00),
     ("scbench_choice_eng", +6.95), ("scbench_many_shot", +4.82),
     ("scbench_repoqa", +0.91), ("squad", +0.56), ("scbench_vt", -5.02),
+    ("scbench_summary", +0.34), ("scbench_mf", +0.84), ("scbench_qa_eng", -4.63),
 ]
 _MUTE = contextlib.redirect_stdout(io.StringIO())
 
 
 def per_sample(data, suffix):
-    """→ ({idx: 剪枝分}, {idx: 满缓存分})；照抄 parse.py 的解析与打分。"""
+    """→ ({idx: 剪枝分}, {idx: 满缓存分})；照抄 parse.py 的解析与打分。
+
+    `suffix` 可以是**字符串或候选列表**。需要列表是因为同一个配置可能带着不同的
+    tag 落盘：七面板扫描用 `_kls_kl`，而后来补跑的三个面板走 p234 调度器，
+    它的 tag 由 job 名派生（`_fig11_<ds>_kl`）。两者是**同一个配置**（v1 dist、
+    ratio 0.1、chunk 16000 / window 4096 / level pair），所以合并是正确的；
+    重复出现同一个样本号会 assert，以防把两次不同的运行混成一个 arm。
+    """
     with _MUTE:
         ANSW, SUBT = parse_answer(data)
     task = "qa"
+    pr, fu = {}, {}
+    for suf in ([suffix] if isinstance(suffix, str) else suffix):
+        a, b = _scan_one(data, suf, task, ANSW, SUBT)
+        dup = set(a) & set(pr)
+        assert not dup, f"{data}: 样本 {sorted(dup)[:3]} 在多个 tag 下都有结果"
+        pr.update(a); fu.update(b)
+    return pr, fu
+
+
+def _scan_one(data, suffix, task, ANSW, SUBT):
     pr, fu = {}, {}
     i = 0
     miss = 0
@@ -108,8 +126,11 @@ def main():
     print("-" * 118)
     rows = []
     for ds, hr02 in DATASETS:
-        kl, klf = per_sample(ds, "_kls_kl_chunk16k_w4096_varikvdist16_res")
-        ba, baf = per_sample(ds, "_kls_base_chunk16k_w4096")
+        # 两套 tag：七面板扫描的 `_kls_*`，与 p234 补跑三个面板的 `_fig11_*`
+        kl, klf = per_sample(ds, [f"_kls_kl_chunk16k_w4096_varikvdist16_res",
+                                  f"_fig11_{ds}_kl_chunk16k_w4096_varikvdist16_res"])
+        ba, baf = per_sample(ds, [f"_kls_base_chunk16k_w4096",
+                                  f"_fig11_{ds}_base_chunk16k_w4096"])
         if ds == "scbench_kv":            # 这个数据集是另一批 tag 跑的
             kl, klf = per_sample(ds, "_klres_dist_chunk16k_w4096_varikvdist16_res")
             ba, baf = per_sample(ds, "_b01_chunk16k_w4096")
