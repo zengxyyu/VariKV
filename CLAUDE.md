@@ -495,7 +495,25 @@ The 5th row of the §11.3 degeneracy table (drop the KL term → Expected Attent
 
 Files: `config.py` (two switches + all hyperparameters), `memory.py` (slots, precision-weighted update, read-out, and `residual_gate` for the output-side path), `free_energy.py` (F_i, expected attention, amortised predictor), `cache.py` (chunked prefill → evict → absorb → read back), `rope.py` (inverse/forward rotation — see below), `realdata.py` (Stage 2a: fineweb-edu long-document loader + cache), `moment.py` (tier-3 MomentKV), `train.py`, `evaluate.py`.
 
-`point` and `dist` share **identical structure and parameter count** (verified equal) and run the same precision-weighted update — the only difference is whether the precision term carries information. That is what keeps the ablation clean: the sole independent variable is "does variance help".
+~~`point` and `dist` share identical structure and parameter count and run the same
+precision-weighted update — the only difference is whether the precision term carries
+information.~~ **Wrong, corrected 2026-08-12 by reading `memory.py:266-322`.** Parameter
+count is equal, but **four things change at once**:
+
+| | `dist` | `point` |
+|---|---|---|
+| observation precision | `τ_obs = exp(−logvar_q)` | `1` |
+| slot overwrite resistance | `τ_old = exp(−logvar)` | `1` |
+| **write strength** | **`η_i = σ(α·z(KL_i) − β)`, content-dependent** | **`σ(scalar)`, a learned constant** |
+| read-out | decoder sees `logvar`; `sample_on_read` active | mean only |
+
+The third row is the dangerous one: it is **surprise-gated writing, not distributional
+representation**. So `dist − point` is *not* a measurement of "does variance help" — it
+bundles an independent mechanism. **Any claim that the distributional memory beats the
+point memory requires a surgical ablation** (disable the logvar read / the precision
+terms / the KL-gated `η` one at a time). This matters right now because the
+teacher-KL result is `dist` 54.20 vs `point` 14.60, and that 39.6-point gap is
+currently attributable to at least four causes plus the gate-amplitude confound.
 
 ### Bugs that only surface at real scale — do not "simplify" these back
 
