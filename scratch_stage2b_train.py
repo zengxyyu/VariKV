@@ -228,9 +228,14 @@ def main():
     ap.add_argument("--detach_every", type=int, default=1,
                     help="每 N 个 chunk 截断一次记忆递归。1 = 旧行为（只有最后一个 "
                          "chunk 的 absorb 图连着 encoder）")
-    ap.add_argument("--min_chunks", type=int, default=1,
-                    help="跳过短于 N 个 chunk 的样本。实测 max_ctx=32768/chunk=16000 "
-                         "恒定只有 1 次驱逐 => 流式长程记忆根本没被测到")
+    # **默认必须是 0 = 真正不过滤。** 曾把默认设成 1，看着像"不过滤"，实际是
+    # "上下文至少 1 个 chunk = 16000 token"，把 34 篇里的 20 篇短文档全滤掉了
+    # （只剩 14 篇），于是 v2a 不是 v1+修复、而是 v1+修复+文档子集，
+    # 复现性判据被这个默认值悄悄破坏。
+    ap.add_argument("--min_chunks", type=int, default=0,
+                    help="要求上下文至少能切出 N 个 chunk（0 = 不过滤）。实测 "
+                         "max_ctx=32768/chunk=16000 恒定只有 1 次驱逐 => 流式长程"
+                         "记忆没被测到；要测它需要 --min_chunks 4 --n_short 0 --n_long 10")
     ap.add_argument("--val_windows", type=int, default=8,
                     help="固定验证窗口数。gap_v 只在开训前算一次，之后每 --val_every "
                          "步只算 resid_v => 恢复率曲线不再被在线采样噪声淹没")
