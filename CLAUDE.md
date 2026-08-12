@@ -813,16 +813,72 @@ Two further implications: the "gate → 0 gives an exact fallback" property is n
 
 It justifies skipping the standard interval for the `gap_*` ckpts with "gate-closed configs were already proven byte-identical to baseline by `rbkv`". `rbkv` loaded `ckpt_stage2b_retain`, whose gate sits at its **init** 0.018 and was never trained; the `gap_*` gates are trained (0.014 / 0.024 / 0.032, max 0.26–0.40, 4–12% of the 112 head-groups above 0.1). They are not the same configuration, and the measurement agrees — `gapf` reads 30.60 at ratio 0.1 where the baseline reads 32.60. Treat the standard interval for those ckpts as missing data, not as redundant.
 
+### The 9-dataset sweep (finished 2026-08-12) — the aggregate effect is exactly zero
+
+`scratch_gapsweep.py`, **27 of 27 jobs complete**, 56.7 GPU-h. The three `gap_*` ckpts ×
+9 datasets × 5 ratios, baselines reused from the `_full` tag (same configuration).
+Report: `scratch_gapsweep_report.py` (paired bootstrap on absolute scores, token-level;
+the report also handles partial runs by truncating both arms to the common sample count).
+Raw table: `scratch_gapsweep_results.log`.
+
+**Tally over 9 datasets × 5 ratios = 45 cells per config:**
+
+| config | gate σ | separated + | separated − | not separated | mean Δ |
+|---|---|---|---|---|---|
+| `gapf` dist | 0.032 | 4 | 5 | 36 | **−0.05** |
+| `gapr` dist | 0.014 | 0 | 1 | **44** | **+0.08** |
+| `gapr` point | 0.024 | 1 | 2 | 42 | **−0.00** |
+
+**The aggregate effect is zero to two decimal places.** The only structure is dataset-specific
+and self-cancelling: `gapf` is significantly **positive** on `scbench_vt` at 4 of 5 ratios
+(+1.69 / +3.51 / +2.31 / +2.31) and significantly **negative** on `scbench_prefix_suffix` at all
+5 (−2.60 … −5.00). `gapr dist` — the ckpt whose gate trained itself *below* its initial value —
+is not separated in 44 of 45 cells.
+
+Together with `scbench_kv` (the only dataset with real headroom, also null), **the three current
+checkpoints are indistinguishable from the baseline across 10 datasets**. This is now a complete
+negative result on the 16-Gaussian-slot + residual design, not a partial one.
+
+Note `scbench_vt` is the dataset whose baseline *improves* under compression (41.07 full → 46.09
+at ratio 0.2, i.e. negative headroom), so `gapf`'s gain there is more plausibly mild denoising
+than information recovery — do not cite it as evidence the method works.
+
+Measured per-dataset cost for one config over 5 ratios, useful for planning any future grid:
+`repoqa` 5.83 h, `prefix_suffix` 3.23, `mf` 2.97, `vt` 2.20, `summary` 1.88, `gsm` 1.19,
+`qa_eng` 0.60, `squad` 0.55, `choice_eng` 0.44 — **18.9 GPU-h per config for those 9**, plus
+~5.8 h for `scbench_kv`.
+
+MRCR cannot join this table: it runs `eval_chunk_mrcr.py`, and the VariKV injection was never
+wired into that path. So the ceiling for these sweeps is 11 of Figure 11's 12 panels.
+
+### What the P0 diagnostics found — read `P0_FINDINGS.md`
+
+Run the same night, all training-free. The headline is that **the null result above is a
+representation failure, not a dead research question**:
+
+- **Missed mass is large**: `M = D_E/(D_R+D_E)` mean **0.316**, P90 0.770 over 4.21M
+  (layer, q-head, token) points. "FastKVzip only evicts negligible mass" is refuted.
+- **Correlation says nothing, intervention says a lot.** Token-level Spearman between local
+  damage and behavioral divergence is ~0.03 (negative at the answer token), but restoring the
+  exact counterfactual `Δo` for **all** heads cuts `B = KL(p_full‖p_pruned)` by **55.7%**
+  (`B[mean]` −79%). **Never again judge a local quantity's importance by correlation.**
+- **The oracle ceiling is therefore −55.7% / −79%**; the remaining ~45% is inherited trajectory
+  drift that per-layer local correction cannot reach.
+- **Partial restoration is harmful.** Cross-head cancellation keeps only **0.253** of the summed
+  per-head damage, and restoring a subset (top-80 of 784) drove `B` from 3.32 to 6.44 on one
+  sample while being near-perfect on others. **Correction must be all-or-nothing within a layer**
+  — which rules out budget schemes that repair only some heads, in ResKV and IndexMem too.
+- **The Gaussian second-order MGF is accurate at the realistic operating point and improves with
+  context length** (`r_MGF` median 0.973 at N=128k, W=8192; N=16k is the worst case), so fixed `K`
+  is not a length-scalability problem. The P90≈1.9 tail is fixable by **one stored log-correction
+  scalar per cluster** — `ε`'s within-cluster/across-cluster variance ratio is only **0.15**.
+
 ### In flight as of 2026-08-11 04:30 UTC
 
 Both runs use the three `gap_*` ckpts with `--varikv_residual`, tags `gfsd` / `grsd` / `grsp` (distinct per ckpt because `gap_fix03/dist` and `gap_rand/dist` are both `dist` mode and result dirs carry only the mode).
 
 - ~~`scratch_gapstd_eval.sh` — the three ckpts × `scbench_kv` × standard interval.~~ **Finished 11:22 UTC, 7h10m, all three `rc=0` — results in the table above.**
 - `scratch_gapsweep.py` — the three ckpts × the other 9 datasets, 27 jobs, marker-resumable, longest-first. Baselines are **not** re-run (the `_full` tag from `scratch_stage2b_sweep.py` is the same configuration). 56.7 GPU-h total; workers on GPUs 0–2 wait for the `scbench_kv` run to print `ALL DONE` before taking work. ETA ~13:30–14:00 UTC.
-
-Measured per-dataset cost for one config over 5 ratios, useful for planning any future grid: `repoqa` 5.83 h, `prefix_suffix` 3.23, `mf` 2.97, `vt` 2.20, `summary` 1.88, `gsm` 1.19, `qa_eng` 0.60, `squad` 0.55, `choice_eng` 0.44 — **18.9 GPU-h per config for those 9**, plus ~5.8 h for `scbench_kv`.
-
-MRCR cannot join this table: it runs `eval_chunk_mrcr.py`, and the VariKV injection was never wired into that path. So the ceiling for these sweeps is 11 of Figure 11's 12 panels.
 
 ## Literature sweep 2026-08-11 — the objective is what is wrong, and two papers already did this correctly
 
