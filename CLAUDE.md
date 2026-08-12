@@ -1002,7 +1002,7 @@ plain baseline that is +9.60 / +11.00. Two facts fall out:
   components; inverse-rotating re-imposes a single phase on components that are already
   decorrelated. Do not "fix" this.
 
-### The learned memory never reconstructs the evicted KV — measured, and it reframes everything
+### The learned memory neither reconstructs the evicted KV nor repairs the local attention gap — and the second half of that took two probes to get right
 
 `scratch_probe_forensic.py`, training-free, on the target 7B with the real gate.
 **Everything is compared in the read-out frame** — the learned slots are `apply_rope`'d
@@ -1027,37 +1027,73 @@ panel where it gains 21.60 points.** Its value output is orthogonal to the true 
 attention output (−0.0124 on Retr.KV, i.e. very slightly *anti*-aligned). The
 training-free centroid does reconstruct (0.77–0.79 on both) and gains only +11.00.
 
-So the project's narrative — "absorb the evicted KV and put the lost information back" —
-is **not what the working checkpoint does.** teacher KL only asks for a vector that moves
-the output distribution toward the full-cache model on the training query distribution;
-nothing in it asks the memory to preserve anything. It learned a highly task-specific
-lookup instead. Three previously separate facts fall out of this one:
+So the working checkpoint is not doing what the project's narrative says. But **"it does
+not reconstruct KV geometry" does not by itself establish "it carries no functional
+information"** — a learned slot has no obligation to look like an original key; it could
+be a learned *address* that still routes correctly. Establishing the stronger claim needs
+a functional target, and my first attempt used the wrong one.
 
-1. **Why learned beats faithful reconstruction on Retr.KV** (+21.60 vs +11.00): it is not
-   constrained to resemble the original KV, so it can emit whatever helps those queries.
-2. **Why it does not transfer**: the lookup is fitted to the training distribution; on
-   another task it is noise.
-3. **Why it costs 18.36 points on Retr.MultiHop**: injecting content-independent vectors
-   into a task where compression already helps is pure noise injection.
+#### The probe's own target was wrong the first time — `o_E` instead of `Δo`
 
-**A pre-registered reading of mine is refuted by this.** The probe's criterion said "A low
-⇒ the `d_z=64` bottleneck is worth testing". Both panels have A at or below chance while
-one of them gains 21.60 downstream, so **A has no causal relation to the downstream
-score** and widening `d_z` would not make the memory reconstruct something the objective
-never asked for. To separate "cannot" from "was not asked to", train a plain autoencoder
-on evicted KV at the same `d_z=64` and same 16 slots and see whether it reaches the
-centroid's 0.78 — cheap, and it decides whether `d_z` is a real constraint or a red
-herring.
+The residual read-out is `o = o_R + g·m(q)` while full attention is
+`o_full = λ·o_R + (1−λ)·o_E`, so
 
-**Consequence for the method.** Adding a structure term is now motivated by measurement
-rather than taste:
+    o_full − o_R = (1−λ)(o_E − o_R) ≡ Δo
 
-    L = KL(p_full ‖ p_memory) + λ·L_structure
+**The memory must approximate `Δo`, not `o_E`.** The two can point in completely different
+directions: with `o_R=[10,0]` and `o_E=[8,2]`, `o_E` points roughly right while
+`Δo ∝ [−2,2]` does not, so `cos(m,o_E)≈0` is perfectly compatible with
+`cos(g·m,Δo)≈1`. Metric C above would call a *perfect* residual correction noise.
+This identity is used elsewhere in this repo (`scratch_probe_damage.py`, and the
+"exact local counterfactual identity" section of this file) — the first forensic simply
+aimed at the wrong quantity. `scratch_probe_forensic2.py` is the corrected version:
+target `Δo`, everything projected through `W_O`, and reported both per-head and
+summed over heads.
 
-where `L_structure` forces the thing the memory currently does not do at all, and the
-training-free centroid is a ready-made, faithful (0.78) teacher for it. Do not start this
-before v2b settles whether the +21.60 itself reproduces — if it does not, the premise
-("the lookup is extremely effective on Retr.KV") is not even established.
+| corrected metric (median) | **Retr.KV** (+21.60) | **Prefix-Suffix** (−0.60) |
+|---|---|---|
+| **D1 direction** `cos(W_O δ̂, W_O Δo)`, learned | **−0.0056** | **+0.0033** |
+| **D1 direction**, centroid | **0.8465** | **0.9059** |
+| **D2 magnitude** `‖W_O δ̂‖/‖W_O Δo‖`, learned | **1.1667** | 0.8266 |
+| **D2 magnitude**, centroid | 0.0713 | 0.1227 |
+| layer-level `cos` after summing heads, learned | 0.0108 | 0.0369 |
+| layer-level `cos`, centroid | 0.6803 | 0.7127 |
+
+**The learned correction is orthogonal to the true local gap, with roughly the right
+magnitude** (ratio 1.17 / 0.83) — per head and after cross-head summation alike. The
+centroid is the mirror image: right direction (0.85–0.91) at 7–12% of the needed
+magnitude, which is exactly why it recovers only 11.00 / 3.60 points.
+
+So: **the +21.60 on Retr.KV is not obtained by repairing the local attention gap.** The
+memory injects a vector of about the right size pointing somewhere unrelated to what
+eviction removed, and the benchmark score goes up. The mechanism is unexplained.
+
+#### Two claims of mine that this retracts
+
+- ~~"the shortcut hypothesis is established"~~ — not established. What is measured is
+  that the correction is neither a KV reconstruction nor a local-gap repair. Whether it
+  encodes transferable evicted content in some other basis is open.
+- ~~"add `L = KL + λ·L_structure`, the centroid is a ready-made teacher"~~ —
+  **do not do this.** `L_structure` pulls `δ̂` toward `Δo`, i.e. toward the centroid's
+  direction, and the centroid scores **43.60** on Retr.KV against the learned memory's
+  **54.20**. Forcing the alignment would most likely drag 54.20 down toward 43. This was
+  the pre-registered second branch of `forensic2` and it is the branch that fired.
+- The `d_z` reading is also retracted: both panels sit at or below chance on
+  addressability while one gains 21.60 downstream, so addressability has no causal
+  relation to the score, and a per-token autoencoder would in any case only test
+  `256→64→256` rather than the hard part, `N tokens → 16 slots`.
+
+#### The three live hypotheses
+
+| | status |
+|---|---|
+| H1 functionally-correct residual representation | **refuted** by `forensic2` (D1 ≈ 0) |
+| H2 representation shortcut / non-local compensation | **open, now the leading candidate** |
+| H3 v1 was simply a lucky training trajectory | **open — v2b decides** |
+
+v2b remains first priority. If it fails to reproduce, the strange phenomenon that needs
+explaining ("right magnitude, random direction, +21.6 points") does not exist and H2 needs
+no explanation either.
 
 ### Scheduler lesson
 

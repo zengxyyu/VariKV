@@ -1,0 +1,45 @@
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.58it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.63it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.64it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.76it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.71it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: memory_retain
+
+scbench_prefix_suffix loaded, #data: 100
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:01<00:12,  1.74s/it]Prefill:  25%|██▌       | 2/8 [00:03<00:09,  1.64s/it]Prefill:  38%|███▊      | 3/8 [00:04<00:08,  1.63s/it]Prefill:  50%|█████     | 4/8 [00:06<00:06,  1.62s/it]Prefill:  62%|██████▎   | 5/8 [00:08<00:05,  1.86s/it]Prefill:  75%|███████▌  | 6/8 [00:12<00:04,  2.34s/it]Prefill:  88%|████████▊ | 7/8 [00:15<00:02,  2.67s/it]Prefill: 100%|██████████| 8/8 [00:16<00:00,  2.16s/it]Prefill: 100%|██████████| 8/8 [00:16<00:00,  2.07s/it]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-0: 112577 tokens, KV cache 6.5 GB, torch.bfloat16
+
+====================================================================================================
+修正版取证：scbench_prefix_suffix @ratio 0.1　样本 0　140 个 (层,查询头)
+**目标是 Δo = o_full − o_R = (1−λ)(o_E − o_R)，不是 o_E**；全部经 W_O 投影
+----------------------------------------------------------------------------------------------------
+指标（中位数）                                           learned           质心
+D1 方向  cos(W_O δ̂, W_O Δo)                         0.0033       0.9059
+D2 幅度  ‖W_O δ̂‖ / ‖W_O Δo‖                         0.8266       0.1227
+两者之间 cos(W_O δ̂_learned, W_O δ̂_centroid)          0.0145
+----------------------------------------------------------------------------------------------------
+D3 层级（跨头相加后）          cos(learned)       幅度比     cos(质心)       幅度比
+  layer 0                   0.0607    6.0877      0.4709    1.1064
+  layer 6                   0.0136    1.3361      0.8984    0.6348
+  layer 13                 -0.0070    1.6947      0.7127    0.5620
+  layer 20                  0.1247    2.8970      0.7832    0.1613
+  layer 26                  0.0369    0.1177      0.6231    0.1609
+  中位                        0.0369    1.6947      0.7127    0.5620
+====================================================================================================
+判读（预注册）：
+  learned D1 明显 >0 且 Retr.KV > Prefix-Suffix ⇒ 它在做**功能正确**的残差修正，
+     只是不迁移 ⇒ functional-alignment 正则有依据（不是 raw-KV 重建）
+  learned D1 ≈0 而下游仍 +21.60 ⇒ 成功机制**不是**局部注意力修正，
+     而是某种全局补偿 ⇒ **千万不要**加局部结构损失，会杀掉它
+  质心 D1 明显 >0 而 learned ≈0 ⇒ 两者携带互补信息，hybrid 值得做
