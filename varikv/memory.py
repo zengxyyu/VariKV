@@ -111,7 +111,23 @@ class DistributionalMemory(nn.Module):
         # --- 槽初值：是可学习参数；运行时的槽是从它 clone 出来的普通张量 ---
         # （2026-07-22 修的 bug：槽本身若是 nn.Parameter 且用 .data= 更新，
         #   会脱离 autograd，「端到端训练的自由能记忆」这个说法就是假的。）
-        self.slot_mu_init = nn.Parameter(torch.randn(self.K, self.d_z) * 0.02)
+        # 槽的初始 anchor。**注意它实际上学不动**（2026-08-12 查明）：
+        # 训练循环里 `m.prefill(...)` 包在 no_grad 内，而 MemoryRetainCache.__init__
+        # 又调一次 mem.reset()，那次在 no_grad 下把 self.mu 换成不带图的张量，
+        # 于是 loss 回不到 slot_mu_init（日志里 slot0e+00 一直如此）。
+        # 要真正接通还需让 _swap_in/_swap_out 也带图 —— 那是更深的改动。
+        #
+        # 后果：这 K 个**随机** anchor 贯穿整个训练，而 routing
+        # w_ik = softmax(cos(μ_q, μ_k)) 恰恰依赖它们 ⇒ seed 变了就换了一套
+        # latent 划分。`slot_init="ortho"` 用确定性近正交码本消掉这个随机源，
+        # 使不同 seed 共享同一套 anchor。
+        if getattr(cfg, "slot_init", "random") == "ortho":
+            _q = torch.linalg.qr(torch.randn(
+                max(self.K, self.d_z), self.d_z,
+                generator=torch.Generator().manual_seed(0)))[0][: self.K]
+            self.slot_mu_init = nn.Parameter(_q * 0.02 * (self.d_z ** 0.5))
+        else:
+            self.slot_mu_init = nn.Parameter(torch.randn(self.K, self.d_z) * 0.02)
         self.slot_logvar_init = nn.Parameter(
             torch.full((self.K, self.d_z), cfg.logvar_init)
         )

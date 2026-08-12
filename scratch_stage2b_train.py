@@ -35,6 +35,12 @@ def build(args):
     m = ModelKVzip(args.model, kv_type=args.kv_type, gate_path_or_name=args.gate)
     cfg = Config()
     cfg.memory.num_slots = args.num_slots
+    if args.slot_init != "random":
+        cfg.memory.slot_init = args.slot_init
+        print(f"[cfg] slot_init={args.slot_init}（确定性码本，跨 seed 一致）")
+    if args.no_sample_on_read:
+        cfg.memory.sample_on_read = False
+        print("[cfg] sample_on_read=False（去掉训练期蒙特卡洛读出噪声）")
     H = m.config.num_key_value_heads
     L = m.config.num_hidden_layers
     hd = getattr(m.config, "head_dim",
@@ -63,6 +69,7 @@ def build(args):
     m.varikv_detach_readback = not args.residual   # 残差模式记忆不进 cache
     m.varikv_residual = args.residual
     m.varikv_detach_every = args.detach_every
+
     if args.residual and args.init_ckpt:
         sd = torch.load(args.init_ckpt, map_location=m.device)["memory"]
         miss = mem.load_state_dict(sd, strict=False)
@@ -240,6 +247,18 @@ def main():
                     help="固定验证窗口数。gap_v 只在开训前算一次，之后每 --val_every "
                          "步只算 resid_v => 恢复率曲线不再被在线采样噪声淹没")
     ap.add_argument("--val_every", type=int, default=100)
+    # --- 方差源隔离（2026-08-12）。两个开关**必须分两次单独改**，否则无法归因。 ---
+    # ① 训练期读出的蒙特卡洛采样：z = μ + ε·σ，每步重采。config 默认开。
+    #    可疑点：logvar_init=0 ⇒ σ≈1，而 slot_mu_init 的 std 只有 0.02 ⇒ 噪声比信号
+    #    大 50 倍，且每步只取 1 个样本 ⇒ 梯度方差极高。关掉它 logvar 仍进 decoder、
+    #    仍参与精度更新，所以"分布式"信息并未消失，只去掉这一条噪声。
+    ap.add_argument("--no_sample_on_read", action="store_true")
+    # ② 第一个 chunk 之前不该 detach —— 那时根本没有上一段的图要截断，
+    #    而 detach 掉之后 slot_mu_init 永远拿不到梯度（日志里 slot0e+00 一直如此），
+    #    于是 16 个随机 anchor 贯穿整个训练，而 routing w_ik 恰恰依赖它们。
+    # 原打算让 slot_mu_init 拿到梯度，但真因不是 detach 而是 prefill 里的
+    # 二次 reset 跑在 no_grad 下（见 memory.py 的说明）。改用确定性码本隔离该方差源。
+    ap.add_argument("--slot_init", default="random", choices=["random", "ortho"])
     # 语料取用篇数。默认 29/5 = FastKVzip feature.py 写死的组成（论文 A.1）。
     # 实测：fineweb_10k 的 68 篇**全部 <32,256 token**，所以在 chunk=16000 下
     # 「一次以上的驱逐」只能来自 fineweb_10k_cat（10 篇，103k–122k）。

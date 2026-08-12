@@ -126,7 +126,8 @@ class MemoryRetainCache(RetainCache):
         s, e = lo - self.sink, hi - self.sink     # self.valid 的坐标（不含 sink）
         if e <= s:
             return out
-        if self.train_write and (self._chunk_i % max(self.detach_every, 1) == 0):
+        _skip = getattr(self, "skip_first_detach", False) and self._chunk_i == 0
+        if self.train_write and not _skip and (self._chunk_i % max(self.detach_every, 1) == 0):
             # 截断 BPTT：切断上一段的图，否则 11 个 chunk × 28 层的 encoder 激活
             # 会一路累积。detach_every=1 时梯度只经由**最后一个 chunk** 的 absorb
             # 回传；调大它可让 encoder 看到跨 chunk 的记忆递归，代价是显存。

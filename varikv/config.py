@@ -85,6 +85,9 @@ class MemoryConfig:
     # 缺口③：方差必须进入读出，否则不确定性在数学上空转，
     # 「分布式」就退化成「点记忆 + 一个没用的 σ 缓冲区」，实验会假阴性。
     sample_on_read: bool = True     # 重参数化采样 z ~ N(μ, σ²)
+    # 槽 anchor 的初始化。"random" = 原行为（每个 seed 一套随机码本，且它学不动）；
+    # "ortho" = 确定性近正交码本，跨 seed 完全一致，用来隔离"随机码本"这个方差源。
+    slot_init: str = "random"
     logvar_into_decoder: bool = True  # 把 logvar 作为 decoder 的显式输入
     tokens_per_slot: int = 1        # 每个槽读出几个 effective KV
 
