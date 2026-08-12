@@ -303,7 +303,12 @@ class MemoryRetainCache(RetainCache):
         gate = self.mem.residual_gate
         g = torch.sigmoid(gate[layer_idx * H:(layer_idx + 1) * H]) if gate is not None \
             else torch.zeros(H, device=m.device, dtype=m.dtype)
-        m = m * g.view(1, H, 1, 1, 1).to(m.dtype)
+        # gate surgery（2026-08-12）：把注入幅度整体缩放。
+        # 目的：point 的门学到 0.265、dist 只有 0.131，而"门越开分越低"是本项目
+        # 已建立的规律。若把 point 的门缩到 dist 的水平就能从 14.60 回到 45~50，
+        # 那 39.6 分的差就主要是**幅度失控**，与"方差携带信息"无关。
+        gs = float(getattr(self, "gate_scale", 1.0))
+        m = m * (g.view(1, H, 1, 1, 1).to(m.dtype) * gs)
 
         if self.collect_residual_loss:
             tgt = self._attn_gap(query_states, layer_idx)      # [B,H,Gq,T,d]，已 detach

@@ -53,6 +53,26 @@ if __name__ == "__main__":
         if args.varikv_readout != "normal":
             args.tag += f"_ro{args.varikv_readout}"
         _rot = getattr(model.model.model, "rotary_emb", None)
+        # gate surgery / 消融。**必须进 tag**：否则不同配置写进同一结果目录互相覆盖
+        # （2026-08-08 踩过：基线写进了 Figure-11 的目录，parse 把 54 条旧样本
+        #  和 5 条新样本一起平均）。
+        if args.varikv_gate_from:
+            _g = _torch.load(args.varikv_gate_from, map_location=model.device)
+            _sd = _g["memory"]
+            assert "residual_gate" in _sd, f"{args.varikv_gate_from} 没有 residual_gate"
+            with _torch.no_grad():
+                _mem.residual_gate.copy_(_sd["residual_gate"].to(_mem.residual_gate))
+            args.tag += "_gfrom" + _g.get("mode", "?")
+            print(f"[VariKV] 借用 {args.varikv_gate_from} 的门 "
+                  f"σ mean={_torch.sigmoid(_sd['residual_gate']).mean():.4f}")
+        if args.varikv_gate_scale != 1.0:
+            args.tag += f"_gs{args.varikv_gate_scale:g}".replace(".", "p")
+        if args.varikv_ablate != "none":
+            setattr(_mem, f"ablate_{args.varikv_ablate}"
+                    if args.varikv_ablate != "logvar" else "ablate_logvar_read", True)
+            args.tag += f"_ab{args.varikv_ablate}"
+            print(f"[VariKV] 消融 {args.varikv_ablate}")
+        model.varikv_gate_scale = args.varikv_gate_scale
         model.varikv_inv_freq = _rot.inv_freq.detach().clone() if _rot else None
         print(f"[VariKV] loaded {args.varikv_ckpt} mode={_ck.get('mode')} "
               f"M={args.varikv_slots}")

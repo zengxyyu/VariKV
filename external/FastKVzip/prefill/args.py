@@ -51,6 +51,17 @@ parser.add_argument("--varikv_readout", type=str, default="normal",
                     choices=["normal", "zero"])
 # 输出端门控残差：记忆不进 cache，改为 o = o_attn + sigmoid(g)·m(q)
 parser.add_argument("--varikv_residual", action="store_true")
+# --- gate surgery / 外科式消融（2026-08-12）：把 dist-vs-point 的四条通路拆开 ---
+parser.add_argument("--varikv_gate_scale", type=float, default=1.0,
+                    help="把残差注入幅度整体乘以此系数。用来测 point 的 14.60 是否"
+                         "只是门开爆了（它学到 0.265，dist 只有 0.131）")
+parser.add_argument("--varikv_gate_from", type=str, default="",
+                    help="从另一个 ckpt 借 residual_gate（最锐利的对照：把 dist 的门"
+                         "装到 point 身上，其余参数不变）")
+parser.add_argument("--varikv_ablate", type=str, default="none",
+                    choices=["none", "logvar", "precision", "eta"],
+                    help="关掉 dist 的一条通路：logvar=读出不看方差；"
+                         "precision=τ≡1；eta=写入强度换成本批均值（去内容相关性）")
 # --- 质心臂（2026-08-12）：带计数的点质心 + 归一化感知读出，免训练 ---
 # 与 --varikv_ckpt 互斥：它没有 ckpt，没有编码器，没有门。
 parser.add_argument("--centroid_k", type=int, default=0,

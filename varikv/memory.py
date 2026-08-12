@@ -71,6 +71,14 @@ class DistributionalMemory(nn.Module):
             nn.Parameter(torch.full((n_groups,), -4.0)) if n_groups else None
         )
         assert mode in ("point", "dist"), mode
+        # ---- 外科式消融开关（2026-08-12）。默认全关，只在评测时打开。 ----
+        # 为什么需要：dist 与 point 同时差四处（见本文件顶部），所以
+        # 「dist 54.20 vs point 14.60」无法归因。这三个开关逐个关掉 dist 的
+        # 一条通路，看 54.20 各掉到哪里 —— 这是"论文能不能叫 distributional"
+        # 的唯一判据。
+        self.ablate_logvar_read = False   # 读出不看 logvar（decoder 收到常数）
+        self.ablate_precision = False     # τ_obs = τ_old = 1（与 point 同）
+        self.ablate_eta = False           # η 换成本批均值：去掉内容相关性、保住写入总量
         self.cfg = cfg
         self.mode = mode
         self.d_kv = d_kv
@@ -322,9 +330,22 @@ class DistributionalMemory(nn.Module):
             eta = torch.sigmoid(
                 self.cfg.eta_alpha * kl_z - self.cfg.eta_beta
             )                                               # [B,G,N]
+            if self.ablate_eta:
+                # 用**本批均值**替换，而不是某个常数：这样去掉的是"写入强度随
+                # 内容变"这一条，而写入总量不变 —— 否则消融同时改了两件事。
+                if valid is None:
+                    eta = eta.mean(dim=-1, keepdim=True).expand_as(eta)
+                else:
+                    vf = valid.to(eta.dtype)
+                    m_ = (eta * vf).sum(-1, keepdim=True) / vf.sum(-1, keepdim=True).clamp_min(1.0)
+                    eta = m_.expand_as(eta)
             gate = w * eta.unsqueeze(-1)                    # [B,G,N,K]
-            tau_obs = torch.exp(-logvar_q)                  # [B,G,N,d_z]
-            tau_old = torch.exp(-self.logvar)               # [B,G,K,d_z]
+            if self.ablate_precision:
+                tau_obs = torch.ones_like(logvar_q)
+                tau_old = torch.ones_like(self.logvar)
+            else:
+                tau_obs = torch.exp(-logvar_q)              # [B,G,N,d_z]
+                tau_old = torch.exp(-self.logvar)           # [B,G,K,d_z]
         else:
             # 点记忆：写入率是与内容无关的可学习标量，方差恒定。
             # 结构与 dist 完全对称（同为 w·η），差别只在 η 是否由 KL 导出。
@@ -467,6 +488,9 @@ class DistributionalMemory(nn.Module):
             z = mu + torch.randn_like(std) * std
         else:
             z = mu
+        if self.ablate_logvar_read:
+            # decoder 收到常数 logvar ⇒ 方差不再影响读出（只剩写入侧）
+            logvar = torch.full_like(logvar, float(self.cfg.logvar_init))
         out = self.decode(z, logvar)                        # [B,G,K,T*d_kv]
         B, G, K, _ = out.shape
         return out.reshape(B, G, K * self.cfg.tokens_per_slot, self.d_kv)
