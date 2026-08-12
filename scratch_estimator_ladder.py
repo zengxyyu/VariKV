@@ -47,6 +47,7 @@ from data.wrapper import DataWrapper, get_query          # noqa: E402
 _QCAP = {}
 _orig_prepare = RetainCache.prepare
 _ST = {"kv": None, "arm": None, "sum": None, "d": None, "on": False}
+_CLIP = [0, 0]        # [被钳位的项数, 总项数]
 
 
 def _patched_prepare(self, query_states, key_states, value_states, layer_idx):
@@ -72,7 +73,7 @@ def get_valid(kv, layer_idx, S):
 
 # ---------------------------------------------------------------- 写入：建摘要
 @torch.no_grad()
-def build_summaries(kv, L, H, Ws, r_c):
+def build_summaries(kv, L, H, Ws, r_c, r_k):
     """逐 (layer, kv_head) 建各估计器的摘要。摘要与 query 无关，只建一次。
 
     Ws: {"gauss": W_g, "point": W_p}  ——  W_p 更小以匹配 equal-bytes
@@ -94,7 +95,7 @@ def build_summaries(kv, L, H, Ws, r_c):
             for tag, W in (("g", Ws["gauss"]), ("p", Ws["point"])):
                 blk = ev // W
                 ub = blk.unique()
-                n_list, mk, mv, vk, cv = [], [], [], [], []
+                n_list, mk, mv, vk, cv, uk, dres = [], [], [], [], [], [], []
                 for b in ub:
                     sel = blk == b
                     n = int(sel.sum())
@@ -103,6 +104,16 @@ def build_summaries(kv, L, H, Ws, r_c):
                     n_list.append(n); mk.append(mu_k); mv.append(mu_v)
                     dk = K_ - mu_k
                     vk.append((dk * dk).mean(0))                       # diag Σ_kk
+                    if tag == "g" and r_k > 0 and n > 1:
+                        # **对角 Σ_kk 不可用**：它把 Σ_j a_j²σ_j² 当作投影方差，忽略 key
+                        # 各维相关，交叉项本该抵消 ⇒ 严重高估 ⇒ exp 溢出（实测 E3/E4 出 NaN）。
+                        # 存 diag + rank-r_k：Var(aᵀδ) ≈ Σ_j a_j² d_j + ‖U_kᵀa‖²
+                        C = (dk.T @ dk) / n
+                        evals, evecs = torch.linalg.eigh(C.double())
+                        r = min(r_k, evals.numel())
+                        Uk = (evecs[:, -r:] * evals[-r:].clamp_min(0).sqrt()).float()
+                        uk.append(Uk)
+                        dres.append((C.diag().float() - (Uk * Uk).sum(-1)).clamp_min(0))
                     if tag == "g":
                         dv = V_ - mu_v
                         Svk = (dv.T @ dk) / max(n, 1)                  # [d,d]
@@ -119,6 +130,8 @@ def build_summaries(kv, L, H, Ws, r_c):
                     "mu_k": torch.stack(mk), "mu_v": torch.stack(mv),
                     "var_k": torch.stack(vk),
                     "cv": cv if tag == "g" else None,
+                    "Uk": uk if (tag == "g" and uk) else None,
+                    "dres": torch.stack(dres) if (tag == "g" and dres) else None,
                 }
             out[(l, h)] = rec
     return out
@@ -127,12 +140,20 @@ def build_summaries(kv, L, H, Ws, r_c):
 # ---------------------------------------------------------------- 读出：各估计器
 @torch.no_grad()
 def estimate(arm, rec, a, kh_ev, vh_ev, M0):
-    """返回 (Ñ_E [T,d], D̃_E [T])，均已除以 e^{M0}。a: [T,d] 已含 1/√d 缩放。"""
+    """返回 (N_scaled [T,d], D_scaled [T], LM [T])，真值 = 该量 × e^{M0+LM}。
+
+    **为什么要再引入 LM**：被驱逐簇的 logD 可以很大（实测 M 的 P99 = 0.965，
+    存在驱逐集完全主导的 (层,头,token) 点），float32 下 exp 溢出成 inf，
+    随后 inf/inf → nan（2026-08-12 实测 E3/E4 全 NaN 就是这个原因，
+    **不是**对角协方差高估——对角实测是真值的 0.90 倍，够用）。
+    """
     T = a.shape[0]
     if arm == "E0":                                     # 精确
         s = a @ kh_ev.T                                 # [T,n_E]
-        w = torch.exp(s - M0[:, None])
-        return w @ vh_ev, w.sum(-1)
+        lg = s - M0[:, None]
+        LM = lg.max(-1).values.clamp_min(0.0)
+        w = torch.exp(lg - LM[:, None])
+        return w @ vh_ev, w.sum(-1), LM
 
     tag = "p" if arm in ("E1b",) else "g"
     if arm == "E1":
@@ -140,21 +161,29 @@ def estimate(arm, rec, a, kh_ev, vh_ev, M0):
     S_ = rec[tag]
     lm = a @ S_["mu_k"].T                               # [T,K] = a·μ_k
     if arm in ("E3", "E4", "E4c"):
-        quad = 0.5 * (a * a) @ S_["var_k"].T            # ½ aᵀdiag(Σ_kk)a
+        if S_.get("Uk") is not None:                    # diag(残差) + 低秩
+            base = (a * a) @ S_["dres"].T               # [T,K]
+            lr = torch.stack([((a @ U) ** 2).sum(-1) for U in S_["Uk"]], -1)
+            quad = 0.5 * (base + lr)
+        else:                                           # 纯对角（已知会高估，仅作对照）
+            quad = 0.5 * (a * a) @ S_["var_k"].T
         lm = lm + quad
     if arm == "E4c":
         lm = lm + S_.get("eps", 0.0)                    # oracle 逐簇 log 校正
     logD = lm + torch.log(S_["n"])[None, :] - M0[:, None]
-    Dc = torch.exp(logD)                                # [T,K]
+    # 钳位：保守起见挡住溢出（若近似把方差高估，exp 会炸）。统计钳位比例。
+    LM = logD.max(-1).values.clamp_min(0.0)             # 逐 token 的公共尺度
+    Dc = torch.exp(logD - LM[:, None])                  # [T,K]，最大项 ≤ 1
     mu_v = S_["mu_v"]                                   # [K,d]
     if arm in ("E1", "E1b", "E3"):
         Nc = Dc @ mu_v
+        return Nc, Dc.sum(-1), LM
     else:                                               # E2/E4/E4c：分子加 Σ_vk·a
         corr = torch.zeros(T, mu_v.shape[0], mu_v.shape[1], device=a.device)
         for j, (U, Vt) in enumerate(S_["cv"]):
             corr[:, j, :] = (a @ Vt.T) @ U.T            # Σ_vk a = U(Vᵀa)
         Nc = torch.einsum("tk,tkd->td", Dc, mu_v[None].expand(T, -1, -1) + corr)
-    return Nc, Dc.sum(-1)
+    return Nc, Dc.sum(-1), LM
 
 
 @torch.no_grad()
@@ -203,8 +232,10 @@ def delta_o_est(kv, layer_idx, T, arm, summaries):
                         eps.append((torch.logsumexp(dl, -1)
                                     - np.log(int(sel.sum())) - 0.5 * var).float())
                     S_["eps"] = torch.stack(eps, -1)                    # [T,K]
-            NE, DE = estimate(arm, rec, a, kh_ev, vh_ev, M0)
-            o_hat = (NR + NE) / (DR + DE).clamp_min(1e-30)[:, None]
+            NE, DE, LM = estimate(arm, rec, a, kh_ev, vh_ev, M0)
+            sc = torch.exp(-LM)                                          # 把保留侧也缩到同尺度
+            o_hat = ((NR * sc[:, None] + NE)
+                     / (DR * sc + DE).clamp_min(1e-30)[:, None])
             out[hq] = o_hat - o_R
             del s, sR, wR
     torch.cuda.empty_cache()
@@ -241,16 +272,23 @@ def main():
     ap.add_argument("--n_queries", type=int, default=3)
     ap.add_argument("--W_gauss", type=int, default=8192)
     ap.add_argument("--r_c", type=int, default=4, help="Σ_vk 的低秩秩数")
+    ap.add_argument("--r_k", type=int, default=0,
+                    help="Σ_kk 的低秩秩数。**实测 0（纯对角）就够**：对角给出真实投影方差的 "
+                         "0.90 倍（r8 → 0.97），见 scratch_probe_cov_rank.py")
     ap.add_argument("--arms", nargs="+",
                     default=["none", "E0", "E1", "E1b", "E2", "E3", "E4", "E4c"])
     args = ap.parse_args()
 
     # equal-bytes：高斯簇 = 1 + 2d + d + 2·d·r_c + 1；点簇 = 1 + 2d
     d0 = 128
-    b_g = 1 + 2 * d0 + d0 + 2 * d0 * args.r_c + 1
+    # n(1) + μ_k,μ_v(2d) + diag 残差(d) + Σ_kk 低秩(d·r_k) + Σ_vk 低秩(2d·r_c) + ε(1)
+    # 实测（scratch_probe_cov_rank.py）：对角 Σ_kk 已给出真实投影方差的 0.90 倍，
+    # 加秩只微调（r8→0.97, r16→0.99），所以**不需要低秩 Σ_kk**，预算里只算对角。
+    b_g = 1 + 2 * d0 + d0 + d0 * args.r_k + 2 * d0 * args.r_c + 1
     b_p = 1 + 2 * d0
     W_point = max(256, int(args.W_gauss * b_p / b_g))
-    print(f"[预算] 高斯簇 {b_g} scalars/簇，点簇 {b_p} scalars/簇 ⇒ 比值 {b_g/b_p:.2f}×\n"
+    print(f"[预算] 高斯簇 {b_g} scalars/簇（r_k={args.r_k}, r_c={args.r_c}），"
+          f"点簇 {b_p} scalars/簇 ⇒ 比值 {b_g/b_p:.2f}×\n"
           f"       W_gauss={args.W_gauss} ⇒ equal-bytes 的 W_point={W_point}", flush=True)
 
     RetainCache.prepare = _patched_prepare
@@ -284,7 +322,7 @@ def main():
         _ST["kv"] = kv_p
         print(f"样本{si}: 建摘要…", flush=True)
         _ST["sum"] = build_summaries(kv_p, L, H,
-                                    {"gauss": args.W_gauss, "point": W_point}, args.r_c)
+                                    {"gauss": args.W_gauss, "point": W_point}, args.r_c, args.r_k)
         nk = sum(len(v["g"]["ub"]) for v in _ST["sum"].values() if v)
         nk_p = sum(len(v["p"]["ub"]) for v in _ST["sum"].values() if v)
         print(f"  高斯簇总数 {nk}（{nk*b_g/1e6:.2f}M scalars），"
