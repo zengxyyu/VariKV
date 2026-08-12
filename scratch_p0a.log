@@ -1,0 +1,18 @@
+=== B 批状态 Tue Aug 11 21:46:24 UTC 2026 ===
+27
+等待超时，仍继续（风险自负）
+=== 应用 P0-A guard ===
+补丁已应用
+=== 自检 ===
+✓ 空记忆返回全零，形状 (1, 5, 3584)
+Traceback (most recent call last):
+  File "/home/ubuntu/zxy/vlm-memory/scratch_verify_empty_guard.py", line 43, in <module>
+    out1 = kv.memory_residual(q, 0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/attention/memcache_retain.py", line 275, in memory_residual
+    self._swap_in(gs)
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/attention/memcache_retain.py", line 383, in _swap_in
+    with torch.set_grad_enabled(self.train_write):
+                                ^^^^^^^^^^^^^^^^
+AttributeError: 'MemoryRetainCache' object has no attribute 'train_write'
+P0A FAILED — 未提交，见 scratch_p0a.log

@@ -258,6 +258,16 @@ class MemoryRetainCache(RetainCache):
           两者 view(bsz,q_len,-1) 后统一为 [B,T,HQ*d]，且查询头的排布一致 ——
           prepare 里 `view(bsz,H,G,T,d)` 决定了 head h ↔ (kv=h//G, grp=h%G)。）
         """
+        # ---- P0-A guard（2026-08-11）：空记忆不得注入 ----
+        # 本函数在 attn.py:149 被**无条件**调用，因此第一次吸收发生之前（槽仍是初值）
+        # 也会往注意力输出里加东西。实测后果：同一 ckpt 跨独立 job 的 ratio-1.0 分数
+        # 逐字相同、不同 ckpt 之间不同（68.20/66.80/68.60/67.20/67.80/70.40），
+        # 即 ckpt 决定了本该与记忆无关的那一档分数 ⇒ full-cache 参照被污染。
+        # 未吸收过任何东西时返回全零，形状与正常返回一致。
+        if getattr(self, "_absorbed_upto", 0) <= 0:
+            H = self.n_heads_kv
+            B, HQ, T, d = query_states.shape
+            return query_states.new_zeros(B, T, HQ * d)
         H, d = self.n_heads_kv, self.head_dim
         B, HQ, T, _ = query_states.shape
         Gq = HQ // H

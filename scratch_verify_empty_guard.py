@@ -32,6 +32,9 @@ kv.mem = mem; kv.M = 16; kv.n_heads_kv = H; kv.head_dim = d_head
 kv.inv_freq = None; kv.readout_mode = "normal"; kv.residual_mode = True
 kv.collect_residual_loss = False; kv._absorbed_upto = 0
 kv.n_layers = L
+# 绕过 __init__ 之后必须补齐 _swap_in/_swap_out 依赖的属性，否则第二条断言会崩在
+# AttributeError 而不是真的失败（2026-08-11 夜的链就是这样误报的）。
+kv.train_write = False
 
 q = torch.randn(1, H * 7, 5, d_head)
 out0 = kv.memory_residual(q, 0)
