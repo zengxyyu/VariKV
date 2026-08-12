@@ -158,6 +158,16 @@ class ModelKVzip:
                 kv.readout_mode = getattr(self, "varikv_readout", "normal")
                 kv.residual_mode = getattr(self, "varikv_residual", False)
                 kv.train_write = getattr(self, "varikv_train", False)
+            elif self.kv_type == "centroid":
+                # 带计数的点质心 + 归一化感知读出（P1 的 E1b），免训练。见 attention/centroid.py
+                from attention.centroid import CentroidRetainCache
+
+                kv = CentroidRetainCache(
+                    self.model, evict_range,
+                    n_clusters=getattr(self, "varikv_K", 109),
+                    rope_inv_freq=getattr(self, "varikv_inv_freq", None),
+                    rope_mode=getattr(self, "varikv_rope_mode", "post"),
+                )
             elif self.kv_type == "memory":
                 # VariKV（Stage 2b，本地新增）：被驱逐的 KV 吸收进分布式记忆而非丢弃。
                 # varikv_memory / varikv_M 由外部驱动脚本注入，见 attention/memcache.py

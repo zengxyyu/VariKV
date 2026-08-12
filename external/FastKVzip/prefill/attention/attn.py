@@ -97,7 +97,14 @@ def llama_qwen_attn_forward(
 
     # VariKV（本地新增）：残差模式下要用 prepare 之前的 query（post-RoPE，
     # 形状 [B,HQ,T,d]）去读记忆，prepare 会就地改写它，所以先留一份。
-    _varikv_q = query_states if getattr(past_key_value, "residual_mode", False) else None
+    _varikv_q = query_states if (getattr(past_key_value, "residual_mode", False)
+                                 or getattr(past_key_value, "centroid_mode", False)) \
+        else None
+    # 质心读出需要 log D_R，即这次 softmax 的 logsumexp。flash 的 return_attn_probs
+    # 直接给（实测 lse[g, h*T+t] = log Σ exp(aᵀk)，误差 4.8e-7），比手工重算保留侧
+    # 注意力便宜得多。**必须在两个分支之外初始化** —— 非 flatten 分支（chunk 0 预填、
+    # 满缓存参照）不走 varlen kernel，拿不到 lse，此时质心读出自动跳过。
+    _varikv_lse = None
 
     if getattr(past_key_value, "flatten", None):  # attention with pruned cache
         query_states, key_states, value_states, info = past_key_value.prepare(
@@ -105,7 +112,7 @@ def llama_qwen_attn_forward(
         )
 
         # bsz x head x seq, group, dim
-        attn_output = flash_attn_varlen_func(
+        _ret = flash_attn_varlen_func(
             query_states,
             key_states,
             value_states,
@@ -115,7 +122,12 @@ def llama_qwen_attn_forward(
             max_seqlen_k=info["max_len_k"],
             dropout_p=dropout_rate,
             causal=True,
+            return_attn_probs=getattr(past_key_value, "need_lse", False),
         )
+        if getattr(past_key_value, "need_lse", False):
+            attn_output, _varikv_lse = _ret[0], _ret[1]
+        else:
+            attn_output = _ret
         attn_output = attn_output.view(
             bsz,
             self.config.num_key_value_heads,
@@ -146,9 +158,16 @@ def llama_qwen_attn_forward(
     # g→−∞ 时残差→0，精确退回基线。默认路径 residual_mode=False，此块不执行。
     attn_output = attn_output.contiguous().view(bsz, q_len, -1)
     if _varikv_q is not None:
-        attn_output = attn_output + past_key_value.memory_residual(
-            _varikv_q, self.layer_idx
-        ).to(attn_output.dtype)
+        if getattr(past_key_value, "centroid_mode", False):
+            # 归一化感知的读出：o = λ·o_R + (1−λ)·o_E（见 centroid.py 的代数）。
+            # 不是加法残差 —— 它要把幸存者被高估的权重按 λ 调回去。
+            if _varikv_lse is not None:
+                attn_output = past_key_value.memory_correct(
+                    _varikv_q, self.layer_idx, attn_output, _varikv_lse)
+        else:
+            attn_output = attn_output + past_key_value.memory_residual(
+                _varikv_q, self.layer_idx
+            ).to(attn_output.dtype)
     attn_output = self.o_proj(attn_output)
 
     attn_weights = None

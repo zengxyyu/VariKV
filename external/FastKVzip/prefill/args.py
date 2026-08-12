@@ -51,6 +51,13 @@ parser.add_argument("--varikv_readout", type=str, default="normal",
                     choices=["normal", "zero"])
 # 输出端门控残差：记忆不进 cache，改为 o = o_attn + sigmoid(g)·m(q)
 parser.add_argument("--varikv_residual", action="store_true")
+# --- 质心臂（2026-08-12）：带计数的点质心 + 归一化感知读出，免训练 ---
+# 与 --varikv_ckpt 互斥：它没有 ckpt，没有编码器，没有门。
+parser.add_argument("--centroid_k", type=int, default=0,
+                    help=">0 时启用质心读出，值为每 head 的簇数 K")
+parser.add_argument("--centroid_rope", type=str, default="post",
+                    choices=["post", "inv"],
+                    help="post=直接平均 post-RoPE key（复现 E1b）；inv=逆旋到无位置帧（对照臂）")
 args = parser.parse_args()
 
 

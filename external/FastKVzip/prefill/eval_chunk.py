@@ -56,6 +56,20 @@ if __name__ == "__main__":
         model.varikv_inv_freq = _rot.inv_freq.detach().clone() if _rot else None
         print(f"[VariKV] loaded {args.varikv_ckpt} mode={_ck.get('mode')} "
               f"M={args.varikv_slots}")
+    elif args.centroid_k > 0:
+        # 免训练的质心臂：只改 kv_type + K，其余评测参数与基线逐字一致。
+        args.kv_type = "centroid"
+        args.tag += f"_cen{args.centroid_k}"
+        if args.centroid_rope != "post":
+            args.tag += f"_{args.centroid_rope}"
+        model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
+        model.varikv_K = args.centroid_k
+        model.varikv_rope_mode = args.centroid_rope
+        if args.centroid_rope == "inv":
+            _rot = getattr(model.model.model, "rotary_emb", None)
+            assert _rot is not None, "inv 模式需要 rotary_emb"
+            model.varikv_inv_freq = _rot.inv_freq.detach().clone()
+        print(f"[Centroid] K={args.centroid_k}/head rope={args.centroid_rope}")
     else:
         model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
 
