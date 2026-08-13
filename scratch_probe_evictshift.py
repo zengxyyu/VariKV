@@ -99,17 +99,20 @@ def main():
         del kvF; torch.cuda.empty_cache()
         n = min(vB.shape[-1], vF.shape[-1])
         b, f = vB[..., :n], vF[..., :n]
-        inter = (b & f).sum(-1).float()
-        union = (b | f).sum(-1).float()
-        iou = (inter / union.clamp_min(1)).mean().item()
-        dropped = ((b & ~f).sum(-1).float() / b.sum(-1).clamp_min(1).float()).mean().item()
-        added = ((~b & f).sum(-1).float() / b.sum(-1).clamp_min(1).float()).mean().item()
-        dN = (f.sum(-1).float() - b.sum(-1).float())
-        rows.append((iou, dropped, added, b.sum(-1).float().mean().item(),
+        # **先全局求和再相除。** 旧版把逐 (层,头) 的比例先算再平均，而 level="pair"
+        # 全局分配预算 ⇒ 逐对保留量从 4096 到 41354 差 10 倍，比例平均被严重扭曲，
+        # 结果自相矛盾（报「B 丢 1.76% / F 新增 9.83%」，而全局 |B|=|F| 时两者必等）。
+        I = int((b & f).sum()); U = int((b | f).sum())
+        nb, nf = int(b.sum()), int(f.sum())
+        iou = I / max(U, 1)
+        dropped = int((b & ~f).sum()) / max(nb, 1)
+        added = int((~b & f).sum()) / max(nf, 1)
+        dN = (f.sum(-1).float() - b.sum(-1).float())      # 逐 (层,头)
+        rows.append((iou, dropped, added, nb / b.shape[0] / b.shape[1],
                      dN.mean().item(), dN.abs().mean().item()))
-        print(f"  样本{i}: IoU {iou:.4f}  B保留而F丢 {100*dropped:5.2f}%  "
-              f"F新保留 {100*added:5.2f}%  B保留量 {rows[-1][3]:.0f}  "
-              f"ΔN 均值 {rows[-1][4]:+.0f}（|ΔN| {rows[-1][5]:.0f}）", flush=True)
+        print(f"  样本{i}: IoU {iou:.4f}  B丢 {100*dropped:5.2f}%  F新增 {100*added:5.2f}%  "
+              f"|B| {nb}  |F| {nf}  逐对 ΔN 均值 {dN.mean():+.0f}（|ΔN| {dN.abs().mean():.0f}）",
+              flush=True)
 
     A = np.array(rows)
     print("\n" + "=" * 82)
@@ -119,6 +122,8 @@ def main():
     print(f"  B 保留而 F 丢弃              {100*A[:, 1].mean():.2f}%")
     print(f"  F 新保留（B 丢弃）            {100*A[:, 2].mean():.2f}%")
     print(f"  每 (层,头) 平均保留量         {A[:, 3].mean():.0f}")
+    J=A[:,0].mean(); print(f"  自检：|B|=|F| 时 IoU={J:.4f} ⇒ 每侧应换掉 "
+          f"{100*(1-2*J/(1+J)):.2f}%（与上面两行须一致）")
     print(f"  保留量差 ΔN 均值 / |ΔN| 均值  {A[:, 4].mean():+.1f} / {A[:, 5].mean():.1f}")
     print("=" * 82)
     print("判读：换掉 <1% ⇒ 驱逐几乎没变，该假设被否；>5% ⇒ 记忆在改变压缩本身。")
