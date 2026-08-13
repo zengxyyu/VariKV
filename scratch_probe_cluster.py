@@ -69,7 +69,7 @@ from data.load import load_dataset_all                   # noqa: E402
 from data.wrapper import DataWrapper, get_query          # noqa: E402
 
 GAMMAS = [0.0, 0.05, 0.1, 0.25, 0.5, 0.75, 1.0, 1.5]
-SCHEMES = ("position", "random", "kmeans", "Cq-kmeans", "score-oracle")
+SCHEMES = ("position", "random", "eucl-Lloyd", "Cq-Lloyd", "score-oracle")
 _Q = {}
 _orig_prepare = RetainCache.prepare
 
@@ -88,7 +88,7 @@ def assign(scheme, k_ev, pos, K, W, iters=4, gen=None):
     n = k_ev.shape[0]
     if scheme == "position":
         return (pos // W).clamp(max=K - 1)
-    if scheme in ("score-oracle", "Cq-kmeans"):
+    if scheme in ("score-oracle", "Cq-Lloyd"):
         raise RuntimeError(f"{scheme} 需在 g 循环内单独构造")
     if scheme == "random":
         return torch.randint(0, K, (n,), device=k_ev.device, generator=gen)
@@ -129,8 +129,8 @@ def report(A, Gm, LAY, a, deff_cq, nd_):
         print("  ⇒ 低秩截断可行性看**累积谱**，不看 d_eff；成本是 O(ndr+nKrI)，"
               "不是 O(nKr)")
     print(f"被驱逐 key 的**有效维度** d_eff（参与率）中位 {md(A, 13):.1f}"
-          f"　⇒ 量化失真下界 ~K^(−2/d_eff) = {a.K ** (-2.0 / max(md(A,13),1e-9)):.4f}"
-          f"（即 K={a.K} 最多把簇内方差降到这个比例）")
+          f"　⇒ **rate-distortion 启发式参考**（非严格界）K^(−2/d_eff) = {a.K ** (-2.0 / max(md(A,13),1e-9)):.4f}"
+          f"（参与率不能代入高斯 rate-distortion 得严格下界；仅提示「增大 K 的收益有限」）")
     print("-" * 118)
     print(f"{'分簇':<14}{'logD̂/D 0阶':>12}{'2阶oracle':>11}{'2阶1标量':>11}"
           f"{'簇内/总 方差':>13}{'cos(v̂,v)':>10}{'‖v̂‖/‖v‖':>10}{'e':>8}")
@@ -175,7 +175,47 @@ def report(A, Gm, LAY, a, deff_cq, nd_):
             print(f"{s:<14}{np.median(B[:,2]):>10.4f}{np.median(B[:,3]):>10.4f}"
                   f"{np.median(B[:,4]):>10.4f}{np.median(B[:,5]):>11.4f}"
                   f"{np.median(B[:,6]):>11.4f}{np.median(B[:,7]):>12.4f}")
-    print(f"\n  收缩理论预测 γ* = 1/(1+e²) 中位 = {md(A, 14):.4f}")
+    # ---- 样本级配对 bootstrap ----
+    # **统计单位是 context，不是行。** 同一 context 下的层/kv 头/查询头高度相关，
+    # 69860 行绝不是 69860 个独立样本。逐 context 聚合后再在 context 上配对 bootstrap。
+    if A.shape[1] >= 18:
+        ids = A[:, 15]
+        ctxs = np.unique(ids)
+        def per_ctx(si, col):
+            B = A[A[:, 0] == si]
+            return np.array([np.median(B[B[:, 15] == c, col]) for c in ctxs
+                             if (B[:, 15] == c).any()])
+        def bt(dv, n=10000, seed=0):
+            r = np.random.default_rng(seed)
+            s = dv[r.integers(0, len(dv), (n, len(dv)))].mean(1)
+            return dv.mean(), float(np.quantile(s, .025)), float(np.quantile(s, .975))
+        print("-" * 118)
+        print(f"【样本级配对 bootstrap】n={len(ctxs)} 个 context，"
+              f"逐 context 先取中位再配对　★=95%CI 不含 0")
+        base = per_ctx(2, 6)                      # eucl-Lloyd 的「现方法」
+        for si, s in enumerate(SCHEMES):
+            if si == 2:
+                continue
+            v = per_ctx(si, 6)
+            if len(v) != len(base):
+                continue
+            mm, lo, hi = bt(v - base)
+            print(f"  {s:<14} − eucl-Lloyd　{mm:>+8.4f} [{lo:>+7.4f},{hi:>+7.4f}]"
+                  f"{' ★' if (lo > 0 or hi < 0) else ' 未分离'}")
+    if len(LAY) and LAY.shape[1] >= 12:
+        print("-" * 118)
+        d1 = LAY[LAY[:, 0] == 2, 9]
+        print(f"【层级分母稳定性】‖y_full−y_R‖ 的 P10/P50/P90 = "
+              f"{np.percentile(d1,10):.3f} / {np.percentile(d1,50):.3f} / "
+              f"{np.percentile(d1,90):.3f}")
+        print("  ⇒ 跨头相消会让分母偶尔极小，比值会爆；下面同时给以 ‖y_full‖ 归一的版本")
+        print(f"{'分簇':<14}{'现方法/损伤':>13}{'现方法/‖y_full‖':>18}")
+        for si, s in enumerate(SCHEMES):
+            B = LAY[LAY[:, 0] == si]
+            if not len(B):
+                continue
+            print(f"{s:<14}{np.median(B[:,2]):>13.4f}{np.median(B[:,11]):>18.5f}")
+    print(f"\n  收缩启发式 γ* = 1/(1+e²)（**仅在各向同性加性误差模型下成立**，非普遍最优）中位 = {md(A, 14):.4f}")
     print("=" * 118)
     print("判读（预注册）：")
     print("  **score-oracle 是最关键的一行。** 它按 aᵀk_i 在一维上分等量桶 ⇒ 簇内 logit")
@@ -209,6 +249,16 @@ def main():
                     help="从**另一个数据集**估 C_q 然后冻结。空 = 用本数据集前序样本"
                          "（transductive，会看到测试任务的 query 几何，只能当诊断）")
     ap.add_argument("--cq_n", type=int, default=8)
+    ap.add_argument("--cq_tokens", default="last", choices=["all", "last"],
+                    help="**标定分布必须与评估分布对齐。** 评估只用 prompt 的最后一个 "
+                         "query token；而 all 会把 system/模板/指令 token 全算进 "
+                         "E[aaᵀ]，它们数量远超真正做检索决策的那一个位置，会主导矩阵 "
+                         "——这可能同时解释 d_eff 低到 2.3（模板的强共享方向造出巨大 "
+                         "rank-1 成分）和「transductive 好、跨任务崩」（同数据集模板相同 "
+                         "⇒ 迁移的是模板方向而不是 query 几何）。last 只取末尾若干个。")
+    ap.add_argument("--cq_last_k", type=int, default=16,
+                    help="cq_tokens=last 时取末尾多少个 query token。单取 1 个的话，"
+                         "cq_n=8 只给 8×G≈56 个向量去估 128×128 矩阵，欠定。")
     ap.add_argument("--out", default="")
     ap.add_argument("--report_every", type=int, default=10,
                     help="每这么多条样本打一次完整表 + 落盘，便于中途看效果")
@@ -251,7 +301,10 @@ def main():
                 Aq = _Q[l][0].float() * (d ** -0.5)
                 G2 = Aq.shape[0] // H
                 for h in range(H):
-                    z = Aq.view(H, G2, -1, d)[h].reshape(-1, d)
+                    zz = Aq.view(H, G2, -1, d)[h]                  # [G,T,d]
+                    if a.cq_tokens == "last":
+                        zz = zz[:, -a.cq_last_k:]
+                    z = zz.reshape(-1, d)
                     CQ[(l, h)] = CQ.get((l, h), torch.zeros(d, d, device=z.device)) + z.T @ z
                     CQN[(l, h)] = CQN.get((l, h), 0) + z.shape[0]
             del kv2; torch.cuda.empty_cache()
@@ -295,7 +348,7 @@ def main():
                 k_ev, v_ev = kall[h, ev], vall[h, ev]
                 k_rt, v_rt = kall[h, valid[h]], vall[h, valid[h]]
                 labs = {s: assign(s, k_ev, ev, a.K, kv.W, gen=gen)
-                        for s in SCHEMES if s not in ("score-oracle", "Cq-kmeans")}
+                        for s in SCHEMES if s not in ("score-oracle", "Cq-Lloyd")}
                 # **有效维度**（参与率）。高维量化失真下界 ~ K^{-2/d_eff}：d_eff=128 时
                 # K=16 只降 4%（16^{-2/128}=0.958），d_eff=8 降 2×，d_eff=4 降 4×，
                 # 要降 50× 需 d_eff≈1.4。所以"16 簇不可能大幅压方差"该由 d_eff 判定，
@@ -329,10 +382,10 @@ def main():
                 for s in SCHEMES:
                     if s == "score-oracle":
                         continue                      # 唯一依赖 q 的，留在 g 循环里
-                    if s == "Cq-kmeans":
+                    if s == "Cq-Lloyd":
                         if Cq_ready is None:
                             continue
-                        lab = assign("kmeans", Cq_ready(k_ev), ev, a.K, kv.W, gen=gen)
+                        lab = assign("eucl-Lloyd", Cq_ready(k_ev), ev, a.K, kv.W, gen=gen)
                     else:
                         lab = labs[s]
                     z1 = torch.zeros(a.K, device=k_ev.device)
@@ -365,8 +418,11 @@ def main():
                     AGF["full"] += W @ o_full; AGF["R"] += W @ oR
                     for si, s in enumerate(SCHEMES):
                         if s == "score-oracle":
-                            # **1-D k-means（Lloyd）on s_i = aᵀk_i**，不是等量分位桶
-                            # （等量桶不最小化 Σ_C Σ(s_i−s̄_C)²）。唯一依赖 q 的分簇。
+                            # **1-D Lloyd on s_i = aᵀk_i**，不是等量分位桶（等量桶不
+                            # 最小化 Σ_C Σ(s_i−s̄_C)²）。但 Lloyd 只是**局部**最优，
+                            # 不是一维平方误差的全局最优 ⇒ 只能叫
+                            # "strong realized-query oracle"，不能叫理论上界。
+                            # 唯一依赖 q 的分簇。
                             order = sE.argsort()
                             cen = sE[order][(torch.arange(a.K, device=sE.device)
                                              * sE.numel() // a.K).clamp(
@@ -421,7 +477,13 @@ def main():
                                      float((W @ (cell(LE2, vh) - o_full)).norm() / nd),
                                      float((W @ (cell(LE2i, vh) - o_full)).norm() / nd),
                                      float(LE2i - LE), vw / max(vt, 1e-30), d_eff,
-                                     1.0 / (1.0 + e_ * e_)))
+                                     1.0 / (1.0 + e_ * e_),
+                                     # **追加 id（不前插，避免改动报告里所有列号）**：
+                                     # 没有这三列就做不了样本级配对 bootstrap，也无法
+                                     # 在 K=16/K=1024 之间取相同 (样本,层,头) 交集
+                                     # —— 而 `ev.numel() < max(64,4K)` 让两者的 population
+                                     # 天然不同（K=1024 要求 n_E≥4096，K=16 只要 ≥64）。
+                                     i, l, hq))
                         for key, LEx, vx in (("cc", LE0, vh), ("mc", LE, vh),
                                              ("cd", LE0, vE), ("2or", LE2, vh),
                                              ("2iso", LE2i, vh)):
@@ -431,24 +493,33 @@ def main():
                             LEg = (LE + np.log(gm)) if gm > 0 else torch.tensor(
                                 -1e30, device=LE.device, dtype=LE.dtype)
                             errs.append(float((W @ (cell(LEg, vh) - o_full)).norm() / nd))
+                        errs.append(i)
                         gam.append(errs)
             dl = AGF["full"] - AGF["R"]
             nl = dl.norm().clamp_min(1e-12)
             for si, s in enumerate(SCHEMES):
                 if AGG[s]["cc"].abs().sum() == 0:
                     continue
+                # **同时存分母**：跨头相消只留 0.21–0.25，所以 ‖y_full−y_R‖ 有时极小，
+                # 只报比值会被少数近乎完全相消的层把解释搞乱。故另存 ‖y_full‖ 做第二种归一化。
                 lay_rows.append((si, l,
                                  float((AGG[s]["cc"] - AGF["full"]).norm() / nl),
                                  float((AGG[s]["mc"] - AGF["full"]).norm() / nl),
                                  float((AGG[s]["cd"] - AGF["full"]).norm() / nl),
                                  float((AGG[s]["2or"] - AGF["full"]).norm() / nl),
                                  float((AGG[s]["2iso"] - AGF["full"]).norm() / nl),
-                                 cs(AGG[s]["cc"] - AGF["R"], dl)))
+                                 cs(AGG[s]["cc"] - AGF["R"], dl),
+                                 i, float(nl), float(AGF["full"].norm()),
+                                 float((AGG[s]["cc"] - AGF["full"]).norm()
+                                       / AGF["full"].norm().clamp_min(1e-12))))
         for l in ([] if CQ_FROZEN else a.layers):   # 冻结后不再累计
             Aq = _Q[l][0].float() * (d ** -0.5)   # [HQ,T,d]
             G = Aq.shape[0] // H
             for h in range(H):
-                z = Aq.view(H, G, -1, d)[h].reshape(-1, d)
+                zz = Aq.view(H, G, -1, d)[h]
+                if a.cq_tokens == "last":
+                    zz = zz[:, -a.cq_last_k:]
+                z = zz.reshape(-1, d)
                 CQ[(l, h)] = CQ.get((l, h), torch.zeros(d, d, device=z.device)) + z.T @ z
                 CQN[(l, h)] = CQN.get((l, h), 0) + z.shape[0]
         del kv
@@ -460,12 +531,12 @@ def main():
             np.save(f"{a.out}_rows.npy", np.array(rows))
             np.save(f"{a.out}_gam.npy", np.array(gam))
             np.save(f"{a.out}_lay.npy",
-                    np.array(lay_rows) if lay_rows else np.zeros((0, 8)))
-            report(np.array(rows), np.array(gam), np.array(lay_rows) if lay_rows else np.zeros((0,8)), a, deff_cq, done)
+                    np.array(lay_rows) if lay_rows else np.zeros((0, 12)))
+            report(np.array(rows), np.array(gam), np.array(lay_rows) if lay_rows else np.zeros((0, 12)), a, deff_cq, done)
 
     A = np.array(rows); Gm = np.array(gam)
     np.save(f"{a.out}_rows.npy", A); np.save(f"{a.out}_gam.npy", Gm)
-    LAY = np.array(lay_rows) if lay_rows else np.zeros((0, 8))
+    LAY = np.array(lay_rows) if lay_rows else np.zeros((0, 12))
     np.save(f"{a.out}_lay.npy", LAY)
     report(A, Gm, LAY, a, deff_cq, a.n)
 
