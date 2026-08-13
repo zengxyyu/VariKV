@@ -74,7 +74,9 @@ LOCK="$LOG/.lock"
 # 等空卡（显存 <2 GB 视为空闲）。
 # **必须排除 GPU 0/1**：scratch_v2b_wait.sh 硬编码用它们训 v2b，四个 v2 评测一结束
 # 就会占用。两个调度器都按"显存空了就抢"来判断，不排除就会抢同一张卡而 OOM。
-CANDIDATES="${CANDIDATES:-2 3 4 5 6 7}"
+# 默认放开全部 8 张卡。之前排除 0/1 是为 scratch_v2b_wait.sh 留的，v2b 已训完。
+# 若再有手动占卡的任务，用 CANDIDATES="..." 覆盖。
+CANDIDATES="${CANDIDATES:-0 1 2 3 4 5 6 7}"
 # 空闲判据必须**严于**"显存 <2 GB"。踩过的坑：评测 job 在生成阶段显存会短暂回落
 # 到阈值以下，于是同一张卡被派了第二个 job（实测 GPU6 上 _kls_kl 与
 # _p2_cen16_rq 挤在一起）。两条加强：
@@ -95,7 +97,7 @@ free_gpu () {
 }
 
 echo "$(date -u +%H:%M) 排入 ${#JOBS[@]} 个 job，候选卡 [$CANDIDATES]，等空卡"
-echo "  (GPU 0/1 留给 scratch_v2b_wait.sh 训 v2b，故不在候选内)"
+
 while :; do
   n=$(wc -l < "$QUEUE")
   [ "$n" -eq 0 ] && break

@@ -52,6 +52,15 @@ class MemoryRetainCache(RetainCache):
         # 「记忆如何影响后续轨迹」完全拿不到梯度。1 = 旧行为。
         self.detach_every = 1
         self._chunk_i = 0
+        # --- 2×2 因果分解的两个独立开关（2026-08-12）---
+        # absorb_content=False：prune_chunk 照常推进 _absorbed_upto（读出不被 P0-A
+        #   guard 拦住），但不把被驱逐 KV 写进记忆 ⇒ 记忆**全程**停在 reset 态。
+        #   这才是"纯 steering"臂；旧探针在 prefill 之后才清零，测不到这件事。
+        # read_enabled=False：不注入，但 absorb 照常 ⇒ "纯记忆"臂（不让记忆改写
+        #   prefill 轨迹，只在 decode 读出）。**不能**用 residual_mode=False 代替：
+        #   那会让 _refresh_memory 把记忆塞进 cache，是另一个方法。
+        self.absorb_content = True
+        self.read_enabled = True
         # 消融用：'normal' 正常读出；'zero' 把等效 KV 置零。
         # 置零后 key=0 ⇒ 所有 query 的 logit 恒为 0（仍分走 softmax 质量），
         # 而 value=0 ⇒ 对输出不贡献内容。用来把「抢注意力」与「内容有害」拆开。
@@ -140,6 +149,8 @@ class MemoryRetainCache(RetainCache):
         return out
 
     def _absorb_layer(self, layer_idx, s, e):
+        if not self.absorb_content:
+            return                  # 不写内容；_absorbed_upto 仍由外层推进
         H, d = self.n_heads_kv, self.head_dim
         off = self.sink + (self.M if self._mem_inserted[layer_idx] else 0)
         k_all = self.key_cache[layer_idx]         # [1,H,seq,d]
@@ -272,6 +283,9 @@ class MemoryRetainCache(RetainCache):
         # 逐字相同、不同 ckpt 之间不同（68.20/66.80/68.60/67.20/67.80/70.40），
         # 即 ckpt 决定了本该与记忆无关的那一档分数 ⇒ full-cache 参照被污染。
         # 未吸收过任何东西时返回全零，形状与正常返回一致。
+        if not getattr(self, "read_enabled", True):
+            B, HQ, T, d_ = query_states.shape
+            return query_states.new_zeros(B, T, HQ * d_)
         if getattr(self, "_absorbed_upto", 0) <= 0:
             H = self.n_heads_kv
             B, HQ, T, d = query_states.shape
