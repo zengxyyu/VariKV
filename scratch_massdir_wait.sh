@@ -35,14 +35,16 @@ free_gpu() {
   echo ""
 }
 
+# 跑升级版的**分簇**探针（position / random / kmeans / score-oracle），不是旧的
+# massdir —— 旧那版只有位置分桶，已知是 ResKV 用 k-means 明确避开的错误选择。
 for job in "scbench_kv 16" "scbench_vt 16" "scbench_prefix_suffix 16" "scbench_kv 1024"; do
   set -- $job; d=$1; K=$2
-  out="scratch_massdir_${d}_K${K}.log"
+  out="scratch_cluster_${d}_K${K}.log"
   [ -s "$out" ] && grep -q "判读" "$out" && { echo "跳过 $job（已完成）"; continue; }
   while :; do g=$(free_gpu); [ -n "$g" ] && break; sleep 120; done
   echo "[$(date -u +%H:%M)] $job → GPU$g"
-  CUDA_VISIBLE_DEVICES=$g .venv/bin/python -u scratch_probe_massdir.py \
-      --data "$d" --K "$K" --n 0 --mem_frac 0 > "$out" 2>&1
+  CUDA_VISIBLE_DEVICES=$g .venv/bin/python -u scratch_probe_cluster.py \
+      --data "$d" --K "$K" --n 20 --mem_frac 0 > "$out" 2>&1
   echo "[$(date -u +%H:%M)] $job 完成 rc=$?"
 done
 echo "[$(date -u +%H:%M)] ALL DONE"

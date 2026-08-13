@@ -78,7 +78,12 @@ def per_sample(data, suffix, task="qa"):
             for info, text in d[fmt]:
                 if abs(float(info[0]) - RATIO) < 1e-9:
                     p.append(text["pruned"]); q.append(text["full__"])
-                answers.append(text["answer"])
+                    # **`answer` 必须在 ratio 命中时才追加。** JSON 每个样本有 5 个
+                    # task key（qa, qa-1 … qa-4，每问一个），每个 key 下每个 ratio 一行。
+                    # 若把它放在 if 之外，gold 会累积 5×n_ratio 条而预测只有 5 条 ⇒
+                    # evaluate_answer 静默错位。单 ratio 的臂（本文件用的都是）看不出来，
+                    # 多 ratio 的臂（如 __full 的 6 档）会给出完全离谱的分数。
+                    answers.append(text["answer"])
         gold = ANSW[i] if ANSW else answers
         sub = SUBT[i] if SUBT else None
         if p:

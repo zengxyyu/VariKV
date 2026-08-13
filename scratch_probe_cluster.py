@@ -69,7 +69,7 @@ from data.load import load_dataset_all                   # noqa: E402
 from data.wrapper import DataWrapper, get_query          # noqa: E402
 
 GAMMAS = [0.0, 0.05, 0.1, 0.25, 0.5, 0.75, 1.0, 1.5]
-SCHEMES = ("position", "kmeans", "random")
+SCHEMES = ("position", "random", "kmeans", "score-oracle")
 _Q = {}
 _orig_prepare = RetainCache.prepare
 
@@ -88,6 +88,8 @@ def assign(scheme, k_ev, pos, K, W, iters=4, gen=None):
     n = k_ev.shape[0]
     if scheme == "position":
         return (pos // W).clamp(max=K - 1)
+    if scheme == "score-oracle":
+        raise RuntimeError("score-oracle 依赖 query，必须在 g 循环内单独构造")
     if scheme == "random":
         return torch.randint(0, K, (n,), device=k_ev.device, generator=gen)
     # k-means（Lloyd），**从高分 token 初始化** —— ResKV 说 "initialized from
@@ -164,7 +166,16 @@ def main():
                     continue
                 k_ev, v_ev = kall[h, ev], vall[h, ev]
                 k_rt, v_rt = kall[h, valid[h]], vall[h, valid[h]]
-                labs = {s: assign(s, k_ev, ev, a.K, kv.W, gen=gen) for s in SCHEMES}
+                labs = {s: assign(s, k_ev, ev, a.K, kv.W, gen=gen)
+                        for s in SCHEMES if s != "score-oracle"}
+                # **有效维度**（参与率）。高维量化失真下界 ~ K^{-2/d_eff}：d_eff=128 时
+                # K=16 只降 4%（16^{-2/128}=0.958），d_eff=8 降 2×，d_eff=4 降 4×，
+                # 要降 50× 需 d_eff≈1.4。所以"16 簇不可能大幅压方差"该由 d_eff 判定，
+                # 不能拿 ambient 128 维说事。
+                kc = k_ev - k_ev.mean(0, keepdim=True)
+                Sig = (kc.T @ kc) / kc.shape[0]
+                lam = torch.linalg.eigvalsh(Sig.double()).clamp_min(0)
+                d_eff = float(lam.sum() ** 2 / (lam * lam).sum().clamp_min(1e-30))
                 for g in range(G):
                     hq = h * G + g
                     W = WO[:, hq * d:(hq + 1) * d]
@@ -180,7 +191,16 @@ def main():
                     dfull = o_full - oR
                     nd = (W @ dfull).norm().clamp_min(1e-12)
                     for si, s in enumerate(SCHEMES):
-                        lab = labs[s]
+                        if s == "score-oracle":
+                            # 按 s_i = aᵀk_i 在**一维**上分 K 个等量桶。不可部署（需要 q），
+                            # 但它是上界，且判读极干净：按构造簇内 logit 方差最小 ⇒ 质量近乎
+                            # 精确 ⇒ 剩下的输出误差纯粹是 value 方向误差。
+                            order = sE.argsort()
+                            lab = torch.empty_like(order)
+                            lab[order] = (torch.arange(sE.numel(), device=sE.device)
+                                          * a.K // sE.numel()).clamp(max=a.K - 1)
+                        else:
+                            lab = labs[s]
                         z1 = torch.zeros(a.K, device=aq.device)
                         cnt = z1.clone().index_add_(0, lab, torch.ones_like(sE))
                         cl = cnt.clamp_min(1.0)
@@ -193,10 +213,26 @@ def main():
                         sbar = aq @ kbar.T
                         # 0 阶（= ResKV）与 2 阶（候选零拟合修法）的质量
                         delta = sE - sbar[lab]
-                        var_ = z1.clone().index_add_(0, lab, delta * delta) / cl
+                        # **oracle**：对实际到来的 query 算的精确簇内投影方差。
+                        # 写入时不知道 q ⇒ **不可部署**，只当上界看。
+                        var_or = z1.clone().index_add_(0, lab, delta * delta) / cl
+                        # **可部署，每簇只多 1 个 scalar**：s_j² = tr(Σ_j)/d，
+                        # 近似 aᵀΣ_j a ≈ s_j²‖a‖²。相对 2d+1=257 只 +0.4%。
+                        # 代价是假设 Σ_j ≈ s_j²I —— 恰恰是被怀疑的那条，所以必须与
+                        # oracle 并列报告。（存完整 Σ_kk 是 16384 个 scalar，+6376%，
+                        # 压缩故事直接死；对角 128 个也是 +50%。）
+                        dk2 = ((k_ev - kbar[lab]) ** 2).sum(-1)
+                        s2 = z1.clone().index_add_(0, lab, dk2) / cl / d
+                        var_iso = s2 * float(aq @ aq)
                         r0 = sbar + logn
-                        r2 = sbar + torch.where(occ, logn + 0.5 * var_, logn)
-                        LE0, LE2 = torch.logsumexp(r0, -1), torch.logsumexp(r2, -1)
+                        r2 = sbar + torch.where(occ, logn + 0.5 * var_or, logn)
+                        r2i = sbar + torch.where(occ, logn + 0.5 * var_iso, logn)
+                        LE0 = torch.logsumexp(r0, -1)
+                        LE2 = torch.logsumexp(r2, -1)
+                        LE2i = torch.logsumexp(r2i, -1)
+                        # clustering 解释掉了多少 **query 相关的** key 方差
+                        vw = float((cnt * var_or).sum() / cnt.sum().clamp_min(1))
+                        vt = float(sE.var(unbiased=False))
                         vh = torch.softmax(r0, -1) @ vbar
                         e_ = float((vh - vE).norm() / vE.norm().clamp_min(1e-30))
                         rows.append((si,
@@ -207,7 +243,8 @@ def main():
                                      float((W @ (cell(LE, vh) - o_full)).norm() / nd),
                                      float((W @ (cell(LE0, vE) - o_full)).norm() / nd),
                                      float((W @ (cell(LE2, vh) - o_full)).norm() / nd),
-                                     float(var_[occ].mean()) if occ.any() else 0.0,
+                                     float((W @ (cell(LE2i, vh) - o_full)).norm() / nd),
+                                     float(LE2i - LE), vw / max(vt, 1e-30), d_eff,
                                      1.0 / (1.0 + e_ * e_)))
                         errs = [si]
                         for gm in GAMMAS:
@@ -220,43 +257,62 @@ def main():
         print(f"  样本 {i} 完成，累计 {len(rows)} 行", flush=True)
 
     A = np.array(rows); Gm = np.array(gam)
-    print("\n" + "=" * 112)
+    md = lambda B, c: float(np.median(B[:, c]))                  # noqa: E731
+    print("\n" + "=" * 118)
     print(f"分簇 × (质量,方向) × oracle 分解　{a.data} @ratio {a.ratio}　K={a.K}　"
           f"{a.n} 条样本　{len(A)//len(SCHEMES)} 个 (层,查询头)/分簇")
-    print("-" * 112)
-    hdr = (f"{'分簇':<10}{'logD̂/D 0阶':>13}{'logD̂/D 2阶':>13}{'Var(aᵀδ)':>11}"
-           f"{'cos(v̂,v)':>11}{'‖v̂‖/‖v‖':>11}{'e':>8}")
-    print(hdr)
+    print("-" * 118)
+    print(f"被驱逐 key 的**有效维度** d_eff（参与率）中位 {md(A, 13):.1f}"
+          f"　⇒ 量化失真下界 ~K^(−2/d_eff) = {a.K ** (-2.0 / max(md(A,13),1e-9)):.4f}"
+          f"（即 K={a.K} 最多把簇内方差降到这个比例）")
+    print("-" * 118)
+    print(f"{'分簇':<14}{'logD̂/D 0阶':>12}{'2阶oracle':>11}{'2阶1标量':>11}"
+          f"{'簇内/总 方差':>13}{'cos(v̂,v)':>10}{'‖v̂‖/‖v‖':>10}{'e':>8}")
     for si, s in enumerate(SCHEMES):
         B = A[A[:, 0] == si]
-        print(f"{s:<10}{np.median(B[:,1]):>+13.3f}{np.median(B[:,2]):>+13.3f}"
-              f"{np.median(B[:,10]):>11.2f}{np.median(B[:,5]):>11.4f}"
-              f"{np.median(B[:,4]):>11.4f}{np.median(B[:,3]):>8.4f}")
-    print("-" * 112)
-    print(f"{'分簇':<10}{'现方法':>11}{'只修质量':>11}{'只修方向':>11}{'2阶质量':>11}"
-          f"　（‖o−o_full‖/‖Δo‖ 中位，1.0=完全不修）")
+        if not len(B):
+            continue
+        print(f"{s:<14}{md(B,1):>+12.3f}{md(B,2):>+11.3f}{md(B,11):>+11.3f}"
+              f"{md(B,12):>13.4f}{md(B,5):>10.4f}{md(B,4):>10.4f}{md(B,3):>8.4f}")
+    print("-" * 118)
+    print("四格 oracle + 二阶（‖o−o_full‖/‖Δo‖ 中位，1.0 = 完全不修正）")
+    print(f"{'分簇':<14}{'现方法':>10}{'只修质量':>10}{'只修方向':>10}"
+          f"{'交互':>9}{'2阶oracle':>11}{'2阶1标量':>11}")
     for si, s in enumerate(SCHEMES):
         B = A[A[:, 0] == si]
-        print(f"{s:<10}{np.median(B[:,6]):>11.4f}{np.median(B[:,7]):>11.4f}"
-              f"{np.median(B[:,8]):>11.4f}{np.median(B[:,9]):>11.4f}")
-    print("-" * 112)
+        if not len(B):
+            continue
+        # L(D,v)=0（恒等）⇒ 交互 = 0 − mc − cd + cc。**必须报交互**：
+        # 质量与方向是强交互变量（N_E = D_E·v_E），不能只看两个主效应排瓶颈。
+        inter = md(B, 6) - md(B, 7) - md(B, 8)
+        print(f"{s:<14}{md(B,6):>10.4f}{md(B,7):>10.4f}{md(B,8):>10.4f}"
+              f"{inter:>+9.4f}{md(B,9):>11.4f}{md(B,10):>11.4f}")
+    print("-" * 118)
     print("γ-sweep（保持各自的 v̂，只缩放真实质量 γ·D_E）")
-    print(f"{'分簇':<10}" + "".join(f"{g:>9.2f}" for g in GAMMAS) + f"{'  最优 γ':>10}")
+    print(f"{'分簇':<14}" + "".join(f"{g:>9.2f}" for g in GAMMAS) + f"{'  最优 γ':>10}")
     for si, s in enumerate(SCHEMES):
         B = Gm[Gm[:, 0] == si][:, 1:]
-        med = [float(np.median(B[:, j])) for j in range(len(GAMMAS))]
-        print(f"{s:<10}" + "".join(f"{v:>9.4f}" for v in med)
+        if not len(B):
+            continue
+        med = [float(np.median(B[:, k])) for k in range(len(GAMMAS))]
+        print(f"{s:<14}" + "".join(f"{v:>9.4f}" for v in med)
               + f"{GAMMAS[int(np.argmin(med))]:>10g}")
-    print("=" * 112)
+    print(f"\n  收缩理论预测 γ* = 1/(1+e²) 中位 = {md(A, 14):.4f}")
+    print("=" * 118)
     print("判读（预注册）：")
+    print("  **score-oracle 是最关键的一行。** 它按 aᵀk_i 在一维上分等量桶 ⇒ 簇内 logit")
+    print("     方差按构造最小 ⇒ 质量近乎精确，剩下的输出误差**纯粹是 value 方向误差**。")
+    print("     若 score-oracle 缺口≈0 而 k-means 不是 ⇒ 瓶颈是**缺 query 信息**，不是容量，")
+    print("     这正好解释 Attention Matching 为何必须用 reference queries。")
+    print("     若连 score-oracle 都留大缺口 ⇒ 容量才是绑定约束。")
     print("  k-means 缺口小 且 γ*≈1  ⇒ 旧的 centroid/Jensen/shrinkage 故事基本死")
-    print("  k-means 缺口小 但 γ*<1  ⇒ 质量不是问题，方向/可靠性才是")
-    print("  k-means 缺口大 且 γ*≈1  ⇒ 质量修正有价值，但 AM 的拟合 β 已覆盖 ⇒ 需零拟合优势")
-    print("  k-means 缺口大 且 γ*<1  ⇒ **既缺质量又不能盲目补满**，存在真正的校准问题")
-    print("  random ≈ k-means        ⇒ 分簇策略根本不是主变量（对照，别漏看这一行）")
-    print("  「2阶质量」若把误差压到接近「只修质量」⇒ 零拟合闭式修法可行，这是候选方法")
+    print("  k-means 缺口大 且 γ*<1  ⇒ 存在真正的校准问题（注意这仍是净放大 γ*/r_D，")
+    print("     是标准 bias–variance 收缩，不是「越准越坏」的反常）")
+    print("  random ≈ k-means        ⇒ 分簇策略根本不是主变量（别漏看这一行）")
+    print("  「2阶1标量」若接近「2阶oracle」⇒ 各向同性假设成立，每簇 +1 scalar 可部署；")
+    print("     若差很远 ⇒ 只有 oracle 版有效，而存 Σ_kk 是 +6376% 状态，压缩故事死")
     print("注意：本探针只测局部注意力误差。Retr.MultiHop 已证明「更接近满缓存」≠")
-    print("     「任务分数更高」，所以任何 γ / 修法都还需要一次下游验证。")
+    print("     「任务分数更高」，任何 γ / 修法都还需要一次下游验证。")
 
 
 if __name__ == "__main__":
