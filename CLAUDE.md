@@ -912,9 +912,15 @@ re-derive.
    scores: **K=1024 gives 6 significantly positive panels, 1 negative, mean Δ +3.66, and
    its sign agrees with headroom on 10/11.** The one significant negative
    (Retr.MultiHop) is the one panel whose headroom is *negative* — compression there
-   beats full cache — so losing there is what faithful restoration must do. K=1024 beats
-   K=16 on 10 of 11 panels ⇒ **capacity is not saturated**, confirming the P0 probe's
-   "bottleneck is representational capacity" on the downstream metric.
+   beats full cache — so losing there is what faithful restoration must do.
+   **Capacity is NOT shown to be the bottleneck downstream** — an earlier version of this
+   entry claimed "K=1024 beats K=16 on 10 of 11 panels", which is simply wrong. Measured
+   paired: **7 higher, 1 tie, 3 lower** by score (8/11 closer to full cache by fidelity),
+   and **only 2 of 11 panels have a separated paired CI** — Code.RepoQA +4.09 ★ and
+   Retr.MultiHop −1.91 ★ (the latter being *more faithful but lower scoring*). So the P0
+   probe's capacity claim is **not** confirmed downstream; 64× more capacity buys a
+   separated gain on one panel. Corollary: **K=16 has the better efficiency story**
+   (0.095% of the budget vs K=1024's 6.08%), so do not chase K=2048/4096.
 2. **The learned 0.33M module is not a memory — it is a gate-score perturbation.** The
    frozen-mask 2×2 (`scratch_probe_maskmed.py`, 40 samples) decomposes its +51.00 into
    **selection +44.00 ★** (force the no-memory arm to use the memory arm's `valid` mask
