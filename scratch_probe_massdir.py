@@ -80,9 +80,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default="scbench_kv")
     ap.add_argument("--K", type=int, default=16)
-    ap.add_argument("--n", type=int, default=3)
+    ap.add_argument("--n", type=int, default=20)
+    ap.add_argument("--start", type=int, default=0)
     ap.add_argument("--ratio", type=float, default=0.1)
-    ap.add_argument("--layers", type=int, nargs="+", default=[0, 6, 13, 20, 26])
+    ap.add_argument("--layers", type=int, nargs="+", default=list(range(28)))
     ap.add_argument("--mem_frac", type=float, default=0.45,
                     help="自身显存上限占比；与其他任务共卡时的保护栏，0 = 不限制")
     a = ap.parse_args()
@@ -104,7 +105,9 @@ def main():
     dw = DataWrapper(a.data, ds, m)
 
     rows, lay_rows, gam = [], [], []
-    for i in range(a.n):
+    per_sample = []          # 每条样本一行：(逐头误差中位 ×4, 该样本的最优 γ, log r_D 中位)
+    for i in range(a.start, a.start + a.n):
+        n_before = len(rows)
         kv = dw.prefill_context(i, prefill_chunk=16000, window_size=4096,
                                 chunk_ratio=a.ratio, level="pair")
         q_ids = m.apply_template(get_query("qa", list(ds[i]["question"])[0])).to(m.device)
@@ -179,7 +182,17 @@ def main():
                              cs(agg["cc"] - agg["R"], dl)))
         del kv
         torch.cuda.empty_cache()
-        print(f"  样本 {i} 完成，累计 {len(rows)} 个 (层,查询头)", flush=True)
+        # **统计单位是样本，不是 (层,头) 实例** —— 280 个实例嵌套在 2 条样本里并不独立，
+        # 上下文内容/驱逐集合/query 都是样本级共享的。逐样本聚合后再在样本上 bootstrap。
+        Ai = np.array(rows[n_before:]); Gi = np.array(gam[n_before:])
+        med_i = [float(np.median(Gi[:, j])) for j in range(len(GAMMAS))]
+        per_sample.append((float(np.median(Ai[:, 6])), float(np.median(Ai[:, 7])),
+                           float(np.median(Ai[:, 8])), GAMMAS[int(np.argmin(med_i))],
+                           float(np.median(Ai[:, 2])), float(np.median(Ai[:, 3]))))
+        print(f"  样本 {i}: 现方法 {per_sample[-1][0]:.4f}  Oracle-Mass "
+              f"{per_sample[-1][1]:.4f}  Oracle-Dir {per_sample[-1][2]:.4f}  "
+              f"该样本最优 γ {per_sample[-1][3]}  log r_D {per_sample[-1][4]:+.3f}",
+              flush=True)
 
     A = np.array(rows); Gm = np.array(gam); B = np.array(lay_rows)
     md = lambda c: float(np.median(A[:, c]))                     # noqa: E731
@@ -222,6 +235,36 @@ def main():
             "  (≈现方法等效 γ)" if abs(gm - 0.077) < 1e-9 else (
                 "  (=Oracle-Mass)" if gm == 1.0 else ""))
         print(f"{gm:>8.3f}{med[j]:>12.4f}{Gm[:,j].mean():>12.4f}{star}{note}")
+    P = np.array(per_sample)
+    def bt(v, n=10000, seed=0):
+        r = np.random.default_rng(seed)
+        s = v[r.integers(0, len(v), (n, len(v)))].mean(1)
+        return v.mean(), float(np.quantile(s, .025)), float(np.quantile(s, .975))
+    print("-" * 96)
+    print(f"【样本级统计（n={len(P)} 条样本，bootstrap 在样本上做）】")
+    for nm, c in (("现方法      (D̂, v̂)", 0), ("Oracle-Mass (D , v̂)", 1),
+                  ("Oracle-Dir  (D̂, v )", 2)):
+        mm, lo, hi = bt(P[:, c])
+        print(f"  {nm:<26}{mm:>8.4f} [{lo:.4f},{hi:.4f}]")
+    mm, lo, hi = bt(P[:, 1] - P[:, 0])
+    print(f"  {'Oracle-Mass − 现方法':<26}{mm:>+8.4f} [{lo:+.4f},{hi:+.4f}]"
+          f"{' ★' if (lo > 0 or hi < 0) else ' 未分离'}")
+    u, cnt = np.unique(P[:, 3], return_counts=True)
+    print(f"  逐样本最优 γ 的分布： " + "  ".join(f"{x:g}×{c}" for x, c in zip(u, cnt))
+          + f"　中位 {np.median(P[:,3]):g}")
+    print(f"  逐样本 log r_D 中位的散布： {P[:,4].mean():+.3f} ± {P[:,4].std():.3f}"
+          f"　（min {P[:,4].min():+.3f} / max {P[:,4].max():+.3f}）")
+    print("-" * 96)
+    print("【log(D̂_E/D_E) 的离散度 —— 决定「全局常数」是否安全；过冲是 E4 的死法】")
+    print(f"  全体 (层,头,样本)： 中位 {md(2):+.3f}  P10 {np.percentile(A[:,2],10):+.3f}"
+          f"  P90 {np.percentile(A[:,2],90):+.3f}  std {A[:,2].std():.3f}")
+    lay = sorted(set(A[:, 0].astype(int)))
+    sp = [(l, float(np.median(A[A[:, 0] == l, 2]))) for l in lay]
+    worst = sorted(sp, key=lambda x: x[1])
+    print(f"  逐层中位的极差 {max(v for _, v in sp) - min(v for _, v in sp):.3f}"
+          f"　最低 3 层 {[(int(l), round(v,2)) for l, v in worst[:3]]}"
+          f"　最高 3 层 {[(int(l), round(v,2)) for l, v in worst[-3:]]}")
+    print(f"  ⇒ 若逐层极差 ≫ 0，全局常数不安全，需按层（或按 P0 提的每簇一个标量）校正")
     emp = GAMMAS[int(np.argmin(med))]
     pred = md(11)
     print(f"\n  实测最优 γ ≈ {emp}　　收缩理论预测 γ* = 1/(1+e²) 中位 = {pred:.4f}")
