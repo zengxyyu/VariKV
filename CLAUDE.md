@@ -898,10 +898,38 @@ Both runs use the three `gap_*` ckpts with `--varikv_residual`, tags `gfsd` / `g
 - ~~`scratch_gapstd_eval.sh` — the three ckpts × `scbench_kv` × standard interval.~~ **Finished 11:22 UTC, 7h10m, all three `rc=0` — results in the table above.**
 - `scratch_gapsweep.py` — the three ckpts × the other 9 datasets, 27 jobs, marker-resumable, longest-first. Baselines are **not** re-run (the `_full` tag from `scratch_stage2b_sweep.py` is the same configuration). 56.7 GPU-h total; workers on GPUs 0–2 wait for the `scbench_kv` run to print `ALL DONE` before taking work. ETA ~13:30–14:00 UTC.
 
-## 2026-08-12 — the teacher-KL round: one panel works, and nothing else does
+## 2026-08-12/13 — the teacher-KL round, and the two results that reframe the project
 
-**Read `MODELS.md` for the checkpoint-by-checkpoint table.** This section records only
-what a future Claude must not re-derive.
+**Read `RESULTS_2026-08-12.md` first — it is the single entry point for every measured
+result and supersedes this section where they disagree.** `MODELS.md` has the
+checkpoint-by-checkpoint table. This section records only what a future Claude must not
+re-derive.
+
+**The two headline findings, both settled 2026-08-13:**
+
+1. **The training-free centroid is the project's real result.** `attention/centroid.py`,
+   all 11 Figure-11 panels at ratio 0.1, full dataset size, paired bootstrap on absolute
+   scores: **K=1024 gives 6 significantly positive panels, 1 negative, mean Δ +3.66, and
+   its sign agrees with headroom on 10/11.** The one significant negative
+   (Retr.MultiHop) is the one panel whose headroom is *negative* — compression there
+   beats full cache — so losing there is what faithful restoration must do. K=1024 beats
+   K=16 on 10 of 11 panels ⇒ **capacity is not saturated**, confirming the P0 probe's
+   "bottleneck is representational capacity" on the downstream metric.
+2. **The learned 0.33M module is not a memory — it is a gate-score perturbation.** The
+   frozen-mask 2×2 (`scratch_probe_maskmed.py`, 40 samples) decomposes its +51.00 into
+   **selection +44.00 ★** (force the no-memory arm to use the memory arm's `valid` mask
+   and it gains almost everything) and **representation +5.00, not separated**. So 86% of
+   the gain is mediated by *which KV are retained*, not by reading absorbed content back.
+   The v2b control seals it: the failed checkpoint shifts the retained set **more**
+   (3.18% vs 2.07%) and gains nothing — what matters is *which* entries change, not how
+   many. Consistent with the 4-arm decomposition (all gain from the content × prefill-
+   injection interaction) and with forensic v2 (correction direction orthogonal to `Δo`).
+
+Two standing traps this round re-confirmed. **Never trust a ★ on partial samples**: at
+38/100 Math.Find read −3.95 separated; at 100/100 it is −2.33 not separated. And
+**mask statistics must be summed globally before dividing** — `level="pair"` allocates
+budget across all layers and heads, so per-(layer,head) ratio averaging is badly skewed
+(the old probe reported "1.76% dropped / 9.83% added", impossible when `|B|=|F|`).
 
 ### What was built
 
