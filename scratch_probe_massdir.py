@@ -103,6 +103,9 @@ def main():
 
     ds = load_dataset_all(a.data, m.tokenizer)
     dw = DataWrapper(a.data, ds, m)
+    if a.n <= 0:                      # --n 0 ⇒ 用整个数据集，与下游评估同口径
+        a.n = len(ds) - a.start
+        print(f"[cfg] --n 0 ⇒ 全量 {a.n} 条", flush=True)
 
     rows, lay_rows, gam = [], [], []
     per_sample = []          # 每条样本一行：(逐头误差中位 ×4, 该样本的最优 γ, log r_D 中位)
@@ -147,26 +150,42 @@ def main():
                     oR = torch.softmax(sR, -1) @ v_rt
                     vE = torch.softmax(sE, -1) @ v_ev            # = N_E/D_E，方向
                     # ---- 质心（与 memory_correct 逐字同构）----
-                    r = aq @ kbar[h].T + logn[h]
+                    sbar = aq @ kbar[h].T                    # [K]，下面复用
+                    r = sbar + logn[h]
                     LEh = torch.logsumexp(r, -1)
                     vEh = torch.softmax(r, -1) @ vbar[h]
                     # ---- 重做 P0 的 E 阶梯：那批结论只有 3 样本 × 2 问题 = 6 个 query ----
                     # 「越多矩越差且单调」「E4 修准质量是灾难」是整个机制故事的地基，
-                    # 却是全仓库样本量最小的结论之一。这里在同一批 n=20 上重新检验，
+                    # 却是全仓库样本量最小的结论之一。这里在同一批样本上重新检验，
                     # 而且**把质量与方向解耦**（P0 的 E4 同时改了两者，无法归因）。
-                    bmask = (b_of == torch.arange(a.K, device=aq.device)[:, None])
-                    dk = k_ev[None] - kbar[h][:, None]                # [K,n,d]
-                    proj = torch.einsum("knd,d->kn", dk, aq)
-                    w = bmask.float()
-                    cnt_ = w.sum(-1).clamp_min(1.0)
-                    var_ = (w * proj * proj).sum(-1) / cnt_           # 簇内 Var(aᵀk)
+                    #
+                    # **必须用 scatter，不能用外积。** 朴素写法 `k_ev[None]-kbar[h][:,None]`
+                    # 是 [K, n_ev, d]：K=16 时 1.1 GB、**K=1024 时 73 GB ⇒ 必然 OOM**，
+                    # 而且它不依赖 g 却在 g 循环里被重复分配 G 次。下面用 index_add 把
+                    # 复杂度从 O(K·n·d) 降到 O(n·d)，全量样本 × 全 28 层才跑得动。
+                    #   δ_i      = aᵀk_i − aᵀk̄_{b(i)}
+                    #   Var_j    = mean_{i∈j} δ_i²
+                    #   (Σ_vk a)_j = mean_{i∈j}(v_i−v̄_j)·δ_i
+                    #              = (Σ_{i∈j} v_i δ_i)/n_j − v̄_j·(Σ_{i∈j} δ_i)/n_j
+                    delta = sE - sbar[b_of]                            # [n]
+                    z1 = torch.zeros(a.K, device=aq.device, dtype=torch.float32)
+                    cnt_ = z1.clone().index_add_(0, b_of, torch.ones_like(delta))
+                    cl = cnt_.clamp_min(1.0)
+                    var_ = z1.clone().index_add_(0, b_of, delta * delta) / cl
+                    sum_d = z1.clone().index_add_(0, b_of, delta)
+                    sum_vd = torch.zeros(a.K, d, device=aq.device, dtype=torch.float32)
+                    sum_vd.index_add_(0, b_of, v_ev * delta[:, None])
+                    cov_a = sum_vd / cl[:, None] - vbar[h] * (sum_d / cl)[:, None]
+                    if h == 0 and g == 0:
+                        # **自检 off-by-sink**：这里重算的簇计数必须与缓存自己在吸收时
+                        # 累计的 exp(logn) 一致；不一致说明分簇口径对不上。
+                        ref = torch.where(logn[h] > -1e29, logn[h].exp(),
+                                          torch.zeros_like(cnt_))
+                        assert torch.allclose(cnt_, ref, atol=1.0), \
+                            f"层 {l} 簇计数不符：重算 {cnt_.sum():.0f} vs 缓存 {ref.sum():.0f}"
                     logn2 = torch.where(logn[h] > -1e29, logn[h] + 0.5 * var_, logn[h])
-                    LE2 = torch.logsumexp(aq @ kbar[h].T + logn2, -1)  # E4 的质量（二阶 MGF）
-                    # Σ_vk a 的一阶方向修正（MomentKV 式），用同一组簇
-                    dv = v_ev[None] - vbar[h][:, None]                # [K,n,d]
-                    cov_a = torch.einsum("kn,knd->kd", w * proj, dv) / cnt_[:, None]
-                    vbar_c = vbar[h] + cov_a
-                    vEc = torch.softmax(r, -1) @ vbar_c               # E2 的方向
+                    LE2 = torch.logsumexp(sbar + logn2, -1)            # E4 的质量（二阶 MGF）
+                    vEc = torch.softmax(r, -1) @ (vbar[h] + cov_a)     # E2 的方向
                     # ---- 四格 ----
                     def cell(LEx, vx):
                         lam = torch.exp(LR - torch.logaddexp(LR, LEx))

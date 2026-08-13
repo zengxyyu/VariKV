@@ -42,7 +42,7 @@ for job in "scbench_kv 16" "scbench_vt 16" "scbench_prefix_suffix 16" "scbench_k
   while :; do g=$(free_gpu); [ -n "$g" ] && break; sleep 120; done
   echo "[$(date -u +%H:%M)] $job → GPU$g"
   CUDA_VISIBLE_DEVICES=$g .venv/bin/python -u scratch_probe_massdir.py \
-      --data "$d" --K "$K" --n 20 --mem_frac 0 > "$out" 2>&1
+      --data "$d" --K "$K" --n 0 --mem_frac 0 > "$out" 2>&1
   echo "[$(date -u +%H:%M)] $job 完成 rc=$?"
 done
 echo "[$(date -u +%H:%M)] ALL DONE"
