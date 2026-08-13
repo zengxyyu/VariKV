@@ -1,19 +1,25 @@
 #!/usr/bin/env python3
 """ControlRetainCache 的验收检查。代数错了整轮实验就白跑，所以这些必须先过。
 
-五项，从弱到强：
+**上一版这个脚本本身有 bug，五项里真正被检验的只有两项。**
+- `hasattr(dw, "get_query")` 恒为 False —— `get_query` 是 `data/wrapper.py:9` 的**模块级
+  函数**，不是 `DataWrapper` 的方法（它的方法叫 `generate_answer`）。于是 `out` 和 `out_b`
+  都是 `None`，`assert out == out_b` 退化成 `assert None == None`，恒真。
+  「β=0 生成逐字相同」这条**从未真正执行过**。
+- 只比了逐层保留**数量**。两个掩码完全可以每层留一样多、留的却是完全不同的 token
+  （`100101` vs `011100`）。数量相等**远弱于**掩码相等。
 
-  1. **β=0 ⇒ 与基线逐字相同。** 这是结构性保证（修正项恒为 0），不是希望。
-     learned-memory 那轮的"gate→0 是精确 fallback"只对 gate 成立、对空记忆不成立，
-     这里必须真的成立。
-  2. **预算恒等匹配。** `threshold` 按 ratio 取全局 top-n ⇒ 保留条数必须与基线**完全相等**，
-     不是"近似相等"。之前 memcache 那套 `M·H·L` 核算折腾了两版，这里应当一条都不差。
-  3. **β≠0 确实改变了保留集合**（否则修正被 z-score 抹平了，是 bug 不是结论）。
-  4. **逐层预算会挪动，但总量守恒。** level="pair" 是全局阈值化，
-     "永远对所有层求和"那条教训在这里同样适用——只看某一层会得出灾难性的错误结论。
-  5. **shuffle 对照与真 novelty 给出不同的掩码**（否则对照无效）。
+现在改成直接对 `valid` 做逐位比较。五项：
 
-GPU 被 r05 sweep 占满时不要跑这个——会争显存。
+  1. β=0 ⇒ 掩码与基线**逐位相同**，且生成结果逐字相同。
+  2. 预算相等 —— 但这是**经验事实不是构造性保证**：父类用 `score > score_sort[n]` 而不是
+     严格 topk，阈值处并列会让保留数少于 n。所以这里是"实测是否相等"。
+  3. β≠0 ⇒ 掩码确实改变（否则修正被 z-score 抹平了，是 bug 不是结论）。
+  4. 逐层预算会挪动但总量守恒 —— 这不是 bug 而是机制本身；报总量 + 逐层漂移。
+     "永远对所有层求和"那条教训在这里同样适用。
+  5. shuffle 对照与真 novelty 给出**不同**的掩码（否则对照无效）。
+
+GPU 被别的 sweep 占满时不要跑——会争显存。
 """
 import os
 import sys
@@ -27,64 +33,93 @@ os.chdir(os.path.join(ROOT, "external/FastKVzip/prefill"))
 from data.load import load_dataset_all                      # noqa: E402
 from data.wrapper import DataWrapper                        # noqa: E402
 from model.wrapper import ModelKVzip                        # noqa: E402
+from utils import Evaluator, set_gen_length                 # noqa: E402
 
 MODEL = "Qwen/Qwen2.5-7B-Instruct-1M"
-DATA, RATIO, CHUNK, WIN = "scbench_kv", 0.1, 16000, 4096
+DATA, RATIO, CHUNK, WIN, IDX = "scbench_kv", 0.1, 16000, 4096, 0
 
 
-def build(kv_type, **kw):
+def run(kv_type, **kw):
+    """完全照 eval_chunk.py:129-146 的真实路径取生成结果。
+
+    `generate_answer` 返回的是 `(inputs, info)` **元组**而不是文本——真正的生成要
+    再经 `Evaluator(model, inputs, info)(kv, generate=True)`，返回 {fmt: {pruned,
+    full__, answer}}。直接拿 `generate_answer` 的返回值去比较是比错了对象。
+    """
     m = ModelKVzip(MODEL, kv_type, "fastkvzip")
     for k, v in kw.items():
         setattr(m, k, v)
-    return m
+    ds = load_dataset_all(DATA, m.tokenizer)
+    dw = DataWrapper(DATA, ds, m)
+    set_gen_length(DATA, m)
+    kv_full = dw.prefill_context(IDX, do_score=False)
+    inputs, info = dw.generate_answer(IDX, kv_full, prob=False)
+    ev = Evaluator(m, inputs, info)
+    del kv_full
+    torch.cuda.empty_cache()
 
-
-def run(model, idx=0):
-    ds = load_dataset_all(DATA, model.tokenizer)
-    dw = DataWrapper(DATA, ds, model)
-    kv = dw.prefill_context(idx, prefill_chunk=CHUNK, window_size=WIN,
+    kv = dw.prefill_context(IDX, prefill_chunk=CHUNK, window_size=WIN,
                             chunk_ratio=RATIO, level="pair")
-    # 逐层保留数（必须求和后再比，不能只看某一层）
-    per_layer = kv.valid.float().mean(dim=(1, 2)).tolist()
-    total = int(kv.valid.sum().item())
-    q = dw.get_query(idx, 0) if hasattr(dw, "get_query") else None
-    out = model.generate(q, kv) if q is not None else None
-    return kv, total, per_layer, out
+    valid = kv.valid.clone()                                  # [L,H,n] bool
+    res = ev(kv, generate=True)
+    gen = {f: v["pruned"] for f, v in res.items()}            # 只比压缩臂的生成
+    diag = dict(corr=list(getattr(kv, "corr_std", [])),
+                cv=list(getattr(kv, "norm_cv", [])))
+    del m, kv, dw, ds, ev
+    torch.cuda.empty_cache()
+    return valid, gen, diag
+
+
+def summarize(v):
+    return int(v.sum()), v.float().mean(dim=(1, 2))           # 总数、逐层保留率
 
 
 def main():
-    print("=" * 90)
-    base = build("retain")
-    kv_b, tot_b, pl_b, out_b = run(base)
-    print(f"[基线] 保留 {tot_b} 条；逐层保留率 min/max = "
-          f"{min(pl_b):.4f}/{max(pl_b):.4f}")
-    del base, kv_b
-    torch.cuda.empty_cache()
+    print("=" * 94)
+    vb, ob, _ = run("retain")
+    tot_b, pl_b = summarize(vb)
+    print(f"[基线]        保留 {tot_b} 条　逐层保留率 {pl_b.min():.4f}–{pl_b.max():.4f}")
+    print(f"              生成 {len(ob)} 个 format，首个前 60 字: {str(list(ob.values())[0])[:60]!r}")
 
+    results = {}
     for tag, kw in [("β=0", dict(ctrl_beta=0.0)),
-                    ("β=0.5 evicted", dict(ctrl_beta=0.5, ctrl_src="evicted")),
-                    ("β=0.5 shuffle", dict(ctrl_beta=0.5, ctrl_src="evicted",
-                                           ctrl_shuffle=True))]:
-        m = build("control", **kw)
-        kv, tot, pl, out = run(m)
-        same_total = (tot == tot_b)
-        drift = max(abs(a - b) for a, b in zip(pl, pl_b))
-        print(f"[{tag:<14}] 保留 {tot} 条 "
-              f"（与基线{'完全相同 ✓' if same_total else f'差 {tot-tot_b} ✗'}）"
-              f"　逐层保留率最大漂移 {drift:.4f}"
-              f"　修正幅度 σ 中位 {torch.tensor(kv._corr_std).median() if kv._corr_std else 0:.4g}")
-        if tag == "β=0":
-            assert same_total, "β=0 竟然改变了保留条数——修正项没有恒为 0"
-            assert drift < 1e-9, f"β=0 竟然改变了逐层分配（漂移 {drift}）"
-            assert out == out_b, "β=0 生成结果与基线不同——不是精确 fallback"
-            print("      ✓ β=0 与基线逐字相同（结构性保证成立）")
-        else:
-            assert same_total, "预算没有恒等匹配——threshold 的 top-n 语义被破坏了"
-        del m, kv
-        torch.cuda.empty_cache()
-    print("=" * 90)
-    print("注意：第 4 项（逐层预算挪动）不是 bug 而是机制本身——"
-          "记忆就是通过重新分配预算起作用的。要报的是**总量守恒 + 逐层漂移量**。")
+                    ("β=+0.5 evicted", dict(ctrl_beta=0.5, ctrl_src="evicted")),
+                    ("β=+0.5 shuffle", dict(ctrl_beta=0.5, ctrl_src="evicted",
+                                            ctrl_shuffle=True)),
+                    ("β=+0.5 retained", dict(ctrl_beta=0.5, ctrl_src="retained"))]:
+        v, o, dg = run("control", **kw)
+        tot, pl = summarize(v)
+        diff = int((v ^ vb).sum())                            # 逐位不同的条目数
+        drift = float((pl - pl_b).abs().max())
+        print(f"[{tag:<15}] 保留 {tot} 条（基线 {tot_b}，差 {tot-tot_b:+d}）"
+              f"　掩码逐位不同 {diff}　逐层漂移 {drift:.4f}"
+              f"　修正σ {torch.tensor(dg['corr']).median() if dg['corr'] else 0:.4g}")
+        results[tag] = (v, o, tot, diff)
+
+    print("-" * 94)
+    v0, o0, tot0, diff0 = results["β=0"]
+    assert diff0 == 0, f"❌ β=0 的掩码与基线有 {diff0} 位不同——修正项没有恒为 0"
+    assert o0 == ob, "❌ β=0 生成结果与基线不同——不是精确 fallback"
+    print("✓ 1. β=0 掩码逐位相同 且 生成逐字相同")
+    print(f"{'✓' if tot0 == tot_b else '⚠'} 2. 预算：β=0 {tot0} vs 基线 {tot_b}"
+          + ("（相等）" if tot0 == tot_b else "（不等——阈值处有并列，说明"
+             "'构造性恒等'的说法确实过强）"))
+
+    ve, _, tote, diffe = results["β=+0.5 evicted"]
+    assert diffe > 0, "❌ β≠0 竟然没有改变掩码——修正被 z-score 抹平了"
+    print(f"✓ 3. β≠0 改变了掩码（{diffe} 位，占 {diffe/vb.numel():.3%}）")
+    print(f"{'✓' if tote == tot_b else '⚠'} 4. 总量：{tote} vs {tot_b}"
+          f"　（逐层会挪动是**机制本身**，要看的是总量守恒）")
+
+    vs, _, _, _ = results["β=+0.5 shuffle"]
+    dshuf = int((vs ^ ve).sum())
+    assert dshuf > 0, "❌ shuffle 与真 novelty 掩码相同——随机对照无效"
+    print(f"✓ 5. shuffle 与真 novelty 掩码不同（{dshuf} 位）")
+
+    vr, _, _, _ = results["β=+0.5 retained"]
+    print(f"   补充：retained 源与 evicted 源掩码相差 {int((vr ^ ve).sum())} 位"
+          f"（两者语义相反，本就该不同）")
+    print("=" * 94)
 
 
 if __name__ == "__main__":

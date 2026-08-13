@@ -80,6 +80,8 @@ if __name__ == "__main__":
         # 控制臂：只改 kv_type + 几个标量，其余评测参数与基线逐字一致。
         args.kv_type = "control"
         args.tag += f"_ctrl{args.ctrl_src[:3]}{args.ctrl_beta:g}"
+        if args.ctrl_beta_group != 0.0:
+            args.tag += f"_g{args.ctrl_beta_group:g}"
         if args.ctrl_feat != "key":
             args.tag += f"_{args.ctrl_feat}"
         if args.ctrl_rho != 1.0:
@@ -89,7 +91,8 @@ if __name__ == "__main__":
         if args.ctrl_rope != "post":
             args.tag += f"_{args.ctrl_rope}"
         model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
-        for k in ("beta", "rho", "src", "feat", "rope", "shuffle", "seed"):
+        for k in ("beta", "beta_group", "rho", "src", "feat", "rope",
+                  "shuffle", "seed"):
             setattr(model, f"ctrl_{k}", getattr(args, f"ctrl_{k}"))
         if args.ctrl_rope == "inv":
             _rot = getattr(model.model.model, "rotary_emb", None)

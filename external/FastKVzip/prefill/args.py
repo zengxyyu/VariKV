@@ -74,7 +74,13 @@ parser.add_argument("--ctrl_beta", type=float, default=0.0,
                     help="修正强度，单位是**基线分在该 (层,kv头) 内的标准差**。"
                          "0 = 与基线逐字相同（验收第一条）。可为负——覆盖度的符号是"
                          "欠定量，必须当实验变量")
-parser.add_argument("--ctrl_rho", type=float, default=1.0, help="覆盖矩阵的遗忘因子")
+parser.add_argument("--ctrl_beta_group", type=float, default=0.0,
+                    help="**跨头/层的预算再分配项**，单位是全局分数标准差（不是逐头的）。"
+                         "0 = 只做头内重排。头内项按逐头 z-score 后零均值，几乎不能系统性"
+                         "地在头之间搬预算，而 level='pair' 是全局阈值化 ⇒ 跨头分配是 B 路线"
+                         "的另一半能力。默认关，但第一批 null 结果不能在它没测过时下定论")
+parser.add_argument("--ctrl_rho", type=float, default=1.0,
+                    help="二阶矩状态的遗忘因子（无条件按 chunk 施加）")
 parser.add_argument("--ctrl_src", type=str, default="evicted",
                     choices=["evicted", "retained"],
                     help="覆盖矩阵累积谁：被驱逐的还是被保留的。**语义相反**，"

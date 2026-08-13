@@ -180,6 +180,7 @@ class ModelKVzip:
                 kv = ControlRetainCache(
                     self.model, evict_range,
                     beta=getattr(self, "ctrl_beta", 0.0),
+                    beta_group=getattr(self, "ctrl_beta_group", 0.0),
                     rho=getattr(self, "ctrl_rho", 1.0),
                     src=getattr(self, "ctrl_src", "evicted"),
                     feat=getattr(self, "ctrl_feat", "key"),
