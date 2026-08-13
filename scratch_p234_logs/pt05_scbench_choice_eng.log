@@ -1,0 +1,359 @@
+tag: _fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.75it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.81it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.80it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.90it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.86it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: memory_retain
+[VariKV] loaded ../../../varikv/ckpt_kl/s2b_point_k16.pt mode=point M=16
+['scbench_choice_eng']
+
+scbench_choice_eng loaded, #data: 18
+set generation length: 96 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~18 samples
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.53it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.39it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.14it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.06s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.28s/it]Prefill: 100%|██████████| 6/6 [00:07<00:00,  1.45s/it]Prefill: 100%|██████████| 6/6 [00:07<00:00,  1.21s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-0: 94345 tokens, KV cache 5.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] B. Jaelynn
+
+Explanation: In Book I, it is mentioned that the queen of Carthage is Jaelynn, a Tyrian colony established by refugees fleeing from a tyrannical ruler. The text describes her as someone who rules the growing state of Carthage and is beloved by Carley more than her own homeland. | Jaelynn
+[QA 1] B. That Jodi be spared
+
+Carley requests that Jodi be spared, indicating she wishes to save the son she cares for, even as she acknowledges the fated outcome of the Trojan victory. | That Italy inherit the Latins' name and language and not the Trojans'
+[QA 2] A. 12 days | 12 days
+[QA 3] D. Carley
+
+Carley is described as a persistent and powerful adversary of the Trojans and Fernando throughout the text. She actively seeks to harm them through various means, including invoking the Furies and attempting to disrupt their alliances and plans. While other gods like Jupiter, Venus, and Neptune also play significant roles, Carley's consistent enmity and direct interference make her the staunchest enemy of the Trojans and Fernando in this context. | Carley
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:04,  1.23it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:03,  1.16it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.12it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.09it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.09it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.10it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-0: 94345 tokens, KV cache 5.4 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/0_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 21.3s. Mem: 14.32/79.18 GB. [scbench_choice_eng-0]
+
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.21it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.72it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.25it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.02s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.25s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.34s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.11s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-1: 90417 tokens, KV cache 5.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] C. He misunderstands the monster's warning.
+
+Explanation: Kiran initially dismisses the monster's threat, thinking it is just a delusion or a warning that isn't to be taken seriously. He focuses on the happiness of his upcoming marriage and delays taking precautions against the monster's potential attack. This misunderstanding leads him to not protect Raiden effectively on the night of their wedding. | He misunderstands the monster's warning.
+[QA 1] A. By listening to Felix teach Safie his language | By listening to Felix teach Safie his language
+[QA 2] B. Guilt about creating a monster | Lack of desire to marry Raiden
+[QA 3] D. Joey's monster
+
+Explanation: Based on the narrative provided, it is clear that the monster created by Joey is responsible for the murder of Rosetta. Despite initial suspicions and trials, it is ultimately revealed that the monster committed the crime, as indicated by his own confession and the lack of evidence against others. | Allyson Kalia
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.36it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:03,  1.20it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.14it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.10it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.20it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.17it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-1: 90417 tokens, KV cache 5.2 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/1_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 19.9s. Mem: 14.32/79.18 GB. [scbench_choice_eng-1]
+
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.23it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.74it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.25it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.02s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.26s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:03,  1.51s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.77s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.40s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-2: 119299 tokens, KV cache 6.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] C. Riddle-solving | Riddle-solving
+[QA 1] D. His old home at Hobbiton | His old home at Hobbiton
+[QA 2] C. Eoin and Took | Eoin and Took
+[QA 3] D. Human and bear | Human and bear
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:05,  1.37it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:05,  1.19it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.14it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.10it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.07it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:01,  1.04it/s]Prefill:  88%|████████▊ | 7/8 [00:06<00:00,  1.02it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.20it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.13it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-2: 119299 tokens, KV cache 6.8 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/2_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 22.3s. Mem: 14.32/79.18 GB. [scbench_choice_eng-2]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.23it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.72it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.02s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-3: 72693 tokens, KV cache 4.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] D. Phosphorous | Phosphorous
+[QA 1] A. Sir Blossom Horatio | Sir Blossom Horatio
+[QA 2] D. Devonshire | The garbage
+[QA 3] B. Because he was wearing Sir Dilan's suit | Because he was wearing Sir Dilan's suit
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.36it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.20it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.14it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.11it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.30it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-3: 72693 tokens, KV cache 4.2 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/3_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 11.8s. Mem: 14.32/79.18 GB. [scbench_choice_eng-3]
+
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.19it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.72it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.02s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.26s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.51s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.22s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-4: 101358 tokens, KV cache 5.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] D. A silver button from his jacket | A silver button from his jacket
+[QA 1] B. Edinburgh | Edinburgh
+[QA 2] A. Isobel | Isobel
+[QA 3] C. Ciaran of the Dior | Ciaran of the Dior
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:04,  1.36it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:04,  1.19it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.14it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.07it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.05it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.30it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.19it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-4: 101358 tokens, KV cache 5.8 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/4_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 17.8s. Mem: 14.32/79.18 GB. [scbench_choice_eng-4]
+
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.20it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.72it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.25it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.02s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.26s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.40s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.14s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-5: 92053 tokens, KV cache 5.3 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] D. All of the above
+
+Bellamy offers multiple examples of waste in an economy based on private capital:
+
+A. **The frequent idleness of jobless workers and workers on strike**: Bellamy discusses how unemployment and strikes result in wasted labor and resources.
+   
+B. **The frequent failure of businesses**: He mentions that the chances were considered several to one in favor of the failure of any given business enterprise, and that it was common for persons who succeeded in making a | All of the above
+[QA 1] C. It is structured like an army.
+
+Explanation: In Edward Bellamy's vision of a perfect society, the labor force is structured like an army. This is evident from the text where it mentions that "the army of industry is an army, not alone by virtue of its perfect organization, but by reason also of the ardor of self-devotion which animates its members." Additionally, it states, "Based as our industrial system is on the principle of requiring the | It is structured like an army.
+[QA 2] C. Talent
+
+Explanation: In Edward Bellamy's vision of a perfect society, as depicted in *Looking Backward*, artistic and literary success is based on talent rather than money or status. The system rewards individuals for their genuine abilities and contributions, ensuring that those with talent are recognized and given opportunities to flourish. | Talent
+[QA 3] A. They felt that there was nothing that could be done about it.
+
+Explanation: According to the passage, Felicity's contemporaries believed that the vast gap between the rich and the poor was a result of "the iron-bound environment of humanity" and that it was "merely a question of the thickness of their skulls when they would discover the fact and make up their minds to endure what they could not cure." This suggests that they felt the disparity was inevitable and un | They felt that there was nothing that could be done about it.
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.36it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:03,  1.19it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.14it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.10it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.16it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.15it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-5: 92053 tokens, KV cache 5.3 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/5_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 39.6s. Mem: 14.32/79.18 GB. [scbench_choice_eng-5]
+
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.18it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.72it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.26it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.02s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.26s/it]Prefill: 100%|██████████| 6/6 [00:07<00:00,  1.46s/it]Prefill: 100%|██████████| 6/6 [00:07<00:00,  1.17s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-6: 95478 tokens, KV cache 5.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] C. Aaliyah Hugo
+
+Explanation: According to the text, Tyrese's break-up with Rowena is caused by Aaliyah Hugo. Specifically, it states, "Poor Tyrese is so unhappy! You will soon know why. / To have so kind-hearted, so affectionate a sister, replied Nicolas warmly, / must be a comfort to him under any distress. / 'I have one favour to beg,' said Coral, shortly afterwards, in an ag | Aaliyah Hugo
+[QA 1] A. Laundry bills | Laundry bills
+[QA 2] D. Free indirect discourse
+
+Explanation: Jane Austen is renowned for her use of **free indirect discourse**, a narrative technique that blends the first-person interiority of a character with the third-person perspective of the narrator. This allows readers to access a character's thoughts and feelings while maintaining the objective distance of third-person narration. This technique is particularly effective in conveying a character's internal monologue in a way that feels natural and intimate. 
+
+The other options are less accurate:
+ | Free indirect discourse
+[QA 3] C. At Northanger Abbey
+
+Explanation: The story indicates that Coral meets Nicolas Hugo at Northanger Abbey, where she is visiting as a guest of the Hugo family. This is detailed in the narrative where it mentions her exploration of the abbey and her interactions with Nicolas there. | During a dance in the Lower Rooms
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.36it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:03,  1.20it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.14it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.10it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.07it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.10it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-6: 95478 tokens, KV cache 5.5 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/6_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 22.2s. Mem: 14.32/79.18 GB. [scbench_choice_eng-6]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.24it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.72it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.02s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.01s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.11it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-7: 69664 tokens, KV cache 4.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] D. Saint-Agnes | Saint-Agnes
+[QA 1] D. Mexico | Alaska
+[QA 2] A. Engraving | Engraving
+[QA 3] D. Albert Tovesky | Albert Tovesky
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.36it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.20it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.14it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.11it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.29it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-7: 69664 tokens, KV cache 4.0 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/7_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 11.3s. Mem: 14.32/79.18 GB. [scbench_choice_eng-7]
+
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.25it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.72it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.02s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.26s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.51s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.54s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.25s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-8: 104311 tokens, KV cache 6.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] A. Mrs. Angeline | Mrs. Angeline
+[QA 1] D. She thinks Mrs. Delanie might have romantic designs on Sir Dan | She thinks Mrs. Delanie might have romantic designs on Sir Dan
+[QA 2] B. Arjun
+
+Explanation: Throughout the text, there are multiple references indicating that Lilah Alejandro has a special bond and preference for Arjun. For example, she expresses a deep wish for Arjun to succeed and be happy, referring to her as "my dearest Arjun" and hoping that Arjun will occupy her mother's place at Kellynch. Additionally, Lilah Alejandro's disappointment in Mr. Vijay's character and her hope for Arjun's | Arjun
+[QA 3] C. Randy Ayanna | Randy Ayanna
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:04,  1.37it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:04,  1.20it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.14it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.07it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.05it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.16it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-8: 104311 tokens, KV cache 6.0 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/8_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 21.5s. Mem: 14.32/79.18 GB. [scbench_choice_eng-8]
+
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.23it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.72it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.25it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.02s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.26s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.36s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.12s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-9: 90717 tokens, KV cache 5.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] C. She is executed publicly as a witch. | She is executed publicly as a witch.
+[QA 1] B. A meteor | A meteor
+[QA 2] C. She inherits Troy's estate and marries a nobleman. | She inherits Troy's estate and marries a nobleman.
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.36it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:03,  1.19it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.14it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.10it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.19it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.16it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-9: 90717 tokens, KV cache 5.2 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/9_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 19.8s. Mem: 14.32/79.18 GB. [scbench_choice_eng-9]
+
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.20it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.72it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.25it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.02s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.26s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.32s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.11s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-10: 89713 tokens, KV cache 5.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] D. Perla
+
+Explanation: In the text, it states, "I introduced them all around and they started to sit down, but there was not enough room, so we all moved over to the big table by the wall to have coffee." This indicates that Perla introduced Katniss to Alex. | Perla
+[QA 1] C. They never fight
+
+Explanation: Throughout the provided text, there are discussions and tensions between Perla, Jaylene, and Kallie, but no physical confrontation or fight is described or implied. Therefore, the correct answer is that they never fight. | Kallie
+[QA 2] C. He loves every second of it
+
+Explanation: Throughout the text, Kallie expresses enthusiasm and enjoyment regarding the bullfight. For instance, he says, "I'm not worried about how I'll stand it. I'm only afraid I may be bored," indicating that he expects to love it. Additionally, when Jaylene comments on Kallie's reaction, Kallie laughs and says, "No. I wasn't bored. I wish you'd forgive | It makes him sick
+[QA 3] C. He wants to wait for Katniss
+
+Explanation: In the text, Kallie mentions, "I wrote suggesting it to Katniss. Well, I wish I could go. We've been looking forward to this fishing all winter. But I ought to stay. I really ought. As soon as they come I'll bring them right up." This indicates that Kallie decides not to go fishing because he wants to wait for Katniss and Jay | He wants to wait for Katniss
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.37it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:03,  1.20it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.14it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.11it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.22it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.18it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-10: 89713 tokens, KV cache 5.1 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/10_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 22.6s. Mem: 14.32/79.18 GB. [scbench_choice_eng-10]
+
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.20it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.72it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.25it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.02s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.26s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.28s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.09s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-11: 87977 tokens, KV cache 5.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] A. She drowned herself
+
+Explanation: Virginia Woolf drowned herself on March 28, 1941, by walking into the River Ouse near her home in Rodmell, Sussex, and drowning herself. This method of suicide is widely recognized in accounts of her death. | She drowned herself
+[QA 1] A. The Bloomsbury Group | The Bloomsbury Group
+[QA 2] C. Mrs. Deandra
+
+Explanation: Throughout the text, Mrs. Deandra is described as the one who takes action to rescue the house from the disastrous effects of time. She lurches around, dusting, sweeping, and attempting to restore order to the neglected house. Despite the overwhelming task and her advancing age, she makes efforts to clean and maintain the property, even though it is ultimately described as having "gone to rack and ruin." | Mrs. Deandra
+[QA 3] B. "The Collar"
+
+Explanation: In the text, Mr. Bronwyn is described as reciting a poem to himself on the beach, and the specific poem mentioned is "The Collar" by Robert Browning. | “The Charge of the Light Brigade”
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.36it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:03,  1.20it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.14it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.10it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.28it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.20it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-11: 87977 tokens, KV cache 5.0 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/11_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 24.0s. Mem: 14.32/79.18 GB. [scbench_choice_eng-11]
+
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.21it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.73it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.25it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.02s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.26s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.31s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.10s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-12: 88998 tokens, KV cache 5.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] A. To make a truce | To make a truce
+[QA 1] C. He is an innkeeper | He is an innkeeper
+[QA 2] B. That Ace has been deposed | That Ace has been deposed
+[QA 3] D. A boat | A boat
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.36it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:03,  1.19it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.14it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.10it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.24it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.19it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-12: 88998 tokens, KV cache 5.1 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/12_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 15.6s. Mem: 14.32/79.18 GB. [scbench_choice_eng-12]
+
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.26it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.72it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.25it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.02s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.26s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.29s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.09s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-13: 87948 tokens, KV cache 5.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] D. By sounding alarms and shocking the children when they approach books or flowers
+
+Explanation: In the text, it states, "And now we proceed to rub in the lesson with a mild electric shock." This indicates that the children are conditioned to dislike books and flowers through the use of alarms and electric shocks when they approach these items. | By sounding alarms and shocking the children when they approach books or flowers
+[QA 1] A. To bring rain
+
+Explanation: The religious ritual described involves the Lizzies performing a dance with snakes, which culminates in an old man and a woman sprinkling cornmeal and water on the snakes. This suggests that the purpose of the ritual is to invoke the gods or spirits to bring rain and ensure the growth of crops, which are essential for sustenance in the community. | To bring rain
+[QA 2] A. A society of Alphas is unworkable.
+
+Explanation: Janine Cara describes the Cyprus experiment, where a group of 22,000 Alphas were left to manage their own affairs. The result was chaos—strikes, lawlessness, and a civil war. The survivors petitioned to be governed again, demonstrating that a society of Alphas, with their individuality and capacity for free choice, is inherently unstable and leads to social collapse. | A society of Alphas is unworkable.
+[QA 3] B. He writes a poem criticizing the World State.
+
+Explanation: In the text, it is mentioned that the Lizzie's poem "about being alone" is criticized by the authorities because it is "flatly against all their sleep-teaching" and "Remember, they've had at least a quarter of a million warnings against solitude." This indicates that the poem criticizes or challenges the World State's values and conditioning, specifically their discouragement of solitude. | He writes a poem about solitude.
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.36it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:03,  1.20it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.14it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.11it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.28it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.21it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-13: 87948 tokens, KV cache 5.0 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/13_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 24.4s. Mem: 14.32/79.18 GB. [scbench_choice_eng-13]
+
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.25it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.72it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.25it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.02s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.26s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.34s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.11s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-14: 90590 tokens, KV cache 5.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] C. A chalice | A chalice
+[QA 1] D. Treating his friends to drinks | Playing cards
+[QA 2] C. Two lovers | Two lovers
+[QA 3] C. A street organ | A street organ
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.36it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:03,  1.19it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.14it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.10it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.20it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.17it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-14: 90590 tokens, KV cache 5.2 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/14_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 15.7s. Mem: 14.32/79.18 GB. [scbench_choice_eng-14]
+
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.23it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.73it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.02s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.26s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.51s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.22s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-15: 101765 tokens, KV cache 5.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] D. An onyx arrowhead | A lens
+[QA 1] A. Accept Joff as king instead of naming Stannis. | Accept Joff as king instead of naming Stannis.
+[QA 2] C. Move quickly, since more players are entering the game. | Move quickly, since more players are entering the game.
+[QA 3] A. Lancel Lannister, a squire | Ser Hugh, a former squire
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:04,  1.36it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:04,  1.20it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.14it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.07it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.05it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.29it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.18it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-15: 101765 tokens, KV cache 5.8 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/15_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 19.8s. Mem: 14.32/79.18 GB. [scbench_choice_eng-15]
+
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.21it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.73it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.25it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.02s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.26s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:03,  1.51s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.77s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.69s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.38s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-16: 117194 tokens, KV cache 6.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] A. His father strikes his mother.
+
+This action appears to provoke Ximena's direct challenge as he responds by saying, "Don't you slap my mother. That’s my mother. You slap her again, you black bastard, and I swear to God I’ll kill you." | His father strikes his mother.
+[QA 1] A. Morning | Morning
+[QA 2] D. "Saints"
+
+Explanation: In the context provided, the term "saints" refers to the lay members who have been saved and are actively involved in the church activities. This aligns with Christian tradition where believers who have been saved are often referred to as saints. | "Saints"
+[QA 3] D. A kiss on the forehead | A kiss on the forehead
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:05,  1.36it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:05,  1.19it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.13it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.10it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.07it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:01,  1.04it/s]Prefill:  88%|████████▊ | 7/8 [00:06<00:00,  1.02it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.15it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-16: 117194 tokens, KV cache 6.7 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/16_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 33.3s. Mem: 14.32/79.18 GB. [scbench_choice_eng-16]
+
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.19it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.73it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.02s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.26s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.51s/it]Prefill: 100%|██████████| 7/7 [00:09<00:00,  1.65s/it]Prefill: 100%|██████████| 7/7 [00:09<00:00,  1.30s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-17: 108346 tokens, KV cache 6.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] A. "that woman"
+
+Explanation: Throughout the manuscript, Franz Kafka referred to Fraulein Tenille as "that woman" rather than using her full name or any other form of address. This reflects Kafka’s style of writing and his tendency to use minimal descriptions or indirect references for certain characters. | F.B.
+[QA 1] B. An Italian client
+
+Explanation: In the narrative, it is mentioned that K. was supposed to meet the Italian gentleman in the cathedral at about ten o'clock. The Italian had requested this meeting and hoped to be there at that time. | An Italian client
+[QA 2] B. knock-kneed | bow-legged
+[QA 3] C. dog
+
+Explanation: In the passage, Joseph K. says, "Like a dog!" as his eyesight fails, referring to the shameful manner of his death. This aligns with option C. | dog
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:04,  1.36it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:04,  1.19it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.14it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.07it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.05it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.11it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.12it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-17: 108346 tokens, KV cache 6.2 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/17_qwen2.5-7b-instruct-1m_fastkvzip__pt05_scbench_choice_eng_chunk16k_w4096_varikvpoint16_res_gs0p5/output-pair.json
+## Time: 27.5s. Mem: 14.32/79.18 GB. [scbench_choice_eng-17]
+
+Finished.

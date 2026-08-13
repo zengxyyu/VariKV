@@ -1,0 +1,1725 @@
+tag: _fastkvzip__cen1024_scbench_mf_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.73it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.79it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.81it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.89it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.85it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: centroid
+[Centroid] K=1024/head rope=post
+['scbench_mf']
+
+scbench_mf loaded, #data: 100
+set generation length: 48 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~100 samples
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.58it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.46it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.20it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.03s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.47s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.72s/it]Prefill:  80%|████████  | 8/10 [00:11<00:03,  1.98s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.25s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.11s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_mf-0: 147586 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 889 | 891
+[QA 1] 37 | 33
+[QA 2] 797 | 887
+[QA 3] 633 | 883
+[QA 4] 7 | 37
+[QA 5] 33 | 33
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.51it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.44it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.39it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.35it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.31it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.27it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.24it/s]Prefill:  90%|█████████ | 9/10 [00:06<00:00,  1.20it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.45it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.37it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-0: 147586 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/0_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.2s. Mem: 14.31/79.18 GB. [scbench_mf-0]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.28it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.80it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.30it/s]Prefill:  40%|████      | 4/10 [00:03<00:05,  1.01it/s]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.22s/it]Prefill:  60%|██████    | 6/10 [00:06<00:05,  1.47s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.72s/it]Prefill:  80%|████████  | 8/10 [00:11<00:03,  1.99s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.26s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.13s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.65s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-1: 148444 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 93 | 973
+[QA 1] 977 | 979
+[QA 2] 979 | 980
+[QA 3] 233 | 53
+[QA 4] 75 | 57
+[QA 5] 10 | 52
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.39it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.35it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.31it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.28it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.24it/s]Prefill:  90%|█████████ | 9/10 [00:06<00:00,  1.20it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.51it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-1: 148444 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/1_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.7s. Mem: 14.31/79.18 GB. [scbench_mf-1]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.34it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.81it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.30it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:04,  1.02it/s]Prefill:  56%|█████▌    | 5/9 [00:04<00:04,  1.22s/it]Prefill:  67%|██████▋   | 6/9 [00:06<00:04,  1.46s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.72s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:01,  1.98s/it]Prefill: 100%|██████████| 9/9 [00:13<00:00,  2.01s/it]Prefill: 100%|██████████| 9/9 [00:13<00:00,  1.53s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-2: 136892 tokens, KV cache 7.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 63 | 13
+[QA 1] 133 | 203
+[QA 2] 212 | 212
+[QA 3] 7 | 17
+[QA 4] 177 | 207
+[QA 5] 13 | 13
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.70it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.52it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.45it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.40it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:02,  1.36it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.32it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.28it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.25it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.42it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-2: 136892 tokens, KV cache 7.9 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/2_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 23.5s. Mem: 14.31/79.18 GB. [scbench_mf-2]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.31it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.80it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.30it/s]Prefill:  40%|████      | 4/10 [00:03<00:05,  1.01it/s]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.22s/it]Prefill:  60%|██████    | 6/10 [00:06<00:05,  1.46s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.72s/it]Prefill:  80%|████████  | 8/10 [00:11<00:03,  1.99s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.26s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.07s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.63s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-3: 146184 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 133 | 43
+[QA 1] 333 | 503
+[QA 2] 477 | 507
+[QA 3] 42 | 40
+[QA 4] 75 | 47
+[QA 5] 510 | 510
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.44it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.39it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.35it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.31it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.27it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.23it/s]Prefill:  90%|█████████ | 9/10 [00:06<00:00,  1.20it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.53it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-3: 146184 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/3_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.3s. Mem: 14.31/79.18 GB. [scbench_mf-3]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.33it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.80it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.30it/s]Prefill:  40%|████      | 4/10 [00:03<00:05,  1.01it/s]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.22s/it]Prefill:  60%|██████    | 6/10 [00:06<00:05,  1.47s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.73s/it]Prefill:  80%|████████  | 8/10 [00:11<00:03,  1.99s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.27s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.11s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.64s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-4: 147080 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 777 | 792
+[QA 1] 792 | 792
+[QA 2] 23 | 23
+[QA 3] 7 | 27
+[QA 4] 333 | 783
+[QA 5] 253 | 23
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.44it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.39it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.34it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.30it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.27it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.23it/s]Prefill:  90%|█████████ | 9/10 [00:06<00:00,  1.20it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.49it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.37it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-4: 147080 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/4_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.5s. Mem: 14.31/79.18 GB. [scbench_mf-4]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.25it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.29it/s]Prefill:  40%|████      | 4/10 [00:03<00:05,  1.00it/s]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.23s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.48s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.74s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.00s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.28s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.16s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-5: 148663 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 33 | 63
+[QA 1] 30 | 62
+[QA 2] 797 | 907
+[QA 3] 899 | 910
+[QA 4] 733 | 903
+[QA 5] 70 | 67
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.69it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.51it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.44it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.34it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.30it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.27it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.23it/s]Prefill:  90%|█████████ | 9/10 [00:06<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.49it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.37it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-5: 148663 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/5_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.9s. Mem: 14.31/79.18 GB. [scbench_mf-5]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.32it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.80it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.29it/s]Prefill:  40%|████      | 4/10 [00:03<00:05,  1.00it/s]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.23s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.48s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.74s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.01s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.28s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.18s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.67s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-6: 148923 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 377 | 387
+[QA 1] 90 | 89
+[QA 2] 389 | 389
+[QA 3] 177 | 97
+[QA 4] 333 | 383
+[QA 5] 133 | 93
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.30it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.48it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-6: 148923 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/6_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.1s. Mem: 14.31/79.18 GB. [scbench_mf-6]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.30it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.23s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.48s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.01s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.29s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.15s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-7: 147634 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 797 | 907
+[QA 1] 463 | 33
+[QA 2] 912 | 912
+[QA 3] 71 | 37
+[QA 4] 35 | 31
+[QA 5] 733 | 903
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.34it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.45it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-7: 147634 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/7_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.9s. Mem: 14.31/79.18 GB. [scbench_mf-7]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.26it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.23s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.29s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.19s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-8: 149227 tokens, KV cache 8.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 170 | 97
+[QA 1] 92 | 92
+[QA 2] 333 | 393
+[QA 3] 399 | 399
+[QA 4] 133 | 93
+[QA 5] 379 | 397
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.69it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.51it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.46it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-8: 149227 tokens, KV cache 8.6 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/8_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.4s. Mem: 14.31/79.18 GB. [scbench_mf-8]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.26it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.29s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.07s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.64s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-9: 144990 tokens, KV cache 8.3 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 319 | 319
+[QA 1] 67 | 57
+[QA 2] 133 | 63
+[QA 3] 56 | 56
+[QA 4] 253 | 313
+[QA 5] 317 | 317
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.57it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-9: 144990 tokens, KV cache 8.3 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/9_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.4s. Mem: 14.31/79.18 GB. [scbench_mf-9]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.29it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.29it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.23s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.48s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.74s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.01s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.29s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.11s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.65s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-10: 146293 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 521 | 521
+[QA 1] 517 | 517
+[QA 2] 423 | 513
+[QA 3] 34 | 43
+[QA 4] 33 | 43
+[QA 5] 71 | 47
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.34it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.30it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.51it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.37it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-10: 146293 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/10_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.7s. Mem: 14.31/79.18 GB. [scbench_mf-10]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.29it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.79it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.29s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.14s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-11: 147436 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 56 | 47
+[QA 1] 677 | 667
+[QA 2] 75 | 47
+[QA 3] 668 | 668
+[QA 4] 533 | 663
+[QA 5] 33 | 53
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.48it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.46it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-11: 147436 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/11_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.9s. Mem: 14.31/79.18 GB. [scbench_mf-11]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.24it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.29s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.14s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-12: 147440 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 367 | 367
+[QA 1] 75 | 75
+[QA 2] 75 | 75
+[QA 3] 369 | 369
+[QA 4] 133 | 83
+[QA 5] 333 | 363
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.46it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-12: 147440 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/12_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.0s. Mem: 14.31/79.18 GB. [scbench_mf-12]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.24it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.19s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-13: 148831 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 77 | 76
+[QA 1] 83 | 76
+[QA 2] 685 | 685
+[QA 3] 213 | 83
+[QA 4] 533 | 683
+[QA 5] 677 | 679
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.34it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.48it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-13: 148831 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/13_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.3s. Mem: 14.31/79.18 GB. [scbench_mf-13]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.26it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.14s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-14: 147006 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 977 | 937
+[QA 1] 944 | 944
+[QA 2] 8 | 7
+[QA 3] 273 | 13
+[QA 4] 7 | 7
+[QA 5] 733 | 943
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.48it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.48it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-14: 147006 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/14_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.7s. Mem: 14.31/79.18 GB. [scbench_mf-14]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.27it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.76it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.01s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.19s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-15: 148786 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 907 | 907
+[QA 1] 72 | 67
+[QA 2] 7 | 66
+[QA 3] 909 | 909
+[QA 4] 243 | 73
+[QA 5] 543 | 903
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.34it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.47it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-15: 148786 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/15_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.2s. Mem: 14.31/79.18 GB. [scbench_mf-15]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.23it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.77it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.28it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.24s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.63s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-16: 142746 tokens, KV cache 8.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 34 | 32
+[QA 1] 133 | 33
+[QA 2] 233 | 303
+[QA 3] 70 | 37
+[QA 4] 311 | 311
+[QA 5] 277 | 307
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.68it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.50it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.43it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.38it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:02,  1.34it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.29it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.29it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-16: 142746 tokens, KV cache 8.2 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/16_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 25.5s. Mem: 14.31/79.18 GB. [scbench_mf-16]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.27it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.77it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.28it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.26s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.64s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-17: 143501 tokens, KV cache 8.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 93 | 53
+[QA 1] 47 | 47
+[QA 2] 283 | 283
+[QA 3] 70 | 47
+[QA 4] 277 | 287
+[QA 5] 291 | 291
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.66it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.49it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.42it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.37it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:03,  1.33it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.29it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:07<00:00,  1.20it/s]Prefill: 100%|██████████| 9/9 [00:07<00:00,  1.28it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-17: 143501 tokens, KV cache 8.2 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/17_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 25.7s. Mem: 14.31/79.18 GB. [scbench_mf-17]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.25it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.12s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-18: 146910 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 72 | 17
+[QA 1] 17 | 12
+[QA 2] 853 | 853
+[QA 3] 797 | 847
+[QA 4] 33 | 13
+[QA 5] 733 | 853
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.48it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-18: 146910 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/18_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.7s. Mem: 14.31/79.18 GB. [scbench_mf-18]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.27it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.14s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-19: 147056 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 289 | 289
+[QA 1] 273 | 283
+[QA 2] 113 | 83
+[QA 3] 277 | 287
+[QA 4] 85 | 79
+[QA 5] 79 | 79
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.47it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-19: 147056 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/19_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.0s. Mem: 14.31/79.18 GB. [scbench_mf-19]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.25it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.19s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-20: 148770 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 72 | 73
+[QA 1] 333 | 733
+[QA 2] 733 | 733
+[QA 3] 74 | 73
+[QA 4] 33 | 73
+[QA 5] 733 | 733
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.48it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.21it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.47it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-20: 148770 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/20_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.4s. Mem: 14.31/79.18 GB. [scbench_mf-20]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.29it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.76it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.27it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.01s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.14s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.67s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-21: 147460 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 733 | 903
+[QA 1] 7 | 27
+[QA 2] 33 | 33
+[QA 3] 912 | 912
+[QA 4] 97 | 907
+[QA 5] 24 | 26
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.65it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.21it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.45it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-21: 147460 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/21_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.8s. Mem: 14.31/79.18 GB. [scbench_mf-21]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.29it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.12s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-22: 146875 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 793 | 963
+[QA 1] 33 | 13
+[QA 2] 968 | 968
+[QA 3] 957 | 967
+[QA 4] 7 | 7
+[QA 5] 5 | 5
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.32it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.48it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-22: 146875 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/22_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.7s. Mem: 14.31/79.18 GB. [scbench_mf-22]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.23it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.19s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-23: 148806 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 333 | 423
+[QA 1] 427 | 427
+[QA 2] 7 | 87
+[QA 3] 133 | 93
+[QA 4] 427 | 427
+[QA 5] 87 | 87
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.47it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-23: 148806 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/23_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.4s. Mem: 14.31/79.18 GB. [scbench_mf-23]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.28it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.10s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.65s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-24: 146255 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 133 | 43
+[QA 1] 550 | 539
+[QA 2] 37 | 39
+[QA 3] 413 | 533
+[QA 4] 75 | 47
+[QA 5] 537 | 537
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.50it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.37it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-24: 146255 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/24_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.7s. Mem: 14.31/79.18 GB. [scbench_mf-24]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.28it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.76it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.28it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.19s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.61s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-25: 141035 tokens, KV cache 8.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 45 | 45
+[QA 1] 193 | 223
+[QA 2] 133 | 53
+[QA 3] 230 | 230
+[QA 4] 70 | 47
+[QA 5] 217 | 227
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.66it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.48it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.42it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.37it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:03,  1.33it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.29it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.27it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.31it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-25: 141035 tokens, KV cache 8.1 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/25_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 25.1s. Mem: 14.31/79.18 GB. [scbench_mf-25]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.30it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.17s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-26: 148204 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 77 | 71
+[QA 1] 71 | 71
+[QA 2] 123 | 73
+[QA 3] 562 | 562
+[QA 4] 333 | 553
+[QA 5] 557 | 557
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.65it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.49it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-26: 148204 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/26_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.2s. Mem: 14.31/79.18 GB. [scbench_mf-26]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.28it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.76it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.01s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.07s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.64s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-27: 144679 tokens, KV cache 8.3 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 70 | 37
+[QA 1] 417 | 417
+[QA 2] 37 | 31
+[QA 3] 418 | 418
+[QA 4] 333 | 413
+[QA 5] 133 | 33
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.57it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-27: 144679 tokens, KV cache 8.3 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/27_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.3s. Mem: 14.31/79.18 GB. [scbench_mf-27]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.30it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.78it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.28it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.28s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.65s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-28: 143859 tokens, KV cache 8.3 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 356 | 356
+[QA 1] 70 | 37
+[QA 2] 123 | 43
+[QA 3] 36 | 35
+[QA 4] 333 | 353
+[QA 5] 357 | 347
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.67it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.50it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.43it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.38it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:03,  1.33it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.29it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.25it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 9/9 [00:07<00:00,  1.28it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-28: 143859 tokens, KV cache 8.3 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/28_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 25.9s. Mem: 14.31/79.18 GB. [scbench_mf-28]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.29it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.16s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.67s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-29: 147930 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 965 | 966
+[QA 1] 957 | 957
+[QA 2] 29 | 37
+[QA 3] 33 | 43
+[QA 4] 633 | 963
+[QA 5] 70 | 37
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.32it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.21it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.43it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-29: 147930 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/29_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.2s. Mem: 14.31/79.18 GB. [scbench_mf-29]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.30it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.76it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.27it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.01s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.10s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.65s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-30: 146226 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 54 | 42
+[QA 1] 70 | 47
+[QA 2] 413 | 473
+[QA 3] 133 | 43
+[QA 4] 477 | 479
+[QA 5] 482 | 482
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.21it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.51it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.37it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-30: 146226 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/30_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.7s. Mem: 14.31/79.18 GB. [scbench_mf-30]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.24it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.77it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.28it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.22s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.62s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-31: 141946 tokens, KV cache 8.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 70 | 57
+[QA 1] 49 | 49
+[QA 2] 237 | 237
+[QA 3] 233 | 233
+[QA 4] 238 | 238
+[QA 5] 87 | 53
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.65it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.48it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.42it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.37it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:02,  1.33it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.29it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.24it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.30it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-31: 141946 tokens, KV cache 8.1 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/31_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 25.4s. Mem: 14.31/79.18 GB. [scbench_mf-31]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.28it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.09s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.65s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-32: 145746 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 7 | 3
+[QA 1] 723 | 723
+[QA 2] 333 | 723
+[QA 3] 33 | 3
+[QA 4] 722 | 723
+[QA 5] 7 | 7
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.53it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.37it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-32: 145746 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/32_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.4s. Mem: 14.31/79.18 GB. [scbench_mf-32]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.30it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.79it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.21s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.69s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-33: 149385 tokens, KV cache 8.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 175 | 97
+[QA 1] 572 | 573
+[QA 2] 333 | 573
+[QA 3] 90 | 90
+[QA 4] 133 | 93
+[QA 5] 573 | 573
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.21it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.44it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-33: 149385 tokens, KV cache 8.6 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/33_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.5s. Mem: 14.31/79.18 GB. [scbench_mf-33]
+
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.30it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.00s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.79s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.40s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-34: 120671 tokens, KV cache 6.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 100 | 100
+[QA 1] 9873 | 93
+[QA 2] 97 | 97
+[QA 3] 55 | 55
+[QA 4] 63 | 63
+[QA 5] 57 | 57
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.67it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.46it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.40it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-34: 120671 tokens, KV cache 6.9 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/34_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 19.8s. Mem: 14.31/79.18 GB. [scbench_mf-34]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.24it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.19s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-35: 148732 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 877 | 887
+[QA 1] 733 | 883
+[QA 2] 33 | 73
+[QA 3] 889 | 890
+[QA 4] 71 | 67
+[QA 5] 6 | 66
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.65it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.48it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.32it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.47it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-35: 148732 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/35_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.2s. Mem: 14.31/79.18 GB. [scbench_mf-35]
+
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.30it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.00s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.44s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-36: 123689 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 103 | 103
+[QA 1] 27 | 27
+[QA 2] 33 | 23
+[QA 3] 110 | 110
+[QA 4] 107 | 107
+[QA 5] 23 | 23
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.67it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-36: 123689 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/36_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 20.5s. Mem: 14.31/79.18 GB. [scbench_mf-36]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.30it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.20s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-37: 149018 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 733 | 893
+[QA 1] 71 | 71
+[QA 2] 333 | 73
+[QA 3] 797 | 897
+[QA 4] 47 | 71
+[QA 5] 899 | 899
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.46it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-37: 149018 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/37_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.2s. Mem: 14.31/79.18 GB. [scbench_mf-37]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.26it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.01s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.05s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.64s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-38: 144391 tokens, KV cache 8.3 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 447 | 447
+[QA 1] 455 | 455
+[QA 2] 72 | 17
+[QA 3] 33 | 23
+[QA 4] 27 | 15
+[QA 5] 333 | 453
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.48it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.58it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-38: 144391 tokens, KV cache 8.3 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/38_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.1s. Mem: 14.31/79.18 GB. [scbench_mf-38]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.25it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.16s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.67s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-39: 147997 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 82 | 82
+[QA 1] 133 | 83
+[QA 2] 333 | 353
+[QA 3] 353 | 353
+[QA 4] 353 | 347
+[QA 5] 7 | 87
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.65it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.48it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.43it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-39: 147997 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/39_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.1s. Mem: 14.31/79.18 GB. [scbench_mf-39]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.28it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.14s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-40: 147136 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 917 | 917
+[QA 1] 923 | 923
+[QA 2] 71 | 17
+[QA 3] 733 | 923
+[QA 4] 33 | 13
+[QA 5] 13 | 11
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.47it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-40: 147136 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/40_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.0s. Mem: 14.31/79.18 GB. [scbench_mf-40]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.25it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.29s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.15s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.67s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-41: 147601 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 757 | 757
+[QA 1] 733 | 753
+[QA 2] 757 | 757
+[QA 3] 33 | 43
+[QA 4] 37 | 42
+[QA 5] 70 | 47
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.45it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-41: 147601 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/41_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.0s. Mem: 14.31/79.18 GB. [scbench_mf-41]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.27it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.29s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.19s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-42: 149110 tokens, KV cache 8.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 888 | 887
+[QA 1] 92 | 75
+[QA 2] 797 | 887
+[QA 3] 793 | 883
+[QA 4] 273 | 83
+[QA 5] 75 | 75
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.46it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-42: 149110 tokens, KV cache 8.6 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/42_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.4s. Mem: 14.31/79.18 GB. [scbench_mf-42]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.30it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.77it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.28it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.26s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.64s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-43: 143251 tokens, KV cache 8.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 93 | 83
+[QA 1] 82 | 82
+[QA 2] 7 | 87
+[QA 3] 157 | 157
+[QA 4] 162 | 162
+[QA 5] 143 | 153
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.66it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.50it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.42it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.38it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:03,  1.33it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.29it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.21it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.29it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-43: 143251 tokens, KV cache 8.2 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/43_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 25.6s. Mem: 14.31/79.18 GB. [scbench_mf-43]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.31it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.79it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.18s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-44: 148478 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 243 | 73
+[QA 1] 613 | 693
+[QA 2] 697 | 697
+[QA 3] 677 | 697
+[QA 4] 71 | 67
+[QA 5] 71 | 66
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.48it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-44: 148478 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/44_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.2s. Mem: 14.31/79.18 GB. [scbench_mf-44]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.26it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.21s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.69s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-45: 149395 tokens, KV cache 8.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 90 | 87
+[QA 1] 726 | 726
+[QA 2] 726 | 726
+[QA 3] 533 | 723
+[QA 4] 177 | 87
+[QA 5] 33 | 93
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.48it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.45it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-45: 149395 tokens, KV cache 8.6 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/45_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.5s. Mem: 14.31/79.18 GB. [scbench_mf-45]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.25it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.76it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.19s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-46: 149155 tokens, KV cache 8.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 333 | 83
+[QA 1] 75 | 75
+[QA 2] 944 | 944
+[QA 3] 87 | 75
+[QA 4] 833 | 943
+[QA 5] 977 | 937
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.46it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-46: 149155 tokens, KV cache 8.6 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/46_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.3s. Mem: 14.31/79.18 GB. [scbench_mf-46]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.23it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.77it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.28it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.26s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.64s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-47: 143172 tokens, KV cache 8.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 33 | 33
+[QA 1] 333 | 333
+[QA 2] 35 | 29
+[QA 3] 70 | 37
+[QA 4] 340 | 336
+[QA 5] 377 | 327
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.66it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.50it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.43it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.38it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:02,  1.33it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.29it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.21it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.29it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-47: 143172 tokens, KV cache 8.2 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/47_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 25.5s. Mem: 14.31/79.18 GB. [scbench_mf-47]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.29it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.79it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.22s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.69s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-48: 149801 tokens, KV cache 8.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 773 | 773
+[QA 1] 133 | 103
+[QA 2] 175 | 97
+[QA 3] 777 | 782
+[QA 4] 782 | 782
+[QA 5] 95 | 95
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.34it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.44it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-48: 149801 tokens, KV cache 8.6 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/48_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.6s. Mem: 14.31/79.18 GB. [scbench_mf-48]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.30it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.79it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.15s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.67s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-49: 147746 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 468 | 468
+[QA 1] 70 | 69
+[QA 2] 70 | 70
+[QA 3] 333 | 463
+[QA 4] 243 | 73
+[QA 5] 467 | 467
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.44it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-49: 147746 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/49_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.2s. Mem: 14.31/79.18 GB. [scbench_mf-49]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.28it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.76it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.27it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.07s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.57s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-50: 137193 tokens, KV cache 7.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 117 | 117
+[QA 1] 113 | 113
+[QA 2] 7 | 87
+[QA 3] 85 | 85
+[QA 4] 113 | 93
+[QA 5] 120 | 119
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.68it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.51it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.43it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.38it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:02,  1.34it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.30it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.23it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.39it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-50: 137193 tokens, KV cache 7.9 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/50_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 24.1s. Mem: 14.31/79.18 GB. [scbench_mf-50]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.30it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.22s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.69s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-51: 149860 tokens, KV cache 8.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 170 | 97
+[QA 1] 33 | 103
+[QA 2] 75 | 96
+[QA 3] 977 | 978
+[QA 4] 953 | 973
+[QA 5] 98 | 978
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.44it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-51: 149860 tokens, KV cache 8.6 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/51_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.6s. Mem: 14.31/79.18 GB. [scbench_mf-51]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.30it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.07s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.64s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-52: 144931 tokens, KV cache 8.3 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 37 | 30
+[QA 1] 70 | 37
+[QA 2] 333 | 433
+[QA 3] 33 | 33
+[QA 4] 441 | 441
+[QA 5] 437 | 437
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.65it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.57it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-52: 144931 tokens, KV cache 8.3 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/52_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.1s. Mem: 14.31/79.18 GB. [scbench_mf-52]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.29it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.76it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.27it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.01s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.19s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-53: 148953 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 85 | 74
+[QA 1] 813 | 813
+[QA 2] 797 | 807
+[QA 3] 333 | 813
+[QA 4] 33 | 83
+[QA 5] 75 | 74
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.46it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-53: 148953 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/53_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.3s. Mem: 14.31/79.18 GB. [scbench_mf-53]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.30it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.21s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.69s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-54: 149764 tokens, KV cache 8.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 900 | 900
+[QA 1] 333 | 103
+[QA 2] 177 | 97
+[QA 3] 797 | 897
+[QA 4] 773 | 893
+[QA 5] 94 | 94
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.44it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-54: 149764 tokens, KV cache 8.6 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/54_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.6s. Mem: 14.31/79.18 GB. [scbench_mf-54]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.29it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.79it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.21s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.69s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-55: 149394 tokens, KV cache 8.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 177 | 97
+[QA 1] 627 | 627
+[QA 2] 333 | 93
+[QA 3] 533 | 623
+[QA 4] 90 | 89
+[QA 5] 629 | 629
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.45it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-55: 149394 tokens, KV cache 8.6 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/55_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.5s. Mem: 14.31/79.18 GB. [scbench_mf-55]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.27it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.78it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.28it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.16s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.60s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-56: 140194 tokens, KV cache 8.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 177 | 197
+[QA 1] 193 | 193
+[QA 2] 201 | 201
+[QA 3] 70 | 57
+[QA 4] 113 | 53
+[QA 5] 50 | 50
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.67it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.49it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.42it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.38it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:02,  1.34it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.29it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.29it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.32it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-56: 140194 tokens, KV cache 8.0 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/56_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 24.9s. Mem: 14.31/79.18 GB. [scbench_mf-56]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.31it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.79it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.14s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-57: 147041 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 37 | 36
+[QA 1] 33 | 43
+[QA 2] 75 | 37
+[QA 3] 333 | 673
+[QA 4] 677 | 677
+[QA 5] 677 | 677
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.34it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.47it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-57: 147041 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/57_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.9s. Mem: 14.31/79.18 GB. [scbench_mf-57]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.29it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.76it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.01s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.16s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.67s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-58: 148038 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 33 | 63
+[QA 1] 650 | 650
+[QA 2] 66 | 61
+[QA 3] 677 | 647
+[QA 4] 71 | 67
+[QA 5] 633 | 643
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.43it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-58: 148038 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/58_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.0s. Mem: 14.31/79.18 GB. [scbench_mf-58]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.30it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.15s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.67s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-59: 147592 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 247 | 247
+[QA 1] 251 | 251
+[QA 2] 243 | 243
+[QA 3] 7 | 87
+[QA 4] 133 | 93
+[QA 5] 87 | 87
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.45it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-59: 147592 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/59_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.0s. Mem: 14.31/79.18 GB. [scbench_mf-59]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.23it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.76it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.10s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.65s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-60: 146105 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 133 | 63
+[QA 1] 70 | 67
+[QA 2] 377 | 379
+[QA 3] 58 | 58
+[QA 4] 333 | 373
+[QA 5] 381 | 381
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.51it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.37it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-60: 146105 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/60_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.6s. Mem: 14.31/79.18 GB. [scbench_mf-60]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.23it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.19s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-61: 148776 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 240 | 240
+[QA 1] 94 | 94
+[QA 2] 103 | 103
+[QA 3] 213 | 233
+[QA 4] 171 | 97
+[QA 5] 237 | 237
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.48it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-61: 148776 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/61_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.4s. Mem: 14.31/79.18 GB. [scbench_mf-61]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.24it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.29s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.17s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-62: 148431 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 33 | 63
+[QA 1] 7 | 67
+[QA 2] 6 | 62
+[QA 3] 797 | 817
+[QA 4] 733 | 823
+[QA 5] 825 | 825
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.49it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-62: 148431 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/62_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.9s. Mem: 14.31/79.18 GB. [scbench_mf-62]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.23it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.19s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-63: 148789 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 293 | 83
+[QA 1] 738 | 738
+[QA 2] 663 | 733
+[QA 3] 737 | 738
+[QA 4] 77 | 75
+[QA 5] 83 | 75
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.47it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-63: 148789 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/63_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.2s. Mem: 14.31/79.18 GB. [scbench_mf-63]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.29it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.77it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.27it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.22s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.63s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-64: 142404 tokens, KV cache 8.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 257 | 257
+[QA 1] 50 | 46
+[QA 2] 87 | 53
+[QA 3] 233 | 253
+[QA 4] 259 | 259
+[QA 5] 70 | 47
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.66it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.48it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.42it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.37it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:03,  1.33it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.29it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.23it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.29it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-64: 142404 tokens, KV cache 8.2 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/64_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 25.4s. Mem: 14.31/79.18 GB. [scbench_mf-64]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.30it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.79it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.16s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.67s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-65: 148059 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 70 | 57
+[QA 1] 33 | 63
+[QA 2] 6 | 57
+[QA 3] 433 | 733
+[QA 4] 735 | 735
+[QA 5] 735 | 735
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.43it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-65: 148059 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/65_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.1s. Mem: 14.31/79.18 GB. [scbench_mf-65]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.29it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.17s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-66: 148284 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 680 | 680
+[QA 1] 72 | 67
+[QA 2] 66 | 64
+[QA 3] 677 | 679
+[QA 4] 33 | 73
+[QA 5] 533 | 673
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.49it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-66: 148284 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/66_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.0s. Mem: 14.31/79.18 GB. [scbench_mf-66]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.23it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.77it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.28it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.06s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.57s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-67: 137115 tokens, KV cache 7.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 123 | 23
+[QA 1] 193 | 203
+[QA 2] 7 | 17
+[QA 3] 208 | 208
+[QA 4] 177 | 207
+[QA 5] 17 | 17
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.68it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.50it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.43it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.38it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:02,  1.34it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.30it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.39it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-67: 137115 tokens, KV cache 7.9 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/67_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 23.9s. Mem: 14.31/79.18 GB. [scbench_mf-67]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.24it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.01s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.14s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.67s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-68: 147342 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 85 | 80
+[QA 1] 117 | 87
+[QA 2] 253 | 303
+[QA 3] 277 | 297
+[QA 4] 113 | 83
+[QA 5] 304 | 304
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.46it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-68: 147342 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/68_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.0s. Mem: 14.31/79.18 GB. [scbench_mf-68]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.25it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.78it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.28it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.22s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.62s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-69: 142231 tokens, KV cache 8.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 243 | 243
+[QA 1] 50 | 49
+[QA 2] 247 | 237
+[QA 3] 87 | 53
+[QA 4] 70 | 57
+[QA 5] 246 | 246
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.66it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.48it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.42it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.37it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:03,  1.33it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.29it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.23it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.30it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-69: 142231 tokens, KV cache 8.2 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/69_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 25.4s. Mem: 14.31/79.18 GB. [scbench_mf-69]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.26it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.12s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-70: 146445 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 333 | 653
+[QA 1] 24 | 24
+[QA 2] 658 | 658
+[QA 3] 273 | 33
+[QA 4] 677 | 657
+[QA 5] 77 | 27
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.50it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.37it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-70: 146445 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/70_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.7s. Mem: 14.31/79.18 GB. [scbench_mf-70]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.25it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.18s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-71: 148440 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 877 | 879
+[QA 1] 884 | 884
+[QA 2] 72 | 67
+[QA 3] 333 | 63
+[QA 4] 733 | 883
+[QA 5] 56 | 58
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.48it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-71: 148440 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/71_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.0s. Mem: 14.31/79.18 GB. [scbench_mf-71]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.31it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.79it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.28it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.21s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.62s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-72: 141744 tokens, KV cache 8.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 286 | 286
+[QA 1] 133 | 33
+[QA 2] 243 | 283
+[QA 3] 70 | 37
+[QA 4] 279 | 279
+[QA 5] 33 | 30
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.68it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.50it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.43it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.38it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:02,  1.34it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.29it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.25it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.30it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-72: 141744 tokens, KV cache 8.1 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/72_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 25.2s. Mem: 14.31/79.18 GB. [scbench_mf-72]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.24it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.04s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.63s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-73: 144112 tokens, KV cache 8.3 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 24 | 20
+[QA 1] 333 | 413
+[QA 2] 417 | 417
+[QA 3] 422 | 422
+[QA 4] 33 | 23
+[QA 5] 73 | 27
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.59it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-73: 144112 tokens, KV cache 8.3 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/73_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.0s. Mem: 14.31/79.18 GB. [scbench_mf-73]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.27it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.06s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.64s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-74: 144918 tokens, KV cache 8.3 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 276 | 276
+[QA 1] 253 | 273
+[QA 2] 70 | 67
+[QA 3] 97 | 73
+[QA 4] 64 | 64
+[QA 5] 277 | 276
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.56it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-74: 144918 tokens, KV cache 8.3 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/74_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.4s. Mem: 14.31/79.18 GB. [scbench_mf-74]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.23it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.01s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.14s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-75: 147363 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 67 | 67
+[QA 1] 75 | 67
+[QA 2] 333 | 433
+[QA 3] 173 | 73
+[QA 4] 437 | 437
+[QA 5] 438 | 438
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.46it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-75: 147363 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/75_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.0s. Mem: 14.31/79.18 GB. [scbench_mf-75]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.27it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.76it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.29s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.06s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.64s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-76: 144687 tokens, KV cache 8.3 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 70 | 57
+[QA 1] 133 | 53
+[QA 2] 331 | 331
+[QA 3] 54 | 50
+[QA 4] 327 | 327
+[QA 5] 293 | 323
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.34it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.30it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.57it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-76: 144687 tokens, KV cache 8.3 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/76_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.4s. Mem: 14.31/79.18 GB. [scbench_mf-76]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.30it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.79it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.06s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.64s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-77: 144925 tokens, KV cache 8.3 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 78 | 78
+[QA 1] 78 | 78
+[QA 2] 163 | 83
+[QA 3] 208 | 208
+[QA 4] 163 | 203
+[QA 5] 177 | 207
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.30it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.57it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-77: 144925 tokens, KV cache 8.3 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/77_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.4s. Mem: 14.31/79.18 GB. [scbench_mf-77]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.24it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.21s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.69s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-78: 149379 tokens, KV cache 8.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 677 | 703
+[QA 1] 703 | 703
+[QA 2] 170 | 87
+[QA 3] 333 | 703
+[QA 4] 87 | 87
+[QA 5] 33 | 93
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.32it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.28it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.21it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.45it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-78: 149379 tokens, KV cache 8.6 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/78_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.5s. Mem: 14.31/79.18 GB. [scbench_mf-78]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.30it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.20s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-79: 149186 tokens, KV cache 8.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 882 | 882
+[QA 1] 773 | 873
+[QA 2] 797 | 879
+[QA 3] 176 | 77
+[QA 4] 333 | 83
+[QA 5] 8 | 77
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.21it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.46it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-79: 149186 tokens, KV cache 8.6 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/79_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.4s. Mem: 14.31/79.18 GB. [scbench_mf-79]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.31it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.79it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.29it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.14s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-80: 147442 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 917 | 927
+[QA 1] 7 | 27
+[QA 2] 23 | 22
+[QA 3] 928 | 928
+[QA 4] 73 | 923
+[QA 5] 33 | 23
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.46it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-80: 147442 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/80_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.9s. Mem: 14.31/79.18 GB. [scbench_mf-80]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.29it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.07s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.64s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-81: 144797 tokens, KV cache 8.3 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 72 | 17
+[QA 1] 505 | 505
+[QA 2] 33 | 23
+[QA 3] 17 | 16
+[QA 4] 333 | 503
+[QA 5] 479 | 497
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.57it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-81: 144797 tokens, KV cache 8.3 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/81_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.2s. Mem: 14.31/79.18 GB. [scbench_mf-81]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.29it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.75it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.21s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.69s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-82: 149626 tokens, KV cache 8.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 94 | 94
+[QA 1] 133 | 103
+[QA 2] 493 | 543
+[QA 3] 537 | 537
+[QA 4] 177 | 97
+[QA 5] 543 | 543
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.45it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-82: 149626 tokens, KV cache 8.6 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/82_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.5s. Mem: 14.31/79.18 GB. [scbench_mf-82]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.24it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.77it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.28it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.23s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.63s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-83: 142456 tokens, KV cache 8.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 333 | 373
+[QA 1] 377 | 376
+[QA 2] 376 | 376
+[QA 3] 70 | 17
+[QA 4] 7 | 9
+[QA 5] 33 | 13
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.68it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.49it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.42it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.37it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:03,  1.33it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.29it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.23it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.30it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-83: 142456 tokens, KV cache 8.2 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/83_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 25.3s. Mem: 14.31/79.18 GB. [scbench_mf-83]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.28it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.75it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.01s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.04s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.63s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-84: 144227 tokens, KV cache 8.3 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 541 | 541
+[QA 1] 33 | 3
+[QA 2] 4 | 3
+[QA 3] 333 | 533
+[QA 4] 537 | 537
+[QA 5] 7 | 7
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.59it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-84: 144227 tokens, KV cache 8.3 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/84_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 25.9s. Mem: 14.31/79.18 GB. [scbench_mf-84]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.27it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.78it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.28it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.16s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.60s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-85: 140491 tokens, KV cache 8.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 70 | 47
+[QA 1] 163 | 223
+[QA 2] 226 | 226
+[QA 3] 42 | 42
+[QA 4] 133 | 43
+[QA 5] 217 | 217
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.67it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.49it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.42it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.38it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:03,  1.33it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.29it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.29it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.32it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-85: 140491 tokens, KV cache 8.1 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/85_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 25.0s. Mem: 14.31/79.18 GB. [scbench_mf-85]
+
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.30it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.00s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.96s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.47s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-86: 126465 tokens, KV cache 7.3 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 70 | 17
+[QA 1] 123 | 123
+[QA 2] 117 | 117
+[QA 3] 33 | 13
+[QA 4] 125 | 125
+[QA 5] 9 | 9
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.33it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-86: 126465 tokens, KV cache 7.3 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/86_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 21.1s. Mem: 14.31/79.18 GB. [scbench_mf-86]
+
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.27it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.00s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.92s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.45s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-87: 125099 tokens, KV cache 7.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 117 | 117
+[QA 1] 123 | 123
+[QA 2] 6 | 5
+[QA 3] 29 | 13
+[QA 4] 7 | 7
+[QA 5] 125 | 125
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-87: 125099 tokens, KV cache 7.2 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/87_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 20.7s. Mem: 14.31/79.18 GB. [scbench_mf-87]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.23it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.12s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-88: 146565 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 926 | 926
+[QA 1] 6 | 1
+[QA 2] 7 | 7
+[QA 3] 33 | 3
+[QA 4] 333 | 923
+[QA 5] 917 | 917
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.49it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.37it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-88: 146565 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/88_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.6s. Mem: 14.31/79.18 GB. [scbench_mf-88]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.29it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.01s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.19s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-89: 148949 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 33 | 73
+[QA 1] 773 | 883
+[QA 2] 797 | 879
+[QA 3] 71 | 71
+[QA 4] 886 | 886
+[QA 5] 57 | 71
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.47it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-89: 148949 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/89_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.2s. Mem: 14.31/79.18 GB. [scbench_mf-89]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.27it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.10s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.65s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-90: 145886 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 377 | 397
+[QA 1] 133 | 53
+[QA 2] 398 | 398
+[QA 3] 333 | 393
+[QA 4] 54 | 52
+[QA 5] 75 | 57
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.53it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.37it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-90: 145886 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/90_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.6s. Mem: 14.31/79.18 GB. [scbench_mf-90]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.30it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.12s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-91: 146711 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 166 | 173
+[QA 1] 179 | 179
+[QA 2] 107 | 97
+[QA 3] 90 | 90
+[QA 4] 189 | 179
+[QA 5] 163 | 93
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.34it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.49it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.37it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-91: 146711 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/91_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.8s. Mem: 14.31/79.18 GB. [scbench_mf-91]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.24it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.77it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.28it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.00s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:13<00:00,  1.98s/it]Prefill: 100%|██████████| 9/9 [00:13<00:00,  1.54s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-92: 134344 tokens, KV cache 7.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 73 | 63
+[QA 1] 60 | 60
+[QA 2] 133 | 133
+[QA 3] 137 | 127
+[QA 4] 67 | 67
+[QA 5] 136 | 136
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.67it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.50it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.43it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.38it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:02,  1.34it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.30it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.23it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.49it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-92: 134344 tokens, KV cache 7.7 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/92_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 23.3s. Mem: 14.31/79.18 GB. [scbench_mf-92]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.24it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.29s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.17s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.67s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-93: 148362 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 33 | 73
+[QA 1] 75 | 70
+[QA 2] 74 | 68
+[QA 3] 677 | 687
+[QA 4] 333 | 683
+[QA 5] 799 | 687
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.34it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.49it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-93: 148362 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/93_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.1s. Mem: 14.31/79.18 GB. [scbench_mf-93]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.26it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.19s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-94: 148927 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 75 | 75
+[QA 1] 33 | 83
+[QA 2] 85 | 75
+[QA 3] 777 | 779
+[QA 4] 733 | 773
+[QA 5] 779 | 779
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.47it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-94: 148927 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/94_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.2s. Mem: 14.31/79.18 GB. [scbench_mf-94]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.26it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.78it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.30s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.21s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.69s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-95: 149638 tokens, KV cache 8.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 716 | 97
+[QA 1] 992 | 993
+[QA 2] 733 | 993
+[QA 3] 333 | 93
+[QA 4] 75 | 88
+[QA 5] 977 | 987
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.25it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.44it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-95: 149638 tokens, KV cache 8.6 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/95_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.6s. Mem: 14.31/79.18 GB. [scbench_mf-95]
+
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:02,  3.29it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:03,  1.76it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.27it/s]Prefill:  44%|████▍     | 4/9 [00:03<00:05,  1.01s/it]Prefill:  56%|█████▌    | 5/9 [00:05<00:04,  1.24s/it]Prefill:  67%|██████▋   | 6/9 [00:07<00:04,  1.49s/it]Prefill:  78%|███████▊  | 7/9 [00:09<00:03,  1.75s/it]Prefill:  89%|████████▉ | 8/9 [00:11<00:02,  2.02s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  2.18s/it]Prefill: 100%|██████████| 9/9 [00:14<00:00,  1.61s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-96: 141017 tokens, KV cache 8.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 247 | 247
+[QA 1] 34 | 34
+[QA 2] 243 | 243
+[QA 3] 133 | 43
+[QA 4] 70 | 37
+[QA 5] 251 | 251
+chunk inputs, size: 16000 (num 9)
+Prefill:   0%|          | 0/9 [00:00<?, ?it/s]Prefill:  11%|█         | 1/9 [00:00<00:04,  1.68it/s]Prefill:  22%|██▏       | 2/9 [00:01<00:04,  1.50it/s]Prefill:  33%|███▎      | 3/9 [00:02<00:04,  1.43it/s]Prefill:  44%|████▍     | 4/9 [00:02<00:03,  1.38it/s]Prefill:  56%|█████▌    | 5/9 [00:03<00:02,  1.34it/s]Prefill:  67%|██████▋   | 6/9 [00:04<00:02,  1.30it/s]Prefill:  78%|███████▊  | 7/9 [00:05<00:01,  1.26it/s]Prefill:  89%|████████▉ | 8/9 [00:06<00:00,  1.22it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.27it/s]Prefill: 100%|██████████| 9/9 [00:06<00:00,  1.31it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-96: 141017 tokens, KV cache 8.1 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/96_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 25.1s. Mem: 14.31/79.18 GB. [scbench_mf-96]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.27it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.79it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.29s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.12s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-97: 146567 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 787 | 787
+[QA 1] 779 | 787
+[QA 2] 8 | 13
+[QA 3] 333 | 783
+[QA 4] 33 | 13
+[QA 5] 7 | 17
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.66it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.49it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.42it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.49it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.37it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-97: 146567 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/97_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.6s. Mem: 14.31/79.18 GB. [scbench_mf-97]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.25it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.29s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.12s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.66s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-98: 146901 tokens, KV cache 8.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 7 | 17
+[QA 1] 7 | 10
+[QA 2] 868 | 870
+[QA 3] 733 | 863
+[QA 4] 273 | 13
+[QA 5] 797 | 870
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.68it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.38it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.30it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.48it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-98: 146901 tokens, KV cache 8.4 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/98_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 26.7s. Mem: 14.31/79.18 GB. [scbench_mf-98]
+
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:02,  3.27it/s]Prefill:  20%|██        | 2/10 [00:01<00:04,  1.77it/s]Prefill:  30%|███       | 3/10 [00:02<00:05,  1.28it/s]Prefill:  40%|████      | 4/10 [00:03<00:06,  1.00s/it]Prefill:  50%|█████     | 5/10 [00:05<00:06,  1.24s/it]Prefill:  60%|██████    | 6/10 [00:07<00:05,  1.49s/it]Prefill:  70%|███████   | 7/10 [00:09<00:05,  1.75s/it]Prefill:  80%|████████  | 8/10 [00:11<00:04,  2.02s/it]Prefill:  90%|█████████ | 9/10 [00:14<00:02,  2.29s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  2.19s/it]Prefill: 100%|██████████| 10/10 [00:16<00:00,  1.68s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_mf-99: 148751 tokens, KV cache 8.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 533 | 573
+[QA 1] 133 | 83
+[QA 2] 577 | 577
+[QA 3] 79 | 79
+[QA 4] 577 | 577
+[QA 5] 85 | 79
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:00<00:05,  1.67it/s]Prefill:  20%|██        | 2/10 [00:01<00:05,  1.50it/s]Prefill:  30%|███       | 3/10 [00:02<00:04,  1.43it/s]Prefill:  40%|████      | 4/10 [00:02<00:04,  1.37it/s]Prefill:  50%|█████     | 5/10 [00:03<00:03,  1.33it/s]Prefill:  60%|██████    | 6/10 [00:04<00:03,  1.29it/s]Prefill:  70%|███████   | 7/10 [00:05<00:02,  1.26it/s]Prefill:  80%|████████  | 8/10 [00:06<00:01,  1.22it/s]Prefill:  90%|█████████ | 9/10 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.48it/s]Prefill: 100%|██████████| 10/10 [00:07<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_mf-99: 148751 tokens, KV cache 8.5 GB, torch.bfloat16
+Results saved at ./results/scbench_mf/99_qwen2.5-7b-instruct-1m_fastkvzip__cen1024_scbench_mf_chunk16k_w4096_cen1024/output-pair.json
+## Time: 27.3s. Mem: 14.31/79.18 GB. [scbench_mf-99]
+
+Finished.
