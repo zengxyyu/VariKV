@@ -77,7 +77,8 @@ def main():
     ap.add_argument("--ckpt", default="varikv/ckpt_kl/s2b_point_k16.pt")
     ap.add_argument("--gate_scale", type=float, default=0.5)
     ap.add_argument("--data", default="scbench_kv")
-    ap.add_argument("--n", type=int, default=8)   # 必须 ≥2，否则供体退化成自己
+    ap.add_argument("--n", type=int, default=8)
+    ap.add_argument("--start", type=int, default=0)   # 分卡用：起始样本号   # 必须 ≥2，否则供体退化成自己
     ap.add_argument("--ratio", type=float, default=0.1)
     ap.add_argument("--keep_pos", action="store_true")
     a = ap.parse_args()
@@ -120,32 +121,35 @@ def main():
             print(f"      [{DBG[0]}] {preds[0][:52]!r}", flush=True)
         gold = ANSW[i] if ANSW else list(ds[i]["answers"])
         with _MUTE:
-            return float(np.mean(evaluate_answer(preds, gold, a.data, "qa",
-                                                 subtask=SUBT[i] if SUBT else None)))
+            s = float(np.mean(evaluate_answer(preds, gold, a.data, "qa",
+                                              subtask=SUBT[i] if SUBT else None)))
+        return s, preds
 
     rows = []
-    for i in range(a.n):
-        j = (i + 1) % a.n                   # 配对：拿**另一条**样本的记忆
-        assert j != i, "供体必须与受试不同（n=1 时旧逻辑会退化成自己）"
-        # ① 供体：预填 j，快照它的记忆
-        kv_j = dw.prefill_context(j, prefill_chunk=16000, window_size=4096,
-                                  chunk_ratio=a.ratio, level="pair")
-        S_j = snap(mem)
-        del kv_j; torch.cuda.empty_cache()
+    # **供体复用上一条样本的快照** ⇒ 每条只需 2 次预填（受试 + 真基线），而不是 3 次。
+    # 第一条没有供体，只用来产生快照。
+    prev = None
+    same = [0, 0, 0]      # 预测串与「正常」逐字相同的条数：换记忆 / 空记忆 / 真基线
+    idx = list(range(a.start, a.start + a.n))
+    for t_, i in enumerate(idx):
         # ② 正常：预填 i
         kv = dw.prefill_context(i, prefill_chunk=16000, window_size=4096,
                                 chunk_ratio=a.ratio, level="pair")
         DBG[:] = ["正常"]
-        s_norm = score(i, kv)
+        s_norm, p_norm = score(i, kv)
         S_i = snap(mem)
         # ③ 换成 j 的记忆（缓存仍是 i 的）
-        restore(mem, S_j, keep_pos=a.keep_pos)
+        if prev is None:                # 第一条：只取快照，跳过它的 swap
+            prev = S_i
+            del kv; torch.cuda.empty_cache()
+            continue
+        restore(mem, prev, keep_pos=a.keep_pos)
         DBG[:] = ["换记忆"]
-        s_swap = score(i, kv)
+        s_swap, p_swap = score(i, kv)
         # ④ 空记忆（清零但仍注入）
         zero_state(mem)
         DBG[:] = ["空记忆"]
-        s_empty = score(i, kv)
+        s_empty, p_empty = score(i, kv)
         del kv; torch.cuda.empty_cache()
         # ⑤ **真基线：必须重新预填一次、全程无记忆。**
         # 不能只在生成时关 residual_mode —— 预填期间 attn.py 每个 chunk 都调过
@@ -158,10 +162,13 @@ def main():
                                   chunk_ratio=a.ratio, level="pair")
         m.kv_type = _kt
         DBG[:] = ["真基线"]
-        s_base = score(i, kv_b)
+        s_base, p_base = score(i, kv_b)
         del kv_b; torch.cuda.empty_cache()
         restore(mem, S_i)
-        rows.append((i, j, s_base * 100, s_norm * 100, s_swap * 100, s_empty * 100))
+        for kk, pp in enumerate((p_swap, p_empty, p_base)):
+            same[kk] += int(pp == p_norm)
+        prev = S_i
+        rows.append((i, idx[t_ - 1], s_base * 100, s_norm * 100, s_swap * 100, s_empty * 100))
         print(f"  样本{i}(供体{j}): 基线 {s_base*100:5.1f}  正常 {s_norm*100:5.1f}  "
               f"换记忆 {s_swap*100:5.1f}  空记忆 {s_empty*100:5.1f}", flush=True)
 
@@ -179,7 +186,10 @@ def main():
     print(f"  换记忆后剩下的增益      {keep:+7.2f}"
           f"  ({100*keep/gain if abs(gain)>1e-9 else float('nan'):.0f}% 被保留)")
     print("=" * 78)
-    print("判读：保留比例 ≈0% ⇒ 内容是上下文特有的（是记忆）；"
+    print("\n**预测串与「正常」逐字相同的条数**（不受 20 分粒度限制，比均值锐利）：")
+    for nm, cc in zip(("换记忆", "空记忆", "真基线"), same):
+        print(f"  {nm:<8}{cc:>4}/{len(A)}  ({100*cc/max(len(A),1):.0f}%)")
+    print("\n判读：保留比例 ≈0% ⇒ 内容是上下文特有的（是记忆）；"
           "≈100% ⇒ 与上下文无关（是 steering 向量）")
 
 
