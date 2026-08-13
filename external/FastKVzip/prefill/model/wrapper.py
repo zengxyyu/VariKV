@@ -172,6 +172,22 @@ class ModelKVzip:
                     rope_inv_freq=getattr(self, "varikv_inv_freq", None),
                     rope_mode=getattr(self, "varikv_rope_mode", "post"),
                 )
+            elif self.kv_type == "control":
+                # 记忆只修正驱逐分数，不进 attention。预算恒等匹配（threshold 按 ratio
+                # 取全局 top-n），ratio=1.0 时根本不进 prune_chunk ⇒ 满缓存参考天然干净。
+                from attention.ctrlcache import ControlRetainCache
+
+                kv = ControlRetainCache(
+                    self.model, evict_range,
+                    beta=getattr(self, "ctrl_beta", 0.0),
+                    rho=getattr(self, "ctrl_rho", 1.0),
+                    src=getattr(self, "ctrl_src", "evicted"),
+                    feat=getattr(self, "ctrl_feat", "key"),
+                    rope_mode=getattr(self, "ctrl_rope", "post"),
+                    rope_inv_freq=getattr(self, "varikv_inv_freq", None),
+                    shuffle=getattr(self, "ctrl_shuffle", False),
+                    seed=getattr(self, "ctrl_seed", 0),
+                )
             elif self.kv_type == "memory":
                 # VariKV（Stage 2b，本地新增）：被驱逐的 KV 吸收进分布式记忆而非丢弃。
                 # varikv_memory / varikv_M 由外部驱动脚本注入，见 attention/memcache.py

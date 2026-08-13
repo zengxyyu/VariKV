@@ -1,0 +1,614 @@
+# JOURNAL.md — the chronological record
+
+Split out of `CLAUDE.md` on 2026-08-13, verbatim and in original order. `CLAUDE.md` kept the
+things a session needs *before* acting — orientation, commands, harness facts, the
+never-re-derive bug and trap lists — and points here for the narrative of how each result was
+obtained.
+
+**This file is history, and later entries retract earlier ones.** For results, the authority is
+`RESULTS_2026-08-12.md`; for checkpoints, `MODELS.md`; for the current status, `CLAUDE.md`'s
+"Read First". Read an entry here for *how a conclusion was reached and what was ruled out*, not
+to learn what is currently true.
+
+---
+
+## From “Stage 2b — VariKV wired into Fast KVzip (2026-08-07)”
+
+> Integration verification, the first negative benchmark result, and the Figure-11 reproduce. The reference half of this section — the silent-failure bug table, the upstream training-data loader, the known limits, and the vendored-clone modification table — stayed in `CLAUDE.md`.
+
+### Verified — 1.5B (H=2, `expect` gate)
+
+- **Absorption disabled ⇒ output byte-identical to native `EvictCache`.**
+- Layout self-consistency (`len_k` / `cu_len_k` / `pos_track`) across {memory on, off} × {after 3 generations}.
+- `absorb` padding equivalence: μ/logvar differ by 1e-17 and the residual is **independent of pad count** (float32 casts in the F/position paths account for the 1e-7 remainder).
+- Gradient reaches 14/17 memory parameters with `varikv_train=True` (vs 6/17 under inference_mode); the missing ones are `point_gate_logit` etc., inactive in `dist` mode.
+- Guards fire correctly: KVzip reconstruction scoring (`gates=None`) and `batch>1`.
+
+### Verified — Qwen2.5-7B-Instruct-1M, real `fastkvzip` gate, real SCBench (2026-08-08)
+
+The target configuration, not a proxy: 28 layers × **4** kv heads (G=112, vs 1.5B's 56), released gate weights, `level="pair"`.
+
+- **Real `scbench_kv` sample, 169,035-token context, ratio 0.3** — pipeline runs end to end and emits correctly-formatted answers (native `6290fbbe-…`, memory `62c9b332-…`; both wrong vs gold, as expected with an untrained memory on a hard task).
+- **Budget accounting confirmed on real data**: 5,682,691 → 5,684,479, i.e. **+1,788 against a predicted `M·H·L` = 1,792** (+0.03%).
+- Synthetic 42k context: totals conserved at +0.14% (ratio 0.3) and +0.38% (ratio 0.1), the latter exactly the 1,792 overhead.
+- Absorption-disabled output byte-identical to native at both ratios.
+
+**Unexplained upstream quirk, not ours:** at `chunk_ratio=1.0` (no pruning at all) generation returns `''` for *every* config including native `EvictCache`. Evaluations run at ratio < 1, so it does not block anything — but do not use ratio 1.0 as a sanity baseline.
+
+### First real-benchmark result (2026-08-08) — negative, and with a known confound
+
+`scbench_many_shot`, 20 identical samples, canonical `eval_chunk.py` scoring (`results.parse`, same as Figure 11). Memory injected via new `--varikv_ckpt` / `--varikv_slots` args, everything else byte-identical to the baseline run.
+
+| ratio | FastKVzip baseline | VariKV `dist` | control `point` |
+|---|---|---|---|
+| 0.75 | **100.00** | 86.96 | 86.96 |
+| 0.5 | **95.65** | 76.09 | 80.43 |
+| 0.4 | **100.00** | 76.09 | 86.96 |
+| 0.3 | **97.83** | 78.26 | 80.43 |
+| 0.2 | **91.30** | 78.26 | 80.43 |
+
+Adding memory **costs 15–25 points at every ratio**, and `point` ≥ `dist` at most ratios. Worse than "no effect": 16 slots per head (0.4% of visible KV) are *actively disrupting* attention.
+
+**Confound — this run's memory was trained at `chunk=2048 / window=256 / 8k` against an eval at `16000 / 4096 / 26k`**, so it is not yet a verdict on the method. Retraining with matched config + upstream data is in flight. Two measurement traps hit while producing this table, both worth remembering: the baseline first wrote into the **existing Figure-11 result directory** and `results.parse` averaged 54 stale samples alongside 5 new ones (fixed with a distinct `--tag`); and the result directory carries a **double underscore** (`fastkvzip__s2b20_…`), so a hand-built `-m` string silently parses 0 samples and raises `ZeroDivisionError`.
+
+**`retain` vs `evict` is not a confound — measured, not assumed.** The baselines all ran `kv_type="retain"` (the `args.py` default; neither `run.sh` nor `scratch_repro_full.py` overrides it) while `MemoryEvictCache` derives from `EvictCache`. On real `scbench_kv` data with identical scoring, the two produce **byte-identical generations at every ratio**, so building on `EvictCache` is safe.
+
+### Reproduce status
+
+**Figure 11, 3 of 12 datasets: qualitatively consistent with the paper. Not a numeric reproduction — and cannot be, see the caveat above.** Run 2026-07-31: `Qwen2.5-7B-Instruct-1M` × **all 5 methods** × 3 datasets (`squad`, `scbench_many_shot`, `scbench_prefix_suffix`) × 6 ratios, 100 samples each (54 for many_shot) — 15 jobs, 2.9h on 8×H100, 0 failures. Raw numbers in `scratch/repro_0731_qwen25/fig11_results.log`.
+
+What matches: at ratio **0.3** fastkvzip scores 100.1 / 95.1 / 103.2 relative, satisfying the paper's "near-lossless at a 30–40% budget"; and the method ordering follows Figure 11 — fastkvzip ≥ kvzip > duoattn > expected ≫ **snapkv, which collapses** (36.5 on squad, 7.6 on prefix_suffix). The 3 datasets happen to sample one from each of Figure 11's three categories (prefix_suffix → retrieval, squad → contextual understanding, many_shot → high redundancy), which makes the subset more informative than a random 3.
+
+Two things to state whenever these numbers are cited: (1) **no point-by-point check against the paper was performed**, because the paper publishes no numeric table for Figure 11 — the agreement above is ordering and threshold behaviour only; (2) `scbench_prefix_suffix` is **very noisy** and non-monotonic even for the winning method (73.6 at ratio 0.75 but 115.6 at 0.4), so per-point gaps on that dataset are not meaningful at n=100 — do not build an argument on the large fastkvzip-vs-baseline margin there without more samples.
+
+**Full Figure 11 sweep: COMPLETE (finished 2026-08-04 01:22).** All 12 datasets × 5 methods on Qwen2.5-7B-1M. Main sweep `{done: 40, failed: 0, skipped: 15}` in **15.5h** on 8×H100 (the 15 skips are the 3 datasets already done on 2026-07-31); MRCR then ran all 5 methods (107–145 min each) and the 12-dataset parse followed automatically. The ~15h + 3–4h pre-run estimate held. Longest jobs: `scbench_repoqa` ~400 min/method, `scbench_kv` ~300 min. Raw per-dataset tables in `scratch_fig11_full_results.log`, scheduler trace in `scratch_fig11_full_run.log`.
+
+**The Figure-11 curve, averaged over the 11 `results.parse` datasets** (MRCR is scored separately, see below). `results.parse` prints one block *per dataset*, so this average had to be computed from the log:
+
+| method | 1.0 | 0.75 | 0.5 | 0.4 | **0.3** | 0.2 |
+|---|---|---|---|---|---|---|
+| **fastkvzip** | 100.00 | 99.07 | 100.53 | 101.64 | **100.54** | 93.78 |
+| kvzip | 100.00 | 100.34 | 98.63 | 97.12 | 94.79 | 84.78 |
+| expected | 100.00 | 99.14 | 98.46 | 90.46 | 75.00 | 55.14 |
+| duoattn | 100.00 | 97.75 | 92.06 | 86.58 | 73.19 | 40.27 |
+| snapkv | 100.00 | 80.65 | 63.82 | 57.58 | 52.20 | 46.21 |
+
+Both of the paper's checkable prose claims hold. "Maintains full-cache performance at a **30–40%** budget" — fastkvzip is 101.64 / 100.54 at 0.4 / 0.3, cleanly lossless. Method ordering matches Figure 11, including snapkv's collapse.
+
+**The "matching KVzip" claim needs the noise caveat to come out right, and it does.** Over 11 datasets fastkvzip beats kvzip by +5.75 at ratio 0.3 — which would *contradict* the paper, since it positions the two as a tie (its selling point being half the prefill cost, not higher accuracy). But **+57.20 of that gap is `scbench_prefix_suffix` alone**; the other 10 datasets range −4.40…+4.98. Drop that one dataset and it is 100.27 vs 99.67 — **a tie, exactly as the paper claims**. This is the concrete payoff of the standing warning that `prefix_suffix` is very noisy at n=100: an argument built on the 11-dataset average would have been an artifact of one dataset. Excluding the two small-n sets (`qa_eng` n=20, `choice_eng` n=18) as well moves nothing (99.16 vs 98.61).
+
+**MRCR** is scored by `parse_mrcr.py` in **absolute** score, not relative, so it does not enter the table above. At ratio 0.3: kvzip **45.87** > fastkvzip 38.44 > expected 20.72 ≈ duoattn 18.99 ≈ snapkv 18.24 (full-cache baseline ≈46.4). This is the one dataset where kvzip clearly beats fastkvzip. Note kvzip's own full-cache row reads 45.91 rather than 46.37 because it runs the separate unchunked `eval_mrcr.py` path.
+
+Standing caveat, unchanged: none of this is a point-by-point check against the paper, which publishes no numeric table for Figure 11. What is verified is threshold behaviour and method ordering.
+
+Earlier 2026-07-30 run on **Qwen3-8B** (wrong model for Figure 11, kept only as a Figure-12 data point): relative performance at ratio 0.3 was 89.9 / 93.6 / 101.7 on `scbench_kv_short` / `scbench_prefix_suffix_short` / `scbench_many_shot`, with unexplained retrieval collapse at ratio 0.2 (28.7 / 12.8) where Figure 12 shows ~0.6–0.8. That run also submitted `scbench_mf`, which **failed** on the datasets-4.x parquet error; the pyarrow fallback was written afterwards. So it covered 3 datasets, single-method, and is superseded by the Qwen2.5 runs.
+
+**Do not mistake stray `results/` directories for reproductions.** `gsm`, `scbench_repoqa`, `scbench_summary`, `scbench_vt`, `scbench_choice_eng`, `scbench_qa_eng`, `scbench_mf_mid` each contain only ~2 result dirs — those are the 2-sample timing probes from `scratch/probe/timing_probe.sh` / `scratch/probe/fig11_probe.sh`, not eval runs.
+
+Timing measured on Qwen2.5-7B-1M, seconds/example over all 6 ratios: `squad` 12.8 (203-token context), `scbench_many_shot` 10.2 (26k), `scbench_prefix_suffix` 93.8 (112k).
+
+## From “Stage 1 — the GO/NO-GO variance ablation (2026-08-04 → 08-07)”
+
+> The synthetic needle task: the broken evaluator, the capacity sweep, and the diagnosis of why free-energy eviction fails. The task design and the `stage1/data.py` commands stayed in `CLAUDE.md`.
+
+### Stage-1 status: first end-to-end run done, **GO/NO-GO still unanswered — the evaluator is broken**
+
+Ran 2026-08-04 01:21→02:03 via `scratch_stage1_driver.sh` (train tiers 2/4/5 in parallel on 3 GPUs, 1500 steps, `budget=256`, then evaluate all 5 tiers at `limit=120`). Logs in `scratch_stage1_logs/`, summary in `scratch_stage1_results.log`.
+
+**Training worked and the tier ordering came out as the theory predicts** — final `lm_loss` **tier 5 (VariKV) 2.25 < tier 4 (point) 2.77 < tier 2 (recency+point) 3.98**. Free energy and the predictor loss are both well-behaved (tier 5: F ≈ 33, predictor 0.055). This is genuine signal that the distributional memory is learning something the point memory is not.
+
+**Evaluation is a dead read: exact-match is `0.000` in every single cell — all 5 tiers, both kinds, all 4 distractor levels.** Do not read this as "the method failed"; it cannot be a method result, for two reasons:
+
+- **Tier 1 also scores 0.000**, and tier 1 is `absorb_mode=discard` — no memory participates at all.
+- The **`n_distract=0`** bucket also scores 0.000, and those samples are 109 tokens against `budget=256`, so **no eviction is even triggered**. That cell is the bare frozen `Qwen/Qwen2.5-1.5B-Instruct` answering a 109-token retrieval question, scored by `exact_match`, which is a *lenient substring* test (`gold in pred`). A working harness cannot score 0 there.
+
+#### Root cause found and fixed (2026-08-07): a trailing space in the prompt
+
+**The prompt ended with `"[ANSWER] "`, and the answer was tokenised separately.** Under Qwen's BPE that is a genuine off-manifold sequence:
+
+```
+"[ANSWER] " + "crimson-kite-33"   →  [..., ']', ' ', 'cr', 'imson', ...]   # 220, 5082, 45445
+"[ANSWER] crimson-kite-33"        →  [..., ']', ' crimson', ...]           # 96019
+```
+
+A standalone space token (220) is almost never followed by a *space-less* `'cr'` — natural text merges them into the single token `' crimson'` (96019). Consequences, both confirmed by measurement:
+
+- **Evaluation**: after emitting the dangling space the model's greedy continuation goes anywhere but the answer — the observed `'40\n[ENDLOG]…'` / `'86\n\n[END_OF_LOG]…'` garbage.
+- **Training is corrupted too, not just eval.** `forward_loss` teacher-forces on the same `q_ids`+`a_ids` split, so tiers 2/4/5 were trained to produce a token sequence the model would essentially never emit. **The `lm_loss` ordering reported above was measured against that corrupted target** — it is suggestive but must be re-measured.
+
+A second, independent defect: **`max_new_tokens=16` was too short.** The model prefaces its answer with "The current value of user_X is …", which alone eats ~10 tokens.
+
+Measured on tier 1, 8 samples, pure HF forward with no memory involved — the two defects are separable and both real: `16 tok + space` **0/8** → `48 tok + space` 2/8 → `48 tok, no space` **7/8**.
+
+**What was NOT wrong — do not re-investigate.** `generate()`'s hand-rolled `position_ids` / `mem.n_seen` / `mem.n_mem` bookkeeping was the prime suspect and is **correct**. Verified at tier 1 (`n_mem=0`, no eviction) against a single-shot HF forward over the same tokens: top-1 identical on every sample, `max|Δlogit| ≤ 0.45` (bf16 chunked-prefill noise).
+
+The fix is three lines — `stage1/data.py:render` and `varikv/train.py:encode_sample` now end the prompt at `"[ANSWER]"` and move the space onto the answer's first token (`tok(" " + answer)`), and `evaluate.py:generate` defaults to `max_new_tokens=48`. **`stage1/*.jsonl` does not need regenerating** — it stores `context`/`question`/`answer` separately and never the assembled prompt.
+
+**Post-fix tier-1 baseline** (`--tier 1 --limit 60 --budget 256`): overall **0.267**, and the shape is exactly right for the ablation — `all/0` = **0.941** (109-token contexts, below budget, no eviction ⇒ plain frozen LLM, near-ceiling) and `all/200` = `all/800` = `all/2000` = **0.000** (context evicted, tier 1 discards, needle gone). That is a clean floor: tiers 2–5 have to beat 0.000 at every non-trivial distractor level.
+
+#### A second bug found by the same run: NaN from a 1-token final chunk
+
+`torch.std` with the default `unbiased=True` returns **NaN for a single element**, and `NaN.clamp_min(1e-6)` is still NaN — the four z-score sites all had `.clamp_min(1e-6)`, which guards `std == 0` but **not** `std == NaN`. When `len(context) ≡ 1 (mod prefill_chunk)` the final chunk holds exactly one token and one absorb poisons all 57,344 memory elements. Measured: sample i=144 has 34,305 tokens = 67×512 + **1** and always breaks; the neighbouring 34,405-token sample (final chunk 101) is fine — which is why single-sample debugging missed it. Only 1 of 160 samples per config, but one NaN makes the whole column's mean NaN.
+
+Fixed with `unbiased=False` at all four sites (`memory.py` write gate, `free_energy.py` `_zscore`, predictor target, running std): population std is 0 at n=1, the clamp then takes over and the z-score degenerates to 0 — which is also the semantically right answer, since "surprise relative to the rest of this chunk" is undefined for a single observation. **Training was unaffected** (`max_train_context=4096`, and 4096 % 512 = 0, so the final chunk is never degenerate); only evaluation needed re-running.
+
+Corollary bug in the analysis script: NaN fed into the bootstrap produced **fake "separated" verdicts** with plausible-looking CIs. `scratch_stage1_sweep_report.py` now filters non-finite values and reports how many it dropped. A tight confidence interval is not evidence that the underlying numbers were real.
+
+### Stage-1 result (2026-08-07): a real but small effect, and half the method does nothing
+
+Clean sweep, zero NaN, zero dropped samples: 3 capacities × 5 tiers × 160 samples (40 per distractor level), `budget=256`, Qwen2.5-1.5B-Instruct, paired bootstrap over identical samples. Raw data `scratch_stage1_sweep_logs/`, driver `scratch_stage1_sweep.sh`, report `scratch_stage1_sweep_report.py`.
+
+**Primary metric is `nll` on the answer tokens, not exact match.** EM is 0.231 for *every* tier and every K, and all of it comes from the `nd=0` bucket where the context is below budget and no eviction happens. Compression is 377:1–4231:1 and the answers are high-entropy random strings (`jade-shrike-85`), so character-exact recovery is impossible for any lossy memory. EM has no resolution here; nll separates the tiers cleanly.
+
+| K | t1 sliding-window | t3 MomentKV | t2 point | t4 fe+point | **t5 VariKV** |
+|---|---|---|---|---|---|
+| 16 | 3.9524 | 3.8576 | 2.5099 | 2.4725 | **2.3212** |
+| 32 | 3.9524 | 3.7793 | 2.5578 | 2.6591 | **2.4378** |
+| 64 | 3.9524 | 3.7267 | 2.8388 | 3.1172 | **2.7617** |
+
+**Decomposition at K=16 — this is the number that matters for the paper:**
+
+| change | Δnll | share of total gain |
+|---|---|---|
+| discard → store a point mean (t1→t2) | **−1.44** | **88%** |
+| recency → free-energy eviction (t2→t4) | −0.04 | 2% |
+| point → distributional (t4→t5) | −0.15 | 9% |
+
+So 88% of the benefit is "don't throw it away", which Infini-attention established in 2024. The project's own two contributions split 2% / 9%.
+
+**What replicates: distributional absorption.** `t5 vs t4` is separated at every capacity and the margin *grows* with K: −0.151 [−0.231, −0.070] at K=16, −0.221 at K=32, −0.356 at K=64. That is the cleanest evidence the variance carries information — the two tiers have identical structure and parameter count, so the only variable is whether the precision term informs the read-out.
+
+**What does not: free-energy eviction.** Marginal at K=16 (−0.04) and **actively harmful** at higher capacity — at K=64, `fe+point` (3.1172) is 0.28 *worse* than plain `recency+point` (2.8388). Half the §11 method (the "one scalar decides both decisions" claim) is currently not earning its place. Diagnosing this is the highest-information open question.
+
+**Capacity hurts.** Every trained tier degrades monotonically with K (paired, all separated): t2 +0.33, t4 +0.64, t5 +0.44 going 16→64. The "memory capacity may be too small to show an effect" risk in the notes above is **refuted** — more slots is worse, so that escape hatch is closed. Note t5's advantage over t2 also shrinks (−0.19 → −0.08, not separated at K=64).
+
+**Three things this run does NOT license claiming.** (1) Not a win over KVzip — tier 1 is a sliding window, see the warning above. (2) Not a win over MomentKV — tier 3 is this repo's approximate reimplementation, and the 1.54-nat gap to it is the *least* trustworthy number in the table despite looking the most impressive. (3) Not task success — EM is 0 on every sample that actually got compressed.
+
+### Why free-energy eviction fails: the amortised predictor collapsed to a constant (diagnosed 2026-08-07)
+
+**The free-energy eviction arm has never actually been tested.** What tiers 4/5 run at eval time is not free-energy eviction — it is a broken approximation of it. Chain of evidence:
+
+1. **At eval, `score()` never computes exact F.** `free_energy.py:239` — when `not self.training`, it returns `self.predicted(...)` and nothing else. That is deliberate (amortisation is the whole efficiency story, HANDOFF red line 2), but it means eviction quality *is* predictor quality.
+2. **The predictor's ranking is anti-correlated with the exact F it distils.** Spearman ρ(pred, exact) = **−0.28** at ctx 4096, −0.30 at 8k, −0.36 at 16k. Negative **at the training length**, so this is not a train/eval transfer failure — it never learned. (Probe restores `v_scale`/`d_std`/`kl_std` around each `exact()` call; those buffers set the D-vs-KL weighting, so a naive probe changes what it measures.)
+3. **The predictor outputs a near-constant.** `std(F_pred)` = **0.047** against `std(target)` = 1.0. Its loss is 0.0419; the loss of *literally always emitting 0* is **0.0421**. Distillation bought a 0.5% improvement over the trivial baseline — the `predictor 0.043` in the training logs looks healthy and means nothing.
+4. **Root cause: the distillation target is catastrophically heavy-tailed.** Within-chunk z-scored F_exact, n≈1e6: **96.4% of tokens have |z| < 0.1**, 99.4% < 0.5, but the 99.9th percentile is **27.0**. Kurtosis **702** (normal = 3). ~0.16% of tokens carry all the variance. z-scoring fixes scale, not shape.
+5. **Huber then makes "predict the constant 0" near-optimal.** The comment at `free_energy.py:270` says Huber was chosen over MSE so outliers would not dominate the gradient. It worked too well: with 96% of the mass already at ~0 and the outliers' gradient capped, the loss-minimising constant is 0 and there is no pressure to learn any ordering.
+
+Downstream, this explains the eviction behaviour measured directly (`scratch_debug_evict.py`, needle-retention probe via `mem.token_pos`): at K=16 free-energy eviction keeps *early* tokens (mean relative position 0.574 vs recency's 0.975) and retains part of the needle in 3/8 samples vs recency's 0/8 — so its small K=16 advantage is an **accident of stage1's needle being early**, not F working. At K=64 it drifts back toward the tail (0.843) and needle retention goes to 0, which is why it loses to plain recency there.
+
+**Fix applied 2026-08-07 — rank-based distillation target.** Eviction consumes only the ordering of F, so the value target was replaced with within-chunk normalised ranks (uniform on [-1,1]): a monotone transform that discards zero ranking information while being bounded, uniformly spread and outlier-free. `free_energy.py:261` carries the full rationale.
+
+**The fix works — and it makes eviction worse.** After 1500 steps, ρ(pred, exact) = **+0.78** at every context length (from −0.28; +0.15 at 400 steps), so the amortised predictor now genuinely tracks the exact free energy. But the resulting eviction is *worse*, not better:
+
+| K=16, evicted samples only | old (broken predictor) | new (rank target, ρ=0.78) |
+|---|---|---|
+| tier 4 `fe+point` | 2.8114 | **3.0181** (+0.21 worse) |
+| tier 5 `fe+dist` | 2.6096 | 2.5929 (−0.02, flat) |
+| tier 2 `recency+point` (unaffected) | 2.8612 | 2.8612 |
+
+So with the amortisation now demonstrably faithful, **F is a worse eviction criterion than plain recency**: fixed tier 4 is **+0.157 above** tier 2. The old tier-4 result was not "free-energy eviction working" — the broken predictor's accidental early-token bias happened to catch stage1's early needle (needle retention 3/8, mean kept position 0.574). Following F correctly retains the needle **0/8** and pulls kept positions to 0.663, still far from recency's 0.975 — i.e. correct F evicts recent context, which matters more for next-token prediction than F's distortion+surprise accounting credits.
+
+#### …but stage1 cannot adjudicate eviction at all — a random baseline wins
+
+Full criterion sweep with **exact** scoring (bypassing the predictor entirely, so this tests `F` itself, not the amortisation), tier 4 = point absorption so the only variable is the eviction rule. K=16, 60 evicted samples, `scratch_evict_variants.py`:
+
+| criterion | nll | vs recency | vs random |
+|---|---|---|---|
+| **random** | **2.6984** | −0.034 | 0.000 |
+| recency | 2.7324 | 0.000 | +0.034 |
+| `D` only (λ=0 ⇒ Expected Attention) | 2.7882 | +0.056 | +0.090 |
+| `F` λ=0.1 | 2.8234 | +0.091 | +0.125 |
+| `−D` | 2.8236 | +0.091 | +0.125 |
+| `F` λ=0.3 (current) | 2.8449 | +0.113 | +0.147 |
+| `−KL` | 2.8933 | +0.161 | +0.195 |
+| `F` λ=3 | 2.9462 | +0.214 | +0.248 |
+| `−F` | 2.9640 | +0.232 | +0.266 |
+| `KL` only | 2.9970 | +0.265 | +0.299 |
+
+**Random eviction beats every principled criterion, including recency and including published Expected Attention (`D` alone).** That is the load-bearing observation: it means **stage1 carries no signal about eviction policy**, so nothing here licenses a claim that free-energy eviction is bad — only that this task cannot tell. This is consistent with the task's design intent: `HANDOFF.md` specifies stage 1 to isolate *absorption*, with deliberately simple eviction. Using it to judge eviction is a category error. (Earlier notes in this file framed the result as "F loses to recency"; that framing was wrong and is superseded by this row.)
+
+Two internal trends *are* consistent, on a task with no eviction signal, so treat them as hypotheses rather than findings:
+- **Performance degrades monotonically in λ**: λ=0 → 2.7882, 0.1 → 2.8234, 0.3 → 2.8449, 3 → 2.9462, and `KL` alone is the single worst of all ten. The surprise term is what drags F down.
+- **The sign is not simply inverted.** `−F` (2.9640) is worse than `F` (2.8449), so hypothesis "the rate-distortion convention is backwards for eviction" is **refuted**. Note `−KL` does beat `KL`, hinting the KL *component's* sign may be backwards — but even at its better sign it loses to plain `D`.
+
+To actually test eviction, the experiment must move to a setting where a sensible baseline is clearly better than random — i.e. real long-context benchmarks through the Fast KVzip harness (Stage 2), not the synthetic needle task.
+
+**The absorption half carries the method.** With the fixed predictor, tier 5 still beats tier 2 by −0.268 — so VariKV's advantage survives despite its eviction rule being a liability rather than because of it.
+
+Diagnostics live in `scratch_debug_evict.py` (what eviction keeps), `scratch_debug_pred.py` / `scratch_debug_pred2.py` (predictor ranking quality vs K and vs context length).
+
+Verdict: **not a NO-GO, but far from a publishable GO.** The core mechanism shows a real, replicated, statistically separated effect, but it is an order of magnitude smaller than the trivial "memory vs no memory" effect it sits on top of, and it rests on two baselines that are both weaker than the papers they stand in for. Next steps in priority order: (a) replace tiers 1 and 3 with real KVzip scoring and official MomentKV, (b) diagnose why free-energy eviction is worthless-to-harmful, (c) move to a task whose answer is not a high-entropy random string.
+
+## Literature sweep 2026-08-09 — the design is wrong in a specific, published way
+
+Run after Stage 2b measured a 30–40 point loss on real benchmarks. **Every method that works integrates the memory at the attention *output* as a gated residual. We are the only one injecting it into the KV cache — and the zero-readout ablation shows that injection alone accounts for the entire loss.**
+
+| method | memory read-out | gate | LLM | outcome |
+|---|---|---|---|---|
+| **IndexMem** (2605.25475, **ICML 2026**) | `o = o_attn + g(q)·m(q)`, **residual** | `g(q)∈[0,1]`, `g=0` ⇒ exact fallback | **frozen** | +25 pts RULER-16K at extreme compression |
+| **Tensor Cache** (2605.22884) | `y = y_local + σ(g)·m_t`, **residual** | learned scalar, per-head λ/η | trained e2e | NLL 5.14 vs 6.00 full-KV @32k; beats Infini-attention |
+| **Infini-attention** (2404.07143) | `sigmoid(β)·A_mem + (1−β)·A_local`, **residual** | learned β | trained e2e | **HF reproduction failed** |
+| **KV Means** (2605.09877) | **extra KV into softmax** | none | trained from scratch | needs a *growable* state; fixed state struggles long-context |
+| **VECTOR** (2605.23258) | keeps real keys, rebuilds only V via OLS | — | calibration only | +9.73 @ pc=0.90 |
+| **ours** | **extra KV into softmax** | **none** | frozen | **−30 to −40 pts** |
+
+**IndexMem is our method done correctly, and it is published.** Learnable indexer predicting KV importance + latent memory compressing evicted tokens + frozen backbone — the same three pieces. **Superseded 2026-08-11: `Still` (2606.07878) is a closer match still — same amortised-encoder-with-frozen-backbone design, and it works. See the 2026-08-11 literature sweep; the difference is the training objective, not the architecture.** Differences that matter:
+
+- **Read-out is a gated residual, never a cache insert.** `m(q) = Linear(q)ᵀM / (Linear(q)^⊙2·b + ε)`, then `o = o_attn + g(q)·m(q)`. The gate gives an **exact fallback**: `g→0` recovers the baseline at zero cost. Our design has no such escape — the 16 injected KV always consume softmax mass.
+- **Memory is a fast-weight matrix** `M ∈ [d_model/8, d_model]` plus a stabiliser `b`, updated by outer products `M ← λM + η Σ Linear(kᵢ)⊗vᵢᵀ` — not slots, no encoder/decoder, no RoPE round-trip.
+- **Gains appear only under aggressive eviction**: negligible at 25%, "noticeable" at 50%, "substantial" at 75–90%. Matches VECTOR (gains only at pc∈{0.75,0.90}) and our own measurement that the FastKVzip baseline leaves **0.00 headroom at ratio ≥ 0.3**.
+
+**Infini-attention never reproduced.** Google released no code or models; HuggingFace's attempt is titled *"A failed experiment"*. Their finding — *"long context performance gets worse as we increase the number of times we compress the memory"*, needle-in-1st-segment failing completely, the balance factor collapsing to 0.5 — is the same shape as our value-norm divergence over absorb rounds. Citing it as the paradigm ancestor is fine; treating its results as established is not.
+
+**Consequences for this project.** (1) The KV-injection integration must be replaced by an output-side gated residual before any further experiments — it is the measured cause of the loss and every working method already does this. (2) The evaluation ratio must move to ≥75% eviction; at 0.3 there is provably nothing to recover. (3) The remaining differentiator against IndexMem/Tensor Cache is only "distributional `(μ,σ²)` + KL-gated writes vs. point/fast-weight" — and `dist` ≈ or < `point` in every measurement so far.
+
+**(1) and (2) were carried out on 2026-08-09/10 — see the next section for what happened.** Short version: (1) worked, in the sense that the collapse disappeared and the gate gives an exact fallback; but with the fallback available, training closes the gate. (2) confirmed the ceiling is small — at ratio 0.1 the baseline only loses 5.93 absolute points, so that is the entire recoverable budget on `scbench_many_shot`.
+
+Sources: [IndexMem ICML 2026](https://icml.cc/virtual/2026/poster/63943) · [IndexMem arXiv](https://arxiv.org/html/2605.25475) · [Tensor Cache](https://arxiv.org/html/2605.22884) · [KV Means](https://arxiv.org/html/2605.09877) · [VECTOR](https://arxiv.org/html/2605.23258v1) · [HF Infini-attention reproduction](https://huggingface.co/blog/infini-attention)
+
+**Code availability** (searched 2026-08-09 across arXiv full text, OpenReview, GitHub):
+
+| paper | code | note |
+|---|---|---|
+| **KV Means** (2605.09877) | **✓ [`featherless-ai/KVM-paper`](https://github.com/featherless-ai/KVM-paper)** | forked from `recursal/KVM-paper`; model + training + Triton kernels + lm_eval; checkpoints at HF `recursal/key-value-means` |
+| IndexMem (2605.25475) | ✗ | no statement anywhere in the full text; OpenReview has no supplementary |
+| Tensor Cache (2605.22884) | ✗ | no code statement in full text |
+| Infini-attention (2404.07143) | ✗ | Google released nothing; third-party reimplementations only |
+
+**KV Means is the only runnable one — and it is the only paper on our side of the fence** (memory injected as KV into softmax rather than fused at the output). Its finding is therefore directly load-bearing for us: a *fixed-size* state "struggles with extremely long contexts"; it needs a **growable** state (√N schedule) to be competitive. We use a fixed 16 slots injected into softmax — the configuration it reports as the failing one. Caveat on transfer: KVM trains 120M/350M models from scratch, we freeze a 7B.
+
+**IndexMem's training setup, for reference** (ours in parentheses): SFT on **LongAlpaca** (fineweb-edu continuation), WSD schedule 100 warmup → 1e-3, 2000 stable + 2000 decay → 7.5e-6, **4100 steps** (1500 steps). Long-context *instruction* data plausibly forces the loss to depend on distant content; generic web continuation does not — which is the second-layer defect measured on our side (loss stays ~1.8 while eval collapses).
+
+**Where our design actually diverges from IndexMem.** Of its three components — learnable importance indexer, latent memory over evicted tokens, frozen backbone — we match the indexer (we substitute FastKVzip's released gate, deliberately) and the frozen backbone exactly. Everything hinges on the memory:
+
+- **IndexMem's memory never pretends to be a token.** It is a fast-weight matrix read as `m(q) = Linear(q)ᵀM / (Linear(q)^⊙2·b + ε)`, added as `o = o_attn + g(q)·m(q)`. No RoPE, no positions, no key-norm competition — because it never enters softmax.
+- **Ours synthesises fake KV.** Every hard piece of engineering in `memcache*.py` — position tracking, RoPE inverse/forward rotation to a slot centroid, mask offsetting, per-head varlen padding — exists *only* because we decided the memory must masquerade as tokens. That decision is the one the ablation falsified.
+
+**So the real difference is not "distributional (μ,σ²) vs point/fast-weight" — the claimed contribution — but "residual compensation vs KV injection", which we never treated as a design choice at all.** And on the claimed axis, `dist` is ≈ or worse than `point` in every measurement to date.
+
+## From “The residual read-out was built and measured (2026-08-10)”
+
+> Checkpoint inventory (now superseded by `MODELS.md`), the `scbench_many_shot` table, and the gate-value analysis. The two measurement traps from this round stayed in `CLAUDE.md`.
+
+
+The sweep above ends with "the KV-injection integration must be replaced by an output-side gated residual." That was done (`memory.py:56 residual_gate`, `--varikv_residual` / `--residual`), trained two different ways, and evaluated. **Verdict: the catastrophic regression is gone, but every configuration in which the memory actually participates is significantly worse than the baseline; the best solution training can find is to switch the memory off.**
+
+### Every checkpoint on disk — 32 of them, three stages
+
+No LLM was ever trained. The backbone is frozen throughout; these are memory modules (0.33M params for the 7B ones).
+
+**All of them live under `varikv/`** — the stage-2b dirs are `varikv/ckpt_stage2b*`, `varikv/ckpt_gap_*`, not repo-root paths (an earlier version of this table listed them at the root; verified 2026-08-11, no root-level `ckpt_*` exists).
+
+| stage | dir | n | model | what |
+|---|---|---|---|---|
+| 1 | `varikv/ckpt/` | 18 | Qwen2.5-**1.5B** | K∈{2,4,8,16,32,64} × tiers {2,4,5}, synthetic needle task |
+| 2a | `varikv/ckpt_real/` | 3 | Qwen2.5-1.5B | tiers {2,4,5}, K=16, real corpus (fineweb-edu) |
+| 2b | `varikv/ckpt_stage2b/` | 2 | Qwen2.5-**7B**-1M | first harness integration; train cfg 2048/256/8k ≠ eval 16000/4096 |
+| 2b | `varikv/ckpt_stage2b_matched/` | 2 | 7B | config matched to eval |
+| 2b | `varikv/ckpt_stage2b_retain/` | 2 | 7B | rebuilt on `RetainCache` (what the baselines run) |
+| 2b | `varikv/ckpt_stage2b_res/` | 2 | 7B | **residual read-out, `--obj lm`** — gate open (σ 0.186 / 0.287) |
+| 2b | `varikv/ckpt_gap_fix03/` | 1 | 7B | residual, **`--obj gap`**, fixed ratio 0.3 — **dist only, no point control** |
+| 2b | `varikv/ckpt_gap_rand/` | 2 | 7B | residual, `--obj gap`, random ratio per step |
+
+### Results — `scbench_many_shot`, 54 contexts × 5 queries, paired bootstrap over samples
+
+Absolute scores with the paired Δ against the baseline; ★ = 95% CI excludes zero. Baseline full-cache 37.78.
+
+| config | gate σ | 0.75 | 0.5 | 0.4 | 0.3 | 0.2 |
+|---|---|---|---|---|---|---|
+| baseline (absolute) | — | 36.30 | 37.78 | 38.89 | 35.93 | 32.96 |
+| `gap_fix03` dist | 0.032 | +1.48 | −1.11 | −0.00 | −0.74 | +1.11 |
+| `gap_rand` dist | 0.014 | +0.37 | 0.00 | −0.00 | −0.37 | −0.37 |
+| `gap_rand` point | 0.024 | +0.74 | +0.37 | −1.11 | −0.74 | −0.37 |
+| **`stage2b_res` dist** | **0.186** | **−17.78★** | **−9.63★** | **−9.63★** | −5.19 | **−6.30★** |
+| **`stage2b_res` point** | **0.287** | **−5.56★** | **−8.52★** | **−9.26★** | −4.81 | −1.85 |
+
+At the aggressive ratios the literature sweep prescribed (0.1 / 0.05), where the recoverable headroom actually is — baseline drops 37.78 → 31.85, i.e. **5.93 absolute points is the entire ceiling**:
+
+| config | 0.1 | 0.05 |
+|---|---|---|
+| baseline (absolute) | 31.85 | 32.59 |
+| `gap_fix03` dist | +1.48 [−0.74,+3.70] | +0.74 |
+| `gap_rand` dist | **+0.00 [0.00,0.00]** | +0.37 |
+| `gap_rand` point | +0.37 | +0.74 |
+| 〔old〕 KV injection dist | **−12.59★** | **−10.00★** |
+| 〔old〕 read-out zeroed `rozero` | **−8.15★** | **−7.41★** |
+
+### The gate value is the load-bearing number
+
+`gap_rand` dist scores a paired Δ of *exactly* 0.00 with CI [0,0] — identical predictions on all 54 samples. That is not a tie, it is the memory being absent. The learned gates explain the whole table:
+
+| ckpt | objective | σ(gate) mean | share of the 112 head-groups > 0.01 |
+|---|---|---|---|
+| `ckpt_gap_rand` dist | gap | **0.0143** | 12% |
+| `ckpt_gap_rand` point | gap | 0.0240 | 26% |
+| `ckpt_gap_fix03` dist | gap | 0.0317 | 27% |
+| `ckpt_stage2b_res` dist | lm | **0.1862** | 75% |
+
+The gate initialises at **0.018**, so `gap_rand` dist trained itself *below* its starting point. The clean dichotomy:
+
+- **gate closed** ⇒ byte-identical to baseline. Verified on real benchmarks, not just in the unit check: with the gate left at its init value, `many_shot` and `scbench_kv` both reproduce the baseline at all six ratios exactly (`rb` / `rbkv` runs, which load `ckpt_stage2b_retain` — a ckpt with no trained gate).
+- **gate open** ⇒ significantly worse than baseline (the two `stage2b_res` rows).
+- **let training decide** ⇒ it closes the gate.
+
+So the residual design's exact-fallback property works exactly as intended, and what training discovered is that falling back is optimal. `dist` is still ≈ or worse than `point` — 15 cells, point ahead in most, none separated.
+
+**What this does and does not settle.** It settles that KV injection was the cause of the 30–45 point collapse (`rozero` isolates it: zero the memory *content* and keep only the injection, still −8 and separated). It does **not** settle that absorption is worthless — this is one dataset in the high-redundancy category, where a compressed summary of evicted tokens has the least to offer. `scbench_kv` and `scbench_mf` (retrieval-intensive) were run only in the old KV-injection configuration, where `scbench_kv` scored 0.29 / 0.00 / 0.00 relative; they have **not** been re-run with the residual read-out. That is the first thing to do next. **Done on 2026-08-10/11 for `scbench_kv` — see the 2026-08-11 section; the answer is that the residual read-out does not help there either, and the "one dataset in the high-redundancy category" escape hatch is closed.**
+
+## From “2026-08-11 — `scbench_kv` residual results and the 9-dataset sweep”
+
+> The result tables. The headroom map, the empty-memory defect, the capacity-ceiling probe and the P0 summary — the parts that are reference rather than narrative — stayed in `CLAUDE.md`.
+
+### `dist` loses to `point` on 10 of 11 datasets
+
+From the 9-dataset sweep (`ckpt_stage2b_matched`, KV-injection read-out, 27 jobs, all markers present) plus `scbench_kv` and `many_shot` at the same `_full` tag. Paired Δ against the baseline at ratio 0.2:
+
+| dataset | dist Δ | point Δ | | dataset | dist Δ | point Δ |
+|---|---|---|---|---|---|---|
+| `gsm` | −3.00 | **+2.00** | | `choice_eng` | −19.91 | −6.02 |
+| `squad` | −3.55 | −2.22 | | `vt` | −26.80 | −17.82 |
+| `many_shot` | −3.70 | −4.44 | | `mf` | −32.33 | −8.00 |
+| `summary` | −3.85 | −4.20 | | `prefix_suffix` | −39.00 | −33.00 |
+| `qa_eng` | −18.00 | −6.57 | | `kv` | −43.00 | −3.00 |
+| | | | | `repoqa` | −49.55 | −31.59 |
+
+`point` wins on 10 of 11, sometimes by an order of magnitude (`mf` 0.00 vs 24.33, `kv` 2.20 vs 42.20). Earlier entries in this file say `dist` is "≈ or worse than" `point`; at 11-dataset scale that is too gentle — **the claimed contribution is contradicted across the board**, and the only near-neutral cells (`gsm`, `squad`, `summary`, `many_shot`) are the ones with no headroom anyway.
+
+**Unexplained and worth diagnosing: for `dist`, ratio 0.75 is frequently the *worst* of all ratios** — `summary` 4.65 (its other ratios are 32–34), `vt` 5.16, `mf` 0.67, `kv` 7.00, `repoqa` 13.18. Milder compression producing worse output is not an information-loss trade-off; it is the shape of a structural bug. It points the same direction as the empty-memory defect below: the memory does damage precisely when it has little to say.
+
+### The residual read-out does not rescue retrieval-intensive data
+
+`scbench_kv` (169,035-token contexts, 100 samples), absolute accuracy, paired bootstrap vs the `rb` baseline. Report script: `scratch_kvres_report.py` (self-checks its per-sample parse against `results.parse`'s absolute rows).
+
+**The `gap_*` column is complete as of 11:22 UTC 2026-08-11** — `scratch_gapstd_eval.sh`, three ckpts × 100 samples × the standard interval, 7h10m on 3 GPUs, all `Finished.`.
+
+| ratio | baseline | `stage2b_res` dist (σ 0.186) | same, point (σ 0.287) | `gapf` dist (σ 0.032) | `gapr` dist (σ 0.014) | `gapr` point (σ 0.024) |
+|---|---|---|---|---|---|---|
+| 0.75 | 68.80 | 11.00 (−57.80★) | 11.20 (−57.60★) | 67.40 (−1.40) | 68.60 (−0.20) | 69.00 (+0.20) |
+| 0.5 | 71.60 | 4.60 (−67.00★) | 3.60 (−68.00★) | 67.80 (**−3.80★**) | 71.40 (−0.20) | 72.20 (+0.60) |
+| 0.4 | 66.40 | 5.00 (−61.40★) | 3.00 (−63.40★) | 63.20 (**−3.20★**) | 67.00 (+0.60) | 66.20 (−0.20) |
+| 0.3 | 65.40 | 9.60 (−55.80★) | 2.60 (−62.80★) | 64.00 (−1.40) | 65.60 (+0.20) | 66.80 (+1.40) |
+| 0.2 | 45.20 | 8.60 (−36.60★) | 2.60 (−42.60★) | 43.80 (−1.40) | 45.60 (+0.40) | 46.00 (+0.80) |
+| 0.1 | 32.60 | 7.60 (−25.00★) | 0.80 (−31.80★) | 30.60 (−2.00) | 32.00 (−0.60) | 32.40 (−0.20) |
+| 0.05 | 2.00 | 0.80 | 0.40 | 2.20 | 2.20 | 2.20 (baseline is at the floor) |
+
+★ = 95% CI excludes zero.
+
+**This is the decisive cell, and it is a null result.** `scbench_kv` is the *only* dataset with real headroom inside the paper's ratio range (23 absolute points at ratio 0.2). The three current ckpts land exactly on the baseline there: across `gapr`'s ten cells the largest deviation is +1.40 and **not one is separated**. There is no longer a "wrong dataset / no headroom" escape.
+
+Two regularities now replicated on four datasets:
+
+- **Gate closed ⇒ baseline, gate open ⇒ worse, training ⇒ closes the gate.** Holds on `many_shot`, `scbench_kv`, `prefix_suffix` and the low-ratio interval.
+- **The more open the gate, the worse the score.** `gapf` (σ 0.032) is the only config here with separated cells and both are negative; on `prefix_suffix` it loses 3.3–6.6 points where `gapr` (σ 0.014) loses 1.4–2.8. Monotone in the gate, on two independent datasets.
+
+**It also confirms the probe, and the two measurements are independent.** The 2026-08-11 probe put `R_opt` at 11–15% with the signal confined to 3 of 28 layers; a repair of that size, pushed through `o_proj`, is not measurable downstream — which is exactly this table. And note the direction *reverses* between the two: `gapf` looks **better** on the probe (R_opt 15.5% vs 11.0%) and is **worse** downstream. Fitting the attention gap more closely does not make the model more accurate — direct evidence that the `gap` objective is misaligned with the downstream metric, separate from the fact that its loss sits near the trivial solution.
+
+So the residual read-out **softened** the collapse on `many_shot` (−5…−18) but does nothing of the kind on retrieval data: with the gate actually open it is −56…−68. The earlier conclusion "KV injection was the whole cause of the 30–45 point collapse" must be narrowed to "…on `many_shot`".
+
+### The `--obj gap` objective was a live suspect for being degenerate — partially confirmed, see the measurement above
+
+Training-log comparison of the two objectives (both matched config, chunk 16000 / window 4096):
+
+| objective | final loss | `|g|`max | gate σ trajectory |
+|---|---|---|---|
+| `lm` (`ckpt_stage2b_res`) | 1–2, noisy | 3.4e-02 | 0.095 → **0.186**, monotonically opening |
+| `gap` (`ckpt_gap_*`) | **0.003** | **1e-04** | init 0.018 → **0.014**, i.e. *below* its starting point |
+
+The gap objective is `MSE(g·m, o_full − o_pruned)` (`memcache_retain.py:295`), and `m → 0` is inside its solution space, so a loss of 0.003 is consistent with the memory having learned nothing and the gate correctly switching itself off. **This is the same trap as the F-predictor collapse** (loss 0.0419 vs 0.0421 for emitting the constant 0). The one number that settles it is `mean(tgt²)` — the MSE of the trivial `m ≡ 0` solution. Not yet measured; a single-sample probe would do it. Do not read "loss 0.003" as convergence until that comparison exists.
+
+Note the `lm` objective has its own diagnosed defect: its loss falls to 1–2 and the gate opens monotonically while downstream accuracy collapses — fineweb-edu continuation loss is decoupled from, and here anti-correlated with, retrieval accuracy.
+
+### One claim in `scratch_kvres_eval.sh`'s header is wrong
+
+It justifies skipping the standard interval for the `gap_*` ckpts with "gate-closed configs were already proven byte-identical to baseline by `rbkv`". `rbkv` loaded `ckpt_stage2b_retain`, whose gate sits at its **init** 0.018 and was never trained; the `gap_*` gates are trained (0.014 / 0.024 / 0.032, max 0.26–0.40, 4–12% of the 112 head-groups above 0.1). They are not the same configuration, and the measurement agrees — `gapf` reads 30.60 at ratio 0.1 where the baseline reads 32.60. Treat the standard interval for those ckpts as missing data, not as redundant.
+
+### The 9-dataset sweep (finished 2026-08-12) — the aggregate effect is exactly zero
+
+`scratch_gapsweep.py`, **27 of 27 jobs complete**, 56.7 GPU-h. The three `gap_*` ckpts ×
+9 datasets × 5 ratios, baselines reused from the `_full` tag (same configuration).
+Report: `scratch_gapsweep_report.py` (paired bootstrap on absolute scores, token-level;
+the report also handles partial runs by truncating both arms to the common sample count).
+Raw table: `scratch_gapsweep_results.log`.
+
+**Tally over 9 datasets × 5 ratios = 45 cells per config:**
+
+| config | gate σ | separated + | separated − | not separated | mean Δ |
+|---|---|---|---|---|---|
+| `gapf` dist | 0.032 | 4 | 5 | 36 | **−0.05** |
+| `gapr` dist | 0.014 | 0 | 1 | **44** | **+0.08** |
+| `gapr` point | 0.024 | 1 | 2 | 42 | **−0.00** |
+
+**The aggregate effect is zero to two decimal places.** The only structure is dataset-specific
+and self-cancelling: `gapf` is significantly **positive** on `scbench_vt` at 4 of 5 ratios
+(+1.69 / +3.51 / +2.31 / +2.31) and significantly **negative** on `scbench_prefix_suffix` at all
+5 (−2.60 … −5.00). `gapr dist` — the ckpt whose gate trained itself *below* its initial value —
+is not separated in 44 of 45 cells.
+
+Together with `scbench_kv` (the only dataset with real headroom, also null), **the three current
+checkpoints are indistinguishable from the baseline across 10 datasets**. This is now a complete
+negative result on the 16-Gaussian-slot + residual design, not a partial one.
+
+Note `scbench_vt` is the dataset whose baseline *improves* under compression (41.07 full → 46.09
+at ratio 0.2, i.e. negative headroom), so `gapf`'s gain there is more plausibly mild denoising
+than information recovery — do not cite it as evidence the method works.
+
+Measured per-dataset cost for one config over 5 ratios, useful for planning any future grid:
+`repoqa` 5.83 h, `prefix_suffix` 3.23, `mf` 2.97, `vt` 2.20, `summary` 1.88, `gsm` 1.19,
+`qa_eng` 0.60, `squad` 0.55, `choice_eng` 0.44 — **18.9 GPU-h per config for those 9**, plus
+~5.8 h for `scbench_kv`.
+
+MRCR cannot join this table: it runs `eval_chunk_mrcr.py`, and the VariKV injection was never
+wired into that path. So the ceiling for these sweeps is 11 of Figure 11's 12 panels.
+
+### In flight as of 2026-08-11 04:30 UTC
+
+Both runs use the three `gap_*` ckpts with `--varikv_residual`, tags `gfsd` / `grsd` / `grsp` (distinct per ckpt because `gap_fix03/dist` and `gap_rand/dist` are both `dist` mode and result dirs carry only the mode).
+
+- ~~`scratch_gapstd_eval.sh` — the three ckpts × `scbench_kv` × standard interval.~~ **Finished 11:22 UTC, 7h10m, all three `rc=0` — results in the table above.**
+- `scratch_gapsweep.py` — the three ckpts × the other 9 datasets, 27 jobs, marker-resumable, longest-first. Baselines are **not** re-run (the `_full` tag from `scratch_stage2b_sweep.py` is the same configuration). 56.7 GPU-h total; workers on GPUs 0–2 wait for the `scbench_kv` run to print `ALL DONE` before taking work. ETA ~13:30–14:00 UTC.
+
+## From “2026-08-12/13 — the teacher-KL round”
+
+> The result tables and the forensic probes. The section's two headline findings, what was built, the standing warnings and the scheduler lesson stayed in `CLAUDE.md`.
+
+### The one positive result, and its four limits
+
+`ckpt_kl/dist` on **Retr.KV** @ratio 0.1: 32.60 → **54.20** (+21.60, CI
+[+15.20,+27.60], HRR 60.7%). Same architecture and same eval as the `lm`-objective
+checkpoint that scored −43; only the objective changed. **So "was the training wrong"
+is answered: yes, it was a first-order cause.**
+
+Then it fails four ways:
+
+1. **It does not generalize.** Eight panels, each with its own same-batch ratio-0.1
+   baseline: **1 significantly positive, 1 significantly negative, 6 unseparated,
+   mean Δ +1.41.**
+2. **"No headroom" is not the excuse.** Retr.Prefix-Suffix (+41.40) and Code.RepoQA
+   (+46.35) have *more* headroom at ratio 0.1 than Retr.KV (+35.60) — their baselines
+   collapse to 8.60 and 12.71 — and the memory recovers nothing (−0.60, −0.71).
+   So the selectivity is about **what kind of content must be recovered**.
+3. **It actively harms a panel where compression helps.** **Retr.MultiHop**'s
+   ratio-0.1 baseline (49.47) beats full cache (41.07); the memory drags it to 31.11,
+   **−18.36★, ten points below full cache.** The design has no mechanism for deciding
+   whether to speak — the gate is one constant per (layer, kv-head) and never sees the
+   query. Same disease as the centroid run's 36-better/20-worse split.
+4. **It has not been reproduced.** `ckpt_kl_v2a` (fixed code, byte-identical sampling)
+   scores **−13.20★**. That run is confounded by a `min_chunks=1` default that silently
+   cut the corpus from 34 documents to 14, which is why `ckpt_kl_v2b` exists.
+
+### "Distributional beats point" now has zero support
+
+| | `dist − point` | training data |
+|---|---|---|
+| v1 | **+39.60 [+33.60,+45.80] ★** | sampling **not** matched (no seed, two processes) |
+| v2a | +2.80 [−1.40,+6.80] **unseparated** | byte-identical |
+| v2s | −2.60 [−5.80,+0.60] **unseparated** | byte-identical |
+
+The v1 gap was sampling noise plus gate amplitude: point's gate learns σ=0.265 against
+dist's 0.131, and point's generations are 48.9 characters against the baseline's 120.5
+— degenerate output. Combined with the four-way difference between the two modes
+(see `varikv/memory.py`'s header), **the claimed contribution remains unsupported.**
+
+### Streaming training made things worse, not better
+
+`max_ctx=32768 / chunk=16000` gives exactly 2 chunks and **one** eviction per step, so
+v1/v2a never exercised streaming at all (measured: 1.03 prune_chunk calls per prefill).
+`ckpt_kl_v2s` fixes that (10 long documents, 5 chunks, 4 evictions) and is **worse**:
+validation recovery −145.7% and downstream ≈ baseline. Corpus constraint worth knowing:
+**all 68 `fineweb_10k` documents are under 32,256 tokens**, so at chunk 16000 more than
+one eviction can only come from `fineweb_10k_cat`, which holds 10 documents of 103k–122k
+(not the 5 that `feature.py` takes). Hence `--n_short` / `--n_long`.
+`--detach_every 4` OOMs: `kl_to_mixture` builds a `[B,G,N,K]` tensor that is 7 GB alone
+at N=16000.
+
+### The training-free centroid arm is the one clean positive
+
+On Retr.KV @0.1 against an **equal-byte** control (spend the same bytes retaining more
+exact KV, ratio 0.1061 → 35.60): K=16 gives **+6.60★**, K=1024 **+8.00★**. Against the
+plain baseline that is +9.60 / +11.00. Two facts fall out:
+
+- **A count-aware centroid costs 257 scalars against an exact KV entry's 256**, so
+  "K centroids vs K exact KV" is a fair fight at every K, and retained is 16,903 per
+  (layer, kv-head) at ratio 0.1 — so even K=1024 is only +6.08% of the budget.
+- **Capacity is not the bottleneck**: 64× more capacity buys +1.40 points. What mattered
+  was the algebra — `log n_j` alone is worth **67×** in recovered missing mass (true
+  median 0.715, centroid estimate 0.239, drop `log n_j` and it collapses to 0.0037).
+- **Naive post-RoPE averaging beats the theoretically-correct position-free frame**
+  (+6.80 vs +1.20, the latter unseparated), even though the fastest `inv_freq` component
+  is 1.0 rad/token so any cluster wider than ~6 tokens fully decorrelates it. The
+  averaging acts as an implicit low-pass filter that keeps only the phase-coherent
+  components; inverse-rotating re-imposes a single phase on components that are already
+  decorrelated. Do not "fix" this.
+
+### The learned memory neither reconstructs the evicted KV nor repairs the local attention gap — and the second half of that took two probes to get right
+
+`scratch_probe_forensic.py`, training-free, on the target 7B with the real gate.
+**Everything is compared in the read-out frame** — the learned slots are `apply_rope`'d
+to their position centroid exactly as `memory_residual` does at inference. This matters:
+`memcache_retain` stores keys **pre-RoPE** (inverse-rotated on write) while
+`centroid.py`'s default `post` mode stores them **post-RoPE**, and the two frames differ
+by 74–93%, so a raw `cos(k_i, k̂_j)` between them would measure rotation rather than
+content.
+
+| metric | | **Retr.KV** (memory scores **+21.60**) | **Retr.Prefix-Suffix** (memory −0.60) | random baseline |
+|---|---|---|---|---|
+| **A. addressability** `mean_i max_j cos(k_i, k̂_j)` | learned | **0.0810** | **0.0745** | **0.1545** |
+| | centroid | 0.7689 | 0.7829 | |
+| **C. value direction** `cos(m(q), o_E(q))` | learned | **−0.0124** | **0.0208** | ~0 |
+| | centroid | 0.7864 | 0.7910 | |
+
+(140 and 133 (layer, head, group) triples; the random baseline is `max` over 16 random
+unit vectors in R^128, which is 0.1545 — so **the learned memory is *below* chance**.)
+
+**The learned memory does not reconstruct the evicted KV, anywhere — including on the
+panel where it gains 21.60 points.** Its value output is orthogonal to the true evicted
+attention output (−0.0124 on Retr.KV, i.e. very slightly *anti*-aligned). The
+training-free centroid does reconstruct (0.77–0.79 on both) and gains only +11.00.
+
+So the working checkpoint is not doing what the project's narrative says. But **"it does
+not reconstruct KV geometry" does not by itself establish "it carries no functional
+information"** — a learned slot has no obligation to look like an original key; it could
+be a learned *address* that still routes correctly. Establishing the stronger claim needs
+a functional target, and my first attempt used the wrong one.
+
+#### The probe's own target was wrong the first time — `o_E` instead of `Δo`
+
+The residual read-out is `o = o_R + g·m(q)` while full attention is
+`o_full = λ·o_R + (1−λ)·o_E`, so
+
+    o_full − o_R = (1−λ)(o_E − o_R) ≡ Δo
+
+**The memory must approximate `Δo`, not `o_E`.** The two can point in completely different
+directions: with `o_R=[10,0]` and `o_E=[8,2]`, `o_E` points roughly right while
+`Δo ∝ [−2,2]` does not, so `cos(m,o_E)≈0` is perfectly compatible with
+`cos(g·m,Δo)≈1`. Metric C above would call a *perfect* residual correction noise.
+This identity is used elsewhere in this repo (`scratch_probe_damage.py`, and the
+"exact local counterfactual identity" section of this file) — the first forensic simply
+aimed at the wrong quantity. `scratch_probe_forensic2.py` is the corrected version:
+target `Δo`, everything projected through `W_O`, and reported both per-head and
+summed over heads.
+
+| corrected metric (median) | **Retr.KV** (+21.60) | **Prefix-Suffix** (−0.60) |
+|---|---|---|
+| **D1 direction** `cos(W_O δ̂, W_O Δo)`, learned | **−0.0056** | **+0.0033** |
+| **D1 direction**, centroid | **0.8465** | **0.9059** |
+| **D2 magnitude** `‖W_O δ̂‖/‖W_O Δo‖`, learned | **1.1667** | 0.8266 |
+| **D2 magnitude**, centroid | 0.0713 | 0.1227 |
+| layer-level `cos` after summing heads, learned | 0.0108 | 0.0369 |
+| layer-level `cos`, centroid | 0.6803 | 0.7127 |
+
+**The learned correction is orthogonal to the true local gap, with roughly the right
+magnitude** (ratio 1.17 / 0.83) — per head and after cross-head summation alike. The
+centroid is the mirror image: right direction (0.85–0.91) at 7–12% of the needed
+magnitude, which is exactly why it recovers only 11.00 / 3.60 points.
+
+So: **the +21.60 on Retr.KV is not obtained by repairing the local attention gap.** The
+memory injects a vector of about the right size pointing somewhere unrelated to what
+eviction removed, and the benchmark score goes up. The mechanism is unexplained.
+
+#### Two claims of mine that this retracts
+
+- ~~"the shortcut hypothesis is established"~~ — not established. What is measured is
+  that the correction is neither a KV reconstruction nor a local-gap repair. Whether it
+  encodes transferable evicted content in some other basis is open.
+- ~~"add `L = KL + λ·L_structure`, the centroid is a ready-made teacher"~~ —
+  **do not do this.** `L_structure` pulls `δ̂` toward `Δo`, i.e. toward the centroid's
+  direction, and the centroid scores **43.60** on Retr.KV against the learned memory's
+  **54.20**. Forcing the alignment would most likely drag 54.20 down toward 43. This was
+  the pre-registered second branch of `forensic2` and it is the branch that fired.
+- The `d_z` reading is also retracted: both panels sit at or below chance on
+  addressability while one gains 21.60 downstream, so addressability has no causal
+  relation to the score, and a per-token autoencoder would in any case only test
+  `256→64→256` rather than the hard part, `N tokens → 16 slots`.
+
+#### The three live hypotheses
+
+| | status |
+|---|---|
+| H1 functionally-correct residual representation | **refuted** by `forensic2` (D1 ≈ 0) |
+| H2 representation shortcut / non-local compensation | **open, now the leading candidate** |
+| H3 v1 was simply a lucky training trajectory | **open — v2b decides** |
+
+v2b remains first priority. If it fails to reproduce, the strange phenomenon that needs
+explaining ("right magnitude, random direction, +21.6 points") does not exist and H2 needs
+no explanation either.

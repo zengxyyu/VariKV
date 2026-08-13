@@ -84,7 +84,13 @@ def cs(a, b):
 
 
 def assign(scheme, k_ev, pos, K, W, iters=4, gen=None):
-    """→ [n] 的簇标签。position 复刻 centroid.py:183；kmeans 复刻 ResKV Eq 12。"""
+    """→ [n] 的簇标签。position 复刻 centroid.py:183。
+
+    **eucl-Lloyd 不是 ResKV 的复现**，只是同一族的欧氏 Lloyd baseline：ResKV Eq 12
+    从高分 token 初始化，我们没有被驱逐集合内的分数，用 token 序上的等距抽样代替。
+    因此它在表里只能叫 baseline，不能当作「ResKV 的性能」。初始化是否影响排序，要靠
+    多次 restart 判定（尚未做）。
+    """
     n = k_ev.shape[0]
     if scheme == "position":
         return (pos // W).clamp(max=K - 1)
@@ -113,6 +119,17 @@ def assign(scheme, k_ev, pos, K, W, iters=4, gen=None):
     return lab
 
 
+def _s2_cq(kq_ev, lab, cl, z1, trCq):
+    """tr(C_qΣ_j)/tr(C_q)，每簇一个标量。C_q 尚未就绪时返回 None。"""
+    if kq_ev is None or trCq <= 0:
+        return None
+    K = z1.numel()
+    kqbar = torch.zeros(K, kq_ev.shape[1], device=kq_ev.device).index_add_(
+        0, lab, kq_ev) / cl[:, None]
+    dq2 = ((kq_ev - kqbar[lab]) ** 2).sum(-1)
+    return z1.clone().index_add_(0, lab, dq2) / cl / trCq
+
+
 def report(A, Gm, LAY, a, deff_cq, nd_):
     """完整表。中途与结尾共用同一份代码，避免两处口径分叉。"""
     md = lambda B, c: float(np.median(B[:, c]))                  # noqa: E731
@@ -132,18 +149,21 @@ def report(A, Gm, LAY, a, deff_cq, nd_):
           f"　⇒ **rate-distortion 启发式参考**（非严格界）K^(−2/d_eff) = {a.K ** (-2.0 / max(md(A,13),1e-9)):.4f}"
           f"（参与率不能代入高斯 rate-distortion 得严格下界；仅提示「增大 K 的收益有限」）")
     print("-" * 118)
+    mdn = lambda B, c: float(np.nanmedian(B[:, c])) if B.shape[1] > c else float("nan")  # noqa: E731
     print(f"{'分簇':<14}{'logD̂/D 0阶':>12}{'2阶oracle':>11}{'2阶1标量':>11}"
+          f"{'同·度量感知':>12}"
           f"{'簇内/总 方差':>13}{'cos(v̂,v)':>10}{'‖v̂‖/‖v‖':>10}{'e':>8}")
     for si, s in enumerate(SCHEMES):
         B = A[A[:, 0] == si]
         if not len(B):
             continue
         print(f"{s:<14}{md(B,1):>+12.3f}{md(B,2):>+11.3f}{md(B,11):>+11.3f}"
+              f"{mdn(B,19):>+12.3f}"
               f"{md(B,12):>13.4f}{md(B,5):>10.4f}{md(B,4):>10.4f}{md(B,3):>8.4f}")
     print("-" * 118)
     print("四格 oracle + 二阶（‖o−o_full‖/‖Δo‖ 中位，1.0 = 完全不修正）")
     print(f"{'分簇':<14}{'现方法':>10}{'只修质量':>10}{'只修方向':>10}"
-          f"{'交互':>9}{'2阶oracle':>11}{'2阶1标量':>11}")
+          f"{'交互':>9}{'2阶oracle':>11}{'2阶1标量':>11}{'同·度量感知':>12}")
     for si, s in enumerate(SCHEMES):
         B = A[A[:, 0] == si]
         if not len(B):
@@ -152,7 +172,8 @@ def report(A, Gm, LAY, a, deff_cq, nd_):
         # 质量与方向是强交互变量（N_E = D_E·v_E），不能只看两个主效应排瓶颈。
         inter = md(B, 6) - md(B, 7) - md(B, 8)
         print(f"{s:<14}{md(B,6):>10.4f}{md(B,7):>10.4f}{md(B,8):>10.4f}"
-              f"{inter:>+9.4f}{md(B,9):>11.4f}{md(B,10):>11.4f}")
+              f"{inter:>+9.4f}{md(B,9):>11.4f}{md(B,10):>11.4f}"
+              f"{mdn(B,18):>12.4f}")
     print("-" * 118)
     print("γ-sweep（保持各自的 v̂，只缩放真实质量 γ·D_E）")
     print(f"{'分簇':<14}" + "".join(f"{g:>9.2f}" for g in GAMMAS) + f"{'  最优 γ':>10}")
@@ -167,14 +188,16 @@ def report(A, Gm, LAY, a, deff_cq, nd_):
         print("-" * 118)
         print("**层级聚合误差**（‖Σ_h W_h(ô−o_full)‖ / ‖Σ_h W_h Δo‖）—— 这才是残差流看到的")
         print(f"{'分簇':<14}{'现方法':>10}{'只修质量':>10}{'只修方向':>10}"
-              f"{'2阶oracle':>11}{'2阶1标量':>11}{'cos(现方法)':>12}")
+              f"{'2阶oracle':>11}{'2阶1标量':>11}{'同·度量感知':>12}{'cos(现方法)':>12}")
         for si, s in enumerate(SCHEMES):
             B = LAY[LAY[:, 0] == si]
             if not len(B):
                 continue
+            q = f"{np.median(B[:,12]):>12.4f}" if B.shape[1] > 12 else f"{'—':>12}"
             print(f"{s:<14}{np.median(B[:,2]):>10.4f}{np.median(B[:,3]):>10.4f}"
                   f"{np.median(B[:,4]):>10.4f}{np.median(B[:,5]):>11.4f}"
-                  f"{np.median(B[:,6]):>11.4f}{np.median(B[:,7]):>12.4f}")
+                  f"{np.median(B[:,6]):>11.4f}" + q
+                  + f"{np.median(B[:,7]):>12.4f}")
     # ---- 样本级配对 bootstrap ----
     # **统计单位是 context，不是行。** 同一 context 下的层/kv 头/查询头高度相关，
     # 69860 行绝不是 69860 个独立样本。逐 context 聚合后再在 context 上配对 bootstrap。
@@ -218,17 +241,23 @@ def report(A, Gm, LAY, a, deff_cq, nd_):
     print(f"\n  收缩启发式 γ* = 1/(1+e²)（**仅在各向同性加性误差模型下成立**，非普遍最优）中位 = {md(A, 14):.4f}")
     print("=" * 118)
     print("判读（预注册）：")
-    print("  **score-oracle 是最关键的一行。** 它按 aᵀk_i 在一维上分等量桶 ⇒ 簇内 logit")
-    print("     方差按构造最小 ⇒ 质量近乎精确，剩下的输出误差**纯粹是 value 方向误差**。")
-    print("     若 score-oracle 缺口≈0 而 k-means 不是 ⇒ 瓶颈是**缺 query 信息**，不是容量，")
-    print("     这正好解释 Attention Matching 为何必须用 reference queries。")
+    print("  **score-oracle 是最关键的一行。** 它对 s_i = aᵀk_i 做 1-D Lloyd（8 轮），")
+    print("     即用**真实 query** 直接压簇内 logit 方差。Lloyd 只是局部最优，所以它是")
+    print("     **strong realized-query oracle**，不是一维平方误差的理论下界；实测")
+    print("     簇内/总方差已降到 ~0.01，剩下的输出误差基本只剩 value 方向误差。")
+    print("     若 score-oracle 缺口≈0 而 eucl-Lloyd 不是 ⇒ 瓶颈是**缺 query 信息**，")
+    print("     不是容量，这正好解释 Attention Matching 为何必须用 reference queries。")
     print("     若连 score-oracle 都留大缺口 ⇒ 容量才是绑定约束。")
-    print("  k-means 缺口小 且 γ*≈1  ⇒ 旧的 centroid/Jensen/shrinkage 故事基本死")
-    print("  k-means 缺口大 且 γ*<1  ⇒ 存在真正的校准问题（注意这仍是净放大 γ*/r_D，")
+    print("  eucl-Lloyd 缺口小 且 γ*≈1  ⇒ 旧的 centroid/Jensen/shrinkage 故事基本死")
+    print("  eucl-Lloyd 缺口大 且 γ*<1  ⇒ 存在真正的校准问题（注意这仍是净放大 γ*/r_D，")
     print("     是标准 bias–variance 收缩，不是「越准越坏」的反常）")
-    print("  random ≈ k-means        ⇒ 分簇策略根本不是主变量（别漏看这一行）")
-    print("  「2阶1标量」若接近「2阶oracle」⇒ 各向同性假设成立，每簇 +1 scalar 可部署；")
-    print("     若差很远 ⇒ 只有 oracle 版有效，而存 Σ_kk 是 +6376% 状态，压缩故事死")
+    print("  random ≈ eucl-Lloyd     ⇒ 分簇策略根本不是主变量（别漏看这一行）")
+    print("  **两个「2阶1标量」列必须配对读。** 各向同性版用 trΣ_j/d·‖a‖²，只在簇近似")
+    print("     各向同性时成立；C_q-Lloyd **故意**把簇压扁在高 C_q 方向、拉长在低 C_q")
+    print("     方向 ⇒ trΣ/d 系统性高估 aᵀΣa ⇒ 质量过度修正（实测该列在 C_q 行 >1，")
+    print("     即比不修还差）。度量感知版用 tr(C_qΣ_j)/tr(C_q)·‖a‖²（C_q=cI 时精确退化")
+    print("     回各向同性版），仍然是每簇 +1 scalar。**只有度量感知版能判定「+1 标量")
+    print("     的二阶修正是否可部署」**；用各向同性版在 C_q 聚类上下结论是错的。")
     print("注意：本探针只测局部注意力误差。Retr.MultiHop 已证明「更接近满缓存」≠")
     print("     「任务分数更高」，任何 γ / 修法都还需要一次下游验证。")
 
@@ -339,7 +368,8 @@ def main():
             # 跨头相消只留 0.21–0.25 ⇒「每头都更准」完全可以「层级更差」。
             # 这一列在旧的 massdir 探针里有，写本探针时被我丢了，属回归。
             AGG = {s: {k: torch.zeros(WO.shape[0], device=m.device)
-                       for k in ("cc", "mc", "cd", "2or", "2iso")} for s in SCHEMES}
+                       for k in ("cc", "mc", "cd", "2or", "2iso", "2isq")}
+                   for s in SCHEMES}
             AGF = {k: torch.zeros(WO.shape[0], device=m.device) for k in ("full", "R")}
             for h in range(H):
                 ev = (~valid[h]).nonzero(as_tuple=True)[0]
@@ -358,7 +388,7 @@ def main():
                 lam = torch.linalg.eigvalsh(Sig.double()).clamp_min(0)
                 d_eff = float(lam.sum() ** 2 / (lam * lam).sum().clamp_min(1e-30))
                 # C_q 的白化变换（用**之前样本**累计的，无泄漏）
-                Cq_ready, dqe = None, 0.0
+                Cq_ready, dqe, trCq = None, 0.0, 0.0
                 if CQN.get((l, h), 0) >= 64:
                     Cqm = (CQ[(l, h)] / CQN[(l, h)]).double()
                     lq, Uq = torch.linalg.eigh(Cqm)
@@ -374,10 +404,17 @@ def main():
                     deff_cq[(l, h)] = (dqe, cum3, cum8)
                     Lt = (Uq * lq.sqrt()[None]).float()          # k ↦ kᵀU√Λ
                     Cq_ready = lambda x, _L=Lt: x @ _L
+                    # ‖Cq_ready(δ)‖² = δᵀC_qδ（只有二次型有意义，向量本身不是 C_q^{1/2}δ）
+                    trCq = float(lq.sum().clamp_min(1e-30))
 
                 # **query 无关的簇统计只算一次。** kbar/vbar 的 index_add 是
                 # 15 万×128 的 scatter，原先在 g 循环里被重算 G=7 次；它们不依赖 q，
                 # 提出来后这 4 个分簇各省 7 倍（这才是探针慢的真正原因，不是 eigh）。
+                # **度量感知的每簇 1 标量**：可部署版把 aᵀΣ_j a 近似成 (trΣ_j/d)·‖a‖²，
+                # 该近似只在簇各向同性时成立，而 C_q-Lloyd 恰恰制造各向异性簇 ⇒ 系统性
+                # 高估。正确的一标量是 E_{a~N(0,C_q)}[aᵀΣ_j a] = tr(C_qΣ_j)，按 tr(C_q)
+                # 归一后与 ‖a‖² 相乘，C_q=cI 时精确退化回 trΣ_j/d。写入时可算，仍是 1 标量。
+                kq_ev = Cq_ready(k_ev) if Cq_ready is not None else None
                 PRE = {}
                 for s in SCHEMES:
                     if s == "score-oracle":
@@ -400,7 +437,8 @@ def main():
                     logn = torch.where(occ, cl.log(), torch.full_like(cl, -1e30))
                     dk2 = ((k_ev - kbar[lab]) ** 2).sum(-1)
                     s2 = z1.clone().index_add_(0, lab, dk2) / cl / d
-                    PRE[s] = (lab, cnt, cl, kbar, vbar, occ, logn, s2)
+                    s2q = _s2_cq(kq_ev, lab, cl, z1, trCq if Cq_ready else 0.0)
+                    PRE[s] = (lab, cnt, cl, kbar, vbar, occ, logn, s2, s2q)
                 for g in range(G):
                     hq = h * G + g
                     W = WO[:, hq * d:(hq + 1) * d]
@@ -446,10 +484,12 @@ def main():
                             logn = torch.where(occ, cl.log(), torch.full_like(cl, -1e30))
                             dk2 = ((k_ev - kbar[lab]) ** 2).sum(-1)
                             s2 = z1.clone().index_add_(0, lab, dk2) / cl / d
+                            s2q = _s2_cq(kq_ev, lab, cl, z1,
+                                         trCq if Cq_ready else 0.0)
                         else:
                             if s not in PRE:
                                 continue
-                            lab, cnt, cl, kbar, vbar, occ, logn, s2 = PRE[s]
+                            lab, cnt, cl, kbar, vbar, occ, logn, s2, s2q = PRE[s]
                             z1 = torch.zeros(a.K, device=sE.device)
                         sbar = aq @ kbar.T
                         delta = sE - sbar[lab]
@@ -463,6 +503,15 @@ def main():
                         LE0 = torch.logsumexp(r0, -1)
                         LE2 = torch.logsumexp(r2, -1)
                         LE2i = torch.logsumexp(r2i, -1)
+                        if s2q is None:                 # C_q 未就绪 ⇒ 该列记 NaN
+                            LE2iq, e2q = None, float("nan")
+                        else:
+                            var_isq = s2q * float(aq @ aq)
+                            LE2iq = torch.logsumexp(
+                                sbar + torch.where(occ, logn + 0.5 * var_isq,
+                                                   logn), -1)
+                            e2q = float((W @ (cell(LE2iq, torch.softmax(r0, -1)
+                                                    @ vbar) - o_full)).norm() / nd)
                         vw = float((cnt * var_or).sum() / cnt.sum().clamp_min(1))
                         vt = float(sE.var(unbiased=False))
                         vh = torch.softmax(r0, -1) @ vbar
@@ -483,10 +532,17 @@ def main():
                                      # 在 K=16/K=1024 之间取相同 (样本,层,头) 交集
                                      # —— 而 `ev.numel() < max(64,4K)` 让两者的 population
                                      # 天然不同（K=1024 要求 n_E≥4096，K=16 只要 ≥64）。
-                                     i, l, hq))
+                                     i, l, hq,
+                                     # **只追加在末尾**，不动 15/16/17 的 id 列，
+                                     # 也不动旧列号 ⇒ 之前存下的 rows.npy 仍可比。
+                                     e2q,
+                                     float(LE2iq - LE) if LE2iq is not None
+                                     else float("nan")))
                         for key, LEx, vx in (("cc", LE0, vh), ("mc", LE, vh),
                                              ("cd", LE0, vE), ("2or", LE2, vh),
-                                             ("2iso", LE2i, vh)):
+                                             ("2iso", LE2i, vh),
+                                             ("2isq", LE2iq if LE2iq is not None
+                                              else LE2i, vh)):
                             AGG[s][key] += W @ cell(LEx, vx)
                         errs = [si]
                         for gm in GAMMAS:
@@ -511,7 +567,10 @@ def main():
                                  cs(AGG[s]["cc"] - AGF["R"], dl),
                                  i, float(nl), float(AGF["full"].norm()),
                                  float((AGG[s]["cc"] - AGF["full"]).norm()
-                                       / AGF["full"].norm().clamp_min(1e-12))))
+                                       / AGF["full"].norm().clamp_min(1e-12)),
+                                 # **追加在末尾**，不移动 7–11 的既有列号（LAY[:,9]=分母、
+                                 # LAY[:,11]=以 ‖y_full‖ 归一 都是按下标读的）
+                                 float((AGG[s]["2isq"] - AGF["full"]).norm() / nl)))
         for l in ([] if CQ_FROZEN else a.layers):   # 冻结后不再累计
             Aq = _Q[l][0].float() * (d ** -0.5)   # [HQ,T,d]
             G = Aq.shape[0] // H

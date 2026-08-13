@@ -66,6 +66,27 @@ parser.add_argument("--varikv_ablate", type=str, default="none",
 # 与 --varikv_ckpt 互斥：它没有 ckpt，没有编码器，没有门。
 parser.add_argument("--centroid_k", type=int, default=0,
                     help=">0 时启用质心读出，值为每 head 的簇数 K")
+# --- 控制臂（B 路线）：记忆只修正驱逐分数，不进 attention。与上面两组互斥 ---
+# 它不占任何 query 期 KV 预算：threshold 按 ratio 取全局 top-n，改分数只改"留哪些"。
+parser.add_argument("--ctrl", action="store_true",
+                    help="启用 ControlRetainCache（记忆→驱逐分数修正）")
+parser.add_argument("--ctrl_beta", type=float, default=0.0,
+                    help="修正强度，单位是**基线分在该 (层,kv头) 内的标准差**。"
+                         "0 = 与基线逐字相同（验收第一条）。可为负——覆盖度的符号是"
+                         "欠定量，必须当实验变量")
+parser.add_argument("--ctrl_rho", type=float, default=1.0, help="覆盖矩阵的遗忘因子")
+parser.add_argument("--ctrl_src", type=str, default="evicted",
+                    choices=["evicted", "retained"],
+                    help="覆盖矩阵累积谁：被驱逐的还是被保留的。**语义相反**，"
+                         "evicted=与被扔掉的不像则加分；retained=补充缓存缺的方向则加分")
+parser.add_argument("--ctrl_feat", type=str, default="key",
+                    choices=["key", "value", "keyvalue"])
+parser.add_argument("--ctrl_rope", type=str, default="post", choices=["post", "inv"])
+parser.add_argument("--ctrl_shuffle", action="store_true",
+                    help="把 novelty 在每个 (层,kv头) 内随机置换——**必跑的对照**。"
+                         "stage-1 测过随机驱逐打败所有有原则的准则，不做这个就分不清"
+                         "「覆盖信号有用」和「任何同幅度扰动都会改变结果」")
+parser.add_argument("--ctrl_seed", type=int, default=0)
 parser.add_argument("--centroid_rope", type=str, default="post",
                     choices=["post", "inv"],
                     help="post=直接平均 post-RoPE key（复现 E1b）；inv=逆旋到无位置帧（对照臂）")

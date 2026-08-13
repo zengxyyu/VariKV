@@ -76,6 +76,27 @@ if __name__ == "__main__":
         model.varikv_inv_freq = _rot.inv_freq.detach().clone() if _rot else None
         print(f"[VariKV] loaded {args.varikv_ckpt} mode={_ck.get('mode')} "
               f"M={args.varikv_slots}")
+    elif args.ctrl:
+        # 控制臂：只改 kv_type + 几个标量，其余评测参数与基线逐字一致。
+        args.kv_type = "control"
+        args.tag += f"_ctrl{args.ctrl_src[:3]}{args.ctrl_beta:g}"
+        if args.ctrl_feat != "key":
+            args.tag += f"_{args.ctrl_feat}"
+        if args.ctrl_rho != 1.0:
+            args.tag += f"_rho{args.ctrl_rho:g}"
+        if args.ctrl_shuffle:
+            args.tag += "_shuf"
+        if args.ctrl_rope != "post":
+            args.tag += f"_{args.ctrl_rope}"
+        model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
+        for k in ("beta", "rho", "src", "feat", "rope", "shuffle", "seed"):
+            setattr(model, f"ctrl_{k}", getattr(args, f"ctrl_{k}"))
+        if args.ctrl_rope == "inv":
+            _rot = getattr(model.model.model, "rotary_emb", None)
+            assert _rot is not None, "inv 模式需要 rotary_emb"
+            model.varikv_inv_freq = _rot.inv_freq.detach().clone()
+        print(f"[Ctrl] beta={args.ctrl_beta} src={args.ctrl_src} feat={args.ctrl_feat} "
+              f"rho={args.ctrl_rho} shuffle={args.ctrl_shuffle}")
     elif args.centroid_k > 0:
         # 免训练的质心臂：只改 kv_type + K，其余评测参数与基线逐字一致。
         args.kv_type = "centroid"
