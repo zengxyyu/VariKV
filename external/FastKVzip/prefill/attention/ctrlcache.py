@@ -89,7 +89,9 @@ class ControlRetainCache(RetainCache):
         # 诊断量（供报告核对，不参与计算）
         self.n_absorbed = 0
         self.corr_std = []        # 每 chunk 的修正幅度
-        self.norm_cv = []         # 每 chunk 的 ‖x‖ 变异系数
+        self.norm_cv = []         # 每 chunk 的 ‖x‖ 变异系数（energy- vs frequency-weighting 诊断）
+        self.flip_frac = []       # 每 chunk 因修正而改变去留的条目占比（decision flip rate）
+        self.retain_delta = []    # 每 chunk 保留总数相对未修正版本的变化（应≈0）
 
     @property
     def active(self) -> bool:
@@ -125,15 +127,21 @@ class ControlRetainCache(RetainCache):
         pos = torch.arange(lo, hi, device=self.device)
         out = torch.zeros_like(score)
         sigma_glob = score.std().clamp_min(1e-6)                # 跨层跨头的全局尺度
-        novs, feats = [], []
+        # **不要把各层特征留下来**：[H,n,d] 每层 32.8 MB，28 层就是 917 MB，
+        # 而唯一的用途只是一个 ‖x‖ 的变异系数。改成增量累积一阶/二阶矩。
+        novs = []
+        s1 = s2 = cnt = 0.0
         for l in range(L):
             x = self._x(l, pos)
-            feats.append(x)
+            nrm = x.norm(dim=-1)
+            s1 += float(nrm.sum()); s2 += float((nrm * nrm).sum()); cnt += nrm.numel()
             novs.append(self._novelty(l, x))
+            del x, nrm
         if all(v is None for v in novs):
             return out                                          # 冷启动，无修正
-        nrm = torch.cat([f.norm(dim=-1).flatten() for f in feats])
-        self.norm_cv.append(float(nrm.std() / nrm.mean().clamp_min(1e-30)))
+        mu = s1 / max(cnt, 1.0)
+        var = max(s2 / max(cnt, 1.0) - mu * mu, 0.0)
+        self.norm_cv.append(var ** 0.5 / max(mu, 1e-30))
 
         # 跨头/层的组级 z-score 要一起算，所以先收集各头的平均 novelty
         gmean = torch.full((L, H), float("nan"), device=score.device)
@@ -142,8 +150,14 @@ class ControlRetainCache(RetainCache):
                 gmean[l] = nv.mean(-1)
         ok = torch.isfinite(gmean)
         if self.beta_group != 0.0 and int(ok.sum()) > 1:
-            mu, sd = gmean[ok].mean(), gmean[ok].std().clamp_min(1e-6)
-            gz = torch.where(ok, (gmean - mu) / sd, torch.zeros_like(gmean))
+            gm, gs = gmean[ok].mean(), gmean[ok].std().clamp_min(1e-6)
+            gz = torch.where(ok, (gmean - gm) / gs, torch.zeros_like(gmean))
+            if self.shuffle:
+                # **组级项也必须打乱**，否则开了 beta_group 之后"随机对照"里仍然残留
+                # 真实的跨头信号，对照就不干净了（第一批 beta_group=0 时不咬）
+                flat = gz.flatten()
+                gz = flat[torch.randperm(flat.numel(), generator=self._gen
+                                         ).to(flat.device)].view_as(gz)
         else:
             gz = torch.zeros_like(gmean)
 
@@ -197,10 +211,20 @@ class ControlRetainCache(RetainCache):
         **不能调 super() 再补救**——修正必须发生在阈值化之前，而父类把两步写在一起。
         """
         lo, hi = evict_range
-        score = torch.stack(self.score, dim=0)[..., lo:hi]       # [L,1,H,n]
+        score0 = torch.stack(self.score, dim=0)[..., lo:hi]      # [L,1,H,n]
+        score = score0
         if self.active:
-            score = score + self._correction(score, lo, hi)
+            score = score0 + self._correction(score0, lo, hi)
         valid, thres = self.threshold(score, ratio, level)        # [L,H,n]
+
+        if self.active:
+            # **decision flip rate**，自包含：对未修正的分数再阈值化一次即可，不需要另跑
+            # 一遍基线。这是比 accuracy 更能解释机制的量——离阈值远的 token 无论修正多大
+            # 都翻不了，真正被控制的只有阈值附近那一小撮。
+            with torch.no_grad():
+                v0, _ = self.threshold(score0, ratio, level)
+                self.flip_frac.append(float((valid ^ v0).float().mean()))
+                self.retain_delta.append(int(valid.sum()) - int(v0.sum()))
 
         if self.active:
             self._update_C(lo, hi, valid)
