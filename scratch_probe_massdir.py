@@ -130,6 +130,12 @@ def main():
                 if ev.numel() < 64:
                     continue
                 k_ev, v_ev = kall[h, ev], vall[h, ev]
+                # 与 centroid.py:183 的分簇一致：b = (pos // W).clamp(max=K-1)。
+                # **不要再加 sink**：`_get_valid` 已在前面 pad 了 sink 个 True，所以返回的
+                # mask 与 key_cache 对齐 ⇒ `ev` 本身就是原始 token 位置。
+                # （`_absorb_layer` 里的 `pos = drop + s + sink` 是因为它索引的是
+                #  `self.valid`，那个数组相对 key_cache 少了前面的 sink 段。）
+                b_of = (ev // kv.W).clamp(max=a.K - 1)
                 k_rt, v_rt = kall[h, valid[h]], vall[h, valid[h]]
                 for g in range(G):
                     hq = h * G + g
@@ -144,6 +150,23 @@ def main():
                     r = aq @ kbar[h].T + logn[h]
                     LEh = torch.logsumexp(r, -1)
                     vEh = torch.softmax(r, -1) @ vbar[h]
+                    # ---- 重做 P0 的 E 阶梯：那批结论只有 3 样本 × 2 问题 = 6 个 query ----
+                    # 「越多矩越差且单调」「E4 修准质量是灾难」是整个机制故事的地基，
+                    # 却是全仓库样本量最小的结论之一。这里在同一批 n=20 上重新检验，
+                    # 而且**把质量与方向解耦**（P0 的 E4 同时改了两者，无法归因）。
+                    bmask = (b_of == torch.arange(a.K, device=aq.device)[:, None])
+                    dk = k_ev[None] - kbar[h][:, None]                # [K,n,d]
+                    proj = torch.einsum("knd,d->kn", dk, aq)
+                    w = bmask.float()
+                    cnt_ = w.sum(-1).clamp_min(1.0)
+                    var_ = (w * proj * proj).sum(-1) / cnt_           # 簇内 Var(aᵀk)
+                    logn2 = torch.where(logn[h] > -1e29, logn[h] + 0.5 * var_, logn[h])
+                    LE2 = torch.logsumexp(aq @ kbar[h].T + logn2, -1)  # E4 的质量（二阶 MGF）
+                    # Σ_vk a 的一阶方向修正（MomentKV 式），用同一组簇
+                    dv = v_ev[None] - vbar[h][:, None]                # [K,n,d]
+                    cov_a = torch.einsum("kn,knd->kd", w * proj, dv) / cnt_[:, None]
+                    vbar_c = vbar[h] + cov_a
+                    vEc = torch.softmax(r, -1) @ vbar_c               # E2 的方向
                     # ---- 四格 ----
                     def cell(LEx, vx):
                         lam = torch.exp(LR - torch.logaddexp(LR, LEx))
@@ -162,6 +185,10 @@ def main():
                         cs(W @ (o_cc - oR), W @ dfull),
                         float((W @ (o_cc - oR)).norm() / nd),
                         1.0 / (1.0 + e * e),                     # 预测 γ*
+                        float((W @ (cell(LE2, vEh) - o_full)).norm() / nd),   # E4 质量
+                        float((W @ (cell(LEh, vEc) - o_full)).norm() / nd),   # E2 方向
+                        float((W @ (cell(LE2, vEc) - o_full)).norm() / nd),   # 两者都换
+                        float((vEc - vE).norm() / vE.norm().clamp_min(1e-30)),  # e(+Σvk)
                     ))
                     # ---- γ-sweep（保持 v̂ 不变，只缩放真实质量）----
                     errs = []
@@ -225,6 +252,18 @@ def main():
         if len(s):
             print(f"  {int(l):<6}{s[:,1].mean():>10.4f}{s[:,2].mean():>14.4f}"
                   f"{s[:,3].mean():>13.4f}{s[:,4].mean():>13.4f}")
+    print("-" * 96)
+    print("【重做 P0 的 E 阶梯（原结论只有 6 个 query）—— 质量与方向解耦】")
+    print(f"{'':<42}{'误差中位':>10}{'P90':>10}")
+    for nm, c in ((f"现方法        质量 0 阶 + 方向 μ_v", 6),
+                  (f"E4 式         质量**二阶 MGF** + 方向 μ_v", 12),
+                  (f"E2/MomentKV 式 质量 0 阶 + 方向 +Σ_vk·a", 13),
+                  (f"两者都换      二阶 MGF + Σ_vk·a", 14)):
+        print(f"  {nm:<40}{md(c):>10.4f}{np.percentile(A[:,c],90):>10.4f}")
+    print(f"  方向误差 e：只用 μ_v {md(3):.4f}  →  加 Σ_vk·a {md(15):.4f}"
+          f"　（P0 记的是 0.666 → 0.438）")
+    print("  判读：若「E4 式」明显差于「现方法」⇒ 复现 P0 的灾难；若反而更好 ⇒")
+    print("        P0 的 +1249% 是 n=6 的假象，或来自它把质量与方向一起改了")
     print("-" * 96)
     print("【γ-sweep：保持 v̂ 不变，只缩放真实质量 γ·D_E】")
     print(f"{'γ':>8}{'误差中位':>12}{'误差均值':>12}")
