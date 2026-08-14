@@ -9,14 +9,21 @@
     Δs_i = α · σ_base(l,h) · tanh(MLP[x̃_i, r_i, z(s⁰_i)])
     s_i = s⁰_i + Δs_i
 
-要学的量有精确定义。设 U 为 token 的未来效用，无历史的选择器最好只能预测
-`E[U|X]`，有历史则是 `E[U|X,M]`，所以控制器要学的恰好是
+要学的量有精确定义。设 U 为 token 的未来效用，无历史的最优预测器是 `E[U|X]`，
+有历史则是 `E[U|X,M]`，控制器要学的是二者之差——**历史相对于当前信息的增量**，
+而不是重新学一个 importance scorer。平方损失下有精确恒等式
 
-    Δ*(x,m) = E[U|X=x,M=m] − E[U|X=x]
+    R_X − R_{X,M} = E[ ( E[U|X,M] − E[U|X] )² ]  ≥ 0
 
-即**历史相对于当前信息的增量**，而不是重新学一个 importance scorer。
-条件化不会增加最优 Bayes 风险，严格改善当且仅当 `I(U;M|X) > 0`。这就是 B 的核心科学假设：
-**过去保留/丢弃了什么，改变了接下来该保留什么的边际价值。**
+所以**严格改善当且仅当条件均值发生变化**，即 `P(E[U|X,M] ≠ E[U|X]) > 0`。
+注意这**不等价于** `I(U;M|X) > 0`：互信息为正也可能只体现在条件方差或更高阶矩上，
+此时条件均值不变、平方风险毫无改善。此前把两者写成等价是数学错误。
+
+还有一处必须讲清楚：**`s⁰`（FastKVzip 的门控分）并不等于 `E[U|X]`**，它只是一个
+工程上的先验。所以学出来的残差并不是严格意义上的 `Δ*`。理论上比较的是理想预测器
+`f₀*(X)` 与 `f_M*(X,M)`；工程上 memoryless 臂近似前者、stateful 臂近似后者，
+**历史收益只能由 stateful − memoryless（或更强的 stateful − shuffled）来度量**，
+不能由「比 FastKVzip 高」来度量。这恰好就是当前三臂设计。
 
 --------------------------------------------------------------------------------
 四个设计决策（都不是随手定的）
@@ -49,7 +56,8 @@ import torch.nn.functional as F
 
 class ControlMemory(nn.Module):
     def __init__(self, d_kv: int, n_layers: int, n_heads_kv: int,
-                 n_slots: int = 8, d_m: int = 128, mode: str = "stateful"):
+                 n_slots: int = 8, d_m: int = 128, mode: str = "stateful",
+                 alpha_max: float = 1.0):
         super().__init__()
         assert mode in ("stateful", "memoryless", "shuffled")
         self.L, self.H, self.K, self.d_m = n_layers, n_heads_kv, n_slots, d_m
@@ -81,15 +89,18 @@ class ControlMemory(nn.Module):
         # 线性层直接就能算加权内积。
         self.head = nn.Sequential(
             nn.Linear(3 * d_m + 3, d_m), nn.GELU(), nn.Linear(d_m, 1))
-        # **alpha=0 ⇒ 逐位退化回基线**。这是构造性的，验收里必须实测到。
-        self.log_alpha = nn.Parameter(torch.zeros(()))
-        self.alpha_on = nn.Parameter(torch.zeros(()))   # sigmoid(0)=0.5 起步太大，见下
-        with torch.no_grad():
-            self.alpha_on.fill_(-8.0)                   # sigmoid(-8)=3.4e-4 ≈ 0
+        # α **有上界**：α = α_max·sigmoid(a)。此前写成 sigmoid(a)·exp(b)，b 无界
+        # ⇒ α 无界 ⇒ 「tanh 让修正有界」这句话不成立。而手工版实测**大幅扰动基线排序
+        # 本身就有害**（β=±1.5 时连 shuffle 对照都掉 4.6–5.8 分），这个事实应当被编码
+        # 进架构而不是指望优化器自觉。
+        # 初值 sigmoid(-8)·α_max ≈ 3.4e-4·α_max，**接近 0 但不等于 0**；
+        # 「α=0 ⇒ 逐位退化回基线」是一个关于 α=0 的命题，不是关于初始化的断言。
+        self.alpha_max = float(alpha_max)
+        self.alpha_on = nn.Parameter(torch.full((), -8.0))
 
     @property
     def alpha(self):
-        return torch.sigmoid(self.alpha_on) * self.log_alpha.exp()
+        return self.alpha_max * torch.sigmoid(self.alpha_on)
 
     def n_params(self):
         return sum(p.numel() for p in self.parameters())
@@ -138,7 +149,9 @@ class ControlMemory(nn.Module):
         if self.mode == "memoryless":
             return M                                              # 状态永不更新
         if self.mode == "shuffled":
-            # **成员身份随机置换**：集合大小与统计量不变，只打断"历史↔候选"的对应
+            # **成员身份随机置换**：保住的是**条数与计算量**，不是统计量——换了成员，
+            # 均值/池化/方向统计当然都变，这正是要破坏的东西。准确说法是
+            # "preserves retained/evicted counts and compute, destroys content membership"。
             n = x.shape[1]
             # **generator 的 device 必须和 randperm 的 device 一致**：randperm 默认
             # 建 CPU 张量，传 CUDA generator 会直接报错。推理路径传的是 CPU generator

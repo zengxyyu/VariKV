@@ -95,7 +95,9 @@ def run_doc(cm, doc, dev, n_pairs, gen, train=True, lam_global=1.0,
     M = [cm.init_state(l).to(dev) for l in range(L)]
     tot_l, tot_a, cnt = 0.0, 0.0, 0   # tot_a 累计的是 acc(s')−acc(s0)
     tot_g, gcnt = 0.0, 0
-    losses = []
+    # **两项必须分开聚合。** 若都塞进一个 list 再取均值，每个 chunk 有 L≈28 个头内项
+    # 却只有 1 个全局项 ⇒ lam_global=1 实际权重只有 1/28，"加了全局监督"名不副实。
+    losses, gl_losses = [], []
     for ci, ch in enumerate(doc["chunks"]):
         new_M = []
         g_sp, g_s0, g_U = [], [], []
@@ -139,11 +141,17 @@ def run_doc(cm, doc, dev, n_pairs, gen, train=True, lam_global=1.0,
             gs = torch.cat(g_sp); g0 = torch.cat(g_s0); gu = torch.cat(g_U)
             gsig = g0.std().clamp_min(1e-6)          # 全局尺度，不用逐头 σ
             lg_, ag, ag0 = _flat_pairs(gs, g0, gu, gsig, n_pairs, gen)
-            losses.append(lam_global * lg_)
+            gl_losses.append(lg_)
             tot_g += float(ag - ag0); gcnt += 1
         M = new_M
-    return (torch.stack(losses).mean() if losses else None,
-            tot_l / max(cnt, 1), tot_a / max(cnt, 1), tot_g / max(gcnt, 1))
+    if not losses and not gl_losses:
+        return None, 0.0, 0.0, 0.0
+    tot = torch.zeros((), device=dev)
+    if losses:
+        tot = tot + torch.stack(losses).mean()
+    if gl_losses:
+        tot = tot + lam_global * torch.stack(gl_losses).mean()
+    return (tot, tot_l / max(cnt, 1), tot_a / max(cnt, 1), tot_g / max(gcnt, 1))
 
 
 def main():

@@ -38,12 +38,12 @@ from attention.control_memory import ControlMemory            # noqa: E402
 class R2(torch.nn.Module):
     def __init__(self, mode, d_m, alpha):
         super().__init__()
-        self.cm = ControlMemory(D.DKV, D.L, D.H, n_slots=8, d_m=d_m, mode=mode)
+        # α 现在是 α_max·sigmoid(a)（有界）。要把它钉在 v，就令 α_max=v、sigmoid(a)→1
+        self.cm = ControlMemory(D.DKV, D.L, D.H, n_slots=8, d_m=d_m, mode=mode,
+                                alpha_max=alpha)
         with torch.no_grad():                     # **冻结 α**，消除自举耦合
-            self.cm.alpha_on.fill_(20.0)          # sigmoid(20) ≈ 1
-            self.cm.log_alpha.fill_(float(torch.tensor(alpha).log()))
+            self.cm.alpha_on.fill_(20.0)          # sigmoid(20) ≈ 1 ⇒ α ≈ alpha
         self.cm.alpha_on.requires_grad_(False)
-        self.cm.log_alpha.requires_grad_(False)
         self.mode = mode
 
     def forward(self, doc, n_pairs, gen, skip_first=True):

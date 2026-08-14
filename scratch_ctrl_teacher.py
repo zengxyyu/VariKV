@@ -84,12 +84,14 @@ RetainCache.prepare = _patched_prepare
 
 
 @torch.no_grad()
-def utility(m, kv, tgt_ids, layers, cand_idx, n_qpos=16):
-    """→ {layer: U [H, n_cand]}，U 是移除该候选造成的平均 |ΔW_O·o|。
+def teacher_state(m, kv, tgt_ids, layers, n_qpos=16):
+    """**每篇文档只跑一次** target 前向，固定 (Q^F, n_ctx)。
 
-    cand_idx: {layer: LongTensor [H, n_cand]}，缓存坐标下的候选位置。
+    为什么必须只跑一次：`m.model(...)` 走 HF 模型、没有 `kv.slice()` 回滚，每次调用都会把
+    target 的 K/V **追加**进 cache。若按 chunk 反复调用，第二次读到的 `n_ctx` 已经包含
+    上一次的 target ⇒ 那批 target 被当成"上下文"，因果泄漏换个形式又回来了。
     """
-    d = kv.head_dim if hasattr(kv, "head_dim") else m.config.hidden_size // m.config.num_attention_heads
+    d = m.config.hidden_size // m.config.num_attention_heads
     H = m.config.num_key_value_heads
     # **必须先记下上下文长度再前向**。`m.model(...)` 走的是 HF 模型而不是 wrapper 的
     # `__call__`，所以没有 `kv.slice()` 回滚 —— target 的 K/V 会被追加进 cache 且留在
@@ -98,15 +100,25 @@ def utility(m, kv, tgt_ids, layers, cand_idx, n_qpos=16):
     n_ctx = kv.key_cache[layers[0]].shape[2]
     _Q.clear()
     m.model(tgt_ids, past_key_values=kv)          # 只为触发钩子拿到 query
-    out = {}
+    st = {"n_ctx": n_ctx, "d": d, "H": H, "layers": {}}
     for l in layers:
         Aq = _Q[l][0].float() * (d ** -0.5)        # [HQ,T,d]，已含 RoPE
         HQ, T, _ = Aq.shape
         G = HQ // H
-        # target 位置抽样：T 全用会让下面的 [T,n,G,d] 爆掉，且相邻位置高度相关
         tsel = torch.linspace(0, T - 1, min(n_qpos, T)).long().to(Aq.device)
-        Aq = Aq.view(H, G, T, d)[:, :, tsel]       # [H,G,Tq,d]
-        WO = m.model.model.layers[l].self_attn.o_proj.weight.detach().float()  # [dm, HQ*d]
+        st["layers"][l] = (Aq.view(H, G, T, d)[:, :, tsel].cpu(), G)
+    return st
+
+
+@torch.no_grad()
+def utility(m, kv, st, layers, cand_idx):
+    """用**固定的**教师状态给一批候选打标签 → {layer: U [H,n_cand]}。"""
+    d, H, n_ctx = st["d"], st["H"], st["n_ctx"]
+    out = {}
+    for l in layers:
+        Aq, G = st["layers"][l]
+        Aq = Aq.to(kv.key_cache[l].device)
+        WO = m.model.model.layers[l].self_attn.o_proj.weight.detach().float()
         K = kv.key_cache[l][0][:, :n_ctx].float()  # **切到上下文**，排除 target 键
         V = kv.value_cache[l][0][:, :n_ctx].float()
         idx = cand_idx[l]                          # [H,n_cand]
@@ -152,6 +164,9 @@ def main():
                          "离阈值远的无论 Δs 多大都翻不了——手工版实测 β=0.5 只翻 0.895%")
     ap.add_argument("--n_rand", type=int, default=512,
                     help="额外随机采样，供 writer 汇总 retained/evicted 用")
+    ap.add_argument("--min_prunes", type=int, default=2,
+                    help="少于这么多次驱逐的文档不写 trace：B 学的是 "
+                         "M_{t-1}→decision_t，只有 1 次驱逐的文档提供不了任何历史监督")
     ap.add_argument("--out", default="scratch_ctrl_traces")
     a = ap.parse_args()
 
@@ -206,6 +221,9 @@ def main():
         if not chunks:
             print(f"doc{di} 没有触发驱逐，跳过"); continue
         n_prune.append(len(chunks))
+        if len(chunks) < a.min_prunes:
+            print(f"doc{di}: 只有 {len(chunks)} 次驱逐 < --min_prunes"
+                  f"={a.min_prunes}，不写 trace"); del kv_p; continue
         # ---- 先在**压缩轨迹**上选候选并快照特征（部署时可见的就是这些）----
         cand_sel, feat_c = [], []
         for c in chunks:
@@ -236,13 +254,15 @@ def main():
         kv = m.prefill(ctx_t, prefill_chunk_size=a.chunk, do_score=False)
 
         # ---- 每个 chunk 抽样候选，算 U ----
+        # **一次性**教师前向，之后所有 chunk 共用（见 teacher_state 的说明）
+        tstate = teacher_state(m, kv, tgt_t, layers, n_qpos=a.n_qpos)
         rec_out = []
-        for c in chunks:
-            lo, hi, n = c["lo"], c["hi"], c["hi"] - c["lo"]
+        for ci, c in enumerate(chunks):
+            lo, n = c["lo"], c["hi"] - c["lo"]
             sel_l = cand_sel[ci]
             cand = {l: (sel_l[l] + lo).to(m.device) for l in layers}
             # 标签用**满轨迹**（q/K/V 都来自不压缩的那次预填）
-            U = utility(m, kv, tgt_t, layers, cand, n_qpos=a.n_qpos)
+            U = utility(m, kv, tstate, layers, cand)
             per_l = []
             for l in layers:
                 sel = sel_l[l]
@@ -264,10 +284,17 @@ def main():
     # 记忆永远没机会影响任何决策，训练是空转的。CLAUDE.md 记过
     # max_ctx=32768/chunk=16000 实测只有 1.03 次 prune —— 所以这个统计是硬性检查。
     from collections import Counter
+    import numpy as _np
+    np_ = _np.array(n_prune) if n_prune else _np.zeros(1)
     print(f"\n【每篇文档的驱逐次数分布】{dict(sorted(Counter(n_prune).items()))}")
-    if n_prune and max(n_prune) <= 1:
-        print("  ⚠ 全部只有 1 次驱逐 ⇒ 记忆从未参与任何决策，这批 trace 不能用来训 B。"
-              "\n     提高 --max_ctx（cat 文档有 103k–122k）或降低 --chunk。")
+    print(f"  均值 {np_.mean():.2f}　P(≥2) {(np_>=2).mean():.0%}　"
+          f"P(≥3) {(np_>=3).mean():.0%}　P(≥4) {(np_>=4).mean():.0%}")
+    # **只看 max 是不够的**：33 篇 1 次 + 1 篇 2 次时 max=2 却不告警，而真正提供
+    # 「M_{t-1} → decision_t」监督的只有那一篇。B 要学顺序控制，至少要 3–6 个循环。
+    if (np_ >= 2).mean() < 0.8:
+        print("  ⚠ 超过 20% 的文档不足 2 次驱逐 ⇒ 这些文档里记忆从未参与任何决策。"
+              "\n     提高 --max_ctx（cat 文档有 103k–122k）或降低 --chunk；"
+              "\n     并用 --min_prunes 把不合格的文档排除在训练之外。")
 
 
 if __name__ == "__main__":
