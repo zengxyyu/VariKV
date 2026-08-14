@@ -189,6 +189,16 @@ class ModelKVzip:
                     shuffle=getattr(self, "ctrl_shuffle", False),
                     seed=getattr(self, "ctrl_seed", 0),
                 )
+            elif self.kv_type == "control_learned":
+                # VariKV-B 最终版：历史控制状态（学出来的），仍然只改驱逐分数。
+                from attention.learned_ctrlcache import LearnedControlRetainCache
+
+                kv = LearnedControlRetainCache(
+                    self.model, evict_range,
+                    ctrl=getattr(self, "ctrl_module", None),
+                    train_mode=getattr(self, "ctrl_train", False),
+                    seed=getattr(self, "ctrl_seed", 0),
+                )
             elif self.kv_type == "memory":
                 # VariKV（Stage 2b，本地新增）：被驱逐的 KV 吸收进分布式记忆而非丢弃。
                 # varikv_memory / varikv_M 由外部驱动脚本注入，见 attention/memcache.py

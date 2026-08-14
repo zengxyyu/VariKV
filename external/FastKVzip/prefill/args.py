@@ -93,6 +93,16 @@ parser.add_argument("--ctrl_shuffle", action="store_true",
                          "stage-1 测过随机驱逐打败所有有原则的准则，不做这个就分不清"
                          "「覆盖信号有用」和「任何同幅度扰动都会改变结果」")
 parser.add_argument("--ctrl_seed", type=int, default=0)
+# --- VariKV-B 最终版：学出来的历史控制状态 ---
+parser.add_argument("--ctrlm_ckpt", type=str, default="",
+                    help="ControlMemory 权重；给了就启用 kv_type=control_learned")
+parser.add_argument("--ctrlm_slots", type=int, default=8)
+parser.add_argument("--ctrlm_dim", type=int, default=64)
+parser.add_argument("--ctrlm_mode", type=str, default="stateful",
+                    choices=["stateful", "memoryless", "shuffled"],
+                    help="memoryless=状态永不更新（可训练参数更少，对照不完全匹配）；"
+                         "shuffled=写入照跑但成员身份随机置换（参数/计算全匹配，"
+                         "只破坏历史↔候选的对应关系）——**这个才是强对照**")
 parser.add_argument("--centroid_rope", type=str, default="post",
                     choices=["post", "inv"],
                     help="post=直接平均 post-RoPE key（复现 E1b）；inv=逆旋到无位置帧（对照臂）")
