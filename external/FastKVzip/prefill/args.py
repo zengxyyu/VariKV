@@ -79,6 +79,12 @@ parser.add_argument("--ctrl_beta_group", type=float, default=0.0,
                          "0 = 只做头内重排。头内项按逐头 z-score 后零均值，几乎不能系统性"
                          "地在头之间搬预算，而 level='pair' 是全局阈值化 ⇒ 跨头分配是 B 路线"
                          "的另一半能力。默认关，但第一批 null 结果不能在它没测过时下定论")
+# --- 学习版控制臂的**评测期 α 覆盖**。`--ctrlm_ckpt` 等早就存在（见下方），
+# 接线一直是通的；学习版 B 没上过评测纯粹是因为没人跑，不是缺 flag。
+parser.add_argument("--ctrlm_alpha", type=float, default=-1.0,
+                    help=">=0 时在评测期覆盖 α。训练是在 α=1 下做的，而手工版实测"
+                         "大幅扰动基线排序本身有害 —— 但这是**评测期超参**，"
+                         "扫它之前先读 EVAL_PROTOCOL.md")
 parser.add_argument("--ctrl_rho", type=float, default=1.0,
                     help="二阶矩状态的遗忘因子（无条件按 chunk 施加）")
 parser.add_argument("--ctrl_src", type=str, default="evicted",

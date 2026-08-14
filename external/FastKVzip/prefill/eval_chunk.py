@@ -87,14 +87,25 @@ if __name__ == "__main__":
         _mode = args.ctrlm_mode or _ck.get("mode", "stateful")
         args.tag += f"_ctrlm{_mode[:4]}{_ck.get('slots', args.ctrlm_slots)}"
         model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
-        _cm = _CM(_ck.get("d_kv", 128), _ck["L"], _ck["H"],
-                  n_slots=_ck.get("slots", args.ctrlm_slots),
-                  d_m=_ck.get("dim", args.ctrlm_dim), mode=_mode)
+        _ns = _ck.get("slots", args.ctrlm_slots)
+        # **typed 从权重形状推断，别依赖构造函数默认值。** typed=True 时状态按动作
+        # 分型（前 K 槽=保留史、后 K 槽=驱逐史），M_init 是 2K 槽；默认值改过一次，
+        # 靠默认值加载会在某天静默错配。
+        _typed = _ck["state"]["M_init"].shape[2] == 2 * _ns
+        _cm = _CM(_ck.get("d_kv", 128), _ck["L"], _ck["H"], n_slots=_ns,
+                  d_m=_ck.get("dim", args.ctrlm_dim), mode=_mode, typed=_typed)
         _cm.load_state_dict(_ck["state"])
+        if args.ctrlm_alpha >= 0:
+            import math as _math
+            with _torch.no_grad():
+                _p = min(max(args.ctrlm_alpha / _cm.alpha_max, 1e-6), 1 - 1e-6)
+                _cm.alpha_on.fill_(_math.log(_p / (1 - _p)))
+            args.tag += f"_a{args.ctrlm_alpha:g}"
         model.ctrl_module = _cm.to(model.device).eval()
         model.ctrl_seed = args.ctrl_seed
-        print(f"[CtrlM] {args.ctrlm_ckpt} mode={_mode} "
-              f"slots={_ck.get('slots')} alpha={float(_cm.alpha):.4f}")
+        print(f"[CtrlM] {args.ctrlm_ckpt} mode={_mode} slots={_ns} "
+              f"typed={_typed} alpha={float(_cm.alpha):.4f} "
+              f"params={_cm.n_params()/1e3:.1f}K")
     elif args.ctrl:
         # 控制臂：只改 kv_type + 几个标量，其余评测参数与基线逐字一致。
         args.kv_type = "control"
