@@ -55,9 +55,9 @@ def make_doc(seed, n_chunk=3, dev="cpu"):
     这样 stateful 臂的相关系数是 1.0（只差一个线性映射），不掺子集采样噪声。
     """
     g = torch.Generator(device=dev).manual_seed(seed)
-    chs, prev_k, prev_ret = [], None, None
+    chs, prev_k, prev_v, prev_ret = [], None, None, None
     for t in range(n_chunk):
-        per, cur_k, cur_ret = [], [], []
+        per, cur_k, cur_v, cur_ret = [], [], [], []
         for l in range(L):
             k = torch.randn(H, N, DKV, generator=g, device=dev)
             v = torch.randn(H, N, DKV, generator=g, device=dev)
@@ -76,9 +76,22 @@ def make_doc(seed, n_chunk=3, dev="cpu"):
                     - _m(prev_k[l][h][NEAR:], prev_ret[l][h][NEAR:])
                     for h in range(H)])
                 U = torch.einsum("hnd,hd->hn", k[:, :NEAR], w)
-            per.append(dict(k=k, v=v, s0=s0, ret=ret, U=U, w=w, n_near=NEAR))
-            cur_k.append(k); cur_ret.append(ret)
-        prev_k, prev_ret = cur_k, cur_ret
+            # wc = 同一个对比向量，但定义在 writer 实际的输入空间 [k;v] 上。
+            # 阶梯的 B 档要测"架构自己的 x_proj 会不会把方向压没"，必须喂它这个，
+            # 而不是只含 key 的 w —— x_proj 收的是 2*d_kv。
+            if prev_k is None:
+                wc = torch.zeros(H, 2 * DKV, device=dev)
+            else:
+                def _mc(kk, vv, mm):
+                    ww = mm.float()[:, None]
+                    return (torch.cat([kk, vv], -1) * ww).sum(0) / ww.sum().clamp_min(1.0)
+                wc = torch.stack([
+                    _mc(prev_k[l][h][NEAR:], prev_v[l][h][NEAR:], ~prev_ret[l][h][NEAR:])
+                    - _mc(prev_k[l][h][NEAR:], prev_v[l][h][NEAR:], prev_ret[l][h][NEAR:])
+                    for h in range(H)])
+            per.append(dict(k=k, v=v, s0=s0, ret=ret, U=U, w=w, wc=wc, n_near=NEAR))
+            cur_k.append(k); cur_v.append(v); cur_ret.append(ret)
+        prev_k, prev_v, prev_ret = cur_k, cur_v, cur_ret
         chs.append(per)
     return chs
 
@@ -118,21 +131,12 @@ class Runner(nn.Module):
                 lg0 = (torch.gather(b, 1, i) - torch.gather(b, 1, j)) / sig * du.sign()
                 losses.append(torch.nn.functional.softplus(-lg).mean())
                 acc_d.append(float((lg > 0).float().mean() - (lg0 > 0).float().mean()))
-                if self.variant == "no_gru":
-                    xr, rr = x[:, nn_:], pl["ret"][:, nn_:]
-                    if self.mode == "memoryless":
-                        newM.append(M[l])
-                    else:
-                        if self.mode == "shuffled":
-                            p = torch.stack([torch.randperm(xr.shape[1], generator=gen,
-                                                            device=xr.device)
-                                             for _ in range(H)])
-                            rr = torch.gather(rr, 1, p)
-                        mu = cm._mean(xr, ~rr).expand(-1, M[l].shape[1], -1)
-                        newM.append(mu)
-                else:
-                    xr, rr = x[:, nn_:], pl["ret"][:, nn_:]
-                    newM.append(cm.write(M[l], xr, rr, ~rr, gen=shuf_gen or gen))
+                # `no_gru` 分支已删除（2026-08-14）。它写于状态还是单个张量的年代，
+                # 访问 `M[l].shape[1]`，而 `init_state` 现在返回 (M_gru, M_dir) 二元组
+                # ⇒ AttributeError。不再在这里 hack tuple 状态：
+                # `scratch_ctrl_dirseed.py` 用显式 variant 实现了整条 A→E 短接阶梯。
+                xr, rr = x[:, nn_:], pl["ret"][:, nn_:]
+                newM.append(cm.write(M[l], xr, rr, ~rr, gen=shuf_gen or gen))
             M = newM
         return torch.stack(losses).mean(), sum(acc_d) / len(acc_d)
 
@@ -152,8 +156,8 @@ def main():
           f"L={L} H={H} n={N}\n", flush=True)
 
     print(f"{'变体':<10}{'d_m':>5}{'stateful':>11}{'shuffled':>11}{'差':>10}")
-    for variant, d_m in (("oracle", 128), ("base", 128), ("no_gru", 128),
-                         ("dm256", 256)):
+    # no_gru 已删；分段短接改由 scratch_ctrl_dirseed.py 的 A→E 阶梯承担
+    for variant, d_m in (("oracle", 128), ("base", 128), ("dm256", 256)):
         res = {}
         for mode in ("stateful", "shuffled"):
             torch.manual_seed(7)
