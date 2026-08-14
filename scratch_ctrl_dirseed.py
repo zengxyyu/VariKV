@@ -38,6 +38,18 @@
   E full         真实 write（池化+GRU+EMA）→ 真实 read → 完整链路
   E_mean         同 E 但 GRU 完全不被调用（纯 EMA）
 
+C→D 掉 68% 之后加的两档，用来区分"读出为什么坏"的两个竞争解释：
+  D2 read_dironly  同 D，但注意力**只在 2 个方向槽之间**分配（去掉 8 个随机 M_gru 槽）
+                   → 若仍≈D，则不是稀释；若回到≈C，则是稀释
+  D4 read_typed    同 D，但换成**分型双通道有符号读出**（typed=True）：两型各读各的，
+                   控制器拿 [r_R, r_E, r_E−r_R, q⊙r_R, q⊙r_E] 自己学有符号组合。
+                   这是 D3 的**非硬编码版**——D3 直接把 `D_E−D_R` 塞进读出，等于给
+                   合成目标定制架构；真实任务里最优的历史关系未必是这个差。
+  E_typed full_typed  完整链路 + 分型读出，即候选的最终架构
+  D3 read_signed   同 D，但读出额外加一项 `c·(D_evi − D_ret)`，c 可学、初值 0
+                   → 直接检验"softmax 凸组合表达不了差"这个假设。凸组合的权重非负
+                     且和为 1，无法给出 (+1,−1)；而 U 依赖的正是这个差。
+
 判读：**第一个从"显著为正"掉到"与 0 不可分"的档位，就是瓶颈所在。**
 A 已知 +0.2503±0.0017（旧仪器）。注意 A 与 B 的差别只在投影是否专用、是否共享参数。
 """
@@ -73,10 +85,16 @@ class Runner(nn.Module):
     def __init__(self, variant, mode, d_m=128, alpha_max=1.0, alpha_init=0.05):
         super().__init__()
         self.variant, self.mode = variant, mode
+        # 只有 *_typed 两档用分型读出；其余保持与已测阶梯完全同构，才可比
         self.cm = ControlMemory(D.DKV, D.L, D.H, n_slots=8, d_m=d_m, mode=mode,
-                                alpha_max=alpha_max, alpha_init=alpha_init)
+                                alpha_max=alpha_max, alpha_init=alpha_init,
+                                typed=variant.endswith("_typed"))
         if variant == "raw_oracle":
             self.orc = nn.Linear(D.DKV, d_m)      # 专用投影，与架构无关
+        if variant == "read_signed":
+            # 有符号读出通路，初值 0 ⇒ 起点与 read_exact 逐位相同，
+            # 只是给了优化器一条能表达"差"的路
+            self.sgn = nn.Parameter(torch.zeros(()))
 
     # ---------------------------------------------------------------- 掩码
     def _masks(self, m_ret, m_evi, gen):
@@ -96,7 +114,8 @@ class Runner(nn.Module):
             return state
         mr, me = self._masks(m_ret, m_evi, gen)
         pair = torch.cat([cm._mean(x, mr), cm._mean(x, me)], dim=1)   # [H,2,d]
-        if self.variant == "read_exact":
+        if self.variant in ("read_exact", "read_dironly", "read_signed",
+                            "read_typed"):
             return (M, pair)                       # 精确对比向量，不过 EMA
         if self.variant in ("ema_direct", "full_mean"):
             # 真实 EMA 递归，但 **GRU 完全不被调用**（不能算完 M2 再丢弃——
@@ -116,7 +135,17 @@ class Runner(nn.Module):
         if self.variant == "ema_direct":
             Dm = state[1]                          # 绕过读出注意力
             return (Dm[:, 1] - Dm[:, 0])[:, None].expand(-1, D.N, -1)
-        return cm.read(state, raw)                 # read_exact / full / full_mean
+        if self.variant == "read_dironly":
+            # 只在 2 个方向槽之间做注意力：去掉 8 个 M_gru 槽的稀释
+            M, Dm = state
+            S = Dm + cm.dir_type[None]
+            att = torch.einsum("hnd,hkd->hnk", cm.q_read(raw), S) * cm.d_m ** -0.5
+            return torch.einsum("hnk,hkd->hnd", att.softmax(-1), S)
+        r = cm.read(state, raw)
+        if self.variant == "read_signed":
+            Dm = state[1]
+            r = r + self.sgn * (Dm[:, 1] - Dm[:, 0])[:, None]
+        return r
 
     def forward(self, doc, n_pairs, gen, shuf_gen=None, skip_first=True):
         cm = self.cm
@@ -177,7 +206,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--variant", default="full",
                     choices=("raw_oracle", "proj_oracle", "ema_direct",
-                             "read_exact", "full", "full_mean"))
+                             "read_exact", "read_dironly", "read_signed",
+                             "read_typed", "full_typed",
+                             "full", "full_mean"))
     ap.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
     ap.add_argument("--epochs", type=int, default=150)
     ap.add_argument("--lr", type=float, default=3e-3)

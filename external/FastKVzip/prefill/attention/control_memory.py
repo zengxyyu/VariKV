@@ -57,11 +57,41 @@ import torch.nn.functional as F
 class ControlMemory(nn.Module):
     def __init__(self, d_kv: int, n_layers: int, n_heads_kv: int,
                  n_slots: int = 8, d_m: int = 128, mode: str = "stateful",
-                 alpha_max: float = 1.0, alpha_init: float = 0.05):
+                 alpha_max: float = 1.0, alpha_init: float = 0.05,
+                 typed: bool = True):
+        """`typed=True`（默认）：**按动作分型的双通道有符号读出**。
+
+        动机是一条被合成阶梯量化过的表达力缺陷。原读出把全部槽拼起来做一次
+        softmax，输出必然是槽向量的**凸组合**：`r = Σ_j a_j S_j`，`a_j ≥ 0`、`Σa_j = 1`。
+        但控制器真正需要的是"像被保留的"与"像被驱逐的"之间的**对比**，即
+        `D_evi − D_ret` 这类**有符号**组合——它一般落在 conv{S_j} 之外（两个近似
+        单位向量之差，范数 √2，指向凸包外），凸组合表达不了。
+
+        **加 value 投影救不了。** 设 `r = Σ_j a_j v(S_j)`，v 线性 ⇒
+        `r = W(Σ_j a_j S_j) + b`，括号里仍在凸包内，而 b 是常数、不随数据变。
+        约束在**权重**上而非值上。同理，`dir_type` 这种**加性**类型嵌入只能让读出
+        *选中*驱逐槽，选中 ≠ 有符号组合。
+
+        分段短接阶梯实测（direction 信号，5 种子，stateful−shuffled）：
+            A 专用投影拿真值      +0.2483 ± 0.0024
+            B 架构自己的 x_proj   +0.2392 ± 0.0008   投影只花 3.7%
+            C 真实 EMA，绕过读出  +0.2399 ± 0.0022   递归零成本
+            D 精确对比进槽，真读出 +0.0764 ± 0.0012  ← **掉 68%，Welch t≈146**
+        所以瓶颈被定死在读出，不在 writer、不在递归、不在投影。
+
+        typed 的做法：状态按动作分型（前 K 槽=保留史，后 K 槽=驱逐史），
+        **两路各自读出** `r_R`/`r_E`，再把 `[r_R, r_E, r_E−r_R, q⊙r_R, q⊙r_E]`
+        一起交给控制器，由它自己学有符号组合。这既解除凸组合约束，又不把
+        `D_evi − D_ret` 硬编码进架构——真实任务里最优的历史关系未必是这个差。
+
+        建模上这也更贴合 B 的对象：历史不是一堆无类型的槽，而是
+        `H_t = {(x_j, a_j)}`，`a_j ∈ {retained, evicted}` —— **action-conditioned
+        memory**。保留与驱逐是两个不同事件，不该先被压成一个向量。
+        """
         super().__init__()
         assert mode in ("stateful", "memoryless", "shuffled")
         self.L, self.H, self.K, self.d_m = n_layers, n_heads_kv, n_slots, d_m
-        self.mode = mode
+        self.mode, self.typed = mode, typed
         d_x = 2 * d_kv                                  # 候选特征 = [k_i ; v_i]
 
         # ---- 状态是两条并行通路 ----
@@ -81,7 +111,8 @@ class ControlMemory(nn.Module):
         #   M_gru : 门控递归，负责非线性聚合
         #   M_dir : 保留/驱逐两个池化均值的**线性 EMA**，不过门不过 GRU
         # 读出时对二者的拼接做注意力。
-        self.M_init = nn.Parameter(torch.randn(n_layers, n_heads_kv, n_slots, d_m) * 0.02)
+        n_state = n_slots * 2 if typed else n_slots   # typed: 前 K=保留史, 后 K=驱逐史
+        self.M_init = nn.Parameter(torch.randn(n_layers, n_heads_kv, n_state, d_m) * 0.02)
         self.D_init = nn.Parameter(torch.zeros(n_layers, n_heads_kv, 2, d_m))
         self.dir_decay = nn.Parameter(torch.zeros(2))   # sigmoid ⇒ ρ，逐通路可学
         # **类型嵌入**：读出是对槽集合做注意力，本身对槽的身份是置换不变的，
@@ -104,14 +135,17 @@ class ControlMemory(nn.Module):
         # 只有注意力池化时，"把被驱逐集合的均值方向传给下一个 chunk"学不出来——
         # 要得到均值就得先学会均匀注意，梯度路径太长。均值按构造给出后，
         # 方向信息不再依赖优化是否成功。
-        self.mix = nn.Linear(4 * d_m, d_m)
+        # typed 时每型只有 (池化, 均值) 两路输入；非 typed 时是四路拼接
+        self.mix = nn.Linear(2 * d_m if typed else 4 * d_m, d_m)
         self.gru = nn.GRUCell(d_m, d_m)
         # **头必须含乘性交互**。要表达"候选与历史的匹配程度"就需要 x 与 r 的双线性项，
         # 而拼接后的 MLP 很难学出乘积——合成正对照上实测：只喂 [x,r,z] 时，即使注入
         # 一个可证明存在的历史信号，三臂全部停在 0.50 随机水平。加入 x⊙r 与 <x,r> 后
         # 线性层直接就能算加权内积。
+        # typed: [x, r_R, r_E, r_E−r_R, q⊙r_R, q⊙r_E] + [dot_R, dot_E, z, mg, rs]
+        d_in = (6 * d_m + 5) if typed else (3 * d_m + 4)
         self.head = nn.Sequential(
-            nn.Linear(3 * d_m + 4, d_m), nn.GELU(), nn.Linear(d_m, 1))
+            nn.Linear(d_in, d_m), nn.GELU(), nn.Linear(d_m, 1))
         # α **有上界**：α = α_max·sigmoid(a)。此前写成 sigmoid(a)·exp(b)，b 无界
         # ⇒ α 无界 ⇒ 「tanh 让修正有界」这句话不成立。而手工版实测**大幅扰动基线排序
         # 本身就有害**（β=±1.5 时连 shuffle 对照都掉 4.6–5.8 分），这个事实应当被编码
@@ -162,10 +196,19 @@ class ControlMemory(nn.Module):
         不必先穿过 GRU。
         """
         M, Dm = state
-        S = torch.cat([M, Dm + self.dir_type[None]], dim=1)       # [H,K+2,d]
         q = self.q_read(x_raw)
-        att = torch.einsum("hnd,hkd->hnk", q, S) * self.d_m ** -0.5
-        return torch.einsum("hnk,hkd->hnd", att.softmax(-1), S)
+
+        def _attn(S):
+            a = torch.einsum("hnd,hkd->hnk", q, S) * self.d_m ** -0.5
+            return torch.einsum("hnk,hkd->hnd", a.softmax(-1), S)
+
+        if not self.typed:
+            return _attn(torch.cat([M, Dm + self.dir_type[None]], dim=1))
+        # **两型各读各的**，绝不先合成一个凸组合向量
+        K = M.shape[1] // 2
+        r_R = _attn(torch.cat([M[:, :K], Dm[:, 0:1] + self.dir_type[0]], dim=1))
+        r_E = _attn(torch.cat([M[:, K:], Dm[:, 1:2] + self.dir_type[1]], dim=1))
+        return (r_R, r_E)
 
     # ------------------------------------------------------------------ 写
     def _pool(self, M, x, mask, kp, vp):
@@ -205,16 +248,25 @@ class ControlMemory(nn.Module):
                                 for _ in range(x.shape[0])]).to(x.device)
             m_ret = torch.gather(m_ret, 1, perm)
             m_evi = torch.gather(m_evi, 1, perm)
-        a_r = self._pool(M, x, m_ret, self.k_ret, self.v_ret)
-        a_e = self._pool(M, x, m_evi, self.k_evi, self.v_evi)
         mu_r = self._mean(x, m_ret)                               # [H,1,d]
         mu_e = self._mean(x, m_evi)
-        K_ = M.shape[1]
-        u = self.mix(torch.cat([a_r, a_e,
-                                mu_r.expand(-1, K_, -1),
-                                mu_e.expand(-1, K_, -1)], dim=-1))
-        H, K, d = M.shape
-        M2 = self.gru(u.reshape(-1, d), M.reshape(-1, d)).view(H, K, d)
+        H, Ktot, d = M.shape
+        if self.typed:
+            # 两型共享 GRU / mix 权重，只是各喂各的证据 —— 与"参数在 112 组间共享"
+            # 同一条纪律：逼它学通用的写入规则，而不是每型背一套。
+            K = Ktot // 2
+            aR = self._pool(M[:, :K], x, m_ret, self.k_ret, self.v_ret)
+            aE = self._pool(M[:, K:], x, m_evi, self.k_evi, self.v_evi)
+            u = torch.cat([
+                self.mix(torch.cat([aR, mu_r.expand(-1, K, -1)], dim=-1)),
+                self.mix(torch.cat([aE, mu_e.expand(-1, K, -1)], dim=-1))], dim=1)
+        else:
+            a_r = self._pool(M, x, m_ret, self.k_ret, self.v_ret)
+            a_e = self._pool(M, x, m_evi, self.k_evi, self.v_evi)
+            u = self.mix(torch.cat([a_r, a_e,
+                                    mu_r.expand(-1, Ktot, -1),
+                                    mu_e.expand(-1, Ktot, -1)], dim=-1))
+        M2 = self.gru(u.reshape(-1, d), M.reshape(-1, d)).view(H, Ktot, d)
         # **线性 EMA，不过门**。ρ 逐通路可学；这条路存在的唯一理由就是让方向内容
         # 不被 GRU 的 sigmoid 门反复压缩。
         rho = torch.sigmoid(self.dir_decay)[None, :, None]        # [1,2,1]
@@ -259,8 +311,15 @@ class ControlMemory(nn.Module):
         mg = torch.zeros_like(z) if margin is None else margin
         rs = (sig_h / sig_g).log().expand_as(z)
         qq = x if q is None else q
-        dot = (qq * r).sum(-1, keepdim=True) * self.d_m ** -0.5
-        raw = self.head(torch.cat([x, r, qq * r, dot,
-                                   z[..., None], mg[..., None], rs[..., None]],
-                                  dim=-1)).squeeze(-1)
+        sc = self.d_m ** -0.5
+        if self.typed:
+            rR, rE = r
+            feats = [x, rR, rE, rE - rR, qq * rR, qq * rE,
+                     (qq * rR).sum(-1, keepdim=True) * sc,
+                     (qq * rE).sum(-1, keepdim=True) * sc]
+        else:
+            feats = [x, r, qq * r, (qq * r).sum(-1, keepdim=True) * sc]
+        raw = self.head(torch.cat(
+            feats + [z[..., None], mg[..., None], rs[..., None]],
+            dim=-1)).squeeze(-1)
         return self.alpha * sig_h * torch.tanh(raw)
