@@ -10,9 +10,17 @@
 
     stateful > shuffled ≈ memoryless ≳ FastKVzip
 
-只有 stateful 显著优于 shuffled，才说明**历史真的提供了当前 KV 之外的增量信息**
-（即 `I(U;M|X) > 0`）。只赢 FastKVzip 说明学到了一个更好的普通 scorer，那是别人
-（Apple KVP 等）已经占住的问题。
+只有 stateful 显著优于 shuffled，才说明**历史真的提供了当前 KV 之外的增量信息**，
+准确说是它改变了效用的**条件均值**：`E[U|X,M] ≠ E[U|X]`。（不是 `I(U;M|X)>0` ——
+互信息为正也可能只体现在条件方差或更高阶矩上，那时平方风险毫无改善。）
+只赢 FastKVzip 说明学到了一个更好的普通 scorer，那是别人（Apple KVP 等）已经占住的问题。
+
+**α 必须给够重排权限，否则这个判据测不出东西。** Δs = α·σ_h·tanh(·)，而近阈值池内
+随机一对的 |Δs0| 中位数是 0.00865；α=0.0555 时满幅只有 0.00104（比值 0.12，只有
+24% 的成对翻得动），α=1.0 时比值 2.2。首轮真实训练让 α 自学，40 epoch 只从 0.050
+爬到 0.0555（`dL/dα ∝ tanh(raw)`，头的方向没学对时该梯度平均为零），三臂 Δacc
+全部 ≤0.003 —— 那是被构造性封顶的，不是数据没信号。用 `--freeze_alpha
+--alpha_init 1.0` 把权限先给足。
 
 --------------------------------------------------------------------------------
 两个关键实现选择
@@ -195,8 +203,14 @@ def main():
     ap.add_argument("--epochs", type=int, default=8)
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--n_pairs", type=int, default=256)
-    ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--seed", type=int, default=0,
+                    help="只控制参数初始化、pair 采样、训练顺序")
+    ap.add_argument("--split_seed", type=int, default=42,
+                    help="**与 --seed 分开**：只决定 train/val 的文档划分。\n合在一起的话，跨种子跨度里会同时混进优化方差与划分方差——而只有 2 篇验证\n文档时，划分方差很可能是主导项，跨种子的差就没法归因了。")
     ap.add_argument("--val_frac", type=float, default=0.25)
+    ap.add_argument("--alpha_init", type=float, default=0.05)
+    ap.add_argument("--freeze_alpha", action="store_true",
+                    help="冻结 α。默认让它自学，但实测它几乎不动（40 epoch 从\n0.050 到 0.0555），因为 dL/dalpha 正比于 tanh(raw)，头的方向还没学对时这个梯度\n平均为零——合成诊断里同样的 α 自举问题当初就是靠冻结解决的。而 α 直接决定\n重排权限：α=0.0555 时 Δs 满幅只有近阈值池内典型 |Δs0| 的 12%%，只有 24%% 的成对\n翻得动，Δacc 因此被构造性封顶，效应存在也测不出来。")
     ap.add_argument("--pair_w", default="linear", choices=["linear", "none"],
                     help="成对损失是否按 |ΔU| 加权。top-B 的 selection regret 就是被错换"
                          "成对的 |ΔU| 之和，所以 linear 才是它的可微代理；none 做消融")
@@ -209,7 +223,7 @@ def main():
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     files = sorted(glob.glob(os.path.join(ROOT, a.traces, "doc*.pt")))
     assert files, f"没有 trace，先跑 scratch_ctrl_teacher.py（{a.traces}）"
-    random.Random(a.seed).shuffle(files)
+    random.Random(a.split_seed).shuffle(files)   # 划分只由 split_seed 决定
     n_val = max(1, int(len(files) * a.val_frac))
     val_f, tr_f = files[:n_val], files[n_val:]
     print(f"训练 {len(tr_f)} 篇 / 验证 {len(val_f)} 篇", flush=True)
@@ -223,8 +237,11 @@ def main():
         # **三臂必须同一初始化、同一数据顺序、同一 pair 采样**，否则差异混进随机性
         torch.manual_seed(a.seed)
         cm = ControlMemory(a.d_kv, L, H, n_slots=a.slots, d_m=a.dim,
-                           mode=mode).to(dev)
-        opt = torch.optim.AdamW(cm.parameters(), lr=a.lr, weight_decay=0.01)
+                           mode=mode, alpha_init=a.alpha_init).to(dev)
+        if a.freeze_alpha:
+            cm.alpha_on.requires_grad_(False)
+        opt = torch.optim.AdamW([p_ for p_ in cm.parameters() if p_.requires_grad],
+                                lr=a.lr, weight_decay=0.01)
         print(f"\n=== {mode}　参数 {cm.n_params()/1e3:.1f}K ===", flush=True)
         for ep in range(a.epochs):
             cm.train()
