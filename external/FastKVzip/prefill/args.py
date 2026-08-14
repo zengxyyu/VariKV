@@ -97,7 +97,7 @@ parser.add_argument("--ctrl_seed", type=int, default=0)
 parser.add_argument("--ctrlm_ckpt", type=str, default="",
                     help="ControlMemory 权重；给了就启用 kv_type=control_learned")
 parser.add_argument("--ctrlm_slots", type=int, default=8)
-parser.add_argument("--ctrlm_dim", type=int, default=64)
+parser.add_argument("--ctrlm_dim", type=int, default=128)
 parser.add_argument("--ctrlm_mode", type=str, default="stateful",
                     choices=["stateful", "memoryless", "shuffled"],
                     help="memoryless=状态永不更新（可训练参数更少，对照不完全匹配）；"

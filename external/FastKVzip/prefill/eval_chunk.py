@@ -76,6 +76,25 @@ if __name__ == "__main__":
         model.varikv_inv_freq = _rot.inv_freq.detach().clone() if _rot else None
         print(f"[VariKV] loaded {args.varikv_ckpt} mode={_ck.get('mode')} "
               f"M={args.varikv_slots}")
+    elif args.ctrlm_ckpt:
+        # VariKV-B 最终版：学出来的历史控制状态
+        import sys as _sys, torch as _torch
+        _sys.path.insert(0, "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill")
+        from attention.control_memory import ControlMemory as _CM
+
+        args.kv_type = "control_learned"
+        _ck = _torch.load(args.ctrlm_ckpt, map_location="cpu")
+        _mode = args.ctrlm_mode or _ck.get("mode", "stateful")
+        args.tag += f"_ctrlm{_mode[:4]}{_ck.get('slots', args.ctrlm_slots)}"
+        model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
+        _cm = _CM(_ck.get("d_kv", 128), _ck["L"], _ck["H"],
+                  n_slots=_ck.get("slots", args.ctrlm_slots),
+                  d_m=_ck.get("dim", args.ctrlm_dim), mode=_mode)
+        _cm.load_state_dict(_ck["state"])
+        model.ctrl_module = _cm.to(model.device).eval()
+        model.ctrl_seed = args.ctrl_seed
+        print(f"[CtrlM] {args.ctrlm_ckpt} mode={_mode} "
+              f"slots={_ck.get('slots')} alpha={float(_cm.alpha):.4f}")
     elif args.ctrl:
         # 控制臂：只改 kv_type + 几个标量，其余评测参数与基线逐字一致。
         args.kv_type = "control"

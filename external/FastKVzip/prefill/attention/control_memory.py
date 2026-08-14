@@ -49,7 +49,7 @@ import torch.nn.functional as F
 
 class ControlMemory(nn.Module):
     def __init__(self, d_kv: int, n_layers: int, n_heads_kv: int,
-                 n_slots: int = 8, d_m: int = 64, mode: str = "stateful"):
+                 n_slots: int = 8, d_m: int = 128, mode: str = "stateful"):
         super().__init__()
         assert mode in ("stateful", "memoryless", "shuffled")
         self.L, self.H, self.K, self.d_m = n_layers, n_heads_kv, n_slots, d_m
@@ -59,17 +59,28 @@ class ControlMemory(nn.Module):
         # 每组一个可学初始状态（唯一的 per-group 参数）
         self.M_init = nn.Parameter(torch.randn(n_layers, n_heads_kv, n_slots, d_m) * 0.02)
 
-        self.x_proj = nn.Linear(d_x, d_m)               # 候选 → d_m
-        self.q_read = nn.Linear(d_m, d_m)               # 读：候选作 query
+        self.x_proj = nn.Linear(d_x, d_m)               # 候选 → d_m（写入侧 & 头输入）
+        # **读出 query 用独立于 x_proj 的投影**。共用一个会强迫同一张矩阵同时满足
+        # "写入端摘要"和"读出端内积"两个目标；分开后 <q_read(x), r> 可以自由学成
+        # 近似原空间的内积。合成正对照上，共用时"传一个 128 维方向"完全学不到。
+        self.q_read = nn.Linear(d_x, d_m)
         self.k_ret = nn.Linear(d_m, d_m)                # 写：保留集
         self.v_ret = nn.Linear(d_m, d_m)
         self.k_evi = nn.Linear(d_m, d_m)                # 写：驱逐集
         self.v_evi = nn.Linear(d_m, d_m)
         self.q_slot = nn.Linear(d_m, d_m)               # 写：槽作 query
-        self.mix = nn.Linear(2 * d_m, d_m)
+        # **除了学出来的注意力池化，还要一条非学习的均值通路。** 合成正对照测出：
+        # 只有注意力池化时，"把被驱逐集合的均值方向传给下一个 chunk"学不出来——
+        # 要得到均值就得先学会均匀注意，梯度路径太长。均值按构造给出后，
+        # 方向信息不再依赖优化是否成功。
+        self.mix = nn.Linear(4 * d_m, d_m)
         self.gru = nn.GRUCell(d_m, d_m)
-        self.head = nn.Sequential(                      # 控制器
-            nn.Linear(2 * d_m + 1, d_m), nn.GELU(), nn.Linear(d_m, 1))
+        # **头必须含乘性交互**。要表达"候选与历史的匹配程度"就需要 x 与 r 的双线性项，
+        # 而拼接后的 MLP 很难学出乘积——合成正对照上实测：只喂 [x,r,z] 时，即使注入
+        # 一个可证明存在的历史信号，三臂全部停在 0.50 随机水平。加入 x⊙r 与 <x,r> 后
+        # 线性层直接就能算加权内积。
+        self.head = nn.Sequential(
+            nn.Linear(3 * d_m + 2, d_m), nn.GELU(), nn.Linear(d_m, 1))
         # **alpha=0 ⇒ 逐位退化回基线**。这是构造性的，验收里必须实测到。
         self.log_alpha = nn.Parameter(torch.zeros(()))
         self.alpha_on = nn.Parameter(torch.zeros(()))   # sigmoid(0)=0.5 起步太大，见下
@@ -87,14 +98,18 @@ class ControlMemory(nn.Module):
     def init_state(self, layer_idx: int, dtype=torch.float32):
         return self.M_init[layer_idx].to(dtype)          # [H,K,d_m]
 
-    def feat(self, k, v):
-        """k,v: [H,n,d_kv] → x̃ [H,n,d_m]（fp32；bf16 累积会掉精度）"""
-        return self.x_proj(torch.cat([k, v], dim=-1).float())
+    def raw(self, k, v):
+        """k,v: [H,n,d_kv] → [H,n,2*d_kv]（fp32；bf16 累积会掉精度）"""
+        return torch.cat([k, v], dim=-1).float()
+
+    def feat(self, x_raw):
+        """[H,n,2*d_kv] → x̃ [H,n,d_m]"""
+        return self.x_proj(x_raw)
 
     # ------------------------------------------------------------------ 读
-    def read(self, M, x):
-        """M [H,K,d_m], x̃ [H,n,d_m] → r [H,n,d_m]"""
-        q = self.q_read(x)                                        # [H,n,d]
+    def read(self, M, x_raw):
+        """M [H,K,d_m], x_raw [H,n,2*d_kv] → r [H,n,d_m]"""
+        q = self.q_read(x_raw)                                    # [H,n,d]
         att = torch.einsum("hnd,hkd->hnk", q, M) * self.d_m ** -0.5
         return torch.einsum("hnk,hkd->hnd", att.softmax(-1), M)
 
@@ -112,6 +127,12 @@ class ControlMemory(nn.Module):
         att = torch.nan_to_num(att, nan=0.0)                      # 空集合 ⇒ 全 -inf
         return torch.einsum("hkn,hnd->hkd", att, vp(x))
 
+    @staticmethod
+    def _mean(x, mask):
+        """被 mask 选中的候选的**朴素均值**，[H,1,d]。空集合给 0。"""
+        w = mask.float()[..., None]
+        return (x * w).sum(1, keepdim=True) / w.sum(1, keepdim=True).clamp_min(1.0)
+
     def write(self, M, x, m_ret, m_evi, gen=None):
         """M [H,K,d_m], x̃ [H,n,d_m], m_ret/m_evi [H,n] bool → M' [H,K,d_m]"""
         if self.mode == "memoryless":
@@ -125,18 +146,26 @@ class ControlMemory(nn.Module):
             m_evi = torch.gather(m_evi, 1, perm)
         a_r = self._pool(M, x, m_ret, self.k_ret, self.v_ret)
         a_e = self._pool(M, x, m_evi, self.k_evi, self.v_evi)
-        u = self.mix(torch.cat([a_r, a_e], dim=-1))               # [H,K,d]
+        mu_r = self._mean(x, m_ret)                               # [H,1,d] 广播到 K
+        mu_e = self._mean(x, m_evi)
+        K_ = M.shape[1]
+        u = self.mix(torch.cat([a_r, a_e,
+                                mu_r.expand(-1, K_, -1),
+                                mu_e.expand(-1, K_, -1)], dim=-1))
         H, K, d = M.shape
         return self.gru(u.reshape(-1, d), M.reshape(-1, d)).view(H, K, d)
 
     # ------------------------------------------------------------ 控制器
-    def delta(self, x, r, s0):
+    def delta(self, x, r, s0, q=None):
         """x̃/r [H,n,d_m], s0 [H,n] 原始基线分 → Δs [H,n]（**已含 α 与逐头尺度**）。
 
         s0 先在 (层,kv头) 内 z-score：`level="pair"` 是全局阈值化，不归一的输入会让
         控制器隐式学到各头的尺度差异而不是内容。
         """
         z = (s0 - s0.mean(-1, keepdim=True)) / s0.std(-1, keepdim=True).clamp_min(1e-6)
-        raw = self.head(torch.cat([x, r, z[..., None]], dim=-1)).squeeze(-1)
+        qq = x if q is None else q
+        dot = (qq * r).sum(-1, keepdim=True) * self.d_m ** -0.5
+        raw = self.head(torch.cat([x, r, qq * r, dot, z[..., None]],
+                                  dim=-1)).squeeze(-1)
         sb = s0.std(-1, keepdim=True).clamp_min(1e-6)             # 逐头尺度
         return self.alpha * sb * torch.tanh(raw)
