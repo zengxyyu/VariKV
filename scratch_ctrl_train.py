@@ -92,7 +92,8 @@ def run_doc(cm, doc, dev, n_pairs, gen, train=True, lam_global=1.0,
     而且全局项**不除以逐头 σ**，因为全局阈值比的就是原始分数。
     """
     H, L = doc["H"], doc["L"]
-    M = [cm.init_state(l).to(dev) for l in range(L)]
+    # 状态是 (M_gru, M_dir) 二元组，不能直接 .to()
+    M = [tuple(t.to(dev) for t in cm.init_state(l)) for l in range(L)]
     tot_l, tot_a, cnt = 0.0, 0.0, 0   # tot_a 累计的是 acc(s')−acc(s0)
     tot_g, gcnt = 0.0, 0
     # **两项必须分开聚合。** 若都塞进一个 list 再取均值，每个 chunk 有 L≈28 个头内项

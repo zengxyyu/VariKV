@@ -46,6 +46,7 @@ class LearnedControlRetainCache(RetainCache):
         return self.ctrl is not None and float(self.ctrl.alpha) != 0.0
 
     def _ensure_state(self):
+        """self.M[l] 是 (M_gru, M_dir) 二元组——read/write 的签名已按二元组定义。"""
         if self.M is None:
             self.M = [self.ctrl.init_state(l) for l in range(self.n_layers)]
 

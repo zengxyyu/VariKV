@@ -57,15 +57,28 @@ import torch.nn.functional as F
 class ControlMemory(nn.Module):
     def __init__(self, d_kv: int, n_layers: int, n_heads_kv: int,
                  n_slots: int = 8, d_m: int = 128, mode: str = "stateful",
-                 alpha_max: float = 1.0):
+                 alpha_max: float = 1.0, alpha_init: float = 0.05):
         super().__init__()
         assert mode in ("stateful", "memoryless", "shuffled")
         self.L, self.H, self.K, self.d_m = n_layers, n_heads_kv, n_slots, d_m
         self.mode = mode
         d_x = 2 * d_kv                                  # 候选特征 = [k_i ; v_i]
 
-        # 每组一个可学初始状态（唯一的 per-group 参数）
+        # ---- 状态是**两条并行通路**，不是一个张量 ----
+        # 诊断实测（scratch_ctrl_dirfix.py，direction 信号，stateful−shuffled）：
+        #     base（纯 GRU）      −0.0015      dm256（容量翻倍）  −0.0009
+        #     no_gru（纯均值池化）**+0.0385**   oracle（上界）     +0.2797
+        # 容量假说被 dm256 排除；跳过 GRU 才让方向信息传得过去。机制：GRU 的门是
+        # sigmoid 有界、初始约 0.5，反复作用会压缩并混合方向，而方向内容需要一条
+        # **不被 squash 的线性通路**。
+        # 但不能直接删 GRU——那样就没有可学的递归状态，B 的"顺序控制"退化成滑动平均。
+        # 所以拆成：
+        #   M_gru : 门控递归，负责非线性聚合
+        #   M_dir : 保留/驱逐两个池化均值的**线性 EMA**，不过门不过 GRU
+        # 读出时对二者的拼接做注意力。
         self.M_init = nn.Parameter(torch.randn(n_layers, n_heads_kv, n_slots, d_m) * 0.02)
+        self.D_init = nn.Parameter(torch.zeros(n_layers, n_heads_kv, 2, d_m))
+        self.dir_decay = nn.Parameter(torch.zeros(2))   # sigmoid ⇒ ρ，逐通路可学
 
         self.x_proj = nn.Linear(d_x, d_m)               # 候选 → d_m（写入侧 & 头输入）
         # **读出 query 用独立于 x_proj 的投影**。共用一个会强迫同一张矩阵同时满足
@@ -95,8 +108,15 @@ class ControlMemory(nn.Module):
         # 进架构而不是指望优化器自觉。
         # 初值 sigmoid(-8)·α_max ≈ 3.4e-4·α_max，**接近 0 但不等于 0**；
         # 「α=0 ⇒ 逐位退化回基线」是一个关于 α=0 的命题，不是关于初始化的断言。
+        # 初值不再是 3.4e-4：诊断显示固定 α=1.0 时 stateful−shuffled=+0.0102，
+        # α≤0.3 时为 0 —— 太小的 α 会把 head→read→GRU→pool 这条长路径的梯度饿死，
+        # 使它无法自举。默认 α≈0.05·α_max，既不至于一开始就大幅扰动排序，
+        # 又给长路径留出梯度。**「α=0 ⇒ 逐位退化回基线」仍然成立，那是关于 α=0 的
+        # 命题，验收时显式把 α 置 0 来测，不依赖初始化。**
         self.alpha_max = float(alpha_max)
-        self.alpha_on = nn.Parameter(torch.full((), -8.0))
+        _p = min(max(alpha_init, 1e-6), 0.999)
+        self.alpha_on = nn.Parameter(
+            torch.full((), float(torch.logit(torch.tensor(_p)))))
 
     @property
     def alpha(self):
@@ -107,7 +127,14 @@ class ControlMemory(nn.Module):
 
     # ------------------------------------------------------------------ 状态
     def init_state(self, layer_idx: int, dtype=torch.float32):
-        return self.M_init[layer_idx].to(dtype)          # [H,K,d_m]
+        """→ (M_gru [H,K,d_m], M_dir [H,2,d_m])"""
+        return (self.M_init[layer_idx].to(dtype),
+                self.D_init[layer_idx].to(dtype))
+
+    @staticmethod
+    def slots(state):
+        """把两条通路拼成读出用的 [H,K+2,d_m]。"""
+        return torch.cat(state, dim=1)
 
     def raw(self, k, v):
         """k,v: [H,n,d_kv] → [H,n,2*d_kv]（fp32；bf16 累积会掉精度）"""
@@ -118,11 +145,16 @@ class ControlMemory(nn.Module):
         return self.x_proj(x_raw)
 
     # ------------------------------------------------------------------ 读
-    def read(self, M, x_raw):
-        """M [H,K,d_m], x_raw [H,n,2*d_kv] → r [H,n,d_m]"""
-        q = self.q_read(x_raw)                                    # [H,n,d]
-        att = torch.einsum("hnd,hkd->hnk", q, M) * self.d_m ** -0.5
-        return torch.einsum("hnk,hkd->hnd", att.softmax(-1), M)
+    def read(self, state, x_raw):
+        """state=(M_gru,M_dir), x_raw [H,n,2*d_kv] → r [H,n,d_m]。
+
+        对两条通路的**拼接**做注意力，所以方向内容有机会被直接读到，
+        不必先穿过 GRU。
+        """
+        S = self.slots(state)                                     # [H,K+2,d]
+        q = self.q_read(x_raw)
+        att = torch.einsum("hnd,hkd->hnk", q, S) * self.d_m ** -0.5
+        return torch.einsum("hnk,hkd->hnd", att.softmax(-1), S)
 
     # ------------------------------------------------------------------ 写
     def _pool(self, M, x, mask, kp, vp):
@@ -144,10 +176,11 @@ class ControlMemory(nn.Module):
         w = mask.float()[..., None]
         return (x * w).sum(1, keepdim=True) / w.sum(1, keepdim=True).clamp_min(1.0)
 
-    def write(self, M, x, m_ret, m_evi, gen=None):
-        """M [H,K,d_m], x̃ [H,n,d_m], m_ret/m_evi [H,n] bool → M' [H,K,d_m]"""
+    def write(self, state, x, m_ret, m_evi, gen=None):
+        """(M_gru,M_dir) → 更新后的二元组。"""
+        M, Dm = state
         if self.mode == "memoryless":
-            return M                                              # 状态永不更新
+            return state                                          # 两条通路都不更新
         if self.mode == "shuffled":
             # **成员身份随机置换**：保住的是**条数与计算量**，不是统计量——换了成员，
             # 均值/池化/方向统计当然都变，这正是要破坏的东西。准确说法是
@@ -163,14 +196,19 @@ class ControlMemory(nn.Module):
             m_evi = torch.gather(m_evi, 1, perm)
         a_r = self._pool(M, x, m_ret, self.k_ret, self.v_ret)
         a_e = self._pool(M, x, m_evi, self.k_evi, self.v_evi)
-        mu_r = self._mean(x, m_ret)                               # [H,1,d] 广播到 K
+        mu_r = self._mean(x, m_ret)                               # [H,1,d]
         mu_e = self._mean(x, m_evi)
         K_ = M.shape[1]
         u = self.mix(torch.cat([a_r, a_e,
                                 mu_r.expand(-1, K_, -1),
                                 mu_e.expand(-1, K_, -1)], dim=-1))
         H, K, d = M.shape
-        return self.gru(u.reshape(-1, d), M.reshape(-1, d)).view(H, K, d)
+        M2 = self.gru(u.reshape(-1, d), M.reshape(-1, d)).view(H, K, d)
+        # **线性 EMA，不过门**。ρ 逐通路可学；这条路存在的唯一理由就是让方向内容
+        # 不被 GRU 的 sigmoid 门反复压缩。
+        rho = torch.sigmoid(self.dir_decay)[None, :, None]        # [1,2,1]
+        D2 = rho * Dm + (1.0 - rho) * torch.cat([mu_r, mu_e], dim=1)
+        return (M2, D2)
 
     # ------------------------------------------------------------ 控制器
     def delta(self, x, r, s0, q=None, margin=None):
