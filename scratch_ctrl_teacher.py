@@ -57,6 +57,7 @@ P0 探针测过**逐头损伤有 75% 在层内自相消**（`‖Σ_h W_O Δo_h�
 """
 import argparse
 import os
+import random
 import sys
 
 import torch
@@ -75,6 +76,37 @@ from model.wrapper import ModelKVzip                         # noqa: E402
 # `past_key_value.flatten` 为真时才调 `prepare`，而算 U 用的满缓存那次预填
 # `chunk_ratio=1.0` 从不进 `prune_chunk`、flatten 恒为 False ⇒ 钩子永不触发，
 # 首篇文档就 KeyError。教师此前从未真机跑过，所以这个 bug 一直没暴露。
+
+
+def make_retrieval(m, ids, max_ctx, window, n_dup, rng):
+    """把 fineweb 上下文改造成**检索任务**：插入合成事实，target 换成问句+答案。
+
+    为什么必须做这一版。续写版教师里 U 是在文档末尾 256 个自然 token 的注意力 query
+    上算的，而 B 的评测是检索。凸探针在续写版上测出历史增量价值与 0 不可分
+    （方向类 t=1.11、冗余类 t=−1.03，10 篇留一），但**查询分布错配**是唯一还没排除的
+    替代解释：检索型 query 下"我是不是已经留了一个相似的"才可能真正重要。
+
+    语料仍是 fineweb，所以与续写版**唯一的变量就是查询类型**——不动语料就不会把
+    "换了任务"和"换了数据"混在一起，也不碰 SCBench（避免测试集污染）。
+
+    `n_dup > 1` 时同一事实**在不同 chunk 各插一份**。这是次模性框架直接指向的结构：
+    留了一份，其余份的边际价值就该下降 —— 而"哪一份已经留下了"只能从历史知道。
+    如果连这个结构里都测不到历史增量，B 的核心命题就可以判死。
+    """
+    ctx = list(ids[-max_ctx:])
+    hx = "0123456789abcdef"
+    key = "".join(rng.choices(hx, k=16))
+    val = "".join(rng.choices(hx, k=16))
+    fact = m.encode(f" The secret key {key} maps to the value {val}. ")[0].tolist()
+    tgt = m.encode(f"\nQuestion: What value does the secret key {key} map to?"
+                   f"\nAnswer: {val}")[0].tolist()
+    # 插入点必须落在**可驱逐区**（末尾 window 个 token 永远保留，插那里等于没驱逐），
+    # 且分散到不同 chunk，历史才有东西可总结
+    lo, hi = int(0.05 * (len(ctx) - window)), int(0.90 * (len(ctx) - window))
+    pos = sorted(rng.sample(range(lo, hi), n_dup), reverse=True)   # 倒序插，下标不失效
+    for p_ in pos:
+        ctx[p_:p_] = fact
+    return ctx, tgt, dict(key=key, val=val, pos=sorted(pos), n_dup=n_dup)
 
 
 @torch.no_grad()
@@ -177,6 +209,12 @@ def main():
     ap.add_argument("--min_prunes", type=int, default=2,
                     help="少于这么多次驱逐的文档不写 trace：B 学的是 "
                          "M_{t-1}→decision_t，只有 1 次驱逐的文档提供不了任何历史监督")
+    ap.add_argument("--task", default="continuation",
+                    choices=("continuation", "retrieval"),
+                    help="future query 的性质：文档续写 vs 回查上下文的问句")
+    ap.add_argument("--n_dup", type=int, default=1,
+                    help="retrieval 时同一事实插几份（>1 制造冗余结构）")
+    ap.add_argument("--task_seed", type=int, default=0)
     ap.add_argument("--out", default="scratch_ctrl_traces")
     a = ap.parse_args()
 
@@ -201,8 +239,15 @@ def main():
         if os.path.exists(f):
             print(f"跳过 doc{di}"); continue
         ids = s
-        need = a.max_ctx + a.target_len
-        ctx_ids, tgt = ids[-need:-a.target_len], ids[-a.target_len:]
+        if a.task == "retrieval":
+            rng = random.Random(a.task_seed * 1000 + di)
+            ctx_ids, tgt, meta = make_retrieval(
+                m, ids, a.max_ctx, a.window, a.n_dup, rng)
+            print(f"doc{di}: 检索任务，事实插在 {meta['pos']}，"
+                  f"共 {a.n_dup} 份，target {len(tgt)} tok", flush=True)
+        else:
+            need = a.max_ctx + a.target_len
+            ctx_ids, tgt = ids[-need:-a.target_len], ids[-a.target_len:]
         if len(ctx_ids) < a.chunk // 2:
             print(f"doc{di} 太短 ({len(ctx_ids)})，跳过"); continue
         # **非退化检查，必须在这里拦。** wrapper.py:273-275 在
