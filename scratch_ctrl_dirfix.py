@@ -41,9 +41,18 @@ N = NEAR + NRAND
 
 
 def make_doc(seed, n_chunk=3, dev="cpu"):
-    """direction 信号：U_i = <k_i, w>，w = 上一 chunk **被驱逐集合**的均值方向。
+    """direction 信号：U_i = <k_i, w>，w = 上一 chunk **驱逐均值 − 保留均值**。
 
-    只有读得到"上一块具体丢了哪些"才能预测；shuffle 只保留集合大小，w 会被打乱。
+    **为什么是差而不是驱逐侧均值**（2026-08-14 修，旧版是后者，仪器因此几乎没有对比度）：
+    驱逐率 0.7 时，"随机 70% 子集"与"真实被驱逐子集"重叠约 70%，所以 shuffled 臂
+    得到的均值与真 w 的相关系数仍有 ≈0.57（stateful 是 ≈0.82）。对照根本没破坏多少
+    信号，两臂的可达精度差本来就在 ±0.01 量级 —— 这正是整条诊断阶梯符号乱跳的原因，
+    不是架构差异。
+    改成 μ_evicted − μ_retained 之后：stateful 拿到真实划分的对比向量；shuffled 拿到
+    的是一个**随机划分**的对比向量，其期望为 0 且与真值不相关 ⇒ 对照是干净的。
+
+    w 只在 writer 实际看得到的那段候选（索引 NEAR: 之后）上定义，
+    这样 stateful 臂的相关系数是 1.0（只差一个线性映射），不掺子集采样噪声。
     """
     g = torch.Generator(device=dev).manual_seed(seed)
     chs, prev_k, prev_ret = [], None, None
@@ -58,8 +67,14 @@ def make_doc(seed, n_chunk=3, dev="cpu"):
                 U = torch.randn(H, NEAR, generator=g, device=dev)
                 w = torch.zeros(H, DKV, device=dev)
             else:
-                w = torch.stack([prev_k[l][h][~prev_ret[l][h]].mean(0)
-                                 for h in range(H)])
+                # 只用 writer 看得见的那段（NEAR:），且取**驱逐均值 − 保留均值**
+                def _m(kk, mm):
+                    ww = mm.float()[:, None]
+                    return (kk * ww).sum(0) / ww.sum().clamp_min(1.0)
+                w = torch.stack([
+                    _m(prev_k[l][h][NEAR:], ~prev_ret[l][h][NEAR:])
+                    - _m(prev_k[l][h][NEAR:], prev_ret[l][h][NEAR:])
+                    for h in range(H)])
                 U = torch.einsum("hnd,hd->hn", k[:, :NEAR], w)
             per.append(dict(k=k, v=v, s0=s0, ret=ret, U=U, w=w, n_near=NEAR))
             cur_k.append(k); cur_ret.append(ret)
