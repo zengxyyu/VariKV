@@ -185,6 +185,83 @@ def teacher_state(m, kv, tgt_ids, layers, n_qpos=16):
 
 
 @torch.no_grad()
+def utility_setmarginal(m, kv, st, layers, cand_idx, keep):
+    """**条件于真实存活集合**的边际效用 —— 取代 `utility()` 的 per-token 内在量。
+
+    为什么必须换。`utility()` 算的是 `U_i^full`：在**其他 token 全都还在**的满缓存下
+    单独删掉 i 的损伤。但 B 要回答的是「已经删掉一串之后、当前只剩 S，现在该留谁」。
+    三份重复事实把差别说透：满缓存下删任意一份、另外两份还在 ⇒ 三份的 U^full 都很小，
+    **与历史无关**；而真实压缩轨迹里前两份已被驱逐时，第三份是最后一份，边际效用巨大。
+    也就是说 `U^full` 从定义上就把历史唯一可能产生价值的地方压掉了 —— 用它裁决 B
+    是问错了问题。（这也解释了为什么 per-token 打分器能把 0.577 抬到 0.644：
+    U^full 本来就近似是个 per-token 量。）
+
+    改成固定预算下的选择目标及其边际增量：
+
+        F(S)  = −‖W_O (o_full − o_S)‖²
+        U_c   = err(S minus c) − err(S ∪ {c})        c 缺席的代价，条件于其余存活集合
+
+    对已保留的 c 是"删掉它多大损失"，对已驱逐的 c 是"加回来能挽回多少"，两者同一
+    单位、可直接比较 —— 而这正是固定预算下 swap 的判据。
+
+    代价几乎为零：softmax 的秩一更新。
+        Z_S = Σ_{k∈S} e_k,  N_S = Σ_{k∈S} e_k v_k,  o_S = N_S / Z_S
+        换入/换出 c ⇒ Z' = Z_S ± e_c,  N' = N_S ± e_c v_c
+    所以每个候选 O(d)，不必重算 softmax。
+
+    `keep`: {layer: [H, n_ctx] bool}，来自**压缩轨迹**实际的存活掩码。
+    """
+    d, H, n_ctx = st["d"], st["H"], st["n_ctx"]
+    out = {}
+    for l in layers:
+        Aq, G = st["layers"][l]
+        Aq = Aq.to(kv.key_cache[l].device)
+        WO = m.model.model.layers[l].self_attn.o_proj.weight.detach().float()
+        K = kv.key_cache[l][0][:, :n_ctx].float()
+        V = kv.value_cache[l][0][:, :n_ctx].float()
+        idx = cand_idx[l]                                      # [H,nc]
+        kp = keep[l].to(K.device)                              # [H,n_ctx] bool
+        U = torch.zeros(H, idx.shape[1], device=Aq.device)
+        for h in range(H):
+            g0 = h * G
+            W = WO[:, g0 * d:(g0 + G) * d]
+            Gram = W.T @ W                                     # [G*d,G*d]
+            a = torch.einsum("gtd,nd->gtn", Aq[h], K[h])       # [G,Tq,n_ctx]
+            e = (a - a.amax(-1, keepdim=True)).exp()
+            Tq = a.shape[1]
+            o_full = torch.einsum("gtn,nd->gtd", e, V[h]) / e.sum(-1, keepdim=True)
+
+            def _err(diff):
+                """diff [G,Tq,(nc),d] → ‖W_O·diff‖²，[Tq,(nc)]。
+                GQA 组内**先经 W_O 求和再取模**（P0 测过逐头损伤 75% 在层内自相消）。"""
+                if diff.dim() == 3:
+                    z = diff.permute(1, 0, 2).reshape(Tq, 1, G * d)
+                else:
+                    z = diff.permute(1, 2, 0, 3).reshape(Tq, diff.shape[2], G * d)
+                return ((z @ Gram) * z).sum(-1)
+
+            eS = e * kp[h][None, None, :]
+            ZS = eS.sum(-1, keepdim=True).clamp_min(1e-30)     # [G,Tq,1]
+            NS = torch.einsum("gtn,nd->gtd", eS, V[h])         # [G,Tq,d]
+            err_S = _err(o_full - NS / ZS)                     # [Tq,1]
+
+            ec = e[..., idx[h]]                                # [G,Tq,nc]
+            vc = V[h][idx[h]]                                  # [nc,d]
+            # 已保留的候选 ⇒ 反事实是**移出**（−）；已驱逐的 ⇒ 是**加回**（+）
+            sg = 1.0 - 2.0 * kp[h][idx[h]].float()             # [nc]
+            Zp = (ZS + sg * ec).clamp_min(1e-30)               # [G,Tq,nc]
+            Np = NS[:, :, None, :] + (sg[:, None] * ec[..., None]) * vc
+            err_o = _err(o_full[:, :, None, :] - Np / Zp[..., None])   # [Tq,nc]
+            # 统一成"c 缺席的代价" = err(S\{c}) − err(S∪{c})，两种情形同一单位
+            inS = kp[h][idx[h]][None, :]
+            U[h] = torch.where(inS, err_o - err_S, err_S - err_o).mean(0)
+            del a, e, eS, NS, ec, Np, Zp, err_o
+        out[l] = U / max(st["rms"][l], 1e-6)
+        del Aq, K, V
+    return out
+
+
+@torch.no_grad()
 def utility(m, kv, st, layers, cand_idx):
     """用**固定的**教师状态给一批候选打标签 → {layer: U [H,n_cand]}。"""
     d, H, n_ctx = st["d"], st["H"], st["n_ctx"]
@@ -251,6 +328,11 @@ def main():
     ap.add_argument("--n_dup", type=int, default=1,
                     help="retrieval 时同一事实插几份（>1 制造冗余结构）")
     ap.add_argument("--task_seed", type=int, default=0)
+    ap.add_argument("--utility", default="full_single",
+                    choices=("full_single", "set_marginal"),
+                    help="full_single = 满缓存下单 token 移除损伤（per-token 内在量，"
+                         "**从定义上压掉历史效应**）；set_marginal = 条件于真实存活"
+                         "集合的边际效用，才是固定预算 swap 的判据")
     ap.add_argument("--n_cat", type=int, default=0,
                     help=">0 时改用本地不受 10^6 上限约束的加载器取这么多篇长文档"
                          "（前 10 篇与上游 cat 变体逐字节相同）。检索探针在 n=6 时"
@@ -373,13 +455,32 @@ def main():
         # ---- 每个 chunk 抽样候选，算 U ----
         # **一次性**教师前向，之后所有 chunk 共用（见 teacher_state 的说明）
         tstate = teacher_state(m, kv, tgt_t, layers, n_qpos=a.n_qpos)
+        # **最终**存活集合，覆盖整个上下文：各 chunk 的 valid 顺序拼接覆盖
+        # [0, hi_last)，其后是永远保留的局部窗口。用最终集合而不是"第 t 块决策时刻"
+        # 的集合，是因为回答时刻模型实际看到的就是它 —— 冗余是否已被别处覆盖，
+        # 只有在最终集合上才定义得清楚。
+        keep_mask = None
+        if a.utility == "set_marginal":
+            nctx = tstate["n_ctx"]
+            vv = torch.cat([c["valid"] for c in chunks], dim=-1)      # [L,H,hi_last]
+            pad = torch.ones(vv.shape[0], vv.shape[1], nctx - vv.shape[-1],
+                             dtype=torch.bool)
+            vv = torch.cat([vv, pad], dim=-1)
+            assert vv.shape[-1] == nctx, (vv.shape, nctx)
+            keep_mask = {l: vv[l] for l in layers}
+            print(f"  存活率 {float(vv.float().mean()):.4f}"
+                  f"（含永久窗口 {nctx - sum(c['hi']-c['lo'] for c in chunks)} tok）",
+                  flush=True)
         rec_out = []
         for ci, c in enumerate(chunks):
             lo, n = c["lo"], c["hi"] - c["lo"]
             sel_l = cand_sel[ci]
             cand = {l: (sel_l[l] + lo).to(m.device) for l in layers}
             # 标签用**满轨迹**（q/K/V 都来自不压缩的那次预填）
-            U = utility(m, kv, tstate, layers, cand)
+            if a.utility == "set_marginal":
+                U = utility_setmarginal(m, kv, tstate, layers, cand, keep_mask)
+            else:
+                U = utility(m, kv, tstate, layers, cand)
             per_l = []
             for l in layers:
                 sel = sel_l[l]

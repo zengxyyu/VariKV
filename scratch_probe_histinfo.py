@@ -45,7 +45,7 @@ def _cos(a, b):
 
 def build(files, rho, dev, nbank=48):
     """→ (feat_cur [N,Fc], feat_hist [N,Fh], U [N], grp [N]) ，grp = 采样成对时的组 id。"""
-    Xc, Xh, Us, Gs = [], [], [], []
+    Xc, Xs, Xh, Us, Gs = [], [], [], [], []
     gid = 0
     for fi, f in enumerate(files):
         d = torch.load(f, map_location="cpu", weights_only=False)
@@ -82,7 +82,12 @@ def build(files, rho, dev, nbank=48):
                         return top[..., 0], top.mean(-1)
                     mxR, t5R = _mx(bR)
                     mxE, t5E = _mx(bE)
-                    hist = torch.stack(hm + [mxR, t5R, mxE, mxR - mxE], dim=-1)
+                    # **三层分解，不是两层。** cos(k, μ_retained) / max-sim-to-retained
+                    # 是从**存活缓存 C_t** 就能算出来的，决策时可见，根本不算历史；
+                    # 真正只能靠记忆的是**被驱逐那一侧**。把两者混成一个 "hist" 包，
+                    # 问的就不是 "C_t 是否充分统计量" 了。
+                    surv = torch.stack([hm[1], mxR, t5R], dim=-1)          # 可观测
+                    evic = torch.stack([hm[0], hm[2], mxE, mxR - mxE], dim=-1)  # 需记忆
                     mu = pl["mu_h"].float()[:, None]
                     sg = pl["sig_h"].float()[:, None].clamp_min(1e-6)
                     s0n = s0[:, :nn_]
@@ -95,11 +100,12 @@ def build(files, rho, dev, nbank=48):
                     ], dim=-1)                                 # [H,nn,5]
                     # **逐 (chunk,层,头) 标准化**：单个全局线性模型没法适应各组尺度差异，
                     # 不归一的话它会去学尺度而不是内容。
-                    for T in (cur, hist):
+                    for T in (cur, surv, evic):
                         T -= T.mean(1, keepdim=True)
                         T /= T.std(1, keepdim=True).clamp_min(1e-6)
                     Xc.append(cur.reshape(-1, cur.shape[-1]))
-                    Xh.append(hist.reshape(-1, hist.shape[-1]))
+                    Xs.append(surv.reshape(-1, surv.shape[-1]))
+                    Xh.append(evic.reshape(-1, evic.shape[-1]))
                     Us.append(pl["U"].float()[:, :nn_].reshape(-1))
                     Gs.append(torch.full((H * nn_,), gid, dtype=torch.long)
                               + torch.arange(H).repeat_interleave(nn_))
@@ -129,7 +135,7 @@ def build(files, rho, dev, nbank=48):
                     run[l] = (rho * prev[0] + (1 - rho) * cR,
                               rho * prev[1] + (1 - rho) * cE,
                               keep(prev[2], nR), keep(prev[3], nE))
-    return (torch.cat(Xc).to(dev), torch.cat(Xh).to(dev),
+    return (torch.cat(Xc).to(dev), torch.cat(Xs).to(dev), torch.cat(Xh).to(dev),
             torch.cat(Us).to(dev), torch.cat(Gs).to(dev))
 
 
@@ -192,42 +198,48 @@ def main():
     # 每篇单独建特征，之后按需拼接（避免重复读盘）
     per = [build([f], a.rho, dev) for f in files]
     print(f"每篇 {per[0][0].shape[0]:,} 行   当前 {per[0][0].shape[1]} 维 / "
-          f"历史 {per[0][1].shape[1]} 维\n", flush=True)
+          f"可观测存活 {per[0][1].shape[1]} 维 / 只能靠记忆的驱逐 {per[0][2].shape[1]} 维")
+    print("Δ 的对照是 **(b+存活)**：判据是"
+          "「存活缓存 C_t 之外，被驱逐的历史还有没有增量」\n", flush=True)
 
-    def cat(idx, hist):
+    def cat(idx, lvl):
+        """lvl: 'cur' | 'surv'(+可观测存活集特征) | 'evic'(+只能靠记忆的驱逐集特征)"""
         Xc = torch.cat([per[i][0] for i in idx])
-        U = torch.cat([per[i][2] for i in idx])
+        U = torch.cat([per[i][3] for i in idx])
         # 组 id 必须跨文档唯一，否则不同文档的候选会被配成一对
         G, off = [], 0
         for i in idx:
-            G.append(per[i][3] + off); off += int(per[i][3].max()) + 1
+            G.append(per[i][4] + off); off += int(per[i][4].max()) + 1
         G = torch.cat(G)
-        if hist:
+        if lvl in ("surv", "evic"):
             Xc = torch.cat([Xc, torch.cat([per[i][1] for i in idx])], 1)
+        if lvl == "evic":
+            Xc = torch.cat([Xc, torch.cat([per[i][2] for i in idx])], 1)
         return Xc, U, G
 
-    print(f"{'held-out':>9}{'(a) s0':>10}{'(b) cur':>10}{'(c) +hist':>11}"
-          f"{'Δloss':>10}{'Δacc':>9}")
+    print(f"{'held-out':>9}{'(a) s0':>9}{'(b) cur':>9}{'(b+存活)':>10}"
+          f"{'(c) +驱逐':>11}{'Δloss':>10}{'Δacc':>9}")
     dls, das = [], []
     for h in range(len(files)):
         tr = [i for i in range(len(files)) if i != h]
         row = {}
-        for nm, hi in (("b", False), ("c", True)):
+        for nm, hi in (("b", "cur"), ("bs", "surv"), ("c", "evic")):
             Xt, Ut, Gt = cat(tr, hi)
             Xv, Uv, Gv = cat([h], hi)
             row[nm] = fit_eval(Xt, Ut, Gt, Xv, Uv, Gv, a.steps, a.n_pairs, 0, dev)
             del Xt, Ut, Gt, Xv, Uv, Gv
         # s0 基线（cur 的最后一列，逐组标准化后单调等价）
-        Xv, Uv, Gv = cat([h], False)
+        Xv, Uv, Gv = cat([h], "cur")
         with torch.no_grad():
             gv = torch.Generator(device=dev).manual_seed(7)
             Dv, wv = _design(Xv, Uv, Gv, 600000, gv, dev)
             a0 = float(((Dv[:, -1] > 0).float() * wv).sum() / wv.sum())
-        dl = row["c"]["lva"] - row["b"]["lva"]
-        da = row["c"]["acc"] - row["b"]["acc"]
+        dl = row["c"]["lva"] - row["bs"]["lva"]   # **对照是 b+存活集**，不是 b
+        da = row["c"]["acc"] - row["bs"]["acc"]
         dls.append(dl); das.append(da)
-        print(f"{'doc%d' % h:>9}{a0:>10.4f}{row['b']['acc']:>10.4f}"
-              f"{row['c']['acc']:>11.4f}{dl:>+10.5f}{da:>+9.4f}", flush=True)
+        print(f"{'doc%d' % h:>9}{a0:>9.4f}{row['b']['acc']:>9.4f}"
+              f"{row['bs']['acc']:>10.4f}{row['c']['acc']:>11.4f}"
+              f"{dl:>+10.5f}{da:>+9.4f}", flush=True)
         del Xv, Uv, Gv
 
     import statistics as st
