@@ -80,7 +80,7 @@ class ControlMemory(nn.Module):
         # 一个可证明存在的历史信号，三臂全部停在 0.50 随机水平。加入 x⊙r 与 <x,r> 后
         # 线性层直接就能算加权内积。
         self.head = nn.Sequential(
-            nn.Linear(3 * d_m + 2, d_m), nn.GELU(), nn.Linear(d_m, 1))
+            nn.Linear(3 * d_m + 3, d_m), nn.GELU(), nn.Linear(d_m, 1))
         # **alpha=0 ⇒ 逐位退化回基线**。这是构造性的，验收里必须实测到。
         self.log_alpha = nn.Parameter(torch.zeros(()))
         self.alpha_on = nn.Parameter(torch.zeros(()))   # sigmoid(0)=0.5 起步太大，见下
@@ -140,7 +140,11 @@ class ControlMemory(nn.Module):
         if self.mode == "shuffled":
             # **成员身份随机置换**：集合大小与统计量不变，只打断"历史↔候选"的对应
             n = x.shape[1]
-            perm = torch.stack([torch.randperm(n, generator=gen)
+            # **generator 的 device 必须和 randperm 的 device 一致**：randperm 默认
+            # 建 CPU 张量，传 CUDA generator 会直接报错。推理路径传的是 CPU generator
+            # 所以一直没暴露，训练脚本传 CUDA generator 时才炸。
+            gdev = gen.device if gen is not None else x.device
+            perm = torch.stack([torch.randperm(n, generator=gen, device=gdev)
                                 for _ in range(x.shape[0])]).to(x.device)
             m_ret = torch.gather(m_ret, 1, perm)
             m_evi = torch.gather(m_evi, 1, perm)
@@ -156,16 +160,24 @@ class ControlMemory(nn.Module):
         return self.gru(u.reshape(-1, d), M.reshape(-1, d)).view(H, K, d)
 
     # ------------------------------------------------------------ 控制器
-    def delta(self, x, r, s0, q=None):
+    def delta(self, x, r, s0, q=None, margin=None):
         """x̃/r [H,n,d_m], s0 [H,n] 原始基线分 → Δs [H,n]（**已含 α 与逐头尺度**）。
 
-        s0 先在 (层,kv头) 内 z-score：`level="pair"` 是全局阈值化，不归一的输入会让
-        控制器隐式学到各头的尺度差异而不是内容。
+        两个标量特征，缺一不可：
+
+        - `z` = s0 在 (层,kv头) 内的 z-score。不归一的话控制器会隐式学各头的尺度差异
+          而不是内容。
+        - `margin` = (s0 − τ)/σ_global，**到全局淘汰阈值的距离**。`level="pair"` 是
+          跨层跨头的全局阈值化，真正决定去留的是 `s0 − τ` 而不是头内排名：两个 token
+          可以有完全相同的 z 却因为所在头整体分数高低不同而一个稳留、一个稳删。
+          只喂 z 等于把决策边界的信息藏起来。τ 在 trace 里已经存了，代价为零。
         """
         z = (s0 - s0.mean(-1, keepdim=True)) / s0.std(-1, keepdim=True).clamp_min(1e-6)
+        mg = torch.zeros_like(z) if margin is None else margin
         qq = x if q is None else q
         dot = (qq * r).sum(-1, keepdim=True) * self.d_m ** -0.5
-        raw = self.head(torch.cat([x, r, qq * r, dot, z[..., None]],
+        raw = self.head(torch.cat([x, r, qq * r, dot,
+                                   z[..., None], mg[..., None]],
                                   dim=-1)).squeeze(-1)
         sb = s0.std(-1, keepdim=True).clamp_min(1e-6)             # 逐头尺度
         return self.alpha * sb * torch.tanh(raw)

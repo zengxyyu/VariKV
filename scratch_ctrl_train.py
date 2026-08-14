@@ -99,6 +99,9 @@ def run_doc(cm, doc, dev, n_pairs, gen, train=True, lam_global=1.0,
     for ci, ch in enumerate(doc["chunks"]):
         new_M = []
         g_sp, g_s0, g_U = [], [], []
+        # 全局尺度：跨该 chunk 所有 (层,kv头) 的基线分标准差
+        gsig_doc = torch.cat([p_["s0"].reshape(-1) for p_ in ch["layers"]]
+                             ).float().std().clamp_min(1e-6).to(dev)
         for l, pl in enumerate(ch["layers"]):
             k = pl["k"].to(dev).float()
             v = pl["v"].to(dev).float()
@@ -110,7 +113,10 @@ def run_doc(cm, doc, dev, n_pairs, gen, train=True, lam_global=1.0,
             x = cm.feat(xr_raw)                                # [H,n,d_m]
             q = cm.q_read(xr_raw)
             r = cm.read(M[l], xr_raw)
-            ds = cm.delta(x, r, s0, q=q)
+            # 到**全局**阈值的距离：level="pair" 决定去留的是 s0−τ，不是头内排名
+            thr = pl.get("thres", None)
+            mg = None if thr is None else (s0 - float(thr)) / gsig_doc
+            ds = cm.delta(x, r, s0, q=q, margin=mg)
             sp = s0 + ds
             sig = s0.std(-1, keepdim=True).clamp_min(1e-6)
             # **只在近阈值子集上算排序损失**

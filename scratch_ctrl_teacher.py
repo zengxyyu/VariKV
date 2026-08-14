@@ -1,5 +1,25 @@
 #!/usr/bin/env python3
-"""VariKV-B 最终版的**未来效用教师**：离线为每个候选 KV 算 U_i。
+"""VariKV-B 最终版的教师：离线为每个候选 KV 算局部注意力损伤 U_i。
+
+**术语要收紧。** U 不是"删除该 token 对模型最终输出的精确影响"——真删掉它，
+后续层的 h/Q/K/V 都会变，这条递归没有展开。准确说法是
+**「在该层满缓存注意力状态下，单 token 移除的精确效应」**，即
+`future-query local attention damage`，写论文时不能叫 exact future utility。
+
+--------------------------------------------------------------------------------
+**两条轨迹必须分开，这是方法 B 的定义要求**
+
+    学生看到的     X_i = [K_i^C ; V_i^C]      ← 压缩轨迹，部署时唯一可见的东西
+    教师给的标签   U_i = U(Q^F, K^F, V^F)     ← 满缓存轨迹，只在训练时可用
+
+此前两者都取自满轨迹，是错的。我曾断言"RetainCache 不物理删除，所以两次预填的 K/V
+相同、只有 q 不同"——**实测证伪**：第一个 chunk 相同，但从第二个 chunk 起，
+压缩掩码改变注意力输出 → 改变隐状态 → 改变后续 chunk 自己的 K/V。
+实测 layer13 相对差 **6.77%**、layer27 0.64%（layer0 恒为 0，因为它的 K 不经注意力）。
+用满轨迹特征训练、压缩轨迹推理 = 协变量偏移。
+
+这样拆开之后方法定义反而更漂亮：
+**VariKV-B 向满缓存 oracle 学习，如何仅凭压缩轨迹上可见的信息做出更好的顺序缓存决策。**
 
 要学的量有精确定义（见 `attention/control_memory.py` 顶部）：无历史选择器最好只能预测
 `E[U|X]`，有历史是 `E[U|X,M]`，控制器学的是二者之差。所以先得有 U。
@@ -142,15 +162,20 @@ def main():
     layers = list(range(L))
 
     n_prune = []
-    docs = (load_fineweb("fineweb_10k")[:a.n_short]
-            + load_fineweb("fineweb_10k_cat")[:a.n_long])
-    print(f"训练文档 {len(docs)} 篇", flush=True)
+    # load_fineweb 返回 {'context': str}，**没有 .ids**，必须自己编码
+    # （与评测同口径 add_special_tokens=False，见 scratch_stage2b_train.py:310）
+    docs = []
+    for src, n_take in (("fineweb_10k", a.n_short), ("fineweb_10k_cat", a.n_long)):
+        for d_ in load_fineweb(src)[:n_take]:
+            docs.append(m.encode(d_["context"])[0].tolist())
+    print(f"训练文档 {len(docs)} 篇，长度 {min(map(len,docs))}-{max(map(len,docs))}",
+          flush=True)
 
     for di, s in enumerate(docs):
         f = os.path.join(ROOT, a.out, f"doc{di:03d}.pt")
         if os.path.exists(f):
             print(f"跳过 doc{di}"); continue
-        ids = s.ids if hasattr(s, "ids") else s
+        ids = s
         need = a.max_ctx + a.target_len
         ctx_ids, tgt = ids[-need:-a.target_len], ids[-a.target_len:]
         if len(ctx_ids) < a.chunk // 2:
@@ -181,6 +206,26 @@ def main():
         if not chunks:
             print(f"doc{di} 没有触发驱逐，跳过"); continue
         n_prune.append(len(chunks))
+        # ---- 先在**压缩轨迹**上选候选并快照特征（部署时可见的就是这些）----
+        cand_sel, feat_c = [], []
+        for c in chunks:
+            lo, n = c["lo"], c["hi"] - c["lo"]
+            sel_l, kv_l = {}, []
+            for l in layers:
+                dist = (c["s0"][l] - c["thres"]).abs()
+                near = dist.argsort(dim=-1)[:, :a.n_keep]
+                g = torch.Generator().manual_seed(1000 * di + lo + l)
+                rnd = torch.stack([torch.randperm(n, generator=g)[:a.n_rand]
+                                   for _ in range(H)])
+                sel = torch.cat([near, rnd], dim=-1)
+                sel_l[l] = sel
+                pos = (sel + lo).to(m.device)
+                kv_l.append((
+                    torch.stack([kv_p.key_cache[l][0][h, pos[h]] for h in range(H)]
+                                ).half().cpu(),
+                    torch.stack([kv_p.value_cache[l][0][h, pos[h]] for h in range(H)]
+                                ).half().cpu()))
+            cand_sel.append(sel_l); feat_c.append(kv_l)
         # **q 必须来自满缓存轨迹。** 上面那次预填带压缩掩码，target 前向时 attention
         # 只看保留下来的 KV ⇒ 得到的 query 是「压缩轨迹的 query」。而 U 要回答的是
         # 「若满缓存可用，删掉这个 token 会损失多少」，所以 (q, K, V) 必须同属满缓存
@@ -194,28 +239,20 @@ def main():
         rec_out = []
         for c in chunks:
             lo, hi, n = c["lo"], c["hi"], c["hi"] - c["lo"]
-            cand, kept = {}, {}
-            for l in layers:
-                dist = (c["s0"][l] - c["thres"]).abs()             # [H,n]
-                near = dist.argsort(dim=-1)[:, :a.n_keep]
-                g = torch.Generator().manual_seed(1000 * di + lo + l)
-                rnd = torch.stack([torch.randperm(n, generator=g)[:a.n_rand]
-                                   for _ in range(H)])
-                sel = torch.cat([near, rnd], dim=-1)               # [H,n_keep+n_rand]
-                cand[l] = (sel + lo).to(m.device)
-                kept[l] = sel
+            sel_l = cand_sel[ci]
+            cand = {l: (sel_l[l] + lo).to(m.device) for l in layers}
+            # 标签用**满轨迹**（q/K/V 都来自不压缩的那次预填）
             U = utility(m, kv, tgt_t, layers, cand, n_qpos=a.n_qpos)
             per_l = []
             for l in layers:
-                sel = kept[l]
-                pos = (sel + lo).to(m.device)
-                kk = torch.stack([kv.key_cache[l][0][h, pos[h]] for h in range(H)])
-                vv = torch.stack([kv.value_cache[l][0][h, pos[h]] for h in range(H)])
+                sel = sel_l[l]
+                kk, vv = feat_c[ci][l]          # **特征来自压缩轨迹**
                 per_l.append(dict(
-                    k=kk.half().cpu(), v=vv.half().cpu(),
+                    k=kk, v=vv,
                     s0=torch.gather(c["s0"][l], 1, sel).cpu(),
                     ret=torch.gather(c["valid"][l], 1, sel).cpu(),
-                    U=U[l].float().cpu(), n_near=a.n_keep))
+                    U=U[l].float().cpu(), n_near=a.n_keep,
+                    thres=float(c["thres"])))
             rec_out.append(dict(thres=c["thres"], layers=per_l))
         torch.save(dict(doc=di, chunks=rec_out, H=H, L=L), f)
         print(f"doc{di}: {len(rec_out)} 次驱逐 → {f}", flush=True)
