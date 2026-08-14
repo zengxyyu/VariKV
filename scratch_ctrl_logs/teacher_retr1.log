@@ -1,5 +1,5 @@
 Replace qwen2.5 attention with gating
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.07it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.10it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.11it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.20it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.16it/s]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.70it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.74it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.76it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.89it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.83it/s]
 
 Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
 load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
@@ -14,54 +14,59 @@ load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
 ))
 KV type: retain
 训练文档 10 篇，长度 103372-122021
-doc0: 检索任务，事实插在 [39580]，共 1 份，target 41 tok
-chunk inputs, size: 16000 (num 8)
-Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:06,  1.04it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.23it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.32it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.31it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.28it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.74it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.42it/s]
-Chunked prefilling with 0.10 ratio, window 4096
-Local window 4096
-chunk inputs, size: 16000 (num 8)
-Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.24it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.75it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.27it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.00s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.58s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.32s/it]
-doc0: 8 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_retr1/doc000.pt
-doc1: 检索任务，事实插在 [33814]，共 1 份，target 45 tok
-chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.54it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.47it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.42it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.37it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.34it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.47it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.45it/s]
-Chunked prefilling with 0.10 ratio, window 4096
-Local window 4096
-chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.23it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.77it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.28it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.00s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.24s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.49s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.61s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.28s/it]
-doc1: 7 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_retr1/doc001.pt
-doc2: 检索任务，事实插在 [71839]，共 1 份，target 42 tok
-chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.53it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.46it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.41it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.37it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.60it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.50it/s]
-Chunked prefilling with 0.10 ratio, window 4096
-Local window 4096
-chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.18it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.75it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.27it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.01s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.25s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.50s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.52s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.24s/it]
-doc2: 7 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_retr1/doc002.pt
-doc3: 检索任务，事实插在 [56822]，共 1 份，target 43 tok
-chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.54it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.47it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.42it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.38it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.34it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.54it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.48it/s]
-Chunked prefilling with 0.10 ratio, window 4096
-Local window 4096
-chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.21it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.77it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.28it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.01s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.24s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.49s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.56s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.26s/it]
-doc3: 7 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_retr1/doc003.pt
-doc4: 检索任务，事实插在 [77541]，共 1 份，target 41 tok
-chunk inputs, size: 16000 (num 8)
-Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.72it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.53it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.46it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.36it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.29it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.54it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.45it/s]
-Chunked prefilling with 0.10 ratio, window 4096
-Local window 4096
-chunk inputs, size: 16000 (num 8)
-Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.20it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.76it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.27it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.01s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.50s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.76s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.77s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.40s/it]
-doc4: 8 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_retr1/doc004.pt
-doc5: 检索任务，事实插在 [43109]，共 1 份，target 42 tok
-chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.52it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.46it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.41it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.37it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.43it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.42it/s]
-Chunked prefilling with 0.10 ratio, window 4096
-Local window 4096
-chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.24it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.77it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.27it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.01s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.25s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.50s/it]Prefill: 100%|██████████| 7/7 [00:09<00:00,  1.64s/it]Prefill: 100%|██████████| 7/7 [00:09<00:00,  1.29s/it]
-doc5: 7 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_retr1/doc005.pt
+跳过 doc0
+跳过 doc1
+跳过 doc2
+跳过 doc3
+跳过 doc4
+跳过 doc5
 doc6: 检索任务，事实插在 [11883]，共 1 份，target 42 tok
 chunk inputs, size: 16000 (num 8)
-Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.71it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.52it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.46it/s]
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:06,  1.04it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.22it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.31it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.31it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.43it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.33it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.24it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.76it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.00s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.82s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.42s/it]
+doc6: 8 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_retr1/doc006.pt
+doc7: 检索任务，事实插在 [76758]，共 1 份，target 46 tok
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.54it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.48it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.42it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.38it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.61it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.51it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.24it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.77it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.27it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.01s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.24s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.49s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.51s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.23s/it]
+doc7: 7 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_retr1/doc007.pt
+doc8: 检索任务，事实插在 [32472]，共 1 份，target 48 tok
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.54it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.47it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.41it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.37it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.41it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.42it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.18it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.76it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.27it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.01s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.25s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.50s/it]Prefill: 100%|██████████| 7/7 [00:09<00:00,  1.65s/it]Prefill: 100%|██████████| 7/7 [00:09<00:00,  1.30s/it]
+doc8: 7 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_retr1/doc008.pt
+doc9: 检索任务，事实插在 [42668]，共 1 份，target 47 tok
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.73it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.47it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.51it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.44it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.21it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.22it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.00it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.79s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.41s/it]
+doc9: 8 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_retr1/doc009.pt
+
+【每篇文档的驱逐次数分布】{7: 2, 8: 2}
+  均值 7.50　P(≥2) 100%　P(≥3) 100%　P(≥4) 100%
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.95it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:00,  2.01it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.04it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.14it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.09it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: retain

@@ -78,6 +78,42 @@ from model.wrapper import ModelKVzip                         # noqa: E402
 # 首篇文档就 KeyError。教师此前从未真机跑过，所以这个 bug 一直没暴露。
 
 
+def load_cat_many(n_docs, min_len=10000, max_len=30000, target=100000):
+    """不受 10^6 token 上限约束的长文档加载器 —— 上游 `load_fineweb` 的 cat 变体
+    在 `total > 10**6` 处 break，只给 10 篇，而检验功效不够。
+
+    功效算术：留一交叉验证下 `Δacc` 的跨文档 sd ≈ 0.031，n=6 时可检出效应
+    2.571·0.031/√6 = 0.033，而 n_dup=3 的点估计是 +0.016 —— **测不出不等于为零**。
+    n=30 时可检出降到 2.045·0.031/√30 = 0.012，才能分辨。
+
+    累积规则与上游 cat 完全一致（同一长度过滤、同一顺序、`\n\n` 拼接到 target
+    token），所以前 10 篇与 `load_fineweb("fineweb_10k_cat")` **逐字节相同**，
+    既有的 trace 可以直接续用、不必重跑。
+    """
+    import numpy as np
+    from datasets import load_dataset
+    sm = load_dataset("HuggingFaceFW/fineweb-edu",
+                      data_files="sample/10BT/000_00000.parquet", split="train")
+    ln = np.array(sm.data.column("token_count"))
+    valid = np.arange(len(ln))[(ln >= min_len) & (ln < max_len)]
+    # **累积规则必须与上游逐字一致**，否则"前 10 篇相同"这句话不成立（首版把
+    # 判断放在累加之后、还 strip 了开头，只对上 1/10）。上游是：
+    #   token_count < target 时 continue 累加；一旦达到就把**已累积的文本**追加
+    #   （不含当前这篇），重置，且**当前这篇被整个丢弃**；context 保留开头的 \n\n。
+    out, text, tc = [], "", 0
+    for i in valid:
+        i = int(i)
+        if tc < target:
+            text += "\n\n" + sm[i]["text"].strip()
+            tc += int(ln[i])
+            continue
+        out.append({"context": text})
+        text, tc = "", 0
+        if len(out) >= n_docs:
+            break
+    return out
+
+
 def make_retrieval(m, ids, max_ctx, window, n_dup, rng):
     """把 fineweb 上下文改造成**检索任务**：插入合成事实，target 换成问句+答案。
 
@@ -215,6 +251,10 @@ def main():
     ap.add_argument("--n_dup", type=int, default=1,
                     help="retrieval 时同一事实插几份（>1 制造冗余结构）")
     ap.add_argument("--task_seed", type=int, default=0)
+    ap.add_argument("--n_cat", type=int, default=0,
+                    help=">0 时改用本地不受 10^6 上限约束的加载器取这么多篇长文档"
+                         "（前 10 篇与上游 cat 变体逐字节相同）。检索探针在 n=6 时"
+                         "功效不足：可检出 0.033 而点估计 0.016。")
     ap.add_argument("--out", default="scratch_ctrl_traces")
     a = ap.parse_args()
 
@@ -228,9 +268,13 @@ def main():
     # load_fineweb 返回 {'context': str}，**没有 .ids**，必须自己编码
     # （与评测同口径 add_special_tokens=False，见 scratch_stage2b_train.py:310）
     docs = []
-    for src, n_take in (("fineweb_10k", a.n_short), ("fineweb_10k_cat", a.n_long)):
-        for d_ in load_fineweb(src)[:n_take]:
+    if a.n_cat > 0:
+        for d_ in load_cat_many(a.n_cat):
             docs.append(m.encode(d_["context"])[0].tolist())
+    else:
+        for src, n_take in (("fineweb_10k", a.n_short), ("fineweb_10k_cat", a.n_long)):
+            for d_ in load_fineweb(src)[:n_take]:
+                docs.append(m.encode(d_["context"])[0].tolist())
     print(f"训练文档 {len(docs)} 篇，长度 {min(map(len,docs))}-{max(map(len,docs))}",
           flush=True)
 
