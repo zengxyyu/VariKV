@@ -71,6 +71,11 @@ def utility(m, kv, tgt_ids, layers, cand_idx, n_qpos=16):
     """
     d = kv.head_dim if hasattr(kv, "head_dim") else m.config.hidden_size // m.config.num_attention_heads
     H = m.config.num_key_value_heads
+    # **必须先记下上下文长度再前向**。`m.model(...)` 走的是 HF 模型而不是 wrapper 的
+    # `__call__`，所以没有 `kv.slice()` 回滚 —— target 的 K/V 会被追加进 cache 且留在
+    # 那里。若在前向之后直接读 `kv.key_cache`，拿到的是 context+target，而我们手写的
+    # softmax 没有因果掩码 ⇒ 位置 t 会看到 t+1 之后的 target key。
+    n_ctx = kv.key_cache[layers[0]].shape[2]
     _Q.clear()
     m.model(tgt_ids, past_key_values=kv)          # 只为触发钩子拿到 query
     out = {}
@@ -82,8 +87,8 @@ def utility(m, kv, tgt_ids, layers, cand_idx, n_qpos=16):
         tsel = torch.linspace(0, T - 1, min(n_qpos, T)).long().to(Aq.device)
         Aq = Aq.view(H, G, T, d)[:, :, tsel]       # [H,G,Tq,d]
         WO = m.model.model.layers[l].self_attn.o_proj.weight.detach().float()  # [dm, HQ*d]
-        K = kv.key_cache[l][0].float()             # [H,n_ctx,d]
-        V = kv.value_cache[l][0].float()
+        K = kv.key_cache[l][0][:, :n_ctx].float()  # **切到上下文**，排除 target 键
+        V = kv.value_cache[l][0][:, :n_ctx].float()
         idx = cand_idx[l]                          # [H,n_cand]
         U = torch.zeros(H, idx.shape[1], device=Aq.device)
         for h in range(H):
@@ -136,6 +141,7 @@ def main():
     H = m.config.num_key_value_heads
     layers = list(range(L))
 
+    n_prune = []
     docs = (load_fineweb("fineweb_10k")[:a.n_short]
             + load_fineweb("fineweb_10k_cat")[:a.n_long])
     print(f"训练文档 {len(docs)} 篇", flush=True)
@@ -167,12 +173,22 @@ def main():
 
         RetainCache.prune_chunk = rec
         try:
-            kv = m.prefill(ctx_t, prefill_chunk_size=a.chunk, do_score=True,
-                           chunk_ratio=a.ratio, window_size=a.window, level=a.level)
+            kv_p = m.prefill(ctx_t, prefill_chunk_size=a.chunk, do_score=True,
+                             chunk_ratio=a.ratio, window_size=a.window,
+                             level=a.level)
         finally:
             RetainCache.prune_chunk = orig
         if not chunks:
             print(f"doc{di} 没有触发驱逐，跳过"); continue
+        n_prune.append(len(chunks))
+        # **q 必须来自满缓存轨迹。** 上面那次预填带压缩掩码，target 前向时 attention
+        # 只看保留下来的 KV ⇒ 得到的 query 是「压缩轨迹的 query」。而 U 要回答的是
+        # 「若满缓存可用，删掉这个 token 会损失多少」，所以 (q, K, V) 必须同属满缓存
+        # 轨迹，否则是个混合反事实——正是之前"局部探针与全局轨迹混用"栽过的坑。
+        # 物理 K/V 两次预填相同（RetainCache 不真删），差别只在 q。
+        del kv_p
+        torch.cuda.empty_cache()
+        kv = m.prefill(ctx_t, prefill_chunk_size=a.chunk, do_score=False)
 
         # ---- 每个 chunk 抽样候选，算 U ----
         rec_out = []
@@ -202,9 +218,19 @@ def main():
                     U=U[l].float().cpu(), n_near=a.n_keep))
             rec_out.append(dict(thres=c["thres"], layers=per_l))
         torch.save(dict(doc=di, chunks=rec_out, H=H, L=L), f)
-        print(f"doc{di}: {len(rec_out)} chunks → {f}", flush=True)
+        print(f"doc{di}: {len(rec_out)} 次驱逐 → {f}", flush=True)
         del kv
         torch.cuda.empty_cache()
+
+
+    # **序列深度必须报出来。** B 学的是 M_{t-1} → selection_t：若每篇只有 1 次驱逐，
+    # 记忆永远没机会影响任何决策，训练是空转的。CLAUDE.md 记过
+    # max_ctx=32768/chunk=16000 实测只有 1.03 次 prune —— 所以这个统计是硬性检查。
+    from collections import Counter
+    print(f"\n【每篇文档的驱逐次数分布】{dict(sorted(Counter(n_prune).items()))}")
+    if n_prune and max(n_prune) <= 1:
+        print("  ⚠ 全部只有 1 次驱逐 ⇒ 记忆从未参与任何决策，这批 trace 不能用来训 B。"
+              "\n     提高 --max_ctx（cat 文档有 103k–122k）或降低 --chunk。")
 
 
 if __name__ == "__main__":

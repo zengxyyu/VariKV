@@ -69,13 +69,20 @@ class LearnedControlRetainCache(RetainCache):
                 feats = []
                 for l in range(self.n_layers):
                     k, v = self._kv(l, pos)
-                    x = self.ctrl.feat(k, v)                        # [H,n,d_m]
-                    r = self.ctrl.read(self.M[l], x)
-                    delta[l, 0] = self.ctrl.delta(x, r, score0[l, 0].float())
+                    # **必须走 raw/feat/read 三件套**：feat() 只收一个已拼好的
+                    # [k;v]，read() 要的是 raw 而不是投影后的 x（读出 query 用的是
+                    # 独立于 x_proj 的投影）。此前这里还停在重构前的两参数签名，
+                    # 评测路径一跑就 TypeError——trainer 同步了，cache 漏了。
+                    xr_raw = self.ctrl.raw(k, v)                    # [H,n,2d]
+                    x = self.ctrl.feat(xr_raw)                      # [H,n,d_m]
+                    q = self.ctrl.q_read(xr_raw)
+                    r = self.ctrl.read(self.M[l], xr_raw)
+                    delta[l, 0] = self.ctrl.delta(
+                        x, r, score0[l, 0].float(), q=q)
                     # **每层用完即弃**：[H,n,d_m] 每层 16 MB，28 层留着就是 450 MB。
                     # 手工版正是在这里踩过 917 MB 的坑。写入阶段重算一次特征更划算。
                     feats.append(None)
-                    del k, v, x, r
+                    del k, v, x, r, q, xr_raw
             if self.active:
                 score = score0 + delta.to(score0.dtype)
                 self.delta_std.append(float(delta.std()))
@@ -106,7 +113,7 @@ class LearnedControlRetainCache(RetainCache):
         with ctx:
             for l in range(self.n_layers):
                 k, v = self._kv(l, pos)
-                x = self.ctrl.feat(k, v)
+                x = self.ctrl.feat(self.ctrl.raw(k, v))    # write 侧要投影后的 x
                 m_ret = valid[l]
                 self.M[l] = self.ctrl.write(self.M[l], x, m_ret, ~m_ret,
                                             gen=self._gen)

@@ -32,10 +32,10 @@ for level in ("local","scalar","direction"):
         for ep in range(40):
             g=torch.Generator().manual_seed(ep)
             for doc in tr:
-                loss,_,_=T.run_doc(cm,doc,'cpu',256,g)
+                loss=T.run_doc(cm,doc,"cpu",256,g)[0]
                 opt.zero_grad(); loss.backward(); opt.step()
         with torch.no_grad():
             gv=torch.Generator().manual_seed(999)
-            out[mode]=sum(T.run_doc(cm,doc,'cpu',512,gv)[2] for doc in va)/len(va)
+            out[mode]=sum(T.run_doc(cm,doc,"cpu",512,gv)[2] for doc in va)/len(va)
     extra = f"   shuffled {out['shuffled']:+.4f}   差 {out['stateful']-out['shuffled']:+.4f}" if 'shuffled' in out else ""
     print(f"{level:<10} stateful {out['stateful']:+.4f}{extra}", flush=True)
