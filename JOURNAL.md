@@ -607,8 +607,49 @@ eviction removed, and the benchmark score goes up. The mechanism is unexplained.
 |---|---|
 | H1 functionally-correct residual representation | **refuted** by `forensic2` (D1 ≈ 0) |
 | H2 representation shortcut / non-local compensation | **open, now the leading candidate** |
-| H3 v1 was simply a lucky training trajectory | **open — v2b decides** |
+| H3 v1 was simply a lucky training trajectory | **CONFIRMED 2026-08-14 — see below** |
 
-v2b remains first priority. If it fails to reproduce, the strange phenomenon that needs
-explaining ("right magnitude, random direction, +21.6 points") does not exist and H2 needs
-no explanation either.
+## 2026-08-14 — the +21.60 does not reproduce: it was training-run variance
+
+Two independent retrains of **byte-identical v1 code** (git worktree at
+`/home/ubuntu/zxy/vlm-memory-repro21`, checked out to v1's commit so no current-tree
+change can leak in; driver `scratch_repro21.sh`), evaluated on Retr.KV @ratio 0.1 against
+the same `__r05b` baseline with the same paired bootstrap:
+
+| run | n | absolute | paired Δ vs baseline |
+|---|---|---|---|
+| original `ckpt_kl/dist` | 100 | 54.20 | **+21.60 [+15.20,+27.60] ★** |
+| replicate r1 | 100 | 15.20 | **−17.40 [−23.20,−12.00] ★** |
+| replicate r2 | 96 | 22.29 | **−8.75 [−14.38,−3.33] ★** |
+
+**Three draws of the same code span 39 points, and all three CIs exclude zero in
+disagreeing directions.** v1's training was unseeded (no `manual_seed`, and the fineweb
+sampler draws per-process), so the replicates are legitimately different trajectories of
+the same procedure — which is exactly what makes this decisive: the procedure's
+*downstream score* is not a property of the method, it is a property of the draw.
+
+What this settles, and what it costs:
+
+- **The one positive result in the project is retracted.** Every statement of the form
+  "answer-token KL distillation recovers 21.60 points on Retr.KV" must be read as one
+  sample from a distribution that also contains −17.40. `ckpt_kl_v2a`'s −13.20 was never
+  a "failure to reproduce due to the `min_chunks=1` corpus bug" — it is an ordinary
+  member of the same spread, and the corpus bug is a red herring for this question.
+- **H2 is dissolved, not answered.** `forensic2` measured a correction that is orthogonal
+  to `Δo` yet coincides with +21.6 points, and I called that "the mechanism is
+  unexplained". There is no longer a coincidence to explain: a random-direction
+  correction of roughly the right magnitude produces a *random* score change, and we
+  happened to see the top of the range first. The forensic measurements themselves
+  (D1 ≈ 0 for learned, 0.85–0.91 for centroid) stand — they were run on fixed
+  checkpoints and do not depend on this.
+- **`dist` vs `point` is unaffected** — it was already unsupported (v2a +2.80, v2s −2.60,
+  both unseparated), and this only explains why v1's +39.60 looked so large.
+- **The training-free centroid is now the project's only surviving positive result.** It
+  has no training trajectory to be lucky in: it is deterministic given the data, and its
+  11-panel mean of +3.66 at ratio 0.1 was measured with per-panel paired bootstraps.
+
+Methodological rule this buys, to be applied to every future learned arm: **a single
+training run is not a measurement.** Report n≥3 seeds with the across-seed spread, or
+report nothing. The threshold for "significant" here was never the paired-bootstrap CI
+over *samples* — that CI was correct and still misled, because it quantifies sampling
+noise in the evaluation set while the dominant variance was in the optimiser.

@@ -76,7 +76,7 @@ class Runner(nn.Module):
         if variant == "oracle":
             self.orc = nn.Linear(DKV, d_m)     # 真实 w → 读出向量
 
-    def forward(self, doc, n_pairs, gen):
+    def forward(self, doc, n_pairs, gen, shuf_gen=None):
         cm = self.cm
         M = [cm.init_state(l) for l in range(L)]
         losses, acc_d = [], []
@@ -117,7 +117,7 @@ class Runner(nn.Module):
                         newM.append(mu)
                 else:
                     xr, rr = x[:, nn_:], pl["ret"][:, nn_:]
-                    newM.append(cm.write(M[l], xr, rr, ~rr, gen=gen))
+                    newM.append(cm.write(M[l], xr, rr, ~rr, gen=shuf_gen or gen))
             M = newM
         return torch.stack(losses).mean(), sum(acc_d) / len(acc_d)
 
@@ -146,15 +146,17 @@ def main():
             opt = torch.optim.AdamW(R.parameters(), lr=a.lr, weight_decay=0.01)
             for ep in range(a.epochs):
                 g = torch.Generator(device=dev).manual_seed(ep)
+                gsh = torch.Generator(device=dev).manual_seed(7919 + ep)
                 for doc in tr:
-                    loss, _ = R(doc, a.n_pairs, g)
+                    loss, _ = R(doc, a.n_pairs, g, shuf_gen=gsh)
                     opt.zero_grad(set_to_none=True)
                     loss.backward()
                     torch.nn.utils.clip_grad_norm_(R.parameters(), 1.0)
                     opt.step()
             with torch.no_grad():
                 gv = torch.Generator(device=dev).manual_seed(999)
-                res[mode] = sum(R(d, 1024, gv)[1] for d in va) / len(va)
+                gvs = torch.Generator(device=dev).manual_seed(54321)
+                res[mode] = sum(R(d, 1024, gv, shuf_gen=gvs)[1] for d in va) / len(va)
             if variant == "oracle":
                 break                      # oracle 与历史无关，一臂足够
         s = res["stateful"]; h = res.get("shuffled", float("nan"))

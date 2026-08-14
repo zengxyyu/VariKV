@@ -450,9 +450,10 @@ The third row is the dangerous one: it is **surprise-gated writing, not distribu
 representation**. So `dist − point` is *not* a measurement of "does variance help" — it
 bundles an independent mechanism. **Any claim that the distributional memory beats the
 point memory requires a surgical ablation** (disable the logvar read / the precision
-terms / the KL-gated `η` one at a time). This matters right now because the
-teacher-KL result is `dist` 54.20 vs `point` 14.60, and that 39.6-point gap is
-currently attributable to at least four causes plus the gate-amplitude confound.
+terms / the KL-gated `η` one at a time). The teacher-KL round's apparent `dist` 54.20 vs
+`point` 14.60 was **not** such evidence: sampling was unmatched, both v2 reruns are
+unseparated, and as of 2026-08-14 the 54.20 itself is known to be one draw of a
+39-point-wide training-run distribution.
 
 ### Bugs that only surface at real scale — do not "simplify" these back
 
@@ -691,6 +692,12 @@ re-derive.
    (3.18% vs 2.07%) and gains nothing — what matters is *which* entries change, not how
    many. Consistent with the 4-arm decomposition (all gain from the content × prefill-
    injection interaction) and with forensic v2 (correction direction orthogonal to `Δo`).
+   **Scope narrowed 2026-08-14:** this decomposes *that checkpoint's* +51.00, and the
+   +51.00 is now known to be a lucky draw (see the retraction above). The decomposition is
+   still the right reading of what the module does mechanically — it moves the mask, not
+   the representation — but "86% of the gain is selection" describes one trajectory's gain,
+   not a reproducible effect size. It is what motivated VariKV-B (control the score, never
+   the attention output), and that motivation is unaffected.
 
 Two standing traps this round re-confirmed. **Never trust a ★ on partial samples**: at
 38/100 Math.Find read −3.95 separated; at 100/100 it is −2.33 not separated. And
@@ -718,13 +725,22 @@ budget across all layers and heads, so per-(layer,head) ratio averaging is badly
 **The measurements → `JOURNAL.md`** (and `RESULTS_2026-08-12.md`, which is authoritative). The
 four things they establish, since planning depends on them:
 
-- **The objective was a first-order cause of failure.** `ckpt_kl/dist` on Retr.KV @0.1 goes
-  32.60 → **54.20**, same architecture and eval as the `lm`-objective checkpoint that scored
-  −43. Then it fails four ways: it does not generalize (8 panels, mean Δ +1.41); "no headroom"
-  is *not* the excuse, since Prefix-Suffix and RepoQA have **more** headroom and gain nothing;
-  it **harms** Retr.MultiHop by −18.36★, ten points below full cache, because the gate is one
-  constant per (layer, kv-head) and never sees the query; and **it has not been reproduced** —
-  four trainings spread 34.8 points.
+- ~~**The objective was a first-order cause of failure.**~~ **RETRACTED 2026-08-14 — the
+  +21.60 was training-run variance.** Two retrains of **byte-identical v1 code** (worktree
+  `/home/ubuntu/zxy/vlm-memory-repro21`, driver `scratch_repro21.sh`) score **−17.40★** and
+  **−8.75★** on the same Retr.KV @0.1 eval where the original scored **+21.60★**. Three draws
+  of one procedure span **39 points** with CIs excluding zero in disagreeing directions; v1
+  was unseeded, so these are legitimate trajectories of the same recipe. `ckpt_kl_v2a`'s
+  −13.20 was therefore never a `min_chunks=1` corpus artifact — it is an ordinary member of
+  the spread. **Consequences: the project has no surviving positive learned result, and the
+  "orthogonal correction yet +21.6 points" puzzle from `forensic2` dissolves rather than
+  needing an explanation.** The four generalization failures listed here before (8 panels
+  mean +1.41, Prefix-Suffix/RepoQA gaining nothing despite more headroom, Retr.MultiHop
+  −18.36★) still stand as measurements; they are just no longer "failures of an otherwise
+  working method". **Standing rule from this: one training run is not a measurement — report
+  n≥3 seeds and the across-seed spread, or report nothing.** A paired bootstrap over
+  evaluation samples was correct here and still misled, because it quantifies eval-set
+  sampling noise while the dominant variance was in the optimiser.
 - **"Distributional beats point" has zero support once sampling is matched** — the v1 gap of
   +39.60★ became unseparated in both v2 reruns, and v1's point arm had degenerate output
   (48.9 characters vs the baseline's 120.5).

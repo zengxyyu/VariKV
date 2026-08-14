@@ -1,0 +1,998 @@
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.58it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.64it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.64it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.80it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.74it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: centroid
+
+scbench_vt loaded, #data: 90
+[cfg] scbench_vt K=16 ratio=0.1 层 5 个 样本 90 条 H=4 d=128
+
+scbench_kv loaded, #data: 100
+[cq] 从 scbench_kv 的 8 条估 C_q 后冻结
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:01<00:10,  1.02s/it]Prefill:  18%|█▊        | 2/11 [00:01<00:07,  1.18it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.25it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:05,  1.27it/s]Prefill:  45%|████▌     | 5/11 [00:04<00:04,  1.26it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:04,  1.25it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.22it/s]Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.20it/s]Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.16it/s]Prefill:  91%|█████████ | 10/11 [00:08<00:00,  1.13it/s]Prefill: 100%|██████████| 11/11 [00:09<00:00,  1.28it/s]Prefill: 100%|██████████| 11/11 [00:09<00:00,  1.22it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-0: 169035 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.64it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.48it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.41it/s]Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.36it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.32it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.28it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.24it/s]Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.20it/s]Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.17it/s]Prefill:  91%|█████████ | 10/11 [00:08<00:00,  1.14it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.28it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.27it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-1: 169258 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.64it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.48it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.41it/s]Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.36it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.31it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.27it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.24it/s]Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.20it/s]Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.16it/s]Prefill:  91%|█████████ | 10/11 [00:08<00:00,  1.13it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.28it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.27it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-2: 169016 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.65it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.48it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.41it/s]Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.36it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.31it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.27it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.24it/s]Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.20it/s]Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.16it/s]Prefill:  91%|█████████ | 10/11 [00:08<00:00,  1.13it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.28it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.27it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-3: 169238 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.64it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.48it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.41it/s]Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.36it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.31it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.27it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.23it/s]Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.20it/s]Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.16it/s]Prefill:  91%|█████████ | 10/11 [00:08<00:00,  1.13it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.27it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.27it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-4: 169084 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.64it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.47it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.40it/s]Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.35it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.31it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.27it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.23it/s]Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.19it/s]Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.16it/s]Prefill:  91%|█████████ | 10/11 [00:08<00:00,  1.12it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.27it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.26it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-5: 169080 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.64it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.47it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.40it/s]Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.35it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.31it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.27it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.23it/s]Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.19it/s]Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.16it/s]Prefill:  91%|█████████ | 10/11 [00:08<00:00,  1.12it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.27it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.26it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-6: 169175 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.63it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.47it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.40it/s]Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.35it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.31it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.26it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.23it/s]Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.19it/s]Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.15it/s]Prefill:  91%|█████████ | 10/11 [00:08<00:00,  1.12it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.26it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.26it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-7: 169154 tokens, KV cache 9.7 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.63it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.46it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.40it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.35it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.31it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.24it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.31it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.33it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-0: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 0 完成，累计 700 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.31it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-1: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 1 完成，累计 1400 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.63it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.47it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.40it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.31it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.33it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-2: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 2 完成，累计 2100 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.63it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.31it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-3: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 3 完成，累计 2800 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.31it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-4: 124537 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 4 完成，累计 3500 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.31it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-5: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 5 完成，累计 4200 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.31it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-6: 124532 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 6 完成，累计 4900 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-7: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 7 完成，累计 5600 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-8: 124530 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 8 完成，累计 6300 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-9: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 9 完成，累计 7000 行
+
+======================================================================================================================
+分簇 × (质量,方向) × oracle 分解　scbench_vt @ratio 0.1　K=16　10 条样本　1400 个 (层,查询头)/分簇
+----------------------------------------------------------------------------------------------------------------------
+C_q = E[aaᵀ]（**二阶矩，非协方差**）d_eff 中位 2.8　top-3 累积谱 0.671　top-8 0.768
+  ⇒ 低秩截断可行性看**累积谱**，不看 d_eff；成本是 O(ndr+nKrI)，不是 O(nKr)
+被驱逐 key 的**有效维度** d_eff（参与率）中位 39.8　⇒ 量化失真下界 ~K^(−2/d_eff) = 0.8699（即 K=16 最多把簇内方差降到这个比例）
+----------------------------------------------------------------------------------------------------------------------
+分簇              logD̂/D 0阶   2阶oracle      2阶1标量      簇内/总 方差 cos(v̂,v)  ‖v̂‖/‖v‖       e
+position            -2.883     -0.013     -0.523       0.7835    0.6597    1.0357  0.8358
+random              -3.920     +0.140     -0.641       0.9999    0.6603    1.0489  0.8366
+kmeans              -2.267     +0.227     +0.023       0.6512    0.8664    1.0109  0.5366
+Cq-kmeans           -1.915     +0.140     +0.478       0.5677    0.9157    0.9967  0.4434
+score-oracle        -0.528     -0.189     +1.707       0.0117    0.9692    1.0076  0.2666
+----------------------------------------------------------------------------------------------------------------------
+四格 oracle + 二阶（‖o−o_full‖/‖Δo‖ 中位，1.0 = 完全不修正）
+分簇                   现方法      只修质量      只修方向       交互   2阶oracle      2阶1标量
+position          0.9650    0.8119    0.9374  -0.7844     0.8917     0.9653
+random            0.9837    0.8133    0.9755  -0.8051     1.0361     0.9536
+kmeans            0.9132    0.5028    0.8729  -0.4625     0.7885     0.7808
+Cq-kmeans         0.8734    0.4250    0.8232  -0.3748     0.6140     0.9646
+score-oracle      0.4321    0.2734    0.3659  -0.2072     0.2966     2.6057
+----------------------------------------------------------------------------------------------------------------------
+γ-sweep（保持各自的 v̂，只缩放真实质量 γ·D_E）
+分簇                 0.00     0.05     0.10     0.25     0.50     0.75     1.00     1.50      最优 γ
+position         1.0000   0.9498   0.9027   0.7820   0.6802   0.7048   0.8119   1.1185       0.5
+random           1.0000   0.9494   0.9025   0.7819   0.6804   0.7065   0.8133   1.1238       0.5
+kmeans           1.0000   0.9470   0.8956   0.7531   0.5688   0.4774   0.5028   0.7883      0.75
+Cq-kmeans        1.0000   0.9455   0.8937   0.7437   0.5298   0.4034   0.4250   0.7203      0.75
+score-oracle     1.0000   0.9405   0.8826   0.7201   0.4733   0.2863   0.2734   0.5924         1
+----------------------------------------------------------------------------------------------------------------------
+**层级聚合误差**（‖Σ_h W_h(ô−o_full)‖ / ‖Σ_h W_h Δo‖）—— 这才是残差流看到的
+分簇                   现方法      只修质量      只修方向   2阶oracle      2阶1标量    cos(现方法)
+position          0.8727    0.7780    0.8125     1.4008     1.3099      0.6522
+random            0.9140    0.7832    0.8577     1.7455     1.3607      0.5516
+kmeans            0.7355    0.5027    0.6556     0.8884     1.1724      0.7757
+Cq-kmeans         0.7111    0.4773    0.6305     0.7040     2.2298      0.8257
+score-oracle      0.3394    0.2635    0.2567     0.2496     2.3039      0.9560
+
+  收缩理论预测 γ* = 1/(1+e²) 中位 = 0.7768
+======================================================================================================================
+判读（预注册）：
+  **score-oracle 是最关键的一行。** 它按 aᵀk_i 在一维上分等量桶 ⇒ 簇内 logit
+     方差按构造最小 ⇒ 质量近乎精确，剩下的输出误差**纯粹是 value 方向误差**。
+     若 score-oracle 缺口≈0 而 k-means 不是 ⇒ 瓶颈是**缺 query 信息**，不是容量，
+     这正好解释 Attention Matching 为何必须用 reference queries。
+     若连 score-oracle 都留大缺口 ⇒ 容量才是绑定约束。
+  k-means 缺口小 且 γ*≈1  ⇒ 旧的 centroid/Jensen/shrinkage 故事基本死
+  k-means 缺口大 且 γ*<1  ⇒ 存在真正的校准问题（注意这仍是净放大 γ*/r_D，
+     是标准 bias–variance 收缩，不是「越准越坏」的反常）
+  random ≈ k-means        ⇒ 分簇策略根本不是主变量（别漏看这一行）
+  「2阶1标量」若接近「2阶oracle」⇒ 各向同性假设成立，每簇 +1 scalar 可部署；
+     若差很远 ⇒ 只有 oracle 版有效，而存 Σ_kk 是 +6376% 状态，压缩故事死
+注意：本探针只测局部注意力误差。Retr.MultiHop 已证明「更接近满缓存」≠
+     「任务分数更高」，任何 γ / 修法都还需要一次下游验证。
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-10: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 10 完成，累计 7700 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-11: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 11 完成，累计 8400 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-12: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 12 完成，累计 9100 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-13: 124537 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 13 完成，累计 9800 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.47it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-14: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 14 完成，累计 10500 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-15: 124536 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 15 完成，累计 11200 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-16: 124532 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 16 完成，累计 11900 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.47it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.40it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-17: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 17 完成，累计 12600 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.31it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-18: 124544 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 18 完成，累计 13300 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.47it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-19: 124533 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 19 完成，累计 14000 行
+
+======================================================================================================================
+分簇 × (质量,方向) × oracle 分解　scbench_vt @ratio 0.1　K=16　20 条样本　2800 个 (层,查询头)/分簇
+----------------------------------------------------------------------------------------------------------------------
+C_q = E[aaᵀ]（**二阶矩，非协方差**）d_eff 中位 2.8　top-3 累积谱 0.671　top-8 0.768
+  ⇒ 低秩截断可行性看**累积谱**，不看 d_eff；成本是 O(ndr+nKrI)，不是 O(nKr)
+被驱逐 key 的**有效维度** d_eff（参与率）中位 39.8　⇒ 量化失真下界 ~K^(−2/d_eff) = 0.8699（即 K=16 最多把簇内方差降到这个比例）
+----------------------------------------------------------------------------------------------------------------------
+分簇              logD̂/D 0阶   2阶oracle      2阶1标量      簇内/总 方差 cos(v̂,v)  ‖v̂‖/‖v‖       e
+position            -2.859     +0.001     -0.530       0.7835    0.6638    1.0365  0.8358
+random              -3.887     +0.149     -0.648       0.9999    0.6671    1.0490  0.8361
+kmeans              -2.251     +0.227     +0.018       0.6505    0.8682    1.0126  0.5363
+Cq-kmeans           -1.908     +0.140     +0.466       0.5684    0.9171    0.9920  0.4358
+score-oracle        -0.521     -0.188     +1.694       0.0116    0.9701    1.0064  0.2663
+----------------------------------------------------------------------------------------------------------------------
+四格 oracle + 二阶（‖o−o_full‖/‖Δo‖ 中位，1.0 = 完全不修正）
+分簇                   现方法      只修质量      只修方向       交互   2阶oracle      2阶1标量
+position          0.9636    0.8102    0.9357  -0.7824     0.8934     0.9636
+random            0.9835    0.8119    0.9753  -0.8038     1.0423     0.9551
+kmeans            0.9107    0.5024    0.8714  -0.4630     0.7845     0.7761
+Cq-kmeans         0.8722    0.4240    0.8247  -0.3765     0.6089     0.9538
+score-oracle      0.4283    0.2731    0.3565  -0.2013     0.2958     2.5422
+----------------------------------------------------------------------------------------------------------------------
+γ-sweep（保持各自的 v̂，只缩放真实质量 γ·D_E）
+分簇                 0.00     0.05     0.10     0.25     0.50     0.75     1.00     1.50      最优 γ
+position         1.0000   0.9497   0.9026   0.7818   0.6799   0.7077   0.8102   1.1190       0.5
+random           1.0000   0.9494   0.9025   0.7821   0.6803   0.7124   0.8119   1.1248       0.5
+kmeans           1.0000   0.9468   0.8952   0.7530   0.5681   0.4750   0.5024   0.7961      0.75
+Cq-kmeans        1.0000   0.9458   0.8939   0.7447   0.5299   0.4038   0.4240   0.7193      0.75
+score-oracle     1.0000   0.9405   0.8829   0.7205   0.4737   0.2838   0.2731   0.5916         1
+----------------------------------------------------------------------------------------------------------------------
+**层级聚合误差**（‖Σ_h W_h(ô−o_full)‖ / ‖Σ_h W_h Δo‖）—— 这才是残差流看到的
+分簇                   现方法      只修质量      只修方向   2阶oracle      2阶1标量    cos(现方法)
+position          0.8799    0.7772    0.8097     1.4433     1.3028      0.6560
+random            0.9127    0.7821    0.8585     1.7495     1.3607      0.5570
+kmeans            0.7337    0.5027    0.6494     0.8884     1.1697      0.7801
+Cq-kmeans         0.7076    0.4784    0.6155     0.6949     2.2990      0.8213
+score-oracle      0.3423    0.2694    0.2521     0.2590     2.2888      0.9497
+
+  收缩理论预测 γ* = 1/(1+e²) 中位 = 0.7780
+======================================================================================================================
+判读（预注册）：
+  **score-oracle 是最关键的一行。** 它按 aᵀk_i 在一维上分等量桶 ⇒ 簇内 logit
+     方差按构造最小 ⇒ 质量近乎精确，剩下的输出误差**纯粹是 value 方向误差**。
+     若 score-oracle 缺口≈0 而 k-means 不是 ⇒ 瓶颈是**缺 query 信息**，不是容量，
+     这正好解释 Attention Matching 为何必须用 reference queries。
+     若连 score-oracle 都留大缺口 ⇒ 容量才是绑定约束。
+  k-means 缺口小 且 γ*≈1  ⇒ 旧的 centroid/Jensen/shrinkage 故事基本死
+  k-means 缺口大 且 γ*<1  ⇒ 存在真正的校准问题（注意这仍是净放大 γ*/r_D，
+     是标准 bias–variance 收缩，不是「越准越坏」的反常）
+  random ≈ k-means        ⇒ 分簇策略根本不是主变量（别漏看这一行）
+  「2阶1标量」若接近「2阶oracle」⇒ 各向同性假设成立，每簇 +1 scalar 可部署；
+     若差很远 ⇒ 只有 oracle 版有效，而存 Σ_kk 是 +6376% 状态，压缩故事死
+注意：本探针只测局部注意力误差。Retr.MultiHop 已证明「更接近满缓存」≠
+     「任务分数更高」，任何 γ / 修法都还需要一次下游验证。
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-20: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 20 完成，累计 14700 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-21: 124537 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 21 完成，累计 15400 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-22: 124551 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 22 完成，累计 16100 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.63it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.47it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.40it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.31it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.33it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-23: 124545 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 23 完成，累计 16800 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-24: 124529 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 24 完成，累计 17500 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-25: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 25 完成，累计 18200 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.31it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-26: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 26 完成，累计 18900 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-27: 124542 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 27 完成，累计 19600 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-28: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 28 完成，累计 20300 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-29: 124543 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 29 完成，累计 21000 行
+
+======================================================================================================================
+分簇 × (质量,方向) × oracle 分解　scbench_vt @ratio 0.1　K=16　30 条样本　4200 个 (层,查询头)/分簇
+----------------------------------------------------------------------------------------------------------------------
+C_q = E[aaᵀ]（**二阶矩，非协方差**）d_eff 中位 2.8　top-3 累积谱 0.671　top-8 0.768
+  ⇒ 低秩截断可行性看**累积谱**，不看 d_eff；成本是 O(ndr+nKrI)，不是 O(nKr)
+被驱逐 key 的**有效维度** d_eff（参与率）中位 39.8　⇒ 量化失真下界 ~K^(−2/d_eff) = 0.8699（即 K=16 最多把簇内方差降到这个比例）
+----------------------------------------------------------------------------------------------------------------------
+分簇              logD̂/D 0阶   2阶oracle      2阶1标量      簇内/总 方差 cos(v̂,v)  ‖v̂‖/‖v‖       e
+position            -2.869     -0.002     -0.529       0.7828    0.6661    1.0370  0.8368
+random              -3.887     +0.149     -0.657       0.9999    0.6700    1.0493  0.8368
+kmeans              -2.258     +0.230     +0.017       0.6509    0.8660    1.0109  0.5397
+Cq-kmeans           -1.908     +0.139     +0.467       0.5713    0.9144    0.9914  0.4434
+score-oracle        -0.525     -0.188     +1.694       0.0116    0.9698    1.0062  0.2680
+----------------------------------------------------------------------------------------------------------------------
+四格 oracle + 二阶（‖o−o_full‖/‖Δo‖ 中位，1.0 = 完全不修正）
+分簇                   现方法      只修质量      只修方向       交互   2阶oracle      2阶1标量
+position          0.9648    0.8119    0.9360  -0.7830     0.8941     0.9651
+random            0.9835    0.8156    0.9752  -0.8073     1.0367     0.9554
+kmeans            0.9124    0.5069    0.8733  -0.4677     0.7885     0.7788
+Cq-kmeans         0.8720    0.4290    0.8252  -0.3821     0.6144     0.9646
+score-oracle      0.4298    0.2771    0.3581  -0.2054     0.2970     2.5428
+----------------------------------------------------------------------------------------------------------------------
+γ-sweep（保持各自的 v̂，只缩放真实质量 γ·D_E）
+分簇                 0.00     0.05     0.10     0.25     0.50     0.75     1.00     1.50      最优 γ
+position         1.0000   0.9498   0.9027   0.7820   0.6809   0.7120   0.8119   1.1259       0.5
+random           1.0000   0.9495   0.9026   0.7826   0.6807   0.7146   0.8156   1.1296       0.5
+kmeans           1.0000   0.9469   0.8953   0.7531   0.5697   0.4775   0.5069   0.7982      0.75
+Cq-kmeans        1.0000   0.9459   0.8943   0.7456   0.5328   0.4071   0.4290   0.7270      0.75
+score-oracle     1.0000   0.9406   0.8831   0.7207   0.4740   0.2841   0.2771   0.5916         1
+----------------------------------------------------------------------------------------------------------------------
+**层级聚合误差**（‖Σ_h W_h(ô−o_full)‖ / ‖Σ_h W_h Δo‖）—— 这才是残差流看到的
+分簇                   现方法      只修质量      只修方向   2阶oracle      2阶1标量    cos(现方法)
+position          0.8812    0.7764    0.8108     1.4412     1.2979      0.6525
+random            0.9116    0.7812    0.8577     1.7450     1.3593      0.5544
+kmeans            0.7337    0.5109    0.6494     0.8928     1.1675      0.7808
+Cq-kmeans         0.7082    0.4857    0.6206     0.6955     2.2579      0.8224
+score-oracle      0.3466    0.2702    0.2534     0.2647     2.2846      0.9486
+
+  收缩理论预测 γ* = 1/(1+e²) 中位 = 0.7759
+======================================================================================================================
+判读（预注册）：
+  **score-oracle 是最关键的一行。** 它按 aᵀk_i 在一维上分等量桶 ⇒ 簇内 logit
+     方差按构造最小 ⇒ 质量近乎精确，剩下的输出误差**纯粹是 value 方向误差**。
+     若 score-oracle 缺口≈0 而 k-means 不是 ⇒ 瓶颈是**缺 query 信息**，不是容量，
+     这正好解释 Attention Matching 为何必须用 reference queries。
+     若连 score-oracle 都留大缺口 ⇒ 容量才是绑定约束。
+  k-means 缺口小 且 γ*≈1  ⇒ 旧的 centroid/Jensen/shrinkage 故事基本死
+  k-means 缺口大 且 γ*<1  ⇒ 存在真正的校准问题（注意这仍是净放大 γ*/r_D，
+     是标准 bias–variance 收缩，不是「越准越坏」的反常）
+  random ≈ k-means        ⇒ 分簇策略根本不是主变量（别漏看这一行）
+  「2阶1标量」若接近「2阶oracle」⇒ 各向同性假设成立，每簇 +1 scalar 可部署；
+     若差很远 ⇒ 只有 oracle 版有效，而存 Σ_kk 是 +6376% 状态，压缩故事死
+注意：本探针只测局部注意力误差。Retr.MultiHop 已证明「更接近满缓存」≠
+     「任务分数更高」，任何 γ / 修法都还需要一次下游验证。
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-30: 124542 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 30 完成，累计 21700 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-31: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 31 完成，累计 22400 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.47it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-32: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 32 完成，累计 23100 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-33: 124536 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 33 完成，累计 23800 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-34: 124537 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 34 完成，累计 24500 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-35: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 35 完成，累计 25200 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-36: 124532 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 36 完成，累计 25900 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-37: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 37 完成，累计 26600 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.67it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-38: 124547 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 38 完成，累计 27300 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-39: 124546 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 39 完成，累计 28000 行
+
+======================================================================================================================
+分簇 × (质量,方向) × oracle 分解　scbench_vt @ratio 0.1　K=16　40 条样本　5600 个 (层,查询头)/分簇
+----------------------------------------------------------------------------------------------------------------------
+C_q = E[aaᵀ]（**二阶矩，非协方差**）d_eff 中位 2.8　top-3 累积谱 0.671　top-8 0.768
+  ⇒ 低秩截断可行性看**累积谱**，不看 d_eff；成本是 O(ndr+nKrI)，不是 O(nKr)
+被驱逐 key 的**有效维度** d_eff（参与率）中位 39.8　⇒ 量化失真下界 ~K^(−2/d_eff) = 0.8699（即 K=16 最多把簇内方差降到这个比例）
+----------------------------------------------------------------------------------------------------------------------
+分簇              logD̂/D 0阶   2阶oracle      2阶1标量      簇内/总 方差 cos(v̂,v)  ‖v̂‖/‖v‖       e
+position            -2.874     -0.002     -0.523       0.7825    0.6652    1.0365  0.8362
+random              -3.896     +0.158     -0.669       0.9999    0.6692    1.0493  0.8366
+kmeans              -2.259     +0.228     +0.020       0.6503    0.8664    1.0105  0.5396
+Cq-kmeans           -1.918     +0.137     +0.462       0.5727    0.9146    0.9923  0.4439
+score-oracle        -0.527     -0.188     +1.694       0.0116    0.9701    1.0061  0.2676
+----------------------------------------------------------------------------------------------------------------------
+四格 oracle + 二阶（‖o−o_full‖/‖Δo‖ 中位，1.0 = 完全不修正）
+分簇                   现方法      只修质量      只修方向       交互   2阶oracle      2阶1标量
+position          0.9649    0.8125    0.9365  -0.7841     0.8944     0.9636
+random            0.9840    0.8160    0.9754  -0.8073     1.0392     0.9545
+kmeans            0.9126    0.5069    0.8740  -0.4684     0.7826     0.7799
+Cq-kmeans         0.8736    0.4310    0.8272  -0.3846     0.6147     0.9638
+score-oracle      0.4311    0.2772    0.3609  -0.2070     0.2973     2.5433
+----------------------------------------------------------------------------------------------------------------------
+γ-sweep（保持各自的 v̂，只缩放真实质量 γ·D_E）
+分簇                 0.00     0.05     0.10     0.25     0.50     0.75     1.00     1.50      最优 γ
+position         1.0000   0.9498   0.9027   0.7818   0.6800   0.7129   0.8125   1.1273       0.5
+random           1.0000   0.9496   0.9027   0.7822   0.6803   0.7154   0.8160   1.1307       0.5
+kmeans           1.0000   0.9470   0.8954   0.7536   0.5702   0.4776   0.5069   0.8002      0.75
+Cq-kmeans        1.0000   0.9459   0.8944   0.7458   0.5330   0.4071   0.4310   0.7280      0.75
+score-oracle     1.0000   0.9408   0.8833   0.7209   0.4742   0.2847   0.2772   0.5904         1
+----------------------------------------------------------------------------------------------------------------------
+**层级聚合误差**（‖Σ_h W_h(ô−o_full)‖ / ‖Σ_h W_h Δo‖）—— 这才是残差流看到的
+分簇                   现方法      只修质量      只修方向   2阶oracle      2阶1标量    cos(现方法)
+position          0.8818    0.7764    0.8109     1.4433     1.3004      0.6527
+random            0.9118    0.7804    0.8574     1.7444     1.3587      0.5542
+kmeans            0.7337    0.5116    0.6504     0.9280     1.1615      0.7819
+Cq-kmeans         0.7076    0.4857    0.6206     0.7011     2.2773      0.8180
+score-oracle      0.3479    0.2702    0.2534     0.2645     2.2816      0.9483
+
+  收缩理论预测 γ* = 1/(1+e²) 中位 = 0.7755
+======================================================================================================================
+判读（预注册）：
+  **score-oracle 是最关键的一行。** 它按 aᵀk_i 在一维上分等量桶 ⇒ 簇内 logit
+     方差按构造最小 ⇒ 质量近乎精确，剩下的输出误差**纯粹是 value 方向误差**。
+     若 score-oracle 缺口≈0 而 k-means 不是 ⇒ 瓶颈是**缺 query 信息**，不是容量，
+     这正好解释 Attention Matching 为何必须用 reference queries。
+     若连 score-oracle 都留大缺口 ⇒ 容量才是绑定约束。
+  k-means 缺口小 且 γ*≈1  ⇒ 旧的 centroid/Jensen/shrinkage 故事基本死
+  k-means 缺口大 且 γ*<1  ⇒ 存在真正的校准问题（注意这仍是净放大 γ*/r_D，
+     是标准 bias–variance 收缩，不是「越准越坏」的反常）
+  random ≈ k-means        ⇒ 分簇策略根本不是主变量（别漏看这一行）
+  「2阶1标量」若接近「2阶oracle」⇒ 各向同性假设成立，每簇 +1 scalar 可部署；
+     若差很远 ⇒ 只有 oracle 版有效，而存 Σ_kk 是 +6376% 状态，压缩故事死
+注意：本探针只测局部注意力误差。Retr.MultiHop 已证明「更接近满缓存」≠
+     「任务分数更高」，任何 γ / 修法都还需要一次下游验证。
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-40: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 40 完成，累计 28700 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.67it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-41: 124536 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 41 完成，累计 29400 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-42: 124537 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 42 完成，累计 30100 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-43: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 43 完成，累计 30800 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.67it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-44: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 44 完成，累计 31500 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-45: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 45 完成，累计 32200 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.63it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-46: 124532 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 46 完成，累计 32900 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-47: 124529 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 47 完成，累计 33600 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-48: 124543 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 48 完成，累计 34300 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-49: 124535 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 49 完成，累计 35000 行
+
+======================================================================================================================
+分簇 × (质量,方向) × oracle 分解　scbench_vt @ratio 0.1　K=16　50 条样本　7000 个 (层,查询头)/分簇
+----------------------------------------------------------------------------------------------------------------------
+C_q = E[aaᵀ]（**二阶矩，非协方差**）d_eff 中位 2.8　top-3 累积谱 0.671　top-8 0.768
+  ⇒ 低秩截断可行性看**累积谱**，不看 d_eff；成本是 O(ndr+nKrI)，不是 O(nKr)
+被驱逐 key 的**有效维度** d_eff（参与率）中位 39.8　⇒ 量化失真下界 ~K^(−2/d_eff) = 0.8699（即 K=16 最多把簇内方差降到这个比例）
+----------------------------------------------------------------------------------------------------------------------
+分簇              logD̂/D 0阶   2阶oracle      2阶1标量      簇内/总 方差 cos(v̂,v)  ‖v̂‖/‖v‖       e
+position            -2.870     -0.002     -0.515       0.7823    0.6676    1.0362  0.8355
+random              -3.891     +0.160     -0.662       0.9999    0.6728    1.0491  0.8357
+kmeans              -2.262     +0.227     +0.019       0.6503    0.8677    1.0090  0.5391
+Cq-kmeans           -1.910     +0.137     +0.466       0.5727    0.9162    0.9932  0.4413
+score-oracle        -0.525     -0.188     +1.695       0.0116    0.9703    1.0062  0.2674
+----------------------------------------------------------------------------------------------------------------------
+四格 oracle + 二阶（‖o−o_full‖/‖Δo‖ 中位，1.0 = 完全不修正）
+分簇                   现方法      只修质量      只修方向       交互   2阶oracle      2阶1标量
+position          0.9646    0.8104    0.9364  -0.7822     0.8949     0.9640
+random            0.9840    0.8131    0.9753  -0.8045     1.0381     0.9546
+kmeans            0.9126    0.5049    0.8737  -0.4660     0.7840     0.7793
+Cq-kmeans         0.8721    0.4252    0.8256  -0.3787     0.6100     0.9654
+score-oracle      0.4303    0.2764    0.3583  -0.2045     0.2960     2.5446
+----------------------------------------------------------------------------------------------------------------------
+γ-sweep（保持各自的 v̂，只缩放真实质量 γ·D_E）
+分簇                 0.00     0.05     0.10     0.25     0.50     0.75     1.00     1.50      最优 γ
+position         1.0000   0.9498   0.9027   0.7813   0.6784   0.7103   0.8104   1.1250       0.5
+random           1.0000   0.9495   0.9026   0.7818   0.6786   0.7122   0.8131   1.1286       0.5
+kmeans           1.0000   0.9470   0.8954   0.7536   0.5701   0.4770   0.5049   0.7966      0.75
+Cq-kmeans        1.0000   0.9457   0.8941   0.7451   0.5321   0.4044   0.4252   0.7240      0.75
+score-oracle     1.0000   0.9409   0.8834   0.7209   0.4740   0.2836   0.2764   0.5899         1
+----------------------------------------------------------------------------------------------------------------------
+**层级聚合误差**（‖Σ_h W_h(ô−o_full)‖ / ‖Σ_h W_h Δo‖）—— 这才是残差流看到的
+分簇                   现方法      只修质量      只修方向   2阶oracle      2阶1标量    cos(现方法)
+position          0.8825    0.7761    0.8109     1.4481     1.3126      0.6536
+random            0.9123    0.7795    0.8573     1.7469     1.3587      0.5539
+kmeans            0.7340    0.5044    0.6517     0.9447     1.1615      0.7837
+Cq-kmeans         0.7082    0.4824    0.6141     0.7049     2.2949      0.8177
+score-oracle      0.3464    0.2702    0.2532     0.2642     2.2743      0.9480
+
+  收缩理论预测 γ* = 1/(1+e²) 中位 = 0.7763
+======================================================================================================================
+判读（预注册）：
+  **score-oracle 是最关键的一行。** 它按 aᵀk_i 在一维上分等量桶 ⇒ 簇内 logit
+     方差按构造最小 ⇒ 质量近乎精确，剩下的输出误差**纯粹是 value 方向误差**。
+     若 score-oracle 缺口≈0 而 k-means 不是 ⇒ 瓶颈是**缺 query 信息**，不是容量，
+     这正好解释 Attention Matching 为何必须用 reference queries。
+     若连 score-oracle 都留大缺口 ⇒ 容量才是绑定约束。
+  k-means 缺口小 且 γ*≈1  ⇒ 旧的 centroid/Jensen/shrinkage 故事基本死
+  k-means 缺口大 且 γ*<1  ⇒ 存在真正的校准问题（注意这仍是净放大 γ*/r_D，
+     是标准 bias–variance 收缩，不是「越准越坏」的反常）
+  random ≈ k-means        ⇒ 分簇策略根本不是主变量（别漏看这一行）
+  「2阶1标量」若接近「2阶oracle」⇒ 各向同性假设成立，每簇 +1 scalar 可部署；
+     若差很远 ⇒ 只有 oracle 版有效，而存 Σ_kk 是 +6376% 状态，压缩故事死
+注意：本探针只测局部注意力误差。Retr.MultiHop 已证明「更接近满缓存」≠
+     「任务分数更高」，任何 γ / 修法都还需要一次下游验证。
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-50: 124545 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 50 完成，累计 35700 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-51: 124543 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 51 完成，累计 36400 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.67it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-52: 124535 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 52 完成，累计 37100 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-53: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 53 完成，累计 37800 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-54: 124545 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 54 完成，累计 38500 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.40it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.36it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-55: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 55 完成，累计 39200 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.63it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-56: 124544 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 56 完成，累计 39900 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-57: 124547 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 57 完成，累计 40600 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.67it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-58: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 58 完成，累计 41300 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.67it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-59: 124549 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 59 完成，累计 42000 行
+
+======================================================================================================================
+分簇 × (质量,方向) × oracle 分解　scbench_vt @ratio 0.1　K=16　60 条样本　8400 个 (层,查询头)/分簇
+----------------------------------------------------------------------------------------------------------------------
+C_q = E[aaᵀ]（**二阶矩，非协方差**）d_eff 中位 2.8　top-3 累积谱 0.671　top-8 0.768
+  ⇒ 低秩截断可行性看**累积谱**，不看 d_eff；成本是 O(ndr+nKrI)，不是 O(nKr)
+被驱逐 key 的**有效维度** d_eff（参与率）中位 39.8　⇒ 量化失真下界 ~K^(−2/d_eff) = 0.8699（即 K=16 最多把簇内方差降到这个比例）
+----------------------------------------------------------------------------------------------------------------------
+分簇              logD̂/D 0阶   2阶oracle      2阶1标量      簇内/总 方差 cos(v̂,v)  ‖v̂‖/‖v‖       e
+position            -2.873     +0.003     -0.516       0.7823    0.6678    1.0358  0.8359
+random              -3.896     +0.163     -0.672       0.9999    0.6732    1.0490  0.8365
+kmeans              -2.264     +0.226     +0.015       0.6505    0.8684    1.0091  0.5386
+Cq-kmeans           -1.914     +0.139     +0.463       0.5733    0.9162    0.9928  0.4411
+score-oracle        -0.526     -0.189     +1.698       0.0116    0.9703    1.0061  0.2675
+----------------------------------------------------------------------------------------------------------------------
+四格 oracle + 二阶（‖o−o_full‖/‖Δo‖ 中位，1.0 = 完全不修正）
+分簇                   现方法      只修质量      只修方向       交互   2阶oracle      2阶1标量
+position          0.9649    0.8099    0.9367  -0.7817     0.8975     0.9638
+random            0.9841    0.8129    0.9753  -0.8041     1.0416     0.9552
+kmeans            0.9128    0.5045    0.8743  -0.4660     0.7836     0.7799
+Cq-kmeans         0.8725    0.4253    0.8266  -0.3794     0.6127     0.9670
+score-oracle      0.4311    0.2773    0.3604  -0.2066     0.2967     2.5598
+----------------------------------------------------------------------------------------------------------------------
+γ-sweep（保持各自的 v̂，只缩放真实质量 γ·D_E）
+分簇                 0.00     0.05     0.10     0.25     0.50     0.75     1.00     1.50      最优 γ
+position         1.0000   0.9498   0.9027   0.7816   0.6779   0.7071   0.8099   1.1260       0.5
+random           1.0000   0.9496   0.9027   0.7824   0.6786   0.7107   0.8129   1.1307       0.5
+kmeans           1.0000   0.9470   0.8955   0.7535   0.5697   0.4770   0.5045   0.7971      0.75
+Cq-kmeans        1.0000   0.9458   0.8942   0.7452   0.5326   0.4044   0.4253   0.7227      0.75
+score-oracle     1.0000   0.9409   0.8834   0.7211   0.4744   0.2838   0.2773   0.5883         1
+----------------------------------------------------------------------------------------------------------------------
+**层级聚合误差**（‖Σ_h W_h(ô−o_full)‖ / ‖Σ_h W_h Δo‖）—— 这才是残差流看到的
+分簇                   现方法      只修质量      只修方向   2阶oracle      2阶1标量    cos(现方法)
+position          0.8819    0.7761    0.8100     1.4491     1.3123      0.6532
+random            0.9118    0.7799    0.8566     1.7455     1.3587      0.5547
+kmeans            0.7370    0.5016    0.6517     0.9484     1.1662      0.7819
+Cq-kmeans         0.7108    0.4817    0.6236     0.7049     2.2965      0.8171
+score-oracle      0.3464    0.2712    0.2534     0.2647     2.2762      0.9477
+
+  收缩理论预测 γ* = 1/(1+e²) 中位 = 0.7765
+======================================================================================================================
+判读（预注册）：
+  **score-oracle 是最关键的一行。** 它按 aᵀk_i 在一维上分等量桶 ⇒ 簇内 logit
+     方差按构造最小 ⇒ 质量近乎精确，剩下的输出误差**纯粹是 value 方向误差**。
+     若 score-oracle 缺口≈0 而 k-means 不是 ⇒ 瓶颈是**缺 query 信息**，不是容量，
+     这正好解释 Attention Matching 为何必须用 reference queries。
+     若连 score-oracle 都留大缺口 ⇒ 容量才是绑定约束。
+  k-means 缺口小 且 γ*≈1  ⇒ 旧的 centroid/Jensen/shrinkage 故事基本死
+  k-means 缺口大 且 γ*<1  ⇒ 存在真正的校准问题（注意这仍是净放大 γ*/r_D，
+     是标准 bias–variance 收缩，不是「越准越坏」的反常）
+  random ≈ k-means        ⇒ 分簇策略根本不是主变量（别漏看这一行）
+  「2阶1标量」若接近「2阶oracle」⇒ 各向同性假设成立，每簇 +1 scalar 可部署；
+     若差很远 ⇒ 只有 oracle 版有效，而存 Σ_kk 是 +6376% 状态，压缩故事死
+注意：本探针只测局部注意力误差。Retr.MultiHop 已证明「更接近满缓存」≠
+     「任务分数更高」，任何 γ / 修法都还需要一次下游验证。
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-60: 124549 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 60 完成，累计 42700 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-61: 124537 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 61 完成，累计 43400 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-62: 124535 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 62 完成，累计 44100 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-63: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 63 完成，累计 44800 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-64: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 64 完成，累计 45500 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-65: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 65 完成，累计 46200 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-66: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 66 完成，累计 46900 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-67: 124542 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 67 完成，累计 47600 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-68: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 68 完成，累计 48300 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.67it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-69: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 69 完成，累计 49000 行
+
+======================================================================================================================
+分簇 × (质量,方向) × oracle 分解　scbench_vt @ratio 0.1　K=16　70 条样本　9800 个 (层,查询头)/分簇
+----------------------------------------------------------------------------------------------------------------------
+C_q = E[aaᵀ]（**二阶矩，非协方差**）d_eff 中位 2.8　top-3 累积谱 0.671　top-8 0.768
+  ⇒ 低秩截断可行性看**累积谱**，不看 d_eff；成本是 O(ndr+nKrI)，不是 O(nKr)
+被驱逐 key 的**有效维度** d_eff（参与率）中位 39.8　⇒ 量化失真下界 ~K^(−2/d_eff) = 0.8699（即 K=16 最多把簇内方差降到这个比例）
+----------------------------------------------------------------------------------------------------------------------
+分簇              logD̂/D 0阶   2阶oracle      2阶1标量      簇内/总 方差 cos(v̂,v)  ‖v̂‖/‖v‖       e
+position            -2.877     +0.005     -0.519       0.7823    0.6671    1.0355  0.8361
+random              -3.902     +0.166     -0.682       0.9999    0.6711    1.0488  0.8366
+kmeans              -2.260     +0.221     +0.017       0.6501    0.8689    1.0104  0.5379
+Cq-kmeans           -1.916     +0.141     +0.458       0.5733    0.9168    0.9926  0.4395
+score-oracle        -0.527     -0.189     +1.698       0.0116    0.9702    1.0060  0.2680
+----------------------------------------------------------------------------------------------------------------------
+四格 oracle + 二阶（‖o−o_full‖/‖Δo‖ 中位，1.0 = 完全不修正）
+分簇                   现方法      只修质量      只修方向       交互   2阶oracle      2阶1标量
+position          0.9651    0.8104    0.9371  -0.7824     0.8978     0.9638
+random            0.9842    0.8133    0.9754  -0.8045     1.0416     0.9552
+kmeans            0.9130    0.5040    0.8741  -0.4651     0.7804     0.7795
+Cq-kmeans         0.8727    0.4240    0.8273  -0.3786     0.6112     0.9652
+score-oracle      0.4332    0.2780    0.3620  -0.2068     0.2975     2.5508
+----------------------------------------------------------------------------------------------------------------------
+γ-sweep（保持各自的 v̂，只缩放真实质量 γ·D_E）
+分簇                 0.00     0.05     0.10     0.25     0.50     0.75     1.00     1.50      最优 γ
+position         1.0000   0.9498   0.9028   0.7817   0.6783   0.7109   0.8104   1.1283       0.5
+random           1.0000   0.9496   0.9027   0.7824   0.6786   0.7124   0.8133   1.1335       0.5
+kmeans           1.0000   0.9469   0.8954   0.7535   0.5695   0.4766   0.5040   0.7968      0.75
+Cq-kmeans        1.0000   0.9457   0.8941   0.7449   0.5320   0.4041   0.4240   0.7221      0.75
+score-oracle     1.0000   0.9408   0.8833   0.7211   0.4747   0.2843   0.2780   0.5894         1
+----------------------------------------------------------------------------------------------------------------------
+**层级聚合误差**（‖Σ_h W_h(ô−o_full)‖ / ‖Σ_h W_h Δo‖）—— 这才是残差流看到的
+分簇                   现方法      只修质量      只修方向   2阶oracle      2阶1标量    cos(现方法)
+position          0.8816    0.7761    0.8099     1.4522     1.3145      0.6527
+random            0.9116    0.7802    0.8571     1.7444     1.3582      0.5568
+kmeans            0.7340    0.5000    0.6516     0.9516     1.1638      0.7851
+Cq-kmeans         0.7103    0.4780    0.6236     0.7049     2.2965      0.8186
+score-oracle      0.3464    0.2724    0.2534     0.2647     2.2720      0.9478
+
+  收缩理论预测 γ* = 1/(1+e²) 中位 = 0.7766
+======================================================================================================================
+判读（预注册）：
+  **score-oracle 是最关键的一行。** 它按 aᵀk_i 在一维上分等量桶 ⇒ 簇内 logit
+     方差按构造最小 ⇒ 质量近乎精确，剩下的输出误差**纯粹是 value 方向误差**。
+     若 score-oracle 缺口≈0 而 k-means 不是 ⇒ 瓶颈是**缺 query 信息**，不是容量，
+     这正好解释 Attention Matching 为何必须用 reference queries。
+     若连 score-oracle 都留大缺口 ⇒ 容量才是绑定约束。
+  k-means 缺口小 且 γ*≈1  ⇒ 旧的 centroid/Jensen/shrinkage 故事基本死
+  k-means 缺口大 且 γ*<1  ⇒ 存在真正的校准问题（注意这仍是净放大 γ*/r_D，
+     是标准 bias–variance 收缩，不是「越准越坏」的反常）
+  random ≈ k-means        ⇒ 分簇策略根本不是主变量（别漏看这一行）
+  「2阶1标量」若接近「2阶oracle」⇒ 各向同性假设成立，每簇 +1 scalar 可部署；
+     若差很远 ⇒ 只有 oracle 版有效，而存 Σ_kk 是 +6376% 状态，压缩故事死
+注意：本探针只测局部注意力误差。Retr.MultiHop 已证明「更接近满缓存」≠
+     「任务分数更高」，任何 γ / 修法都还需要一次下游验证。
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.67it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-70: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 70 完成，累计 49700 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.67it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-71: 124533 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 71 完成，累计 50400 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-72: 124543 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 72 完成，累计 51100 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.67it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-73: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 73 完成，累计 51800 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-74: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 74 完成，累计 52500 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-75: 124530 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 75 完成，累计 53200 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-76: 124535 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 76 完成，累计 53900 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-77: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 77 完成，累计 54600 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-78: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 78 完成，累计 55300 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-79: 124536 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 79 完成，累计 56000 行
+
+======================================================================================================================
+分簇 × (质量,方向) × oracle 分解　scbench_vt @ratio 0.1　K=16　80 条样本　11200 个 (层,查询头)/分簇
+----------------------------------------------------------------------------------------------------------------------
+C_q = E[aaᵀ]（**二阶矩，非协方差**）d_eff 中位 2.8　top-3 累积谱 0.671　top-8 0.768
+  ⇒ 低秩截断可行性看**累积谱**，不看 d_eff；成本是 O(ndr+nKrI)，不是 O(nKr)
+被驱逐 key 的**有效维度** d_eff（参与率）中位 39.8　⇒ 量化失真下界 ~K^(−2/d_eff) = 0.8699（即 K=16 最多把簇内方差降到这个比例）
+----------------------------------------------------------------------------------------------------------------------
+分簇              logD̂/D 0阶   2阶oracle      2阶1标量      簇内/总 方差 cos(v̂,v)  ‖v̂‖/‖v‖       e
+position            -2.877     +0.004     -0.520       0.7823    0.6667    1.0357  0.8361
+random              -3.902     +0.168     -0.683       0.9999    0.6704    1.0490  0.8365
+kmeans              -2.259     +0.223     +0.019       0.6503    0.8692    1.0115  0.5368
+Cq-kmeans           -1.918     +0.143     +0.460       0.5727    0.9173    0.9921  0.4390
+score-oracle        -0.527     -0.188     +1.699       0.0116    0.9702    1.0061  0.2673
+----------------------------------------------------------------------------------------------------------------------
+四格 oracle + 二阶（‖o−o_full‖/‖Δo‖ 中位，1.0 = 完全不修正）
+分簇                   现方法      只修质量      只修方向       交互   2阶oracle      2阶1标量
+position          0.9651    0.8098    0.9369  -0.7816     0.8967     0.9635
+random            0.9842    0.8128    0.9754  -0.8040     1.0437     0.9554
+kmeans            0.9125    0.5013    0.8737  -0.4625     0.7786     0.7789
+Cq-kmeans         0.8725    0.4225    0.8275  -0.3775     0.6093     0.9637
+score-oracle      0.4324    0.2775    0.3612  -0.2063     0.2975     2.5499
+----------------------------------------------------------------------------------------------------------------------
+γ-sweep（保持各自的 v̂，只缩放真实质量 γ·D_E）
+分簇                 0.00     0.05     0.10     0.25     0.50     0.75     1.00     1.50      最优 γ
+position         1.0000   0.9498   0.9027   0.7815   0.6781   0.7109   0.8098   1.1267       0.5
+random           1.0000   0.9496   0.9027   0.7823   0.6785   0.7125   0.8128   1.1309       0.5
+kmeans           1.0000   0.9469   0.8953   0.7533   0.5693   0.4763   0.5013   0.7962      0.75
+Cq-kmeans        1.0000   0.9457   0.8941   0.7449   0.5318   0.4041   0.4225   0.7204      0.75
+score-oracle     1.0000   0.9408   0.8832   0.7210   0.4744   0.2840   0.2775   0.5894         1
+----------------------------------------------------------------------------------------------------------------------
+**层级聚合误差**（‖Σ_h W_h(ô−o_full)‖ / ‖Σ_h W_h Δo‖）—— 这才是残差流看到的
+分簇                   现方法      只修质量      只修方向   2阶oracle      2阶1标量    cos(现方法)
+position          0.8819    0.7764    0.8100     1.4559     1.3160      0.6524
+random            0.9118    0.7802    0.8569     1.7437     1.3582      0.5565
+kmeans            0.7352    0.4997    0.6512     0.9484     1.1601      0.7849
+Cq-kmeans         0.7094    0.4782    0.6236     0.7053     2.2982      0.8186
+score-oracle      0.3479    0.2718    0.2534     0.2650     2.2701      0.9475
+
+  收缩理论预测 γ* = 1/(1+e²) 中位 = 0.7774
+======================================================================================================================
+判读（预注册）：
+  **score-oracle 是最关键的一行。** 它按 aᵀk_i 在一维上分等量桶 ⇒ 簇内 logit
+     方差按构造最小 ⇒ 质量近乎精确，剩下的输出误差**纯粹是 value 方向误差**。
+     若 score-oracle 缺口≈0 而 k-means 不是 ⇒ 瓶颈是**缺 query 信息**，不是容量，
+     这正好解释 Attention Matching 为何必须用 reference queries。
+     若连 score-oracle 都留大缺口 ⇒ 容量才是绑定约束。
+  k-means 缺口小 且 γ*≈1  ⇒ 旧的 centroid/Jensen/shrinkage 故事基本死
+  k-means 缺口大 且 γ*<1  ⇒ 存在真正的校准问题（注意这仍是净放大 γ*/r_D，
+     是标准 bias–variance 收缩，不是「越准越坏」的反常）
+  random ≈ k-means        ⇒ 分簇策略根本不是主变量（别漏看这一行）
+  「2阶1标量」若接近「2阶oracle」⇒ 各向同性假设成立，每簇 +1 scalar 可部署；
+     若差很远 ⇒ 只有 oracle 版有效，而存 Σ_kk 是 +6376% 状态，压缩故事死
+注意：本探针只测局部注意力误差。Retr.MultiHop 已证明「更接近满缓存」≠
+     「任务分数更高」，任何 γ / 修法都还需要一次下游验证。
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.67it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-80: 124536 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 80 完成，累计 56700 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-81: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 81 完成，累计 57400 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.64it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-82: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 82 完成，累计 58100 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.43it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-83: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 83 完成，累计 58800 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-84: 124536 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 84 完成，累计 59500 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.67it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-85: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 85 完成，累计 60200 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-86: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 86 完成，累计 60900 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.50it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-87: 124545 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 87 完成，累计 61600 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.66it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-88: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 88 完成，累计 62300 行
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.65it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.42it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.37it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.33it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-89: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+  样本 89 完成，累计 63000 行
+
+======================================================================================================================
+分簇 × (质量,方向) × oracle 分解　scbench_vt @ratio 0.1　K=16　90 条样本　12600 个 (层,查询头)/分簇
+----------------------------------------------------------------------------------------------------------------------
+C_q = E[aaᵀ]（**二阶矩，非协方差**）d_eff 中位 2.8　top-3 累积谱 0.671　top-8 0.768
+  ⇒ 低秩截断可行性看**累积谱**，不看 d_eff；成本是 O(ndr+nKrI)，不是 O(nKr)
+被驱逐 key 的**有效维度** d_eff（参与率）中位 39.8　⇒ 量化失真下界 ~K^(−2/d_eff) = 0.8699（即 K=16 最多把簇内方差降到这个比例）
+----------------------------------------------------------------------------------------------------------------------
+分簇              logD̂/D 0阶   2阶oracle      2阶1标量      簇内/总 方差 cos(v̂,v)  ‖v̂‖/‖v‖       e
+position            -2.874     +0.006     -0.518       0.7823    0.6666    1.0359  0.8361
+random              -3.904     +0.169     -0.679       0.9999    0.6705    1.0491  0.8366
+kmeans              -2.260     +0.224     +0.016       0.6504    0.8693    1.0116  0.5368
+Cq-kmeans           -1.918     +0.142     +0.458       0.5727    0.9174    0.9917  0.4384
+score-oracle        -0.527     -0.189     +1.697       0.0116    0.9703    1.0061  0.2671
+----------------------------------------------------------------------------------------------------------------------
+四格 oracle + 二阶（‖o−o_full‖/‖Δo‖ 中位，1.0 = 完全不修正）
+分簇                   现方法      只修质量      只修方向       交互   2阶oracle      2阶1标量
+position          0.9650    0.8095    0.9368  -0.7813     0.8970     0.9632
+random            0.9842    0.8127    0.9755  -0.8040     1.0424     0.9555
+kmeans            0.9125    0.4999    0.8738  -0.4612     0.7793     0.7791
+Cq-kmeans         0.8724    0.4225    0.8276  -0.3776     0.6080     0.9620
+score-oracle      0.4323    0.2775    0.3614  -0.2066     0.2977     2.5481
+----------------------------------------------------------------------------------------------------------------------
+γ-sweep（保持各自的 v̂，只缩放真实质量 γ·D_E）
+分簇                 0.00     0.05     0.10     0.25     0.50     0.75     1.00     1.50      最优 γ
+position         1.0000   0.9498   0.9027   0.7815   0.6778   0.7100   0.8095   1.1262       0.5
+random           1.0000   0.9496   0.9027   0.7823   0.6780   0.7120   0.8127   1.1307       0.5
+kmeans           1.0000   0.9469   0.8953   0.7532   0.5686   0.4762   0.4999   0.7957      0.75
+Cq-kmeans        1.0000   0.9458   0.8941   0.7449   0.5315   0.4040   0.4225   0.7199      0.75
+score-oracle     1.0000   0.9408   0.8833   0.7211   0.4744   0.2844   0.2775   0.5893         1
+----------------------------------------------------------------------------------------------------------------------
+**层级聚合误差**（‖Σ_h W_h(ô−o_full)‖ / ‖Σ_h W_h Δo‖）—— 这才是残差流看到的
+分簇                   现方法      只修质量      只修方向   2阶oracle      2阶1标量    cos(现方法)
+position          0.8819    0.7757    0.8100     1.4566     1.3150      0.6525
+random            0.9124    0.7799    0.8572     1.7430     1.3582      0.5568
+kmeans            0.7364    0.4995    0.6517     0.9516     1.1601      0.7847
+Cq-kmeans         0.7111    0.4780    0.6241     0.7081     2.3014      0.8183
+score-oracle      0.3483    0.2718    0.2534     0.2654     2.2698      0.9475
+
+  收缩理论预测 γ* = 1/(1+e²) 中位 = 0.7774
+======================================================================================================================
+判读（预注册）：
+  **score-oracle 是最关键的一行。** 它按 aᵀk_i 在一维上分等量桶 ⇒ 簇内 logit
+     方差按构造最小 ⇒ 质量近乎精确，剩下的输出误差**纯粹是 value 方向误差**。
+     若 score-oracle 缺口≈0 而 k-means 不是 ⇒ 瓶颈是**缺 query 信息**，不是容量，
+     这正好解释 Attention Matching 为何必须用 reference queries。
+     若连 score-oracle 都留大缺口 ⇒ 容量才是绑定约束。
+  k-means 缺口小 且 γ*≈1  ⇒ 旧的 centroid/Jensen/shrinkage 故事基本死
+  k-means 缺口大 且 γ*<1  ⇒ 存在真正的校准问题（注意这仍是净放大 γ*/r_D，
+     是标准 bias–variance 收缩，不是「越准越坏」的反常）
+  random ≈ k-means        ⇒ 分簇策略根本不是主变量（别漏看这一行）
+  「2阶1标量」若接近「2阶oracle」⇒ 各向同性假设成立，每簇 +1 scalar 可部署；
+     若差很远 ⇒ 只有 oracle 版有效，而存 Σ_kk 是 +6376% 状态，压缩故事死
+注意：本探针只测局部注意力误差。Retr.MultiHop 已证明「更接近满缓存」≠
+     「任务分数更高」，任何 γ / 修法都还需要一次下游验证。

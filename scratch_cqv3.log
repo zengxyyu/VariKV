@@ -1,0 +1,13 @@
+[11:33] kv_trans (scbench_kv, cq_from='transductive') → GPU0
+[11:34] kv_held (scbench_kv, cq_from='scbench_vt') → GPU1
+[11:35] vt_trans (scbench_vt, cq_from='transductive') → GPU2
+[11:36] vt_held (scbench_vt, cq_from='scbench_kv') → GPU3
+[11:55] **vt_trans 失败** rc=1 最后样本=89（不写 marker）
+[11:57] **vt_held 失败** rc=1 最后样本=89（不写 marker）
+[12:00] kv_trans 完成
+[12:02] kv_held 完成
+[12:02] ALL DONE
+  ✓ kv_trans
+  ✓ kv_held
+  ✗ vt_trans
+  ✗ vt_held

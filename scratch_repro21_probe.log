@@ -1,0 +1,63 @@
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.03it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.08it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.09it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.17it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.13it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: memory_retain
+记忆可训练参数 0.33M  G=112  M=16  mode=dist
+训练文档 34 篇，共 0.98M token (长度 10444-119319)
+[opt] 门单独一组 lr=0.02（其余 0.0001）
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:01<00:00,  1.19s/it]Prefill: 100%|██████████| 1/1 [00:01<00:00,  1.19s/it]
+Chunked prefilling with 0.10 ratio, window 310
+Local window 310
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.55it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.55it/s]
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.89it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.89it/s]
+Chunked prefilling with 0.10 ratio, window 310
+Local window 310
+step    0 kl 0.6215 |g|3.0e-03 47GB 3.1s gap 0.6209 resid 0.6215 recov -0.1% gap_med 0.0416  g[enc4e-04 dec3e-03 slot0e+00 gate3e-04 pgate0e+00] !零梯度:slot,pgate gate[mean0.018 max0.018 >0.1占0.00]
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.52it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.52it/s]
+Chunked prefilling with 0.10 ratio, window 279
+Local window 279
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  4.04it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  4.04it/s]
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.13it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.13it/s]
+Chunked prefilling with 0.10 ratio, window 279
+Local window 279
+step    1 kl 0.2003 |g|5.1e-03 48GB 2.5s gap 0.1981 resid 0.2003 recov -1.1% gap_med 0.0304  g[enc1e-03 dec5e-03 slot0e+00 gate4e-04 pgate0e+00] !零梯度:slot,pgate gate[mean0.018 max0.019 >0.1占0.00]
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.96it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.96it/s]
+Chunked prefilling with 0.10 ratio, window 215
+Local window 215
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  5.52it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  5.52it/s]
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.89it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.89it/s]
+Chunked prefilling with 0.10 ratio, window 215
+Local window 215
+step    2 kl 1.8842 |g|7.7e-03 48GB 2.2s gap 1.9027 resid 1.8842 recov +1.0% gap_med 0.0414  g[enc4e-03 dec8e-03 slot0e+00 gate5e-04 pgate0e+00] !零梯度:slot,pgate gate[mean0.018 max0.019 >0.1占0.00]
+chunk inputs, size: 16000 (num 2)
+Prefill:   0%|          | 0/2 [00:00<?, ?it/s]Prefill:  50%|█████     | 1/2 [00:00<00:00,  1.33it/s]Prefill: 100%|██████████| 2/2 [00:01<00:00,  2.00it/s]Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.86it/s]
+Chunked prefilling with 0.10 ratio, window 2095
+Local window 2095
+chunk inputs, size: 16000 (num 2)
+Prefill:   0%|          | 0/2 [00:00<?, ?it/s]Prefill:  50%|█████     | 1/2 [00:00<00:00,  3.36it/s]Prefill: 100%|██████████| 2/2 [00:00<00:00,  2.85it/s]Prefill: 100%|██████████| 2/2 [00:00<00:00,  2.92it/s]
+chunk inputs, size: 16000 (num 2)
+Prefill:   0%|          | 0/2 [00:00<?, ?it/s]Prefill:  50%|█████     | 1/2 [00:00<00:00,  1.78it/s]Prefill: 100%|██████████| 2/2 [00:00<00:00,  2.98it/s]Prefill: 100%|██████████| 2/2 [00:00<00:00,  2.71it/s]
+Chunked prefilling with 0.10 ratio, window 2095
+Local window 2095
+step    3 kl 0.0598 |g|1.2e-03 48GB 2.4s gap 0.0608 resid 0.0598 recov +1.7% gap_med 0.0125  g[enc3e-04 dec1e-03 slot0e+00 gate6e-05 pgate0e+00] !零梯度:slot,pgate gate[mean0.018 max0.019 >0.1占0.00]
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.64it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.64it/s]
+Chunked prefilling with 0.10 ratio, window 259
+Local window 259
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  4.43it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  4.42it/s]
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.32it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.32it/s]
+Chunked prefilling with 0.10 ratio, window 259
+Local window 259
+step    4 kl 0.8615 |g|2.3e-02 48GB 2.3s gap 0.8486 resid 0.8615 recov -1.5% gap_med 0.0487  g[enc4e-03 dec2e-02 slot0e+00 gate2e-03 pgate0e+00] !零梯度:slot,pgate gate[mean0.018 max0.020 >0.1占0.00]
+
+探测结束：峰值显存 47.6 GB

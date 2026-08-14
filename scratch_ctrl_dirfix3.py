@@ -30,7 +30,7 @@ D = _iu.module_from_spec(_s); _s.loader.exec_module(D)
 from attention.control_memory import ControlMemory               # noqa: E402
 
 
-def run(cm, doc, n_pairs, gen, skip_first=True):
+def run(cm, doc, n_pairs, gen, skip_first=True, shuf_gen=None):
     M = [cm.init_state(l) for l in range(D.L)]
     losses, accd = [], []
     for t, per in enumerate(doc):
@@ -53,7 +53,7 @@ def run(cm, doc, n_pairs, gen, skip_first=True):
                 losses.append(torch.nn.functional.softplus(-lg).mean())
                 accd.append(float((lg > 0).float().mean() - (l0 > 0).float().mean()))
             newM.append(cm.write(M[l], x[:, nn_:], pl["ret"][:, nn_:],
-                                 ~pl["ret"][:, nn_:], gen=gen))
+                                 ~pl["ret"][:, nn_:], gen=shuf_gen or gen))
         M = newM
     return torch.stack(losses).mean(), sum(accd) / max(len(accd), 1)
 
@@ -74,13 +74,15 @@ def main():
             opt = torch.optim.AdamW(cm.parameters(), lr=3e-3, weight_decay=0.01)
             for ep in range(150):
                 g = torch.Generator(device=dev).manual_seed(ep)
+                gsh = torch.Generator(device=dev).manual_seed(7919 + ep)
                 for doc in tr:
-                    loss, _ = run(cm, doc, 512, g)
+                    loss, _ = run(cm, doc, 512, g, shuf_gen=gsh)
                     opt.zero_grad(set_to_none=True); loss.backward()
                     torch.nn.utils.clip_grad_norm_(cm.parameters(), 1.0); opt.step()
             with torch.no_grad():
                 gv = torch.Generator(device=dev).manual_seed(999)
-                res[mode] = sum(run(cm, d, 1024, gv)[1] for d in va) / len(va)
+                gvs = torch.Generator(device=dev).manual_seed(54321)
+                res[mode] = sum(run(cm, d, 1024, gv, shuf_gen=gvs)[1] for d in va) / len(va)
             if mode == "stateful":
                 st_alpha = float(cm.alpha)
         print(f"{ainit:>8.2f}{res['stateful']:>+11.4f}{res['shuffled']:>+11.4f}"
