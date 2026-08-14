@@ -271,8 +271,13 @@ def main():
     if "stateful" in hist and "shuffled" in hist:
         d = hist["stateful"][-1][1] - hist["shuffled"][-1][1]
         print(f"\n  stateful − shuffled = {d:+.4f}")
-        print("  >0 且稳定 ⇒ 历史提供了当前 KV 之外的增量信息（I(U;M|X)>0）")
+        print("  >0 且稳定 ⇒ 历史改变了效用的**条件均值**：E[U|X,M] ≠ E[U|X]")
         print("  ≈0        ⇒ 只是学了个更好的普通 scorer，B 的核心命题不成立")
+        print("  注：判据是条件均值改变，**不是** I(U;M|X)>0 —— 互信息为正也可能"
+              "只体现在\n      条件方差或更高阶矩上，此时平方风险毫无改善。"
+              "此处曾把两者写成等价，是数学错误。")
+        print("  又：单次训练不是一次测量（v1 的 +21.60 就是这么来的），"
+              "至少 3 个种子看跨度。")
     print("=" * 78)
 
 

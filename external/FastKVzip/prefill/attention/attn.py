@@ -106,6 +106,14 @@ def llama_qwen_attn_forward(
     # 满缓存参照）不走 varlen kernel，拿不到 lse，此时质心读出自动跳过。
     _varikv_lse = None
 
+    # VariKV-B 教师（本地新增）：抓 post-RoPE query，供离线算 token 效用 U。
+    # **必须放在 flatten 分支之外。** 钩 `prepare` 不行——它只在
+    # `past_key_value.flatten` 为真时才被调用（见下一行），而算 U 用的满缓存参照
+    # 那次预填 `chunk_ratio=1.0` 从不进 `prune_chunk`、flatten 恒为 False，
+    # 钩子永不触发。默认关闭，不影响任何既有路径。
+    if getattr(past_key_value, "capture_q", False):
+        past_key_value._q_cap[self.layer_idx] = query_states.detach()
+
     if getattr(past_key_value, "flatten", None):  # attention with pruned cache
         query_states, key_states, value_states, info = past_key_value.prepare(
             query_states, key_states, value_states, self.layer_idx

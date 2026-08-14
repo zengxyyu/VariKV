@@ -70,17 +70,11 @@ from attention.kvcache import RetainCache                    # noqa: E402
 from data.load import load_fineweb                           # noqa: E402
 from model.wrapper import ModelKVzip                         # noqa: E402
 
-_Q = {}
-_orig_prepare = RetainCache.prepare
-
-
-def _patched_prepare(self, q, k, v, l):
-    """抓 post-RoPE 的 query（与 scratch_probe_cluster.py:76 同一套已验证的钩子）。"""
-    _Q[l] = q.detach()
-    return _orig_prepare(self, q, k, v, l)
-
-
-RetainCache.prepare = _patched_prepare
+# post-RoPE query 的抓取走 `attn.py` 的 `capture_q` 开关（本地新增）。
+# 原先是 monkeypatch `RetainCache.prepare`，**那是错的**：`attn.py` 只在
+# `past_key_value.flatten` 为真时才调 `prepare`，而算 U 用的满缓存那次预填
+# `chunk_ratio=1.0` 从不进 `prune_chunk`、flatten 恒为 False ⇒ 钩子永不触发，
+# 首篇文档就 KeyError。教师此前从未真机跑过，所以这个 bug 一直没暴露。
 
 
 @torch.no_grad()
@@ -98,9 +92,13 @@ def teacher_state(m, kv, tgt_ids, layers, n_qpos=16):
     # 那里。若在前向之后直接读 `kv.key_cache`，拿到的是 context+target，而我们手写的
     # softmax 没有因果掩码 ⇒ 位置 t 会看到 t+1 之后的 target key。
     n_ctx = kv.key_cache[layers[0]].shape[2]
-    _Q.clear()
-    out = m.model(tgt_ids, past_key_values=kv,    # 只为触发钩子拿到 query
+    kv.capture_q, kv._q_cap = True, {}
+    out = m.model(tgt_ids, past_key_values=kv,    # 只为触发捕获拿到 query
                   output_hidden_states=True)
+    kv.capture_q = False
+    _Q = kv._q_cap
+    assert len(_Q) >= len(layers), \
+        f"query 捕获失败：只拿到 {len(_Q)}/{len(layers)} 层"
     # **逐层残差 RMS**，用来把 U 变成跨层可比的量。U = ‖W_O·Δo‖ 的单位是残差流，
     # 单位一致但**尺度不一致**：残差范数随深度增长，同样大的绝对扰动在深层被下游
     # LayerNorm 归一掉得更多。global 损失是跨层排序 U 的，所以必须先除掉这个尺度。
