@@ -121,8 +121,18 @@ def run_doc(cm, doc, dev, n_pairs, gen, train=True, lam_global=1.0,
         new_M = []
         g_sp, g_s0, g_U = [], [], []
         # 全局尺度：跨该 chunk 所有 (层,kv头) 的基线分标准差
-        gsig_doc = torch.cat([p_["s0"].reshape(-1) for p_ in ch["layers"]]
-                             ).float().std().clamp_min(1e-6).to(dev)
+        # **必须用教师存的全量 σ_g**。从 ch["layers"] 的 s0 现算是错的：那是
+        # 「近阈值 + 随机」的有偏子集，σ 被低估，而推理侧
+        # （learned_ctrlcache.py）算的是整块 16000 个候选的 σ ⇒ margin 特征的
+        # 尺度训练/部署不一致。老 trace 没存就退回旧算法，并只警告一次。
+        if "gsig" in ch:
+            gsig_doc = torch.tensor(float(ch["gsig"]), device=dev).clamp_min(1e-6)
+        else:
+            if not getattr(run_doc, "_warned", False):
+                print("  [warn] trace 无 gsig（旧版教师），margin 尺度退回子集估计",
+                      flush=True); run_doc._warned = True
+            gsig_doc = torch.cat([p_["s0"].reshape(-1) for p_ in ch["layers"]]
+                                 ).float().std().clamp_min(1e-6).to(dev)
         for l, pl in enumerate(ch["layers"]):
             k = pl["k"].to(dev).float()
             v = pl["v"].to(dev).float()
@@ -137,7 +147,9 @@ def run_doc(cm, doc, dev, n_pairs, gen, train=True, lam_global=1.0,
             # 到**全局**阈值的距离：level="pair" 决定去留的是 s0−τ，不是头内排名
             thr = pl.get("thres", None)
             mg = None if thr is None else (s0 - float(thr)) / gsig_doc
-            ds = cm.delta(x, r, s0, q=q, margin=mg)
+            st_ = None if "sig_h" not in pl else (
+                pl["mu_h"].to(dev).float(), pl["sig_h"].to(dev).float(), gsig_doc)
+            ds = cm.delta(x, r, s0, q=q, margin=mg, stats=st_)
             sp = s0 + ds
             sig = s0.std(-1, keepdim=True).clamp_min(1e-6)
             # **只在近阈值子集上算排序损失**

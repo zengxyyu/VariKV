@@ -99,8 +99,16 @@ def teacher_state(m, kv, tgt_ids, layers, n_qpos=16):
     # softmax 没有因果掩码 ⇒ 位置 t 会看到 t+1 之后的 target key。
     n_ctx = kv.key_cache[layers[0]].shape[2]
     _Q.clear()
-    m.model(tgt_ids, past_key_values=kv)          # 只为触发钩子拿到 query
-    st = {"n_ctx": n_ctx, "d": d, "H": H, "layers": {}}
+    out = m.model(tgt_ids, past_key_values=kv,    # 只为触发钩子拿到 query
+                  output_hidden_states=True)
+    # **逐层残差 RMS**，用来把 U 变成跨层可比的量。U = ‖W_O·Δo‖ 的单位是残差流，
+    # 单位一致但**尺度不一致**：残差范数随深度增长，同样大的绝对扰动在深层被下游
+    # LayerNorm 归一掉得更多。global 损失是跨层排序 U 的，所以必须先除掉这个尺度。
+    # hidden_states[l] 是第 l 层**输入**的残差，正是该层 attention 输出要加进去的那个。
+    rms = {l: float(out.hidden_states[l][0].float().pow(2).mean().sqrt())
+           for l in layers}
+    del out
+    st = {"n_ctx": n_ctx, "d": d, "H": H, "rms": rms, "layers": {}}
     for l in layers:
         Aq = _Q[l][0].float() * (d ** -0.5)        # [HQ,T,d]，已含 RoPE
         HQ, T, _ = Aq.shape
@@ -141,7 +149,8 @@ def utility(m, kv, st, layers, cand_idx):
             zf = z.reshape(Tq * nc, G * d)
             U[h] = ((zf @ Gram) * zf).sum(-1).clamp_min(0).sqrt().view(Tq, nc).mean(0)
             del S, P, o, p_i, w, z, zf
-        out[l] = U
+        # **跨层可比**：除以该层残差的 RMS，把绝对扰动换成相对扰动
+        out[l] = U / max(st["rms"][l], 1e-6)
         del Aq, K, V
     return out
 
@@ -154,10 +163,13 @@ def main():
     ap.add_argument("--chunk", type=int, default=16000)
     ap.add_argument("--window", type=int, default=4096)
     ap.add_argument("--level", default="pair")
-    ap.add_argument("--max_ctx", type=int, default=32768)
+    ap.add_argument("--max_ctx", type=int, default=131072)
     ap.add_argument("--target_len", type=int, default=256)
-    ap.add_argument("--n_short", type=int, default=29)
-    ap.add_argument("--n_long", type=int, default=5)
+    ap.add_argument("--n_short", type=int, default=0)
+    ap.add_argument("--n_long", type=int, default=10,
+                    help="fineweb_10k_cat 一共只有 10 篇，而 ratio 0.1 / window 4096 "
+                         "下只有它们超过 40,960 token 的非退化门槛（fineweb_10k 最长 "
+                         "约 31k，全部退化），所以默认全取")
     ap.add_argument("--n_qpos", type=int, default=16)
     ap.add_argument("--n_keep", type=int, default=256,
                     help="每 (chunk,层,kv头) 留多少个**最靠近阈值**的候选做排序损失。"
@@ -195,6 +207,17 @@ def main():
         ctx_ids, tgt = ids[-need:-a.target_len], ids[-a.target_len:]
         if len(ctx_ids) < a.chunk // 2:
             print(f"doc{di} 太短 ({len(ctx_ids)})，跳过"); continue
+        # **非退化检查，必须在这里拦。** wrapper.py:273-275 在
+        # `ratio·clen < window_size` 时把 chunk_ratio 直接置 0，而
+        # `_threshold(·, 0.0)` 取 `thres = max(score)`、`valid = score > max`
+        # ⇒ **恒为全 False**：可驱逐区间被整体丢弃，保留集就等于局部窗口，
+        # 与门控分数无关。此时 B 是构造性无操作（阈值由修正后分数的最大值决定，
+        # 加多大的 Δs 都翻不动一位），教师存下来的 ret 全 False、排序标签全无意义。
+        # 这个塌缩不报错、不影响 prune_chunk 的调用次数，所以 --min_prunes 拦不住。
+        if a.ratio * len(ctx_ids) <= a.window:
+            print(f"doc{di}: clen={len(ctx_ids)} ≤ window/ratio="
+                  f"{a.window / a.ratio:.0f}，chunk_ratio 会塌缩到 0（保留集=局部窗口，"
+                  f"无驱逐决策可控），跳过"); continue
         ctx_t = torch.tensor([ctx_ids], device=m.device)
         tgt_t = torch.tensor([tgt], device=m.device)
 
@@ -206,8 +229,15 @@ def main():
             lo, hi = evict_range
             s0 = torch.stack(self.score, 0)[..., lo:hi].clone()
             th, r_ = orig(self, ratio, evict_range, level)
+            f0 = s0[:, 0].float()                       # [L,H,n]，**整块全量**
+            # 统计量必须在这里算：后面存进 trace 的候选是「近阈值 256 + 随机 512」，
+            # 近阈值那半人为堆在 τ 附近，用它算 σ 会系统性低估，而 σ 是直接乘在
+            # Δs 上的尺度 ⇒ 训练学到的扰动幅度小于部署时的实际幅度。
             chunks.append(dict(lo=lo, hi=hi, thres=th,
-                               s0=s0[:, 0].float().cpu(),
+                               s0=f0.cpu(),
+                               gsig=float(f0.reshape(-1).std()),
+                               mu_h=f0.mean(-1).cpu(),      # [L,H]
+                               sig_h=f0.std(-1).cpu(),      # [L,H]
                                valid=self.valid[..., -(hi - lo):].clone().cpu()))
             return th, r_
 
@@ -272,8 +302,9 @@ def main():
                     s0=torch.gather(c["s0"][l], 1, sel).cpu(),
                     ret=torch.gather(c["valid"][l], 1, sel).cpu(),
                     U=U[l].float().cpu(), n_near=a.n_keep,
+                    mu_h=c["mu_h"][l], sig_h=c["sig_h"][l],   # 全量，[H]
                     thres=float(c["thres"])))
-            rec_out.append(dict(thres=c["thres"], layers=per_l))
+            rec_out.append(dict(thres=c["thres"], gsig=c["gsig"], layers=per_l))
         torch.save(dict(doc=di, chunks=rec_out, H=H, L=L), f)
         print(f"doc{di}: {len(rec_out)} 次驱逐 → {f}", flush=True)
         del kv

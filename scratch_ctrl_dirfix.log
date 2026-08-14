@@ -1,10 +1,22 @@
 device=cuda  train=48 val=12  L=4 H=4 n=384
 
 变体          d_m   stateful   shuffled         差
-oracle      128    +0.2797       +nan      +nan
-base        128    -0.0004    +0.0012   -0.0015
-no_gru      128    +0.0972    +0.0587   +0.0385
-dm256       256    +0.0010    +0.0019   -0.0009
-
-判读：第一个让『差』明显为正的变体即原因所在。
-若 oracle 也≈0 ⇒ 瓶颈在 α/损失标定，不在记忆架构，应先改测试。
+oracle      128    +0.1256       +nan      +nan
+base        128    +0.0038    +0.0099   -0.0061
+Traceback (most recent call last):
+  File "/home/ubuntu/zxy/vlm-memory/scratch_ctrl_dirfix.py", line 169, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/scratch_ctrl_dirfix.py", line 151, in main
+    loss, _ = R(doc, a.n_pairs, g, shuf_gen=gsh)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/scratch_ctrl_dirfix.py", line 116, in forward
+    mu = cm._mean(xr, ~rr).expand(-1, M[l].shape[1], -1)
+                                      ^^^^^^^^^^
+AttributeError: 'tuple' object has no attribute 'shape'

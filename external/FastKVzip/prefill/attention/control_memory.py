@@ -106,7 +106,7 @@ class ControlMemory(nn.Module):
         # 一个可证明存在的历史信号，三臂全部停在 0.50 随机水平。加入 x⊙r 与 <x,r> 后
         # 线性层直接就能算加权内积。
         self.head = nn.Sequential(
-            nn.Linear(3 * d_m + 3, d_m), nn.GELU(), nn.Linear(d_m, 1))
+            nn.Linear(3 * d_m + 4, d_m), nn.GELU(), nn.Linear(d_m, 1))
         # α **有上界**：α = α_max·sigmoid(a)。此前写成 sigmoid(a)·exp(b)，b 无界
         # ⇒ α 无界 ⇒ 「tanh 让修正有界」这句话不成立。而手工版实测**大幅扰动基线排序
         # 本身就有害**（β=±1.5 时连 shuffle 对照都掉 4.6–5.8 分），这个事实应当被编码
@@ -217,10 +217,10 @@ class ControlMemory(nn.Module):
         return (M2, D2)
 
     # ------------------------------------------------------------ 控制器
-    def delta(self, x, r, s0, q=None, margin=None):
+    def delta(self, x, r, s0, q=None, margin=None, stats=None):
         """x̃/r [H,n,d_m], s0 [H,n] 原始基线分 → Δs [H,n]（**已含 α 与逐头尺度**）。
 
-        两个标量特征，缺一不可：
+        三个标量特征，缺一不可：
 
         - `z` = s0 在 (层,kv头) 内的 z-score。不归一的话控制器会隐式学各头的尺度差异
           而不是内容。
@@ -228,13 +228,34 @@ class ControlMemory(nn.Module):
           跨层跨头的全局阈值化，真正决定去留的是 `s0 − τ` 而不是头内排名：两个 token
           可以有完全相同的 z 却因为所在头整体分数高低不同而一个稳留、一个稳删。
           只喂 z 等于把决策边界的信息藏起来。τ 在 trace 里已经存了，代价为零。
+        - `log(σ_h/σ_g)` = 本头尺度相对全局尺度。**输出被缩放到逐头单位、而决策边界
+          是全局单位**，两者的换算率就是这个比值；不给的话头无从知道自己这一步
+          "值多少全局 σ"，`margin` 这个特征也就用不起来。
+
+        `stats=(mu_h, sig_h, sig_g)`：前两个形状 [H]（或 [H,1]），末一个是标量，
+        **必须来自整块候选的全量统计**。不给就退回用传进来的 s0 现算——那在训练侧
+        是错的：教师存的 768 个候选里有 256 个是按 |s0−τ| 最近挑出来的，人为堆在
+        阈值附近，σ 被系统性低估，而 σ 是直接乘在 Δs 上的尺度 ⇒ 部署时的扰动幅度
+        大于训练时学到的幅度。手工版已经测过大幅扰动基线排序本身有害，所以这个偏差
+        不是小数点问题。
         """
-        z = (s0 - s0.mean(-1, keepdim=True)) / s0.std(-1, keepdim=True).clamp_min(1e-6)
+        if stats is None:                       # 只有"候选即全量"时才是对的
+            mu_h = s0.mean(-1, keepdim=True)
+            sig_h = s0.std(-1, keepdim=True).clamp_min(1e-6)
+            sig_g = s0.std().clamp_min(1e-6)
+        else:
+            mu_h, sig_h, sig_g = stats
+            mu_h = torch.as_tensor(mu_h, dtype=s0.dtype, device=s0.device).view(-1, 1)
+            sig_h = torch.as_tensor(sig_h, dtype=s0.dtype,
+                                    device=s0.device).view(-1, 1).clamp_min(1e-6)
+            sig_g = torch.as_tensor(sig_g, dtype=s0.dtype,
+                                    device=s0.device).clamp_min(1e-6)
+        z = (s0 - mu_h) / sig_h
         mg = torch.zeros_like(z) if margin is None else margin
+        rs = (sig_h / sig_g).log().expand_as(z)
         qq = x if q is None else q
         dot = (qq * r).sum(-1, keepdim=True) * self.d_m ** -0.5
         raw = self.head(torch.cat([x, r, qq * r, dot,
-                                   z[..., None], mg[..., None]],
+                                   z[..., None], mg[..., None], rs[..., None]],
                                   dim=-1)).squeeze(-1)
-        sb = s0.std(-1, keepdim=True).clamp_min(1e-6)             # 逐头尺度
-        return self.alpha * sb * torch.tanh(raw)
+        return self.alpha * sig_h * torch.tanh(raw)

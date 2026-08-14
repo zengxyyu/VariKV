@@ -75,7 +75,9 @@ class LearnedControlRetainCache(RetainCache):
             # 这不是泄漏：τ 只依赖 s0 与 ratio，推理时同样拿得到。
             with torch.no_grad():
                 _, thr_g = self.threshold(score0, ratio, level)
-                gsig = score0.float().std().clamp_min(1e-6)
+                f0 = score0[:, 0].float()                   # [L,H,n]，整块全量
+                gsig = f0.std().clamp_min(1e-6)
+                mu_h, sig_h = f0.mean(-1), f0.std(-1)       # [L,H]
             with ctx:
                 delta = torch.zeros_like(score0)
                 feats = []
@@ -91,7 +93,11 @@ class LearnedControlRetainCache(RetainCache):
                     r = self.ctrl.read(self.M[l], xr_raw)
                     s0l = score0[l, 0].float()
                     mg = None if thr_g is None else (s0l - thr_g) / gsig
-                    delta[l, 0] = self.ctrl.delta(x, r, s0l, q=q, margin=mg)
+                    # **统计量显式传入**，不让 delta 从手上这批候选现算——训练侧
+                    # 拿到的是有偏子集，两边口径必须一致（control_memory.delta 的说明）
+                    delta[l, 0] = self.ctrl.delta(
+                        x, r, s0l, q=q, margin=mg,
+                        stats=(mu_h[l], sig_h[l], gsig))
                     # **每层用完即弃**：[H,n,d_m] 每层 16 MB，28 层留着就是 450 MB。
                     # 手工版正是在这里踩过 917 MB 的坑。写入阶段重算一次特征更划算。
                     feats.append(None)

@@ -126,6 +126,52 @@ CUDA_VISIBLE_DEVICES=0 VARIKV_RATIOS=0.3,0.2 ../../../.venv/bin/python -B eval_c
 .venv/bin/python scratch_model_registry.py --md      # regenerate MODELS.md tables
 ```
 
+### The silent-degeneracy trap: `ratio × clen ≤ window_size` makes eviction a no-op
+
+**Check this before choosing any (`--ratio`, `--window`, context length) triple for
+*training*.** Found 2026-08-14 by `scratch_probe_sigma.py`; it had already silently
+invalidated the VariKV-B teacher's default config.
+
+`model/wrapper.py:271-277` rescales the ratio to account for the always-retained local
+window. When the requested budget is smaller than the window it takes the other branch:
+
+```python
+if chunk_ratio * clen < window_size:
+    window_size = int(chunk_ratio * clen)
+    chunk_ratio = 0.0                      # ← not "a bit smaller", exactly zero
+```
+
+and `score.py:_threshold` with `ratio = 0.0` computes `n = max(int(N*0)-1, 0) = 0`, so
+`thres = score_sort[0]` is the **maximum** score and `valid = score > thres` is **all
+False**. Consequences:
+
+- The whole evictable range is dropped; **the retained set is exactly the local window**
+  and does not depend on the gate scores at all.
+- **Any method that works by perturbing the score is a no-op by construction** — the
+  threshold is recomputed as the max of the *perturbed* score, so `score > τ` stays all
+  False no matter how large Δs is. VariKV-B cannot move a single bit here.
+- Nothing errors, and `prune_chunk` is still called once per chunk, so a "count the
+  evictions" guard (`--min_prunes`) does **not** catch it.
+
+Fingerprints in a log: the printed `Local window` differs from the `--window_size` you
+passed, and the threshold sits above the 99th percentile of the scores.
+
+The non-degeneracy condition is `clen > window_size / ratio` — **40,960 tokens** at the
+standard ratio 0.1 / window 4096. Measured document lengths against it:
+
+| corpus | n | tokens | at ratio 0.1 / window 4096 |
+|---|---|---|---|
+| `fineweb_10k` | 68 | ~8k–31k | **all degenerate** |
+| `fineweb_10k_cat` | **10** (not 5) | ~91k–121k | usable |
+
+So the FastKVzip gate-training corpus's *short* half cannot train anything that acts on
+the eviction decision at this operating point, and `--max_ctx 32768` (the old teacher
+default) truncates the long half below the threshold too — i.e. the default config was
+degenerate for all 34 documents. `scratch_ctrl_teacher.py` now defaults to
+`--max_ctx 131072 --n_short 0 --n_long 10` and hard-skips any document failing the
+condition. Evaluation is unaffected: `scbench_kv` at 169k gives `0.1 × 169428 = 16943 >
+4096`, effective chunk_ratio 0.078, and training at ~119k gives 0.068 — well matched.
+
 **Never read `results.parse`'s relative rows across runs** — each run normalises by its own
 full-cache score, and the memory perturbs that reference (see the empty-memory section).
 Use the paired-bootstrap report scripts on **absolute** scores instead: `scratch_cen23_report.py`
