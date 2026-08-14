@@ -79,6 +79,11 @@ class ControlMemory(nn.Module):
         self.M_init = nn.Parameter(torch.randn(n_layers, n_heads_kv, n_slots, d_m) * 0.02)
         self.D_init = nn.Parameter(torch.zeros(n_layers, n_heads_kv, 2, d_m))
         self.dir_decay = nn.Parameter(torch.zeros(2))   # sigmoid ⇒ ρ，逐通路可学
+        # **类型嵌入**：读出是对槽集合做注意力，本身对槽的身份是置换不变的，
+        # 单看内容分不出"这是保留过的方向"还是"这是被丢弃过的方向"。而 B 恰恰
+        # 需要这两者产生不同作用（similar-to-retained vs similar-to-evicted）。
+        # 代价只有 2·d_m 个参数。
+        self.dir_type = nn.Parameter(torch.randn(2, d_m) * 0.02)
 
         self.x_proj = nn.Linear(d_x, d_m)               # 候选 → d_m（写入侧 & 头输入）
         # **读出 query 用独立于 x_proj 的投影**。共用一个会强迫同一张矩阵同时满足
@@ -151,7 +156,8 @@ class ControlMemory(nn.Module):
         对两条通路的**拼接**做注意力，所以方向内容有机会被直接读到，
         不必先穿过 GRU。
         """
-        S = self.slots(state)                                     # [H,K+2,d]
+        M, Dm = state
+        S = torch.cat([M, Dm + self.dir_type[None]], dim=1)       # [H,K+2,d]
         q = self.q_read(x_raw)
         att = torch.einsum("hnd,hkd->hnk", q, S) * self.d_m ** -0.5
         return torch.einsum("hnk,hkd->hnd", att.softmax(-1), S)

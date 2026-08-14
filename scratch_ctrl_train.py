@@ -42,7 +42,15 @@ sys.path.insert(0, os.path.join(ROOT, "external/FastKVzip/prefill"))
 from attention.control_memory import ControlMemory           # noqa: E402
 
 
-def _flat_pairs(sp, s0r, U, sigma, n_pairs, gen):
+def _pw(du, mode):
+    """成对权重。linear = |ΔU| / median|ΔU|，截到 [0,5] 防止长尾主导。"""
+    if mode == "none":
+        return torch.ones_like(du)
+    a = du.abs()
+    return (a / a.median().clamp_min(1e-12)).clamp(0.0, 5.0)
+
+
+def _flat_pairs(sp, s0r, U, sigma, n_pairs, gen, pair_w="linear"):
     """一维版本，用于**跨 (层,kv头)** 的全局排序。"""
     n = sp.numel()
     i = torch.randint(0, n, (n_pairs,), generator=gen, device=sp.device)
@@ -54,11 +62,12 @@ def _flat_pairs(sp, s0r, U, sigma, n_pairs, gen):
         return sp.sum() * 0.0, z, z
     lg = (sp[i] - sp[j]) / sigma * du.sign()
     lg0 = (s0r[i] - s0r[j]) / sigma * du.sign()
-    return (F.softplus(-lg)[keep].mean(),
+    w = _pw(du, pair_w)
+    return ((w * F.softplus(-lg))[keep].sum() / w[keep].sum().clamp_min(1e-6),
             (lg[keep] > 0).float().mean(), (lg0[keep] > 0).float().mean())
 
 
-def pair_loss(sp, s0r, U, sigma, n_pairs, gen):
+def pair_loss(sp, s0r, U, sigma, n_pairs, gen, pair_w="linear"):
     """sp/U [H,n]（近阈值子集），sigma [H,1] → 成对 logistic 排序损失。"""
     H, n = sp.shape
     i = torch.randint(0, n, (H, n_pairs), generator=gen, device=sp.device)
@@ -71,7 +80,11 @@ def pair_loss(sp, s0r, U, sigma, n_pairs, gen):
         z = torch.zeros((), device=sp.device)
         return sp.sum() * 0.0, z, z
     lg = ds * du.sign()
-    loss = F.softplus(-lg)[keep].mean()
+    # **按 |ΔU| 加权**：固定预算 top-B 选择的 regret 恰好是被错换的成对的 |U_i−U_j| 之和，
+    # 所以加权版才是那个 regret 的可微代理；不加权等于把"两个几乎并列的候选排反"
+    # 和"把最重要的和最没用的排反"惩罚成一样。`--pair_w none` 保留不加权做消融。
+    w = _pw(du, pair_w)
+    loss = (w * F.softplus(-lg))[keep].sum() / w[keep].sum().clamp_min(1e-6)
     acc = (lg[keep] > 0).float().mean()
     # **必须同时报 s0 自己的排序准确率**：只报 acc(s') 会把"s0 本来多好"和
     # "修正加了多少"混在一起。真正的量是 acc(s') − acc(s0)。
@@ -81,8 +94,13 @@ def pair_loss(sp, s0r, U, sigma, n_pairs, gen):
 
 
 def run_doc(cm, doc, dev, n_pairs, gen, train=True, lam_global=1.0,
-            skip_first_loss=True):
+            skip_first_loss=True, shuf_gen=None, pair_w="linear"):
     """重放一篇文档的所有 chunk：读 M_{t-1} → 损失 → 写 M_t。
+
+    **pair RNG 与 shuffle RNG 必须分开。** 若共用一个 generator，`shuffled` 臂在
+    `write()` 里每层调 H 次 randperm 会额外消耗随机数，于是从第二个 chunk 起
+    stateful 与 shuffled 采到的 (i,j) 就不同了 —— 那个差值里会混进"两臂看到的
+    样本不一样"，而这恰恰是 `stateful − shuffled` 要排除的东西。
 
     **两级损失**。`level="pair"` 是跨 (层×kv头×token) 的**全局**阈值化，所以只在
     头内采样成对样本，等于完全不监督"layer 23/head 2 的 token 该不该压过
@@ -126,7 +144,7 @@ def run_doc(cm, doc, dev, n_pairs, gen, train=True, lam_global=1.0,
             # 第一个 chunk 还没有历史可读，它的监督对 B 的命题无信息
             if not (skip_first_loss and ci == 0):
                 lo, a, a0 = pair_loss(sp[:, :nn_], s0[:, :nn_], U[:, :nn_],
-                                      sig, n_pairs, gen)
+                                      sig, n_pairs, gen, pair_w=pair_w)
                 losses.append(lo)
                 tot_l += float(lo); tot_a += float(a - a0); cnt += 1
                 g_sp.append(sp[:, :nn_].reshape(-1))
@@ -135,13 +153,14 @@ def run_doc(cm, doc, dev, n_pairs, gen, train=True, lam_global=1.0,
             # **写入只用随机子集**（后半段），近阈值子集是有偏的
             xr = x[:, nn_:]
             rr = ret[:, nn_:]
-            new_M.append(cm.write(M[l], xr, rr, ~rr, gen=gen))
+            new_M.append(cm.write(M[l], xr, rr, ~rr, gen=shuf_gen or gen))
             del k, v, x, r, q, xr_raw
         # ---- 跨 (层,kv头) 的全局排序项 ----
         if lam_global > 0 and g_sp:
             gs = torch.cat(g_sp); g0 = torch.cat(g_s0); gu = torch.cat(g_U)
             gsig = g0.std().clamp_min(1e-6)          # 全局尺度，不用逐头 σ
-            lg_, ag, ag0 = _flat_pairs(gs, g0, gu, gsig, n_pairs, gen)
+            lg_, ag, ag0 = _flat_pairs(gs, g0, gu, gsig, n_pairs, gen,
+                                       pair_w=pair_w)
             gl_losses.append(lg_)
             tot_g += float(ag - ag0); gcnt += 1
         M = new_M
@@ -166,6 +185,9 @@ def main():
     ap.add_argument("--n_pairs", type=int, default=256)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--val_frac", type=float, default=0.25)
+    ap.add_argument("--pair_w", default="linear", choices=["linear", "none"],
+                    help="成对损失是否按 |ΔU| 加权。top-B 的 selection regret 就是被错换"
+                         "成对的 |ΔU| 之和，所以 linear 才是它的可微代理；none 做消融")
     ap.add_argument("--lam_global", type=float, default=1.0,
                     help="跨 (层,kv头) 全局排序项的权重。0 = 只学头内重排，"
                          "那样跨层/头的预算再分配完全没有监督")
@@ -194,13 +216,16 @@ def main():
         print(f"\n=== {mode}　参数 {cm.n_params()/1e3:.1f}K ===", flush=True)
         for ep in range(a.epochs):
             cm.train()
+            # 两个独立 generator：pair 的种子三臂完全相同，shuffle 的单独走
             g = torch.Generator(device=dev).manual_seed(a.seed * 1000 + ep)
+            gs = torch.Generator(device=dev).manual_seed(a.seed * 7919 + ep)
             order = list(range(len(docs_tr)))
             random.Random(a.seed * 100 + ep).shuffle(order)
             el, ea, n = 0.0, 0.0, 0
             for di in order:
                 loss, l_, acc, gacc = run_doc(cm, docs_tr[di], dev, a.n_pairs, g,
-                                              lam_global=a.lam_global)
+                                              lam_global=a.lam_global, shuf_gen=gs,
+                                              pair_w=a.pair_w)
                 if loss is None:
                     continue
                 opt.zero_grad(set_to_none=True)
@@ -211,11 +236,13 @@ def main():
             cm.eval()
             with torch.no_grad():
                 gv = torch.Generator(device=dev).manual_seed(12345)
+                gvs = torch.Generator(device=dev).manual_seed(54321)
                 vl, va, vg, m_ = 0.0, 0.0, 0.0, 0
                 for d_ in docs_va:
                     _, l_, acc, gacc = run_doc(cm, d_, dev, a.n_pairs, gv,
                                                train=False,
-                                               lam_global=a.lam_global)
+                                               lam_global=a.lam_global,
+                                               shuf_gen=gvs, pair_w=a.pair_w)
                     vl += l_; va += acc; vg += gacc; m_ += 1
             print(f"  ep{ep} train loss {el/max(n,1):.4f} acc {ea/max(n,1):.4f} | "
                   f"val 头内Δacc {va/max(m_,1):+.4f} **全局Δacc {vg/max(m_,1):+.4f}** | "

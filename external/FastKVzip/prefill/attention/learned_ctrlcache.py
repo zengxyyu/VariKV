@@ -27,14 +27,20 @@ from .kvcache import RetainCache
 
 class LearnedControlRetainCache(RetainCache):
     def __init__(self, model, evict_range: Tuple[int, int], ctrl=None,
-                 train_mode: bool = False, seed: int = 0):
+                 train_mode: bool = False, seed: int = 0, n_write: int = 512):
         super().__init__(model, evict_range)
         self.ctrl = ctrl                       # ControlMemory，None ⇒ 纯基线
         self.train_mode = train_mode
         self.head_dim = getattr(
             model.config, "head_dim",
             model.config.hidden_size // model.config.num_attention_heads)
-        self.M = None                          # [L][H,K,d_m]，惰性初始化
+        # **写入端固定采样规模，与训练一致。** 训练时 writer 只看 teacher 存下的
+        # 512 个随机候选，推理若把整个 chunk（≈16000）交给它，均值路虽无偏，
+        # 但注意力池化的 softmax 集中度（尤其 max logit 的分布）在两种规模下差别很大
+        # ⇒ M_gru 的训练/部署分布不一致。统一到同一个采样规模，顺带让写入开销
+        # 与 chunk 大小解耦。
+        self.n_write = int(n_write)
+        self.M = None                          # [L][(M_gru, M_dir)]，惰性初始化
         self._gen = torch.Generator(device="cpu").manual_seed(seed)
         # 诊断
         self.flip_frac, self.retain_delta, self.delta_std = [], [], []
@@ -115,13 +121,23 @@ class LearnedControlRetainCache(RetainCache):
 
     # ------------------------------------------------------------------ 写
     def _write(self, lo: int, hi: int, valid: torch.Tensor):
-        pos = torch.arange(lo, hi, device=self.device)
+        n = hi - lo
+        if self.n_write and n > self.n_write:      # 与训练同规模的随机子样本
+            sub = torch.stack([torch.randperm(n, generator=self._gen)[:self.n_write]
+                               for _ in range(self.n_heads_kv)]).to(self.device)
+        else:
+            sub = torch.arange(n, device=self.device).expand(self.n_heads_kv, -1)
+        pos = sub + lo
         ctx = torch.enable_grad() if self.train_mode else torch.no_grad()
         with ctx:
             for l in range(self.n_layers):
-                k, v = self._kv(l, pos)
-                x = self.ctrl.feat(self.ctrl.raw(k, v))    # write 侧要投影后的 x
-                m_ret = valid[l]
+                # 逐头取各自的子样本位置
+                k = torch.stack([self.key_cache[l][0][h, pos[h]]
+                                 for h in range(self.n_heads_kv)])
+                v = torch.stack([self.value_cache[l][0][h, pos[h]]
+                                 for h in range(self.n_heads_kv)])
+                x = self.ctrl.feat(self.ctrl.raw(k, v))
+                m_ret = torch.gather(valid[l], 1, sub)
                 self.M[l] = self.ctrl.write(self.M[l], x, m_ret, ~m_ret,
                                             gen=self._gen)
                 del k, v, x
