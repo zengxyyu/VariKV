@@ -126,6 +126,24 @@ CUDA_VISIBLE_DEVICES=0 VARIKV_RATIOS=0.3,0.2 ../../../.venv/bin/python -B eval_c
 .venv/bin/python scratch_model_registry.py --md      # regenerate MODELS.md tables
 ```
 
+### VariKV-B 的结论（2026-08-14 夜，下游完成）：残差有效、记忆无效
+
+**这是项目第一个未被撤回的正结果，同时也是对它自己中心命题的严格否定。完整方法说明见
+`varikv_b_method.md`，那里的 §9.0 是权威版本。**
+
+> 一个 0.6M 参数的**学习残差修正**加在 FastKVzip 的驱逐分数上，Retr.KV @10% 缓存
+> 稳定 **+2.6 ~ +4.4 分**（3 个训练种子 +2.60 ± 0.53，与 v1 的 39 分跨度是两个世界）。
+> **递归记忆贡献为零**：训练侧 TOST 在 δ=0.02 下判为等价，下游
+> `stateful − shuffled = +0.20 [−1.80, +2.20]`，`memoryless` 反而是三臂中最高的 +4.40★。
+
+三条**独立**路径一致否定历史假设：凸线性探针（30 篇留一）、非线性三臂训练（TOST 等价）、
+下游配对 bootstrap。且在两种教师靶子（`U^full` / `U^setmarginal`）、两种查询类型
+（续写 / 检索）、有无冗余结构（1 份 / 3 份重复事实）下都成立。
+
+**不要再往这个记忆架构上加东西。** 若要继续，方向是"什么才是正确的蒸馏靶子"——
+门控分对 `U^setmarginal` 的排序准确率只有 **0.532（近乎随机）**，对 `U^full` 是 0.577，
+而 ForesightKV / KVP / DBTrimKV 的靶子都不是固定预算下的集合条件边际价值。
+
 ### VariKV-B 的核心命题在数据层面没有线性支持（2026-08-14）
 
 **读这条之前不要再改 B 的架构。** `scratch_probe_histinfo.py` 用**凸**模型问了 B 的
