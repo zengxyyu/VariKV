@@ -31,7 +31,28 @@ if __name__ == "__main__":
     args.tag += f"_chunk{args.prefill_chunk//1000}k_w{args.window_size}"
     print(f"tag: {args.tag}")
 
-    model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
+    # 本地改动：MRCR 是 Figure 11 的第 12 个数据集，但本脚本原来不认 --ctrlm_ckpt，
+    # 学习残差臂在 MRCR 上无法评测（12 个 panel 只能报 11 个）。这里补上，
+    # 与 eval_chunk.py 的 control_learned 分支同一套构造逻辑（typed 从权重形状推断）。
+    if getattr(args, "ctrlm_ckpt", ""):
+        import torch as _torch
+        from attention.control_memory import ControlMemory as _CM
+        args.kv_type = "control_learned"
+        _ck = _torch.load(args.ctrlm_ckpt, map_location="cpu")
+        _mode = args.ctrlm_mode or _ck.get("mode", "stateful")
+        _ns = _ck.get("slots", 8)
+        args.tag += f"_ctrlm{_mode[:4]}{_ns}"
+        model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
+        _cm = _CM(_ck.get("d_kv", 128), _ck["L"], _ck["H"], n_slots=_ns,
+                  d_m=_ck.get("dim", 128), mode=_mode,
+                  typed=_ck["state"]["M_init"].shape[2] == 2 * _ns)
+        _cm.load_state_dict(_ck["state"])
+        model.ctrl_module = _cm.to(model.device).eval()
+        model.ctrl_seed = getattr(args, "ctrl_seed", 0)
+        print(f"[CtrlM-MRCR] {args.ctrlm_ckpt} mode={_mode} "
+              f"alpha={float(_cm.alpha):.4f}")
+    else:
+        model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
     dataset = load_dataset_all(args.data, model.tokenizer, n_data=2400)
 
     tt = TimeStamp(True)
