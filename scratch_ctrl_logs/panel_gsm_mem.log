@@ -1,0 +1,2778 @@
+tag: _fastkvzip__pnm_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.76it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.80it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.83it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.94it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.89it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/ctrl_b_a1_s0.pt/memoryless.pt mode=memoryless slots=8 typed=True alpha=0.9990 params=637.8K
+['gsm']
+
+gsm loaded, #data: 100
+set generation length: 512 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~100 samples
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.43it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.43it/s]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m gsm-0: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many cups of feed Wendi needs to give her chickens in the final meal of the day, we first calculate the total amount of feed each chicken should receive daily. Since each chicken gets 3 cups of feed per day and there are 20 chickens, the total daily feed requirement is \(20 \times 3 = 60\) cups.
+
+Next, we know that Wendi has already given her chickens 15 cups in the morning and 25 cups in the afternoon, which totals \(15 + 25 = 40\) cups. To find out how much more feed is needed for the final meal, we subtract the amount already given from the total daily requirement: \(60 - 40 = 20\) cups.
+
+Therefore, the answer is: The answer is 20 cups of feed. | If each chicken eats 3 cups of feed per day, then for 20 chickens they would need 3*20=<<3*20=60>>60 cups of feed per day.
+If she feeds the flock 15 cups of feed in the morning, and 25 cups in the afternoon, then the final meal would require 60-15-25=<<60-15-25=20>>20 cups of chicken feed.
+#### 20
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  7.83it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  7.82it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-0: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/0_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 11.0s. Mem: 14.32/79.18 GB. [gsm-0]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.10it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-1: 88 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how far John is from home after 4 hours, we need to calculate the total distance he has traveled away from home and subtract the distance he has covered towards home.
+
+First, let's calculate the distance John initially drove:
+\[ \text{Distance} = \text{Speed} \times \text{Time} = 60 \, \text{mph} \times 3 \, \text{hours} = 180 \, \text{miles} \]
+
+Next, we calculate the distance John covers during his return trip:
+- For the first 2 hours in standstill traffic, he doesn't cover any distance.
+- For the next 0.5 hours (30 minutes) at 30 mph:
+\[ \text{Distance} = 30 \, \text{mph} \times 0.5 \, \text{hours} = 15 \, \text{miles} \]
+- For the remaining time, which is \(4 - 2 - 0.5 = 1.5\) hours, at 80 mph:
+\[ \text{Distance} = 80 \, \text{mph} \times 1.5 \, \text{hours} = 120 \, \text{miles} \]
+
+Adding these distances together gives the total distance John has covered towards home:
+\[ 15 \, \text{miles} + 120 \, \text{miles} = 135 \, \text{miles} \]
+
+Since John initially drove 180 miles away from home, the distance he is from home at the end of those 4 hours is:
+\[ 180 \, \text{miles} - 135 \, \text{miles} = 45 \, \text{miles} \]
+
+The answer is John is 45 miles from home at the end of those 4 hours. | When he turned around he was 3*60=<<3*60=180>>180 miles from home
+He was only able to drive 4-2=<<4-2=2>>2 hours in the first four hours
+In half an hour he goes 30*.5=<<30*.5=15>>15 miles
+He then drives another 2-.5=<<2-.5=1.5>>1.5 hours
+In that time he goes 80*1.5=<<80*1.5=120>>120 miles
+So he drove 120+15=<<120+15=135>>135 miles
+So he is 180-135=<<180-135=45>>45 miles away from home
+#### 45
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 12.82it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-1: 88 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/1_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 19.1s. Mem: 14.32/79.18 GB. [gsm-1]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.58it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-2: 97 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how far outside the reach of the dragon's flames Polly could stand while holding the gemstone, we need to consider the increased throwing distance provided by the sapphire gemstone. Normally, Polly can throw the gold javelin for 400 feet. When holding the gemstone, she can throw it three times farther. Therefore, the throwing distance becomes \(400 \text{ feet} \times 3 = 1200 \text{ feet}\). Since the dragon's flames reach out 1000 feet, Polly could stand 1200 feet away from the dragon and still be able to hit it with the gold javelin. The answer is: The answer is 1200 feet. | With the gemstone, Polly could throw the javelin 3 times farther than 400 feet, for a distance of 3*400=<<3*400=1200>>1200 feet.
+1200 feet is beyond the 1000-foot reach of the dragon's flames by a distance of 1200-1000=<<1200-1000=200>>200 feet.
+#### 200
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.56it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-2: 97 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/2_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 8.4s. Mem: 14.32/79.18 GB. [gsm-2]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.20it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-3: 72 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many pieces of pie were taken by the guests, we first calculate the total number of pie pieces initially available. Grandma Jones baked 5 apple pies, cutting each into 8 pieces. Therefore, the total number of pieces is \(5 \times 8 = 40\).
+
+At the end of the evening, there were 14 pieces of pie remaining. This means that the guests took \(40 - 14 = 26\) pieces of pie. 
+
+The answer is: The answer is 26 pieces were taken by the guests. | To start the evening, there were 5 pies, each with 8 pieces, which is 5*8=<<5*8=40>>40 pieces of pie.
+If only 14 remained, then 40-14=<<40-14=26>>26 pieces of pie had been taken by guests.
+#### 26
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.74it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-3: 72 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/3_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 7.1s. Mem: 14.32/79.18 GB. [gsm-3]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.34it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-4: 79 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To calculate the total number of hours Meredith spent writing articles over the three days, we first need to determine how many articles she wrote each day.
+
+On Monday, she wrote 5 articles.
+On Tuesday, she wrote \( \frac{2}{5} \) times more articles than on Monday, which means she wrote \( 5 + \frac{2}{5} \times 5 = 5 + 2 = 7 \) articles.
+On Wednesday, she wrote twice the number of articles she wrote on Tuesday, which means she wrote \( 2 \times 7 = 14 \) articles.
+
+Next, we calculate the total number of articles written over these three days:
+- Monday: 5 articles
+- Tuesday: 7 articles
+- Wednesday: 14 articles
+
+Total articles = \( 5 + 7 + 14 = 26 \) articles.
+
+Since it takes her an average of 4 hours to research and write one article, the total time spent writing is:
+\[ 26 \text{ articles} \times 4 \text{ hours/article} = 104 \text{ hours} \]
+
+The answer is the total number of hours she spent writing articles in the three days is 104 hours. | If she wrote five articles on Monday, then on Tuesday she wrote 2/5* 5 = 2 more articles.
+The total number of articles she wrote on Tuesday is 5+2 = <<5+2=7>>7
+On Wednesday, the number of articles was twice the number she wrote on Tuesday, so it was 2*7 = <<2*7=14>>14 articles.
+Over the three days, she wrote 5+7 +14 = <<5+7+14=26>>26 articles.
+If each article takes her 4 hours to research and write about, she spent 4*26 = <<4*26=104>>104 hours on all the articles.
+#### 104
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.68it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-4: 79 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/4_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 15.0s. Mem: 14.32/79.18 GB. [gsm-4]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.03it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-5: 84 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much more revenue the mechanic earned on the day with higher revenue, we first calculate the revenue for both days.
+
+On Thursday:
+- Revenue from truck tires: 6 tires * $60/tire = $360
+- Revenue from car tires: 4 tires * $40/tire = $160
+- Total revenue on Thursday: $360 + $160 = $520
+
+On Friday:
+- Revenue from car tires: 12 tires * $40/tire = $480
+- Total revenue on Friday: $480 (since no truck tires were repaired)
+
+Comparing the two days:
+- Thursday's revenue: $520
+- Friday's revenue: $480
+
+The difference in revenue between Thursday and Friday is:
+$520 - $480 = $40
+
+The answer is the mechanic earned $40 more on Thursday. | On Thursday the mechanic charged a total of 6*60 + 4*40 = $<<6*60+4*40=520>>520.
+On Friday the mechanic charged a total of 12*40 = $<<12*40=480>>480.
+Thus, on Thursday, the day with higher revenue, the mechanic had 520-480 = $<<520-480=40>>40 more revenue than on Friday.
+#### 40
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.51it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-5: 84 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/5_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 12.9s. Mem: 14.32/79.18 GB. [gsm-5]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.72it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-6: 80 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many miles Sophia can drive on a single tank of gas, we first need to calculate her car's miles per gallon (mpg). Sophia has driven 100 miles using 4 gallons of gas. Therefore, her car's mpg is calculated as follows:
+
+\[ \text{mpg} = \frac{\text{miles driven}}{\text{gallons used}} = \frac{100 \text{ miles}}{4 \text{ gallons}} = 25 \text{ mpg} \]
+
+Now, knowing that her tank holds 12 gallons of gas, we can calculate the total distance she can travel on a full tank:
+
+\[ \text{Total miles} = \text{mpg} \times \text{gallons in the tank} = 25 \text{ mpg} \times 12 \text{ gallons} = 300 \text{ miles} \]
+
+Therefore, the answer is: The answer is 300 miles. | To find miles per gallon divide 100 miles / 4 gallons = <<100/4=25>>25 miles per gallon
+To find how far Olivia can go on a single tank, multiply 25 miles per gallon x 12 gallons = <<25*12=300>>300 miles
+#### 300
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.54it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-6: 80 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/6_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 9.9s. Mem: 14.32/79.18 GB. [gsm-6]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.64it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-7: 90 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] First, we need to round the prices of each type of flower to the nearest dollar:
+
+- Marigolds are sold for $2.74 per pot, which rounds to $3.
+- Petunias are sold for $1.87 per pot, which rounds to $2.
+- Begonias are sold for $2.12 per pot, which rounds to $2.
+
+Next, we calculate the total revenue from each type of flower:
+
+- Revenue from marigolds: \(12 \text{ pots} \times \$3 = \$36\).
+- Revenue from petunias: \(9 \text{ pots} \times \$2 = \$18\).
+- Revenue from begonias: \(17 \text{ pots} \times \$2 = \$34\).
+
+Finally, we add up the revenues from all types of flowers to find the total amount Artie will make:
+
+\[ \$36 + \$18 + \$34 = \$88 \]
+
+The answer is Artie will make $88. | Artie will round his marigolds up from $2.74 to $3, since the number following the 2 is 5 or higher.
+Artie will round his petunias up from $1.87 to $2, since the number following the 1 is 5 or higher.
+Artie will round his begonias down from $2.12 to $2, since the number following the 2 is less than 5.
+Artie sells 12 marigolds x $3 = $<<12*3=36>>36
+Artie sells 9 petunias x $2 = $<<9*2=18>>18
+Artie sells 17 begonias x $2 = $<<17*2=34>>34
+Altogether, Artie will make $36 + $18 + $34 = $<<36+18+34=88>>88
+#### 88
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.49it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-7: 90 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/7_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 10.9s. Mem: 14.32/79.18 GB. [gsm-7]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.28it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-8: 73 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the number of quilt blocks Gene has, we need to calculate the total number of vacations he has taken since he started at age 23 until he is now 34. 
+
+He has been vacationing for \(34 - 23 = 11\) years. Since he goes on four vacations each year, the total number of quilt blocks (vacation shirts) he has is \(11 \text{ years} \times 4 \text{ vacations/year} = 44 \text{ blocks}\).
+
+The answer is: The answer is 44 quilt blocks. | Gene has been on 34 - 23 = <<34-23=11>>11 years of vacations, so he has 11 rows of blocks.
+He goes on 4 vacations a year, so he has been on 4 * 11 = <<4*11=44>>44 vacations.
+Gene has 1 shirt from each vacation, so he has 44 * 1 = <<44*1=44>>44 quilt blocks in all.
+#### 44
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.56it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-8: 73 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/8_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 7.7s. Mem: 14.32/79.18 GB. [gsm-8]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.14it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-9: 78 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the total number of times the alarm rang, we need to calculate the number of rings for each of the three times the alarm went off.
+
+1. The first time the alarm went off, it rang four times.
+2. The second time, it rang for three times as long as the first time, which means it rang \(4 \times 3 = 12\) times.
+3. The third time, it rang for half as long as the second time, which means it rang \(12 \div 2 = 6\) times.
+
+Adding these together gives us the total number of rings:
+\[4 + 12 + 6 = 22\]
+
+The answer is that the alarm rang 22 times in all. | The second time Greg’s alarm went off, it rang three times as long as the first, so it rang 3 * 4 = <<3*4=12>>12 times the second time.
+The third time it went off, it rang half as long as the second, so it rang 12 / 2 = <<12/2=6>>6 times the third time.
+In all, Greg’s alarm rang 4 + 12 + 6 = <<4+12+6=22>>22 times.
+#### 22
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.60it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-9: 78 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/9_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 9.1s. Mem: 14.32/79.18 GB. [gsm-9]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.43it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-10: 72 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Mary initially had 2 potted plants on each of the 40 window ledges, which totals to \(2 \times 40 = 80\) potted plants. After giving 1 potted plant from each ledge to friends and family, she will give away \(40 \times 1 = 40\) potted plants. Additionally, she received 18 new potted plants. Therefore, before giving any away, she will have \(80 + 18 = 98\) potted plants. After giving away 40 potted plants, she will remain with \(98 - 40 = 58\) potted plants. The answer is Mary will remain with 58 potted plants. | Yesterday, before receiving the plants, Mary had 2*40 = <<2*40=80>>80 potted plants
+After receiving an additional 18 plants, she therefore had a total of 80 + 18 = <<80+18=98>>98 potted plants
+Tomorrow, Mary’s plant giveaway will be 40 *1 = <<40*1=40>>40 potted plants.
+She will therefore remain with 98 - 40 = <<98-40=58>>58 potted plants.
+#### 58
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.74it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-10: 72 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/10_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 8.8s. Mem: 14.32/79.18 GB. [gsm-10]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.85it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-11: 91 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the number of 30-minute episodes Frankie watched on Wednesday, we first calculate the total time spent watching TV on other days:
+
+- Monday and Tuesday: \(2 \times 1\) hour = 2 hours
+- Thursday: \(1\) hour + \(0.5\) hour = 1.5 hours
+- Friday: \(2 \times 1\) hour = 2 hours
+
+Adding these together gives us \(2 + 1.5 + 2 = 5.5\) hours of TV watching from Monday to Friday.
+
+Since Frankie watched a total of 7 hours of TV during the week, the time spent watching TV on Wednesday is:
+\[7 - 5.5 = 1.5 \text{ hours}\]
+
+On Wednesday, Frankie watched a few episodes of a 30-minute show. Let's denote the number of 30-minute episodes he watched as \(x\). Therefore, the total time spent watching TV on Wednesday can be expressed as:
+\[0.5x \text{ hours}\]
+
+Setting this equal to the time calculated for Wednesday:
+\[0.5x = 1.5\]
+\[x = \frac{1.5}{0.5} = 3\]
+
+Thus, Frankie watched 3 episodes of the 30-minute show on Wednesday. The answer is he watched 3 episodes on Wednesday. | Let W be the number of episodes he watched on Wednesday.
+After Monday, he had 7 - 1 = <<7-1=6>>6 hours of TV left.
+After Tuesday, he had 6 - 1 = <<6-1=5>>5 hours of TV left.
+After Thursday, he had 5 - 1 - 1/2 = 3 1/2 hours of TV left.
+After Friday, he had 3 1/2 - 2 = 1 1/2 hours of TV left.
+Each 30-minute episode is 1/2 hour.
+Thus, W = 1 1/2 / 1/2 = 3 episodes.
+#### 3
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.64it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-11: 91 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/11_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 13.9s. Mem: 14.32/79.18 GB. [gsm-11]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.33it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-12: 80 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine Sasha's profit from selling her leftover lumber, we first need to calculate the total cost of the lumber she originally bought and then compare it to the potential revenue from selling all the boards at the new higher price.
+
+First, let's calculate the original cost:
+- Sasha bought ten 2 x 4 x 10 boards for $10 each. The total cost for these is \(10 \times 10 = \$100\).
+- She also bought five 4 x 4 x 10 boards for $16 each. The total cost for these is \(5 \times 16 = \$80\).
+
+So, the total original cost is \(100 + 80 = \$180\).
+
+Next, we need to find out the new price per board after the 50% increase:
+- The new price for the 2 x 4 x 10 boards is \(10 \times 1.5 = \$15\) each.
+- The new price for the 4 x 4 x 10 boards is \(16 \times 1.5 = \$24\) each.
+
+Now, let's calculate the total revenue if she sells all the boards at the new prices:
+- Revenue from selling the ten 2 x 4 x 10 boards is \(10 \times 15 = \$150\).
+- Revenue from selling the five 4 x 4 x 10 boards is \(5 \times 24 = \$120\).
+
+So, the total revenue is \(150 + 120 = \$270\).
+
+Finally, to find the profit, we subtract the original cost from the total revenue:
+\[ \text{Profit} = 270 - 180 = \$90 \]
+
+The answer is Sasha makes a profit of $90. | She bought the 2 x 4s for $100 because 10 x 10 = 100
+She bought the 4 x 4s for 80 because 5 x 16 = 80
+She paid $180 for the lumber because 100 + 80 = <<100+80=180>>180
+The same number now sells for $270 because 180 x 1.5 = <<180*1.5=270>>270
+She made $90 in profit because 270 - 180 = <<270-180=90>>90
+#### 90
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.64it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-12: 80 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/12_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 16.4s. Mem: 14.32/79.18 GB. [gsm-12]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 17.96it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-13: 104 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many spoons were in the package that Julia bought, let's analyze the information provided:
+
+1. Julia bought a package of spoons.
+2. Her husband bought a package of 5 spoons and gave them to Julia.
+3. Julia used 3 spoons to sample her stew.
+4. When she went to set the table, she had a total of 12 spoons.
+
+Let \( x \) be the number of spoons in the package Julia bought. After receiving the 5 spoons from her husband, she had \( x + 5 \) spoons. After using 3 spoons, she had \( x + 5 - 3 = x + 2 \) spoons left. According to the problem, this equals 12 spoons.
+
+So, we can set up the equation:
+\[ x + 2 = 12 \]
+
+Solving for \( x \):
+\[ x = 12 - 2 \]
+\[ x = 10 \]
+
+Therefore, the answer is: The answer is 10 spoons. | The total number of spoons from Julia and her husband was 12+3=<<12+3=15>>15 spoons.
+Since the husband bought a package of five spoons, then Julia's package contained 15-5=<<15-5=10>>10 spoons.
+#### 10
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.41it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-13: 104 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/13_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 10.2s. Mem: 14.32/79.18 GB. [gsm-13]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 21.54it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-14: 108 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine Kim's weekly profit, we first calculate his total expenses. Kim has 8 clients (3 existing + 5 potential). Each client requires 2 bottles of bleach and 1 pack of cloths. The cost for bleach per client is 2 bottles * $2/bottle = $4. The cost for cloths per client is 1 pack * $5/pack = $5. Therefore, the total expense per client is $4 (bleach) + $5 (cloths) = $9. For 8 clients, the total expense is 8 clients * $9/client = $72.
+
+Kim's total income each week is given as $92. To find the profit, subtract the total expenses from the total income: $92 - $72 = $20. 
+
+The answer is Kim will make a profit of $20 each week. | Lucas counts a total of 3 confirmed clients + 5 potential clients = <<3+5=8>>8 clients.
+Each week, he will need a total of 8 clients * 2 bottles of bleach per client = <<8*2=16>>16 bottles of bleach.
+Each week, he will also need a total of 8 clients * 1 pack of cloths per client = <<8*1=8>>8 packs of cloths.
+The bottles of bleach will cost him 16 bottles of bleach * $2 per bottle of bleach = $<<16*2=32>>32.
+The packs of cloths will cost him 8 packs of cloths * $5 per pack of cloths = $<<8*5=40>>40.
+So each week, Lucas' total expenses will be $32 for bleach + $40 for packs of cloths = $<<32+40=72>>72.
+His profit will therefore be $92 total income - $72 total expenses = $<<92-72=20>>20.
+#### 20
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.68it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-14: 108 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/14_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 12.7s. Mem: 14.32/79.18 GB. [gsm-14]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.56it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-15: 104 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many bees Debra saw return to the hive in the last 6 hours, let's break down the information given:
+
+1. In the first 6 hours, 30 bees leave the hive.
+2. In the next 6 hours, half as many bees (1/2 * 30 = 15) return to the hive.
+3. In the following 6 hours, twice as many bees as initially left (2 * 30 = 60) leave the hive.
+4. Finally, every bee that had left before but hadn't returned does so in the last 6 hours. This means all the bees that left in the first 6 hours and didn't return in the next 6 hours will return now. Since 15 bees returned in the second 6-hour period, the number of bees that haven't returned yet is 30 - 15 = 15.
+
+Therefore, in the last 6 hours, 15 bees return to the hive.
+
+The answer is 15 bees. | Debra first sees 30 bees leave the hive, then sees 1/2 that many return, 30 x 1/2 = <<30*1/2=15>>15 bees that return and 15 bees that are still away from the hive.
+Debra sees twice as many bees as first left the hive--which was 30--fly from the hive in the next 6 hours, 30 x 2 = <<30*2=60>>60 bees that leave the hive.
+In total, 30 + 60 = <<30+60=90>>90 bees left the hive.
+There were 90 bees total that left the hive - 15 bees that already returned = <<90-15=75>>75 bees that return to the hive in the last 6 hours of the day.
+#### 75
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.64it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-15: 104 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/15_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 10.2s. Mem: 14.32/79.18 GB. [gsm-15]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.76it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-16: 82 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much Shawnda made that day, we need to calculate the cost for each type of vehicle and then sum them up.
+
+1. For bicycles, each bike has 2 tires. Since each tire costs 25 cents to inflate:
+   - 5 bicycles x 2 tires/bicycle = 10 tires
+   - 10 tires x $0.25/tire = $2.50
+
+2. For tricycles, each tricycle has 3 tires. Again, each tire costs 25 cents to inflate:
+   - 3 tricycles x 3 tires/tricycle = 9 tires
+   - 9 tires x $0.25/tire = $2.25
+
+3. For the unicycle, there is only 1 tire:
+   - 1 unicycle x 1 tire/unicycle = 1 tire
+   - 1 tire x $0.25/tire = $0.25
+
+Now, we add up all the amounts:
+- $2.50 (from bicycles) + $2.25 (from tricycles) + $0.25 (from the unicycle) = $5.00
+
+Therefore, the answer is she made $5.00 that day. | There were 10 bike tires to fill up because 2 times 5 equals <<2*5=10>>10.
+There were 9 tricycle tires to fill up because 3 times 3 equals <<3*3=9>>9.
+There was one unicycle tire to fill up because 1 times 1 equals 1.
+There were 20 total tires to fill up because 10 plus 9 plus 1 equals <<10+9+1=20>>20.
+She made $5 because 20 times .25 equals <<20*.25=5>>5.
+#### 5
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.46it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-16: 82 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/16_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 12.5s. Mem: 14.32/79.18 GB. [gsm-16]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.48it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-17: 90 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many French fries were in the pack when Dave bought it, we need to work backwards through the problem step by step.
+
+1. **Final Count**: There are 5 French fries left.
+2. **Ants**: Before the ants took their share, there was 1 more fry (since they carried off the final one). So, there were \(5 + 1 = 6\) fries before the ants.
+3. **Raccoon**: The raccoon stole two-thirds of the fries, meaning one-third remained. If one-third is 6 fries, then the total before the raccoon took its share was \(6 \times 3 = 18\) fries.
+4. **Pigeons**: Three pigeons each ate 3 fries, so they collectively ate \(3 \times 3 = 9\) fries. Therefore, before the pigeons ate, there were \(18 + 9 = 27\) fries.
+5. **Seagull**: The seagull ate half the amount Dave did. Dave ate 14 fries, so the seagull ate \(14 / 2 = 7\) fries. Thus, before the seagull ate, there were \(27 + 7 = 34\) fries.
+
+Therefore, the answer is: The pack contained 34 French fries when Dave bought it. | Dave ate 14 french fries, so the seagull ate 14 * 1/2 = 14 / 2 = <<14*1/2=7>>7 fries.
+The 3 pigeons ate 3 each, so they ate 3 * 3 = <<3*3=9>>9 fries.
+The ants took one french fry, so there were 5 + 1 = <<5+1=6>>6 after the racoon took some.
+The raccoon left 1/3 behind, so there were 6 * 3 = <<6*3=18>>18 fries before the raccoon took any.
+Thus, the pack had 14 + 7 + 9 + 18 = <<14+7+9+18=48>>48 fries in it when Dave bought it.
+#### 48
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.40it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-17: 90 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/17_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 15.9s. Mem: 14.32/79.18 GB. [gsm-17]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.42it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-18: 92 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much farther the winner runs than the loser, we need to calculate the total distance each person runs.
+
+First, let's calculate the distance Blake runs:
+- The football field is 100 yards long.
+- Blake runs back and forth 15 times.
+- Distance for one round trip = 100 yards * 2 = 200 yards.
+- Total distance Blake runs = 200 yards * 15 = 3000 yards.
+
+Next, let's calculate the distance Kelly runs:
+- Kelly runs from one end of the field to the 40-yard line and back, which is 60 yards (100 - 40) each way.
+- Distance for one round trip = 60 yards * 2 = 120 yards.
+- Kelly does this 34 times.
+- Total distance Kelly runs = 120 yards * 34 = 4080 yards.
+
+Now, we compare the distances:
+- Blake runs 3000 yards.
+- Kelly runs 4080 yards.
+
+The difference in distance between Kelly and Blake is:
+- 4080 yards - 3000 yards = 1080 yards.
+
+Therefore, the answer is: The winner runs 1080 yards farther than the loser. | Blake runs 200 yards for each back and forth because 100 x 2 = 200
+He runs 3000 yards in total because 200 x 15 = <<200*15=3000>>3000
+Kelly runs 200 yards at first because 100 x 2 = <<100*2=200>>200
+She runs 80 yards each time she does a back and forth to the 40-yard line because 40 x 2 = <<40*2=80>>80
+She runs 2720 from these back and forth because 34 x 80 = <<34*80=2720>>2720
+She runs 2920 in total because 2720 + 200 = <<2720+200=2920>>2920
+Blake won because 3000 > 2920
+The winner ran 80 yards more than the loser because 3000 - 2920 = <<3000-2920=80>>80
+#### 80
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.28it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-18: 92 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/18_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 13.8s. Mem: 14.32/79.18 GB. [gsm-18]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 21.20it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-19: 106 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much money Elvira will have left for her clothing, we first need to calculate the total cost of the items she plans to purchase. The items and their respective costs are as follows:
+
+- Computer: €1090
+- Screen: €157
+- Keyboard and Mouse: €74 (combined)
+- CD Burner: €74
+- Printer: €102
+
+Adding these amounts together gives us the total expenditure:
+\[ 1090 + 157 + 74 + 74 + 102 = 1497 \]
+
+Elvira's budget is €1500. To find out how much money she will have left for her clothing, we subtract the total cost from her budget:
+\[ 1500 - 1497 = 3 \]
+
+Therefore, the answer is: The answer is €3. | First, let’s look at the total cost of computer equipment: 1090 + 157 + 74 + 102 = <<1090+157+74+102=1423>>1423 euros
+Let us now calculate what is left for the garment: 1500 - 1423 = <<1500-1423=77>>77 euros
+#### 77
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.37it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-19: 106 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/19_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 10.6s. Mem: 14.32/79.18 GB. [gsm-19]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.62it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-20: 86 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how long it will take Billy to finish prepping the potatoes, we need to calculate the total time spent peeling and cutting all 60 potatoes. 
+
+First, let's calculate the time spent peeling one potato: 1.5 minutes per potato.
+Then, let's calculate the time spent cutting one potato: 5 seconds per potato.
+
+Since there are 60 potatoes:
+- Total peeling time = 60 potatoes * 1.5 minutes per potato = 90 minutes.
+- Total cutting time = 60 potatoes * 5 seconds per potato = 300 seconds.
+
+Converting the cutting time into minutes (since 1 minute = 60 seconds):
+- Total cutting time = 300 seconds / 60 seconds per minute = 5 minutes.
+
+Adding the peeling and cutting times together:
+- Total prep time = 90 minutes + 5 minutes = 95 minutes.
+
+Therefore, the answer is: The answer is that it will take Billy 95 minutes to finish prepping the potatoes. | There are 60 potatoes, and Billy takes a minute and a half to peel each one, or 60 potatoes * 1.5 minutes per potato = <<60*1.5=90>>90 minutes.
+Billy only takes 5 seconds to cut the potatoes, so it takes 5 seconds * 60 potatoes / 60 seconds per minute = 5 minutes to cut the potatoes.
+So it will take him a total of 90 minutes peeling + 5 minutes cutting = <<90+5=95>>95 minutes total prepping the potatoes.
+#### 95
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.33it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-20: 86 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/20_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 12.3s. Mem: 14.32/79.18 GB. [gsm-20]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.41it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-21: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many red roses Fred must deliver, we need to establish the relationship between the quantities of different flowers in Sandra's order. We know that Sandra ordered 200 pink calla lilies, which were five times the number of white carnations. Therefore, the number of white carnations is \( \frac{200}{5} = 40 \).
+
+Next, we know that Sandra ordered four times as many red roses as white carnations. Thus, the number of red roses is \( 4 \times 40 = 160 \).
+
+Since Sandra is unhappy with the incomplete order delivery and has threatened to switch suppliers if the missing red roses are not delivered by 5 pm, Fred must deliver all 160 red roses by 5 pm to keep Sandra's business.
+
+The answer is Fred must deliver 160 red roses by 5 pm. | Sandra ordered 200 pink calla lilies / 5 = <<200/5=40>>40 white carnations.
+Sandra therefore ordered 4 * 40 = <<4*40=160>>160 red roses.
+#### 160
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.46it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-21: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/21_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 6.6s. Mem: 14.32/79.18 GB. [gsm-21]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.14it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-22: 119 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many seconds the faster team will win by, we need to calculate the total time taken by each team to complete the 4 by 400 meter relay.
+
+For the well-rounded team:
+Each runner completes the 400 meters in 55 seconds.
+Total time for the well-rounded team = 4 runners * 55 seconds = 220 seconds.
+
+For the less well-rounded team:
+- First runner: 60 seconds
+- Second runner: 60 - 3 = 57 seconds
+- Third runner: 57 - 3 = 54 seconds
+- Fourth runner: 54 - 3 = 51 seconds
+
+Total time for the less well-rounded team = 60 + 57 + 54 + 51 = 222 seconds.
+
+Now, we find the difference in time between the two teams:
+Difference = Time of less well-rounded team - Time of well-rounded team = 222 seconds - 220 seconds = 2 seconds.
+
+The answer is the well-rounded team will win by 2 seconds. | The first team will finish the relay in 4*55 = <<4*55=220>>220 seconds.
+On the second team we must determine each runner's individual pace. We know the first runner will complete their leg in 60 seconds, so the second runner will take 60 - 3 = 57 seconds, then the third will take 57 - 3 = 54 seconds, and the fourth will take 54 - 3 = 51 seconds.
+Thus, the second team will finish the relay in 60 + 57 + 54 + 51 = <<60+57+54+51=222>>222 seconds.
+Therefore, the first team will finish 222 - 220 = <<222-220=2>>2 seconds faster than the second team.
+#### 2
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.37it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-22: 119 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/22_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 12.9s. Mem: 14.32/79.18 GB. [gsm-22]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.10it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-23: 92 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To find out how many rats are in each cage, we need to break down the information provided:
+
+1. Each rat gets 6 pieces of straw.
+2. The rats are divided equally into 3 cages.
+3. A total of 160 pieces of straw have been distributed among the rats.
+
+First, calculate the total number of pieces of straw given to the rats:
+\[ \text{Total straw for rats} = 160 \]
+
+Since each rat gets 6 pieces of straw, the number of rats can be calculated by dividing the total straw by the amount per rat:
+\[ \text{Number of rats} = \frac{160}{6} = \frac{80}{3} \approx 26.67 \]
+
+However, since the number of rats must be a whole number, it seems there might be an error in the problem setup or interpretation. Assuming the numbers should align perfectly, let's recheck the distribution logic.
+
+If we assume the problem intends for us to work with whole numbers, then the closest whole number of rats that would fit evenly into 3 cages is 24 (since \(24 \times 6 = 144\), which is close but not exactly 160). This implies there might be a slight discrepancy in the straw count provided.
+
+Given this, if we strictly follow the problem as stated and assume the closest whole number fitting scenario:
+\[ \text{Number of rats per cage} = \frac{24}{3} = 8 \]
+
+Thus, the answer is: The answer is 8 rats in each cage. | In the hamster cages, there are 10 cages * 5 pieces of straw per hamster cage = <<10*5=50>>50 pieces of straw.
+Between the rabbits and the hamsters, there are 50 pieces of straw for hamsters + 20 pieces of straw for rabbits = <<50+20=70>>70 pieces of straw.
+As the remaining straw is for the rats, the rats have a total of 160 used pieces of straw – 70 pieces of straw for the hamsters and rabbits = 90 pieces of straws.
+So in each cage, there are 90 pieces of straw / 3 cages = <<90/3=30>>30 pieces of straw.
+This means that each cage has 30 pieces of straw / 6 pieces of straw per rat = <<30/6=5>>5 rats.
+#### 5
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.20it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-23: 92 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/23_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 13.7s. Mem: 14.32/79.18 GB. [gsm-23]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.16it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-24: 101 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the number of pink and white plastic flamingos at noon on Sunday, we need to follow the sequence of events:
+
+1. **Friday Morning:** There are 18 pink plastic flamingos.
+2. **Saturday Morning:** The neighbors take back one third of the flamingos, which is \( \frac{18}{3} = 6 \) flamingos. So, they remove 6 pink flamingos, leaving \( 18 - 6 = 12 \) pink flamingos. They then paint these 6 pink flamingos white and place them back in the yard. Now there are 12 pink flamingos and 6 white flamingos.
+3. **Sunday Morning:** They add another 18 pink plastic flamingos to the collection. This increases the number of pink flamingos to \( 12 + 18 = 30 \).
+
+At noon on Sunday, there are 30 pink plastic flamingos and 6 white plastic flamingos. To find out how many more pink plastic flamingos there are than white plastic flamingos, we subtract the number of white flamingos from the number of pink flamingos:
+
+\[ 30 - 6 = 24 \]
+
+The answer is there are 24 more pink plastic flamingos than white plastic flamingos at noon on Sunday. | On Saturday, one third of the original 18 pink flamingos were removed and painted white: 18*1/3=<<18*1/3=6>>6 white flamingos.
+This left 18 pink - 6 = <<18-6=12>>12 pink flamingos.
+On Sunday, 18 more pink flamingos were added, for a total of 12 + 18 = <<12+18=30>>30 pink flamingos on the front lawn.
+Altogether, there were 30 pink and 6 white flamingos on the lawn, so there were 30 pink - 6 white =<<30-6=24>>24 more pink flamingos.
+#### 24
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.34it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-24: 101 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/24_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 15.3s. Mem: 14.32/79.18 GB. [gsm-24]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.66it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-25: 87 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the total number of slices of cheese Carl used, we need to calculate the cheese usage for each meal separately and then sum them up.
+
+1. **Lunch Sandwiches**: Carl ate a sandwich every day for lunch, using 2 slices of cheese per sandwich. There are 7 days in a week.
+   \[
+   2 \text{ slices/sandwich} \times 7 \text{ sandwiches} = 14 \text{ slices}
+   \]
+
+2. **Breakfast Omelets**: Carl ate cheese and egg omelets for breakfast 3 days a week, using one more slice per omelet than per sandwich (which means 3 slices per omelet).
+   \[
+   3 \text{ slices/omelet} \times 3 \text{ omelets} = 9 \text{ slices}
+   \]
+
+3. **Macaroni and Cheese**: Carl made a big dish of macaroni and cheese that used 8 slices of cheese.
+   \[
+   8 \text{ slices}
+   \]
+
+Adding all these together:
+\[
+14 \text{ slices} + 9 \text{ slices} + 8 \text{ slices} = 31 \text{ slices}
+\]
+
+The answer is he used 31 slices of cheese. | His 2-slice sandwiches used 2 * 7 = <<2*7=14>>14 slices of cheese for all 7 days of the week.
+His cheese and egg omelets used one more slice than his sandwiches, so they used 2 + 1 = <<2+1=3>>3 slices of cheese each.
+He made 3 omelets, so they used 3 * 3 = <<3*3=9>>9 slices of cheese.
+Carl’s sandwiches, omelets, and macaroni used 14 + 9 + 8 = <<14+9+8=31>>31 slices of cheese in all.
+#### 31
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.24it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-25: 87 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/25_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 13.5s. Mem: 14.32/79.18 GB. [gsm-25]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 21.22it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-26: 107 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much Chad still owes, we need to calculate the total cost of his order and then subtract the value of the gift card. 
+
+First, let's add up all the costs:
+- Base burrito: $6.50
+- Extra meat: $2.00
+- Extra cheese: $1.00
+- Avocado: $1.00
+- Two sauces: $0.25 each, so $0.25 x 2 = $0.50
+- Upgrade (chips and a drink): $3.00
+
+Adding these amounts together: 
+$6.50 + $2.00 + $1.00 + $1.00 + $0.50 + $3.00 = $14.00
+
+Chad has a $5.00 gift card, so we subtract this from the total:
+$14.00 - $5.00 = $9.00
+
+Therefore, the answer is: The answer is Chad still owes $9.00. | He orders 2 sauces at $0.25 each so 2*.25 = $<<2*.25=0.50>>0.50 for sauce
+He orders extra meat for $2.00, extra cheese for $1.00, avocado for $1.00 and $0.50 for sauce for a total of 2+1+1+.50 = $<<2+1+1+.5=4.50>>4.50 in extras
+His burrito cost $6.50 and he adds $4.50 in extras and upgrades his meal for $3.00 so now he owes, 6.50+4.50+3 = $<<6.50+4.50+3=14.00>>14.00
+He has a $5.00 gift card and his current bill is $14.00 so he will owe 14-5 = $<<14-5=9.00>>9.00
+#### 9
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.35it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-26: 107 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/26_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 11.1s. Mem: 14.32/79.18 GB. [gsm-26]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.30it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-27: 72 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many melons were not ready to be harvested after the two weeks, we need to follow these steps:
+
+1. Calculate the number of watermelons that were ready for harvest when Ashlyn first visited the farm.
+2. Subtract this number from the total to find out how many were left.
+3. Determine how many of the remaining melons were ready for harvest two weeks later.
+4. Subtract the number of melons harvested during the second visit from the remaining melons after the first visit.
+
+Step 1: Calculate the number of watermelons ready for harvest initially.
+30% of 120 watermelons = 0.30 * 120 = 36 watermelons.
+
+Step 2: Subtract the number of watermelons harvested initially from the total.
+120 - 36 = 84 watermelons remaining.
+
+Step 3: Determine how many of the remaining melons were ready for harvest two weeks later.
+3/4 of the remaining 84 watermelons = (3/4) * 84 = 63 watermelons.
+
+Step 4: Subtract the number of watermelons harvested during the second visit from the remaining melons after the first visit.
+84 - 63 = 21 watermelons.
+
+The answer is 21 melons were not ready to be harvested after the two weeks. | When Ashlyn found out that 30% of the melons were ready, she took home 30/100 *120 = <<30/100*120=36>>36 watermelons.
+The number of watermelons remaining on the farm is 120-36 =<<120-36=84>>84
+When she returned two weeks later, she found that 3/4*84 = <<3/4*84=63>>63 were ready for harvest,
+The number of watermelons that were not ready is 84-63 =<<84-63=21>>21
+#### 21
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.49it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-27: 72 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/27_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 16.8s. Mem: 14.32/79.18 GB. [gsm-27]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.67it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-28: 81 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much Jean paid, we need to calculate the total cost of the makeup services before the discount and then apply the 10% discount.
+
+First, calculate the daily cost:
+- The makeup artist charges $250 per hour.
+- It takes 6 hours each day.
+- Therefore, the daily cost is \( 250 \times 6 = 1500 \) dollars.
+
+Next, calculate the weekly cost:
+- Jean needs the makeup done 4 times a week.
+- Therefore, the weekly cost is \( 1500 \times 4 = 6000 \) dollars.
+
+Then, calculate the total cost for the 5-week period:
+- The movie takes 5 weeks to finish.
+- Therefore, the total cost is \( 6000 \times 5 = 30000 \) dollars.
+
+Finally, apply the 10% discount:
+- The discount is 10%, so Jean pays 90% of the total cost.
+- Therefore, the final amount Jean paid is \( 30000 \times 0.90 = 27000 \) dollars.
+
+The answer is Jean paid $27000. | Jean pays 250*6=$<<250*6=1500>>1500 a day
+So he pays 1500*4=$<<1500*4=6000>>6000 a week
+So the work cost 6000*5=$<<6000*5=30000>>30,000
+They give a discount of 30,000*.1=$<<30000*.1=3000>>3000
+So the total cost paid is 30,000-3000=$<<30000-3000=27000>>27,000
+#### 27000
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.50it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-28: 81 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/28_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 16.1s. Mem: 14.32/79.18 GB. [gsm-28]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.35it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-29: 95 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much more the total price of the house exceeds Mrs. Cruz's budget, we need to calculate the additional costs due to the brokerage fee and the transfer fee, then add these to the selling price of the house.
+
+1. Calculate the brokerage fee:
+   Brokerage fee = 5% of $350,000 = 0.05 * $350,000 = $17,500
+
+2. Calculate the transfer fee:
+   Transfer fee = 12% of $350,000 = 0.12 * $350,000 = $42,000
+
+3. Add the brokerage fee and the transfer fee to the selling price:
+   Total cost = Selling price + Brokerage fee + Transfer fee
+   Total cost = $350,000 + $17,500 + $42,000 = $409,500
+
+4. Determine how much more the total cost is compared to Mrs. Cruz's budget:
+   Excess amount = Total cost - Budget
+   Excess amount = $409,500 - $400,000 = $9,500
+
+The answer is that the total price of the house is $9,500 more than Mrs. Cruz's budget. | The brokerage fee is $350 000 x 5/100 = $<<350000*5/100=17500>>17500.
+The transfer fee is $350 000 x 12/100 = $<<350000*12/100=42000>>42000.
+The total price of the house is $350 000 + $17500 + $42000 = $409 500.
+So, it is $409 500 - $400 000 = $<<409500-400000=9500>>9500 more than Mrs. Cruz's budget.
+#### 9500
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.39it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-29: 95 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/29_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 7.9s. Mem: 14.32/79.18 GB. [gsm-29]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.81it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-30: 73 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine Mr. Tan's net proceeds from selling the house, we need to account for all the expenses he incurred. 
+
+1. The selling price of the house is $400,000.
+2. Transfer fees are 3% of the selling price: \( 0.03 \times 400,000 = 12,000 \).
+3. Brokerage fees are 5% of the selling price: \( 0.05 \times 400,000 = 20,000 \).
+4. He also paid $250,000 for the remaining loan amount.
+
+Total expenses:
+\[ 12,000 + 20,000 + 250,000 = 282,000 \]
+
+Net proceeds from selling the house:
+\[ 400,000 - 282,000 = 118,000 \]
+
+The answer is Mr. Tan's net proceeds from selling the house are $118,000. | Mr. Tan paid $400 000 x 3/100 = $12 000 for the transfer fees.
+He paid $400 000 x 5/100 = $20 000 for the brokerage fee.
+So, Mr. Tan paid a total of $12 000 + $20 000 + $250 000 = $282 000 for the transfer, brokerage, and loan fees.
+Hence, Mr. Tan's net proceeds is $400 000 - $282 000 = $118 000.
+#### 118000
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.50it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-30: 73 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/30_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 16.7s. Mem: 14.32/79.18 GB. [gsm-30]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.12it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-31: 72 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To find out how many stitches each sleeve takes, we first need to calculate the stitches for the collar and the rosette. The collar takes a tenth of the body's stitches, which is \(900 \div 10 = 90\) stitches. The rosette takes twice as many stitches as the collar, so it takes \(90 \times 2 = 180\) stitches. 
+
+The total number of stitches for the body, collar, and rosette is \(900 + 90 + 180 = 1170\) stitches. Since the whole sweater is an 1800-stitch project and there are two sleeves, the remaining stitches for the sleeves are \(1800 - 1170 = 630\) stitches. As there are two sleeves, each sleeve takes \(630 \div 2 = 315\) stitches.
+
+The answer is that each sleeve takes 315 stitches. | The collar takes 900 / 10 = <<900/10=90>>90 stitches.
+The rosette takes 2 * 90 = <<2*90=180>>180 stitches.
+The body, collar, and rosette together take 900 + 90 + 180 = <<900+90+180=1170>>1170 stitches.
+Thus, the sleeves take 1800 - 1170 = <<1800-1170=630>>630 stitches.
+Thus, each sleeve takes 630 / 2 = <<630/2=315>>315 stitches.
+#### 315
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.47it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-31: 72 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/31_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 12.5s. Mem: 14.32/79.18 GB. [gsm-31]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 24.95it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-32: 82 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the total number of lines Sean has to memorize, we need to calculate the lines for each component separately and then sum them up.
+
+1. **Solo Song**: It has 54 lines.
+2. **First Scene**: The first scene has twice the number of lines as the solo song, which is \(2 \times 54 = 108\) lines. Only a third of these lines are Sean's, so he has \( \frac{108}{3} = 36 \) lines from the first scene.
+3. **Second Scene**: The second scene has six more lines than the first scene, which is \(108 + 6 = 114\) lines. Four-fifths of these lines are Sean's, so he has \( \frac{4}{5} \times 114 = 91.2 \). Since the number of lines must be a whole number, we assume it is rounded to the nearest whole number, which is 91 lines.
+
+Now, we add up all the lines:
+- Solo song: 54 lines
+- First scene: 36 lines
+- Second scene: 91 lines
+
+The total number of lines Sean has to memorize is \(54 + 36 + 91 = 181\).
+
+The answer is Sean has to memorize 181 lines. | The first scene has twice the number of lines as his solo song, so it has 2 * 54 = <<2*54=108>>108 lines.
+A third of them are Sean’s lines, so he has to memorize 108 / 3 = <<108/3=36>>36 lines.
+The second scene has 54 + 6 = <<54+6=60>>60 lines.
+Four fifths of the second scene’s lines are Sean’s, so he has to memorize 4 * 60 / 5 = 4 * 12 = <<4*60/5=48>>48 lines.
+Sean has to memorize his entire solo song, so he has to memorize 54 + 36 + 48 = <<54+36+48=138>>138 lines in all.
+#### 138
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.37it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-32: 82 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/32_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 15.5s. Mem: 14.32/79.18 GB. [gsm-32]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.19it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-33: 72 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] On the first day, Darren does 100 pushups, 50 squats, and 20 dumbbell presses. On the second day, he does 120 pushups (100 + 20), 40 squats (50 - 10), and 40 dumbbell presses (20 * 2). 
+
+Calculating the totals:
+- Pushups: 100 (day 1) + 120 (day 2) = 220
+- Squats: 50 (day 1) + 40 (day 2) = 90
+- Dumbbell presses: 20 (day 1) + 40 (day 2) = 60
+
+Adding these together: 220 (pushups) + 90 (squats) + 60 (dumbbell presses) = 370
+
+The answer is 370. | The total count of activities for the first day is 100+50+20 = <<100+50+20=170>>170
+On the second day, he does 100+20 = <<100+20=120>>120 pushups
+He also does 50-10 = <<50-10=40>>40 squats on the second day
+For the dumbbell presses, he doubles the number of the first day, which becomes 2*20 = <<2*20=40>>40
+The total count for the three activities on the second day is 40+40+120 = <<40+40+120=200>>200
+For the two days, his total count for all the three activities is 200+170 = <<200+170=370>>370
+#### 370
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.47it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-33: 72 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/33_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 13.2s. Mem: 14.32/79.18 GB. [gsm-33]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.11it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-34: 75 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To calculate John's annual cost for the driving service, we need to consider both the mileage charge and the monthly bonus. 
+
+First, let's calculate the total miles driven in a year:
+- John's work is 30 miles away, so a round trip is 60 miles.
+- He travels this distance 5 days a week for 50 weeks a year, which totals 5 * 50 * 60 = 15,000 miles per year.
+
+Next, we calculate the cost based on the mileage:
+- He is charged $2 per mile, so for 15,000 miles, the cost is 15,000 * $2 = $30,000.
+
+Now, let's calculate the yearly bonus:
+- The bonus is $150 per month, so over 12 months, it amounts to 12 * $150 = $1,800.
+
+Adding these two amounts together gives us the total annual cost:
+- $30,000 (for miles) + $1,800 (for bonuses) = $31,800.
+
+The answer is he pays $31,800 a year for driving. | He has to travel 30*2=<<30*2=60>>60 miles per day
+That means he travels 60*5=<<60*5=300>>300 miles per week
+So he pays 300*2=$<<300*2=600>>600 per week
+That means he pays $600*50=$<<600*50=30000>>30000 a year for miles driven
+He also gives $150*12=$<<150*12=1800>>1800 a year as a bonus to his driver
+So he pays $30000+$1800=$<<30000+1800=31800>>31,800 a year
+#### 31800
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.48it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-34: 75 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/34_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 13.5s. Mem: 14.32/79.18 GB. [gsm-34]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.49it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-35: 83 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine which job has a higher net pay rate, we need to calculate the net earnings for both jobs.
+
+For Job A:
+- Annual salary before taxes: $15/hour * 2000 hours = $30,000
+- Total tax rate: 20%
+- Net pay: $30,000 - ($30,000 * 0.20) = $30,000 - $6,000 = $24,000
+
+For Job B:
+- Annual salary before taxes: $42,000
+- Property tax: $6,000
+- Remaining salary after property tax: $42,000 - $6,000 = $36,000
+- Tax rate on net income: 10%
+- Net pay: $36,000 - ($36,000 * 0.10) = $36,000 - $3,600 = $32,400
+
+Comparing the net pay of both jobs, Job B offers a higher net pay rate of $32,400 compared to Job A's $24,000.
+
+The answer is Nick will make $8,400 more at Job B compared to Job A. | First calculate the gross annual salary for Job A: 2000 hours * $15/hour = $<<2000*15=30000>>30,000
+Next, calculate the amount of taxes Nick pays at Job A by multiplying his net salary by the 20% tax rate: .2 * $30,000 = $<<30000*.2=6000>>6,000
+Now subtract Nick's taxes from his net pay to find his gross pay at Job A: $30,000 - $6,000 = $<<30000-6000=24000>>24,000
+Now subtract Nick's property taxes from his gross income at Job B: $42,000 - $6,000 = $<<42000-6000=36000>>36,000
+Now multiply Nick's income after property tax by 10% to find his income tax at Job B: $36,000 * 10% = $<<36000*10*.01=3600>>3,600
+Now subtract the income tax amount from Nick's earnings after property tax to find his net income at Job B: $36,000 - $3,600 = $<<36000-3600=32400>>32,400
+Now subtract the net income from the lower-paying job (A) from the net income from the higher-paying job (B): $32,400 - $24,000 = $<<32400-24000=8400>>8,400
+#### 8400
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.30it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-35: 83 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/35_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 18.7s. Mem: 14.32/79.18 GB. [gsm-35]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.08it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-36: 106 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Josh started with 3 balls and added 1 ball each week for 4 weeks, meaning he could juggle 6 balls before dropping three. After dropping three balls, he would be left with 3 balls. The answer is with 3 balls. | Josh starts with 3 balls and adds 1 ball each week for 4 weeks for a total of 3+4=<<3+4=7>>7
+Josh drops 3 balls when he trips on stage leaving him with 7-3= <<7-3=4>>4 balls
+#### 4
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.13it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-36: 106 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/36_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 4.6s. Mem: 14.32/79.18 GB. [gsm-36]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.21it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-37: 76 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many friends Morgan can invite, we need to calculate the total expenses for herself and her friends based on the given activities and costs. 
+
+First, let's break down the costs:
+- One round of mini-golf: $5
+- Go-karts (2 rides): $10 x 2 = $20
+- Arcade tokens: $5
+
+Total cost for Morgan alone: $5 + $20 + $5 = $30
+
+Morgan has a $90 budget. Subtracting the cost for Morgan from the total budget gives us the amount available for her friends: $90 - $30 = $60
+
+Now, if each friend also gets to do the same activities, the cost per friend will be the same as Morgan's individual cost: $30.
+
+To find out how many friends can be invited, we divide the remaining budget by the cost per friend: $60 / $30 = 2
+
+Therefore, the answer is: The answer is she can invite 2 friends. | The go karts will cost $20 per person because 10 x 2 = <<10*2=20>>20
+Each person costs $30 because 5 + 5 + 20 = <<5+5+20=30>>30
+Three total people can attend because 90 / 30 = <<90/30=3>>3
+She can invite 2 friends because 3 - 1 =<<3-1=2>>2
+#### 2
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.46it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-37: 76 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/37_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 11.8s. Mem: 14.32/79.18 GB. [gsm-37]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 24.44it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-38: 83 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To calculate the total cost for the senior gifts, we need to break down the expenses:
+
+1. **Cost of picture frames:** There are 44 seniors, and each frame costs $20.
+   \[
+   44 \times 20 = 880 \text{ dollars}
+   \]
+
+2. **Etching cost per frame:** The etching adds an additional 20% to the cost of each frame.
+   \[
+   20 \times 0.20 = 4 \text{ dollars per frame}
+   \]
+   Therefore, the total etching cost for all frames:
+   \[
+   44 \times 4 = 176 \text{ dollars}
+   \]
+
+3. **Cost of pins:** 2 seniors will receive pins at $5 each.
+   \[
+   2 \times 5 = 10 \text{ dollars}
+   \]
+
+4. **Cost of cords for officers:** 1/4 of the seniors are officers, which means there are \( \frac{44}{4} = 11 \) officers. Each cord costs $12.
+   \[
+   11 \times 12 = 132 \text{ dollars}
+   \]
+
+Adding all these costs together:
+\[
+880 + 176 + 10 + 132 = 1298 \text{ dollars}
+\]
+
+The answer is $1298. | The cost per picture frame is $20 * 1.20 = $<<20*1.20=24>>24.
+Total cost for the senior's picture frames is 44 seniors * $24 = $<<44*24=1056>>1056.
+The cost for pins will be 2 seniors * $5 = $<<2*5=10>>10.
+The number of seniors receiving cords is 1/4 * 44 = <<1/4*44=11>>11 seniors.
+The total cost of cords is 11 seniors * $12 = $<<11*12=132>>132.
+The total cost of gifts for seniors is $1056 + $10 + $132 = $<<1056+10+132=1198>>1198.
+#### 1198
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.36it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-38: 83 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/38_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 18.1s. Mem: 14.32/79.18 GB. [gsm-38]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.16it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-39: 72 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] On Friday, the store sold 14 pairs of tennis shoes. On Saturday, they sold double that number, which is 28 pairs. On the last day, they sold half of Saturday's sales, which is 14 pairs, but then subtracted the 6 pairs that were returned. 
+
+To find the total, we add the sales from each day and subtract the returns: 14 (Friday) + 28 (Saturday) + 14 (Sunday before returns) - 6 (returns) = 52 pairs of tennis shoes.
+
+The answer is 52 tennis shoes were sold by the end of the sale. | On Saturday 14*2=<<14*2=28>>28 shoes were sold
+On Sunday 28/2=<<28/2=14>>14 shoes were sold
+Before the returns were made 14+28+14=<<14+28+14=56>>56 pairs of shoes were sold
+After the returns were made 56-6=<<56-6=50>>50 pairs of shoe were sold
+#### 50
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.61it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-39: 72 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/39_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 8.7s. Mem: 14.32/79.18 GB. [gsm-39]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.20it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-40: 84 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many people sang in the performance, we start by calculating the number of girls in the choir. Since 50% of the 52 members are girls, there are \( \frac{52}{2} = 26 \) girls. 
+
+When the choir decides to perform with just its female members, they initially plan to have 26 girls perform. However, on the day of the performance, half of these girls cannot make it because their bus breaks down. Therefore, \( \frac{26}{2} = 13 \) girls are unable to perform.
+
+This leaves \( 26 - 13 = 13 \) girls who are still able to perform. Additionally, the choir's 3 teachers decide to sing with them. Thus, the total number of people singing in the performance is \( 13 + 3 = 16 \).
+
+The answer is 16 people sang in the performance. | The 50 person choir is 50% female, so if the performance is just women there will be 52/2=26 people performing.
+If half of those people can't make it to the performance, then there will be 26/2= <<26/2=13>>13 people performing.
+When the 3 teachers decide to participate, the performance now has 13+3=<<13+3=16>>16 people singing.
+#### 16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.43it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-40: 84 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/40_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 9.1s. Mem: 14.32/79.18 GB. [gsm-40]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.19it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-41: 84 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many steps Elliott took during his jog, we need to first calculate the total number of steps he had initially planned to take, which is 10,000 steps. 
+
+Elliott completed half of his steps on his walks to and from school, so that's 5,000 steps. He also walked an additional 1,000 steps with his friend. This brings the total to 6,000 steps before his jog. 
+
+After his jog, he had 2,000 steps left to reach his goal of 10,000 steps. Therefore, the number of steps he took during his jog can be calculated by subtracting the steps he had already taken (6,000) and the steps he still needs to take (2,000) from his total goal (10,000).
+
+\[ 10,000 - 6,000 - 2,000 = 2,000 \]
+
+The answer is Elliott took 2,000 steps during his jog. | Elliott took half of his steps on his school journey, which was 10,000 steps / 2 = <<10000/2=5000>>5,000 steps.
+Adding this to his short walk means he has taken 5,000 + 1,000 = <<6000=6000>>6,000 steps.
+He only has 2,000 steps left, which means that during the day, he has taken 10,000 goal steps – 2,000 remaining steps = <<10000-2000=8000>>8,000 steps.
+The difference between these is therefore the steps he took during his jog, which was 8,000 total steps – 6,000 steps on his school walks and short walks = <<8000-6000=2000>>2,000 steps.
+#### 2000
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.45it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-41: 84 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/41_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 14.1s. Mem: 14.32/79.18 GB. [gsm-41]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.18it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-42: 75 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many minutes early Toby will be, we need to calculate the total time it takes for him to read the book and then compare it to his departure time considering the travel time to the airport.
+
+First, calculate the total number of words in the book:
+\[ 45 \text{ pages} \times 200 \text{ words per page} = 9000 \text{ words} \]
+
+Next, determine the time it takes for Toby to read the book:
+\[ \frac{9000 \text{ words}}{300 \text{ words per minute}} = 30 \text{ minutes} \]
+
+Adding the time it takes to read the book and the time it takes to get to the airport:
+\[ 30 \text{ minutes} + 10 \text{ minutes} = 40 \text{ minutes} \]
+
+Since Toby has 60 minutes before he needs to be at the airport, we subtract the total time he needs from this amount:
+\[ 60 \text{ minutes} - 40 \text{ minutes} = 20 \text{ minutes} \]
+
+Therefore, the answer is: The answer is Toby will be 20 minutes early. | He can read 1.5 pages in a minute because 300 / 200 = <<300/200=1.5>>1.5
+It will take 30 minutes to read the book because 45 / 1.5 = <<45/1.5=30>>30
+He will arrive at the airport 40 minutes from now because 30 + 10 = <<30+10=40>>40
+He will be 20 minutes early because 60 - 40 = <<60-40=20>>20
+#### 20
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.54it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-42: 75 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/42_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 14.9s. Mem: 14.32/79.18 GB. [gsm-42]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.09it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-43: 98 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much money Sally has left, we need to calculate the total amount she spent and subtract it from the $10 given by her parents.
+
+First, let's calculate the cost of the taffy:
+- The sale offer is "Buy 1 pound at $3, get 1 pound 1/2 off."
+- For 2 pounds, she buys 1 pound at $3 and gets the second pound at half price.
+- Half price of $3 is $1.50.
+- Therefore, the total cost for 2 pounds of taffy is $3 + $1.50 = $4.50.
+
+Next, let's calculate the cost of the seashell bag:
+- The mixed bag of seashells costs $1.50.
+
+Then, let's calculate the cost of the magnets:
+- Each magnet costs $0.25.
+- For 4 magnets, the total cost is 4 * $0.25 = $1.00.
+
+Now, let's add up all the expenses:
+- Cost of taffy: $4.50
+- Cost of seashells: $1.50
+- Cost of magnets: $1.00
+- Total cost = $4.50 + $1.50 + $1.00 = $7.00
+
+Finally, we subtract the total cost from the $10 given by her parents:
+- Money left = $10 - $7.00 = $3.00
+
+The answer is Sally has $3.00 left. | Taffy is buying 1 pound for $3 and gets 1 pound half off. So 1/2 off of 1 pound is $3/2 = $1.50+$3.00=$4.50
+4 magnets at $0.25 each is 4*.25=$<<4*0.25=1.00>>1.00
+When you add all her purchases, $4.50+$1.50+$1.00 = $<<4.5+1.5+1=7.00>>7.00
+She had $10 and spent $7 so she had $10-$7 = $<<10-7=3.00>>3.00 left over
+#### 3
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.42it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-43: 98 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/43_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 13.5s. Mem: 14.32/79.18 GB. [gsm-43]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.18it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-44: 87 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many apples Joanne gathered from the average trees, we need to first calculate the number of apples each sister gathered from the tallest and shortest trees, and then use the total to find the number for Joanne's average trees.
+
+1. Joanne gathers 30 apples from the tallest trees.
+2. Joanne gathers \( \frac{30}{2} = 15 \) apples from the shortest trees.
+3. Her sister gathers \( 2 \times 30 = 60 \) apples from the tallest trees.
+4. Her sister gathers \( 3 \times 15 = 45 \) apples from the shortest trees.
+5. Her sister does not gather any apples from the average trees.
+
+Let's denote the number of apples Joanne gathers from the average trees as \( x \).
+
+The total number of apples gathered by both sisters is given as 500. Therefore, we can write the equation:
+
+\[ 30 + 15 + x + 60 + 45 = 500 \]
+
+Simplifying the left side:
+
+\[ 150 + x = 500 \]
+
+Subtracting 150 from both sides:
+
+\[ x = 350 \]
+
+Thus, Joanne gathered 350 apples from the average trees. The answer is Joanne gathered 350 apples from the average trees. | Joanna gathered 30 apples / 2 = <<30/2=15>>15 apples from the shortest trees.
+Her sister gathered 30 apples * 2 = <<30*2=60>>60 apples from the tallest trees.
+Her sister also gathered 15 apples * 3 = <<15*3=45>>45 apples from the shortest trees.
+In total, her sister gathered 60 + 45 = <<60+45=105>>105 apples.
+From the tallest and shortest trees, Joanna gathered 30 + 15 = <<30+15=45>>45 apples.
+So far, the sisters have a combined total of 105 + 45 = <<105+45=150>>150 apples.
+Therefore, Joanna must have gathered 500 total apples – 150 apples so far = <<500-150=350>>350 apples from the average trees.
+#### 350
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.22it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-44: 87 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/44_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 18.5s. Mem: 14.32/79.18 GB. [gsm-44]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.05it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-45: 79 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the total kilometers Tom traveled during his two-week trip, we need to break down the distances covered each segment of the trip.
+
+1. **First 4 days:** Tom traveled 200 kilometers each day.
+   \[
+   200 \text{ km/day} \times 4 \text{ days} = 800 \text{ km}
+   \]
+
+2. **Next 2 days:** He traveled 30% of the distance covered in the first 4 days.
+   \[
+   0.30 \times 800 \text{ km} = 240 \text{ km}
+   \]
+
+3. **Next day (day 7):** He didn't travel at all, so the distance is 0 km.
+
+4. **Second week (days 8-14):** He traveled 300 kilometers each day for 7 days.
+   \[
+   300 \text{ km/day} \times 7 \text{ days} = 2100 \text{ km}
+   \]
+
+Now, summing up all the distances:
+\[
+800 \text{ km} + 240 \text{ km} + 0 \text{ km} + 2100 \text{ km} = 3140 \text{ km}
+\]
+
+The answer is Tom made a total of 3140 kilometers during his two-week-long trip. | In the first four days, Tom made 4 * 200 = <<4*200=800>>800 kilometers.
+For the next two days, he made only 30/100 * 800 = <<30/100*800=240>>240 kilometers.
+During the second week, Tom made 300 kilometers every day, which means 7 * 300 = <<7*300=2100>>2100 kilometers during the whole week.
+During his whole trip, Tom made 800 + 240 + 2100 = <<800+240+2100=3140>>3140 kilometers.
+#### 3140
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.46it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-45: 79 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/45_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 18.9s. Mem: 14.32/79.18 GB. [gsm-45]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 24.82it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-46: 97 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many feet Oliver must climb to reach the elevation of Stanley's comb, we need to consider the elevations given. Stanley's comb fell from an elevation of 10,000 feet to a ledge at 6,000 feet (since it fell 4,000 feet). Oliver is at an elevation of 3,000 feet. To reach the comb, Oliver needs to climb from 3,000 feet to 6,000 feet. 
+
+The calculation is straightforward: 
+6,000 feet (elevation of the comb) - 3,000 feet (Oliver's current elevation) = 3,000 feet.
+
+The answer is that Oliver must climb 3,000 feet to reach the elevation of Stanley's comb. | The elevation of Stanley's comb was 10,000 - 4,000 = <<10000-4000=6000>>6,000 feet.
+Thus Oliver, who was at an elevation of 3,000 feet, must climb 6,000 - 3,000 = <<6000-3000=3000>>3,000 feet to reach the elevation of Stanley's comb.
+#### 3000
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.42it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-46: 97 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/46_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 8.0s. Mem: 14.32/79.18 GB. [gsm-46]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.20it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-47: 73 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To solve this problem, let's break it down step by step:
+
+1. **Determine the cost of jogger jeans**: The jogger jeans cost $6 less than the tattered jeans, which cost $28. Therefore, the jogger jeans cost $28 - $6 = $22.
+
+2. **Calculate the total savings**: Cole saved a total of $6.
+
+3. **Determine the savings from each type of jeans**: It is given that he saved 1/3 of the total savings from the jogger jeans and the rest from the tattered jeans.
+   - Savings from jogger jeans: \( \frac{1}{3} \times 6 = 2 \) dollars.
+   - Savings from tattered jeans: \( 6 - 2 = 4 \) dollars.
+
+4. **Calculate the original price of jogger jeans**: Since he saved $2 from the jogger jeans, the original price of the jogger jeans was $22 + $2 = $24.
+
+5. **Find the difference between the original price of jogger jeans and tattered jeans**: The original price of the jogger jeans was $24, and the tattered jeans cost $28. Therefore, the jogger jeans originally cost $24 compared to $28 of the tattered jeans.
+
+The answer is that the jogger jeans originally cost $4 less than the tattered jeans. | Cole saved $6 x 1/3 = $<<6*1/3=2>>2 on the jogger jeans.
+So, he saved $6 - $2 = $<<6-2=4>>4 on the tattered jeans.
+The original price of the jogger jeans is $22 + $2 = $<<22+2=24>>24.
+Cole bought the tattered jeans for $<<28=28>>28
+Hence, the original price of the tattered jeans is $28 + $4 = $<<28+4=32>>32.
+Therefore, jogger jeans originally cost $32 - $24 = $<<32-24=8>>8 more than the tattered jeans.
+#### 8
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.50it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-47: 73 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/47_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 22.1s. Mem: 14.32/79.18 GB. [gsm-47]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.83it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-48: 74 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many birds Lillian can expect to see in her garden each day, we need to calculate the total number of birds attracted by both types of feeders. Initially, each feeder attracts 20 birds. However, the feeders Lillian made herself attract 10 more birds, making them attract 30 birds each. Lillian has a total of 6 bird feeders (3 homemade and 3 store-bought). The store-bought feeders will attract \(3 \times 20 = 60\) birds, while the homemade feeders will attract \(3 \times 30 = 90\) birds. Adding these together, the total number of birds expected in her garden each day is \(60 + 90 = 150\).
+
+The answer is Lillian can expect to see 150 birds in her garden each day if the same amount keeps coming to her bird feeders. | Lillian has 3 store-bought + 3 self-made bird feeders = <<3+3=6>>6 bird feeders in all.
+Lillian first notices each bird feeder attracts 20 birds, 6 x 20 = <<6*20=120>>120 birds.
+Then Lillian notices that her 3 self-made bird feeders attract 10 more birds each, 10 x 3 = <<10*3=30>>30 extra birds.
+Each day Lillian can expect to see 120 + 30 = <<120+30=150>>150 birds in her garden.
+#### 150
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.48it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-48: 74 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/48_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 15.1s. Mem: 14.32/79.18 GB. [gsm-48]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.05it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-49: 82 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] First, we determine how many dragons Prince Arthur slew. Since he slew three-quarters as many dragons as Prince Thaddeus, who slew 100 dragons, we calculate:
+
+\[ \text{Dragons slain by Prince Arthur} = \frac{3}{4} \times 100 = 75 \]
+
+Next, we find out how many dragons Prince Walter slew. He slew twice as many dragons as Prince Arthur:
+
+\[ \text{Dragons slain by Prince Walter} = 2 \times 75 = 150 \]
+
+Finally, we calculate how many dragons Prince Bruce slew. He slew one-fifth as many dragons as Prince Walter:
+
+\[ \text{Dragons slain by Prince Bruce} = \frac{1}{5} \times 150 = 30 \]
+
+The answer is Prince Bruce slew 30 dragons. | Prince Arthur slew three-quarters as many dragons as Prince Thaddeus, or 100*(3/4)=<<100*(3/4)=75>>75 dragons.
+Prince Walter slew twice as many dragons as Prince Arthur, or 2*75=<<2*75=150>>150 dragons.
+Prince Bruce slew one-fifth as many dragons as Prince Walter, or 150/5=<<150/5=30>>30 dragons.
+#### 30
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.45it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-49: 82 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/49_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 11.7s. Mem: 14.32/79.18 GB. [gsm-49]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.20it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-50: 79 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much earlier Bernadette should leave compared to Wayne, we need to calculate the travel time for both Wayne and Bernadette.
+
+1. Wayne's travel time is given as 4 minutes.
+2. Bernadette's travel time is four times that of Wayne's, so it is \(4 \times 4 = 16\) minutes.
+3. Bernadette wants to arrive 5 minutes before Wayne, so she needs to leave 5 minutes earlier than Wayne's arrival time.
+
+Since Bernadette arrives 16 minutes after she leaves and Wayne arrives 4 minutes after he leaves, the difference in their travel times is \(16 - 4 = 12\) minutes. This means Bernadette can afford to leave 12 minutes later than Wayne and still arrive 5 minutes before him.
+
+Therefore, the calculation for when Bernadette should leave is:
+- Wayne arrives after 4 minutes, so he leaves 0 minutes before the event.
+- Bernadette needs to leave 12 minutes before her 16-minute travel time to arrive 5 minutes before Wayne, which means she should leave \(12 - 5 = 7\) minutes before Wayne.
+
+The answer is Bernadette should leave 7 minutes earlier than Wayne to get to the theater first. | Bernadette takes 4 * 4 = <<4*4=16>>16 minutes to get to the theater.
+Her ride takes 16 - 4 = <<16-4=12>>12 minutes longer than Wayne’s to get to the theater.
+Thus, she should leave 12 + 5 = <<12+5=17>>17 minutes before Wayne to get to the theater 5 minutes sooner than he does.
+#### 17
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.39it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-50: 79 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/50_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 12.8s. Mem: 14.32/79.18 GB. [gsm-50]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.60it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-51: 112 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the number of trips the farmer needs to make, we first calculate the total weight of each type of feed:
+
+- Sugar cubes: \(2 \text{ boxes} \times 1 \text{ pound/box} = 2 \text{ pounds}\)
+- Carrots: \(4 \text{ bags} \times 12 \text{ pounds/bag} = 48 \text{ pounds}\)
+- Hay: \(42 \text{ bales} \times 75 \text{ pounds/bale} = 3150 \text{ pounds}\)
+- Oats: \(20 \text{ sacks} \times 65 \text{ pounds/sack} = 1300 \text{ pounds}\)
+
+Adding these together gives the total weight of the feed:
+\[2 + 48 + 3150 + 1300 = 4490 \text{ pounds}\]
+
+Since the farm truck can carry 2250 pounds at a time, we divide the total weight by the truck's capacity:
+\[4490 \div 2250 \approx 2.0044\]
+
+Since the farmer cannot make a fraction of a trip, we round up to the next whole number. Therefore, the farmer needs to make 3 trips to transport all the feed.
+
+The answer is: The farmer needs to make 3 trips to transport all the feed. | The farmer is buying 2 * 1 = <<2*1=2>>2 pounds of sugar cubes.
+He is buying 4 * 12 = <<4*12=48>>48 pounds of carrots.
+He is buying 42 * 75 = <<42*75=3150>>3150 pounds of hay bales.
+He is buying 20 * 65 = <<20*65=1300>>1300 pounds of oat sacks.
+The weight of all the feed is 2 + 48 + 3150 + 1300 = <<2+48+3150+1300=4500>>4500 pounds.
+Thus, the farmer needs 4500 / 2250 = <<4500/2250=2>>2 trips to transport all the feed in his farm truck.
+#### 2
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.43it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-51: 112 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/51_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 16.6s. Mem: 14.32/79.18 GB. [gsm-51]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.15it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-52: 92 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the number of guests at which the two venues would be equal in cost, we need to set up an equation comparing the total costs of both venues.
+
+For the first venue, the cost \( C_1 \) is given by:
+\[ C_1 = 200 + 5g \]
+where \( g \) is the number of guests.
+
+For the second venue, the cost \( C_2 \) is given by:
+\[ C_2 = 25g \]
+
+We want to find the number of guests \( g \) where the costs are equal:
+\[ 200 + 5g = 25g \]
+
+Subtract \( 5g \) from both sides:
+\[ 200 = 20g \]
+
+Divide both sides by 20:
+\[ g = 10 \]
+
+Therefore, the answer is: The answer is 10 guests. | The total cost of the first venue can be expressed as 200 + 5*X, where X is the number of guests. Similarly, the total cost of the second venue can be expressed as 25*X.
+Next we must find the value of X that makes these two costs equal. Setting these two expressions equal to each other, we get the equation 200 + 5*X = 25*X.
+By subtracting 5*X from each side to get 200 = 20*X.
+Then, X = 200/20 = 10, so when there are 10 guests the two venues will be equal in cost.
+#### 10
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.36it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-52: 92 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/52_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 12.9s. Mem: 14.32/79.18 GB. [gsm-52]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 24.76it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-53: 74 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To find out how much each pack of strawberry gum cost, we need to set up an equation based on the information given. Suzie bought four packs of gum in total, including two packs of strawberry, one pack of grape, and one pack of green apple. The total cost was $7.
+
+Let's denote the cost of each pack of strawberry gum as \( x \). According to the problem:
+- Each pack of grape gum costs $2.
+- Each pack of green apple gum costs half as much as a pack of grape gum, which is $1.
+
+The total cost can be expressed as:
+\[ 2x + 2(1) + 1(2) = 7 \]
+
+This simplifies to:
+\[ 2x + 2 + 2 = 7 \]
+\[ 2x + 4 = 7 \]
+\[ 2x = 3 \]
+\[ x = 1.5 \]
+
+Therefore, each pack of strawberry gum cost $1.50. The answer is $1.50. | The green apple gum cost half as much as the $2 grape gum, so it cost 2 / 2 = $<<2/2=1>>1.
+Thus, the two packs of strawberry gum cost 7 - 2 - 1 = $<<7-2-1=4>>4.
+Therefore, each pack of strawberry gum cost 4 / 2 = $<<4/2=2>>2.
+#### 2
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.52it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-53: 74 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/53_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 14.0s. Mem: 14.32/79.18 GB. [gsm-53]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.07it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-54: 88 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the most popsicle sticks Frederick can make by buying the cheapest lumber, we need to compare the cost-effectiveness of the two types of wood pieces.
+
+First, let's calculate the cost per stick for each type of wood:
+- For a 2 x 4 piece of wood, which costs $4 and yields 200 sticks, the cost per stick is $4 / 200 = $0.02 per stick.
+- For a 2 x 8 piece of wood, which costs $6 and yields 400 sticks, the cost per stick is $6 / 400 = $0.015 per stick.
+
+Since the 2 x 8 piece of wood is cheaper per stick, Frederick should buy only this type of wood to maximize the number of sticks he can produce with his budget.
+
+Now, let's calculate how many 2 x 8 pieces Frederick can buy with $24:
+- Each 2 x 8 piece costs $6, so with $24, he can buy $24 / $6 = 4 pieces of 2 x 8 wood.
+
+Each piece of 2 x 8 wood yields 400 sticks, so 4 pieces will yield 4 * 400 = 1600 sticks.
+
+Therefore, the answer is: The answer is 1600 popsicle sticks. | He can buy six 2 x 4's because 24 / 4 = <<24/4=6>>6
+He can make 1200 sticks with this wood because 6 x 200 = <<6*200=1200>>1200
+He can buy four 2 x 8's because 24 / 6 = <<24/6=4>>4
+He can make 1600 sticks from this because 4 x 400 = <<4*400=1600>>1600
+He can make 1600 sticks if he buys the cheapest lumber because 1600 > 1200
+#### 1,600
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.40it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-54: 88 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/54_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 14.2s. Mem: 14.32/79.18 GB. [gsm-54]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 24.86it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-55: 90 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many skeins of wool Martha needs to buy, we first calculate the total amount required for one grandchild and then multiply by three since there are three grandchildren.
+
+For one grandchild:
+- Hat: 2 skeins
+- Scarf: 4 skeins
+- Sweater: 12 skeins
+- Mittens: 1 skein
+- Socks: 2 skeins
+
+Adding these together gives us the total for one grandchild:
+2 + 4 + 12 + 1 + 2 = 21 skeins
+
+Since there are three grandchildren, we multiply this number by 3:
+21 * 3 = 63 skeins
+
+Therefore, the answer is she will need to buy 63 skeins of wool. | A full outfit for each child will require 2 skeins per hat + 4 skeins per scarf + 12 skeins per sweater + 1 skein per pair of mittens + 2 skeins per pair of socks = <<2+4+12+1+2=21>>21 skeins of wool.
+So to knit outfits for all of her grandchildren, she will need 3 * 21 = <<3*21=63>>63 skeins of wool.
+#### 63
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.46it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-55: 90 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/55_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 8.6s. Mem: 14.32/79.18 GB. [gsm-55]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.82it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-56: 85 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] First, calculate the total cost of each item type before the discount:
+
+- Five notebooks at $1.50 each: \(5 \times 1.50 = 7.50\)
+- Two pens at $0.25 each: \(2 \times 0.25 = 0.50\)
+- One calculator at $12: \(1 \times 12 = 12\)
+- One geometry set at $10: \(1 \times 10 = 10\)
+
+Add these amounts to find the total cost before the discount:
+\(7.50 + 0.50 + 12 + 10 = 29.50\)
+
+Apply a 10% discount to this total:
+\(29.50 \times 0.10 = 2.95\) (discount amount)
+
+Subtract the discount from the total cost:
+\(29.50 - 2.95 = 26.55\)
+
+Therefore, the answer is Daniel has to spend $26.55 on all the items he wants to buy. | Five notebooks cost $5 x 1.50 = $<<5*1.50=7.50>>7.50
+Two pens cost 2 x $0.25 = $<<2*0.25=0.50>>0.50.
+The total cost is $7.50 + $0.50 + $12 + $10 =$<<7.5+0.5+12+10=30>>30.
+Thus, total discount is 10/100 x $30 = $<<10/100*30=3>>3.
+Therefore, Daniel has to spend $30 - $3 = $<<30-3=27>>27 on all the items he wants to buy.
+#### 27
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.48it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-56: 85 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/56_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 14.7s. Mem: 14.32/79.18 GB. [gsm-56]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.29it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-57: 79 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much money the tooth fairy left Sharon, we need to break down the payments based on the number of teeth she lost and the amounts given for each set of teeth.
+
+1. For the first tooth, the tooth fairy left Sharon $5.00.
+2. For the next three teeth, the tooth fairy gave Sharon $1.00 per tooth. Therefore, for three teeth, the total is \(3 \times 1 = 3\) dollars.
+3. For the last two teeth, the tooth fairy gave half the amount of money per tooth as she had given for each of the previous three teeth. Since the previous amount was $1.00, half of that is $0.50. Therefore, for two teeth, the total is \(2 \times 0.5 = 1\) dollar.
+
+Now, we add up all the amounts:
+\[5 + 3 + 1 = 9\]
+
+Thus, the total amount of money the tooth fairy left Sharon is \(\boxed{9}\) dollars. The answer is The tooth fairy left Sharon $9.00. | She got $1.00 on three teeth so she got 1*3 = $<<1*3=3.00>>3.00
+On the next two, she got 1/2 the amount of $1.00 so she received 1*.5 = $<<1*.5=0.50>>0.50
+She received $0.50 on 2 teeth so she received .50*2 = $<<.50*2=1.00>>1.00
+When you add her first tooth that was $5.00, $3.00 for the next 3 and $1.00 on the next 2 she made 5+3+1 = $<<5+3+1=9.00>>9.00
+#### 9
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.53it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-57: 79 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/57_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 12.3s. Mem: 14.32/79.18 GB. [gsm-57]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.26it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-58: 82 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] First, we need to determine the total number of small pieces of crayons Kate has. Each box contains 64 crayons, and there are 3 boxes, so:
+
+\[ 64 \text{ crayons/box} \times 3 \text{ boxes} = 192 \text{ crayons} \]
+
+Next, we need to find out how many muffins Kate can make. Since she uses 8 small pieces of crayons for each muffin, the number of muffins she can make is:
+
+\[ 192 \text{ crayons} \div 8 \text{ crayons/muffin} = 24 \text{ muffins} \]
+
+If Kate sells each muffin for $1.50, then the total amount of money she can make is:
+
+\[ 24 \text{ muffins} \times \$1.50/\text{muffin} = \$36.00 \]
+
+The answer is Kate can make $36.00. | She was able to get 3 boxes of 64 crayons so she has 3*64 = <<3*64=192>>192 crayons
+Each crayon muffin needs 8 crayons and she has 192 crayons so she can make 192/8 = <<192/8=24>>24 crayon muffins
+If she makes 24 crayon muffins and sells them for $1.50 apiece, she can make 24*1.5 = $<<24*1.5=36.00>>36.00
+#### 36
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.44it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-58: 82 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/58_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 11.4s. Mem: 14.32/79.18 GB. [gsm-58]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.14it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-59: 78 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To find the average number of birds Mack saw per day, we need to add up the total number of birds he saw over the week and then divide by the number of days. 
+
+From the information given:
+- Days one and two: 50 birds
+- Day three: 0 birds
+- Days four and five: 120 birds
+- Day six: 20 birds
+- Day seven: 90 birds
+
+Adding these together: \(50 + 0 + 120 + 20 + 90 = 280\) birds in total.
+
+Since this occurred over 7 days, we divide the total number of birds by 7 to find the average: \(280 \div 7 = 40\).
+
+Therefore, the answer is: The answer is 40 birds per day. | On days one to three, Mack saw 50+0=<<50+0=50>>50 birds.
+On days four to seven, he saw 120+20+90=<<120+20+90=230>>230 birds.
+For the whole week he saw 230+50=<<230+50=280>>280 birds.
+On average Mack saw 280/7=<<280/7=40>>40 birds a day.
+#### 40
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.50it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-59: 78 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/59_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 10.0s. Mem: 14.32/79.18 GB. [gsm-59]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.16it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-60: 76 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many seats Alex will need, we start by calculating the number of people from those who were initially invited via email. Alex invited 100 people, and each of these 100 people will invite 2 more friends. This results in an additional \(100 \times 2 = 200\) people. Adding these to the original 100, we have \(100 + 200 = 300\) people from the email invitations.
+
+Next, Alex calls 10 friends, and 8 of them will bring their spouses. This adds \(10 + 8 = 18\) more people to the count.
+
+Combining all these, the total number of people Alex needs to accommodate is \(300 + 18 = 318\).
+
+The answer is Alex will need 318 seats. | Each of the people that were emailed are bringing 2 friends, which means that they will be in groups of 1 +2 = <<1+2=3>>3 people.
+Since 100 people were emailed, this creates a total of 3 * 100 = <<3*100=300>>300 people.
+Out of her friends, 8 people said that they will be bringing their spouse, so this is a total of 10 + 8 = <<10+8=18>>18 people.
+Including her own seat, Alex is going to need a total of 300 + 18 +1 = <<300+18+1=319>>319 seats.
+#### 319
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.55it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-60: 76 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/60_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 9.5s. Mem: 14.32/79.18 GB. [gsm-60]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.19it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-61: 108 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the weight of the Mastiff, we need to calculate the weights of each dog in sequence based on the information provided:
+
+1. The Affenpinscher weighs 10 pounds.
+2. The Dachshund weighs twice as much as the Affenpinscher, so the Dachshund weighs \(2 \times 10 = 20\) pounds.
+3. The Papillon weighs one-fourth as much as the Dachshund, so the Papillon weighs \(\frac{20}{4} = 5\) pounds.
+4. The Mastiff weighs 44 times the weight of the Papillon, so the Mastiff weighs \(44 \times 5 = 220\) pounds.
+
+The answer is that the Mastiff weighed 220 pounds. | The Affenpinscher weighed 10 pounds, and the Dachshund weighed twice as much as the Affenpinscher, or 2*10=20 pounds.
+The Papillon weighed one-fourth as much as the Dachshund, or 20/4=<<20/4=5>>5 pounds.
+And the Mastiff weighed 44 times the weight of the Papillon, or 5*44=<<44*5=220>>220 pounds.
+#### 220
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.43it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-61: 108 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/61_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 10.2s. Mem: 14.32/79.18 GB. [gsm-61]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.46it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-62: 74 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] First, we calculate the total cost of the dental work. The base price for two implants is $2000 each, so that's $4000. Adding the extra $500 for the porcelain crown increases the total to $4500. George has already paid $600 as a deposit, so the remaining amount he needs to pay is $4500 - $600 = $3900. Since George earns $15 per hour, we divide the remaining amount by his hourly wage to find out how many hours he needs to work: $3900 / $15 = 260 hours. 
+
+The answer is George needs to work 260 hours before he has enough to pay for the dental work. | The total base cost of the implants is 2 * $2000 = $<<2*2000=4000>>4000.
+Adding the porcelain crown increases the total to $4000 + $500 = $<<4000+500=4500>>4500.
+Subtracting the deposit, George needs to pay a total of $4500 - $600 = $<<4500-600=3900>>3900.
+This means George would need to work a total of $3900 / $15 per hour = <<3900/15=260>>260 hours.
+#### 260
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.56it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-62: 74 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/62_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 14.5s. Mem: 14.32/79.18 GB. [gsm-62]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.37it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-63: 91 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many games Steve has after 3 years, we need to account for all the games he receives and buys each year.
+
+1. **Initial Games**: Steve gets 5 games on his birthday.
+2. **First Year**: He buys 1 game per month for 12 months, which totals 12 games. So, at the end of the first year, he has 5 (initial) + 12 (bought) = 17 games.
+3. **Second Year**: He buys 2 games per month for 12 months, which totals 24 games. Additionally, he gets 5 games for Christmas. So, at the end of the second year, he has 17 (from the first two years) + 24 (bought) + 5 (Christmas) = 46 games.
+4. **Third Year**: He buys 4 games per month for 12 months, which totals 48 games. Additionally, he gets 5 games for Christmas. So, at the end of the third year, he has 46 (from the first two years) + 48 (bought) + 5 (Christmas) = 99 games.
+
+The answer is Steve has 99 games after 3 years. | Steve buys 1 game a month his first year, and since there are 12 months in a year that means he buys 12*1=<<1*12=12>>12 games
+Steve then buys 2 games per month for a year, and since there are 12 months in a year that means he buys 12*2=<<2*12=24>>24 games
+Steve then buys 4 games per month for a year, and since there are 12 months in a year that means he buys 12*4=<<4*12=48>>48 games
+Steve also gets 5 games for Christmas each year for three years, for another 5*3=<<5*3=15>>15 games.
+In total over three years, Steve gets 12+24+48+15=<<12+24+48+15=99>>99 games
+Since Steve started with 5 games, he has 5+99=<<5+99=104>>104 games after 3 years
+#### 104
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.46it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-63: 91 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/63_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 15.5s. Mem: 14.32/79.18 GB. [gsm-63]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.45it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-64: 79 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much Scarlett spent, we need to add up all her expenses:
+
+1. The aquarium cost her $10.00.
+2. Two bags of rocks cost her $2.50 each, so 2 * $2.50 = $5.00.
+3. Three pieces of coral cost her $2.00 each, so 3 * $2.00 = $6.00.
+4. Twenty fish cost her $0.50 each, so 20 * $0.50 = $10.00.
+5. Fish food cost her $2.00.
+
+Adding these amounts together: $10.00 (aquarium) + $5.00 (rocks) + $6.00 (coral) + $10.00 (fish) + $2.00 (fish food) = $33.00.
+
+The answer is she spent $33.00. | a bag of rocks cost $2.50 and she bought 2 bags so 2*2.50 = $<<2*2.5=5.00>>5.00
+She bought 3 pieces of coral for $2.00 each so she spent 3*2 = $<<3*2=6.00>>6.00
+She bought 20 fish that costs $0.50 each so 20*.50 = $<<20*.50=10.00>>10.00
+All total she spent $10 on the aquarium, $5 on the rocks, $6 on coral, $10 on fish and $2 on food so 10+5+6+10+2 = $<<10+5+6+10+2=33.00>>33.00
+#### 33
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.39it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-64: 79 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/64_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 11.4s. Mem: 14.32/79.18 GB. [gsm-64]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 24.93it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-65: 80 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many pieces of gum Jim has left at the end of the day, we need to account for all the gum he uses throughout the day.
+
+1. Jim chews 1 piece of gum for every 2 hours he's at school. Since the school day lasts 8 hours, he chews \( \frac{8}{2} = 4 \) pieces of gum during school.
+2. He chews 1 piece on the way home from school.
+3. He chews 1 piece after dinner.
+4. After these uses, he gives half of the remaining gum to his sister.
+
+Let's calculate the total pieces used:
+- Pieces used at school: 4
+- Piece used on the way home: 1
+- Piece used after dinner: 1
+
+Total pieces used so far: \( 4 + 1 + 1 = 6 \)
+
+Initially, Jim had 20 pieces of gum. After using 6 pieces, he has \( 20 - 6 = 14 \) pieces left.
+
+He then gives half of the remaining 14 pieces to his sister:
+- Pieces given to his sister: \( \frac{14}{2} = 7 \)
+
+Therefore, the number of pieces of gum Jim has left at the end of the day is \( 14 - 7 = 7 \).
+
+The answer is 7 pieces of gum. | Jim goes to school for 8 hours, so if he chews 1 stick of gum every 2 hours that means he chews 8/2= <<8/2=4>>4 sticks of gum
+Jim chews 1 stick on the way home, plus 2 sticks after dinner for a total of 1+1=2 sticks of gum
+His sister asks for half his remaining gum. Jim started with 20 and has chewed 6, so he has 20-6=<<20-6=14>>14 sticks left
+This means Jim gives her 14/2=<<14/2=7>>7 sticks of gum
+Jim had 20 sticks of gum to begin with, and gave away 4+2+7=13 sticks away
+This means Jim has 20-13= <<20-13=7>>7 sticks of gum remaining.
+#### 7
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.40it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-65: 80 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/65_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 15.5s. Mem: 14.32/79.18 GB. [gsm-65]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.31it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-66: 120 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the total cost of Bill's new truck, we need to add up the base price and the costs of all the additional features.
+
+1. Base price of the truck: $30,000
+2. King cab upgrade: $7,500
+3. Leather seats: One-third the cost of the king cab upgrade, which is $7,500 / 3 = $2,500
+4. Running boards: $500 less than the leather seats, which is $2,500 - $500 = $2,000
+5. Upgraded exterior light package: $1,500
+
+Now, let's sum these amounts:
+$30,000 (base price) + $7,500 (king cab) + $2,500 (leather seats) + $2,000 (running boards) + $1,500 (exterior light package) = $43,500
+
+The answer is $43,500. | The leather seats are one-third the cost of the king cab upgrade, at a cost of $7,500/3=$<<7500/3=2500>>2500.
+The running boards are $500 less than the leather seats at a cost of $2500-$500=$2000
+The total cost of the truck is $30,000+$7500+$2500+$2000+$1500=$<<30000+7500+2500+2000+1500=43500>>43,500
+#### 43,500
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.38it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-66: 120 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/66_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 13.9s. Mem: 14.32/79.18 GB. [gsm-66]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.20it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-67: 78 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] First, calculate the total cost for Clara on Tuesday before the voucher discount: \(20 \text{ pomegranates} \times \$20 = \$400\). With the $2 voucher, the final price is \( \$400 - \$2 = \$398\).
+
+Next, determine the total cost for Sheila on Wednesday before the discount: \(20 \text{ pomegranates} \times \$30 = \$600\). Applying the 10% discount, the final price is \( \$600 - (0.10 \times \$600) = \$600 - \$60 = \$540\).
+
+Now, find the difference between the final prices paid: \( \$540 - \$398 = \$142\).
+
+The answer is the difference between the final prices paid for the pomegranates on the two days is $142. | On Tuesday, the pomegranates cost Clara 20 pomegranates * $20/pomegranates = $<<20*20=400>>400
+Using the voucher, she paid $400 - $2 = $<<400-2=398>>398
+On Wednesday, the pomegranates cost Sheila 20 pomegranates * $30 = $<<20*30=600>>600.
+She then got a discount of 10/100 * $600 = $<<10/100*600=60>>60
+Sheila ended up paying $600 - $60 = $<<600-60=540>>540
+The difference is therefore $540 - $398 = $<<540-398=142>>142
+#### 142
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.36it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-67: 78 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/67_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 12.9s. Mem: 14.32/79.18 GB. [gsm-67]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.38it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-68: 84 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the total cost, we need to calculate the cost of the coffee and the donut. 
+
+First, let's find the price of the more expensive coffee brand. The normal brand costs $5 per pound, and the more expensive brand costs 20% more. Therefore, the additional cost is \(5 \times 0.20 = 1\) dollar. So, the more expensive brand costs \(5 + 1 = 6\) dollars per pound.
+
+Roger buys a week's worth of coffee, which is 7 pounds. At $6 per pound, the cost of the coffee is \(7 \times 6 = 42\) dollars.
+
+He also buys a donut for $2.
+
+Adding these together, the total cost is \(42 + 2 = 44\) dollars.
+
+The answer is $44. | The coffee he bought was 5*.2=$<<5*.2=1>>1 more expensive per pound than what he normally buys
+So it cost 5+1=$<<5+1=6>>6 per pound
+He goes through 1*7=<<1*7=7>>7 pounds of coffee a week
+So he paid 6*7=$<<6*7=42>>42 on coffee
+That means his total bill was 42+2=$<<42+2=44>>44
+#### 44
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.41it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-68: 84 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/68_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 8.1s. Mem: 14.32/79.18 GB. [gsm-68]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.52it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-69: 94 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Initially, James has 4 toys for 4 dogs. With 8 more dogs, he needs 8 more toys, bringing the total to 12 toys for 12 dogs. When he returns, there are twice as many more dogs, meaning there are 16 additional dogs, needing 16 more toys. So far, he has bought enough toys for 28 dogs (12 + 16). When he comes back again, 3 dogs have left the shelter, reducing the number of dogs requiring toys by 3. Therefore, the total number of toys James needs is for 25 dogs (28 - 3).
+
+The answer is James needs a total of 25 toys. | James has 4+8=<<4+8=12>>12 toys.
+There were 12*2=<<12*2=24>>24 dogs.
+James needed to buy 24-12=<<24-12=12>>12 more toys.
+There are 36 total toys.
+36-3=<<36-3=33>>33 toys are now needed.
+#### 33
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.29it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-69: 94 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/69_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 9.1s. Mem: 14.32/79.18 GB. [gsm-69]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.20it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-70: 102 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many signatures Carol and Jennifer need to collect to reach their goal of 100 signatures, we start by calculating the total number of signatures they currently have. Carol has 20 signatures, and Jennifer has 44 signatures. Adding these together gives:
+
+\[ 20 + 44 = 64 \]
+
+The sisters want to have 100 signatures by the end of the summer. To find out how many more signatures they need, we subtract the number of signatures they currently have from their goal:
+
+\[ 100 - 64 = 36 \]
+
+Therefore, the sisters need to collect 36 more signatures to reach their goal. The answer is: The sisters need to collect 36 signatures to reach their goal. | Carol and Jennifer have already collected 20 + 44 signatures = <<20+44=64>>64 signatures.
+Since their goal is 100, they need to collect 100 - 64 signatures. 100 - 64 = <<100-64=36>>36 signatures
+#### 36
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.29it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-70: 102 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/70_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 7.2s. Mem: 14.32/79.18 GB. [gsm-70]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.39it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-71: 81 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the price of a crate of fruit, we first need to find the cost of each type of fruit. An apple costs $0.5. A banana costs twice as much as an apple, so a banana costs $0.5 * 2 = $1. An orange costs three times as much as a banana, so an orange costs $1 * 3 = $3.
+
+Now, let's calculate the total cost for each type of fruit in the crate:
+- Bananas: 5 bananas * $1/banana = $5
+- Apples: 12 apples * $0.5/apple = $6
+- Oranges: 7 oranges * $3/orange = $21
+
+Adding these amounts together gives us the total price for the crate:
+$5 (bananas) + $6 (apples) + $21 (oranges) = $32
+
+Therefore, the answer is the price for such a crate of fruit is $32. | The price for apples in the crate would be 12 * 0.5 = $<<12*0.5=6>>6.
+Cost of banana is 0.5 * 2 = $<<0.5*2=1>>1.
+So the bananas in this crate cost 5 * 1 = $<<5*1=5>>5.
+One orange is three times more expensive than a banana, so it costs 1 * 3 = $<<1*3=3>>3.
+So for the oranges in the crate, one needs to pay 7 * 3 = $<<7*3=21>>21.
+So the whole crate costs 6 + 5 + 21 = $<<6+5+21=32>>32.
+#### 32
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.45it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-71: 81 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/71_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 12.3s. Mem: 14.32/79.18 GB. [gsm-71]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.26it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-72: 87 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many points the class is missing to reach the 400-point threshold, we first need to calculate the points each student has collected:
+
+1. **Adam** has 50 points.
+2. **Betty** collected 30% more points than Adam. Therefore, Betty's points are \(50 + (0.3 \times 50) = 50 + 15 = 65\) points.
+3. **Tom** has 30 points. 
+4. **Marta** collected 3 times more points than Tom, so Marta's points are \(3 \times 30 = 90\) points.
+
+Now, summing up all the points:
+- Adam: 50 points
+- Betty: 65 points
+- Tom: 30 points
+- Marta: 90 points
+
+Total points collected by the class: \(50 + 65 + 30 + 90 = 235\) points.
+
+The minimum threshold to go on the trip is 400 points. Therefore, the class is missing \(400 - 235 = 165\) points.
+
+The answer is the class is missing 165 points to go on the trip. | Betty has 30% more points than Adam, so it's 30/100 * 50 = <<30/100*50=15>>15 points more.
+Betty's total is therefore 50 + 15 = <<50+15=65>>65 points.
+Tom has 30 points less than Betty, so he has 65 - 30 = <<65-30=35>>35 points.
+Marta has 3 times more points than Tom, so she has 3 * 35 = <<3*35=105>>105 points.
+In total, all students collected 50 + 65 + 35 + 105 = <<50+65+35+105=255>>255 points.
+So the class is missing 400 - 255 = <<400-255=145>>145 points to go on the trip.
+#### 145
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.38it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-72: 87 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/72_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 16.7s. Mem: 14.32/79.18 GB. [gsm-72]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.01it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-73: 73 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many fireworks Hannah will see in total, we need to calculate both the fireworks from the city display and those she sets off in her backyard.
+
+First, let's calculate the fireworks from the city:
+- The city is setting off 15 boxes of 20 fireworks each.
+- Total fireworks from the city = \(15 \times 20 = 300\) fireworks.
+- Hannah can see 40% of these fireworks.
+- Fireworks Hannah sees from the city = \(300 \times 0.40 = 120\) fireworks.
+
+Next, let's calculate the fireworks Hannah sets off in her backyard:
+- Hannah sets off 3 boxes of 5 fireworks each.
+- Total fireworks from Hannah's backyard = \(3 \times 5 = 15\) fireworks.
+
+Now, we add the fireworks Hannah sees from the city and those she sets off in her backyard:
+- Total fireworks Hannah sees = \(120 + 15 = 135\) fireworks.
+
+The answer is Hannah will see 135 fireworks in total. | First find the total number of fireworks the city sets off: 15 boxes * 20 fireworks/box = <<15*20=300>>300 fireworks
+Then multiply that number by the proportion of the fireworks Hannah can see: 300 fireworks * 40% = <<300*40*.01=120>>120 fireworks
+Then find the number of fireworks Hannah sets off in her own backyard: 3 boxes * 5 fireworks/box = <<3*5=15>>15 fireworks
+Then add the number of city fireworks to the number of personal fireworks to find the total number of fireworks: 15 fireworks + 120 fireworks = <<15+120=135>>135 fireworks
+#### 135
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.52it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-73: 73 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/73_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 10.9s. Mem: 14.32/79.18 GB. [gsm-73]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.49it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-74: 89 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much gravel Gary's truck can carry, we start by calculating the capacity of each truck. 
+
+First, we know Gissela's truck can haul 4,000 pounds of gravel.
+Next, Gordy's truck can haul 800 pounds more than Gissela's truck, so:
+\[ 4000 + 800 = 4800 \text{ pounds} \]
+
+When Gary's truck is added, the total capacity of all three trucks is 11,600 pounds. Therefore, the capacity of Gary's truck can be found by subtracting the capacities of Gissela's and Gordy's trucks from the total capacity:
+\[ 11600 - 4000 - 4800 = 2800 \text{ pounds} \]
+
+Thus, the answer is: The answer is Gary's truck can carry 2800 pounds of gravel. | Gordy's truck can carry 4000+800=<<4000+800=4800>>4800 pounds of gravel.
+Thus, Gary's truck can carry 11,600-4000-4800=<<11600-4000-4800=2800>>2800 pounds of gravel.
+#### 2800
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.45it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-74: 89 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/74_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 11.9s. Mem: 14.32/79.18 GB. [gsm-74]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.28it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-75: 82 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To find Marcus' total bill, we first calculate the cost of each type of item before applying the discount:
+
+- Croissants: \(5 \times \$3.00 = \$15.00\)
+- Cinnamon rolls: \(4 \times \$2.50 = \$10.00\)
+- Mini quiches: \(3 \times \$4.00 = \$12.00\)
+- Blueberry muffins: \(13 \times \$1.00 = \$13.00\)
+
+Adding these amounts together gives the subtotal:
+\[
+\$15.00 + \$10.00 + \$12.00 + \$13.00 = \$50.00
+\]
+
+Next, we apply the 10% discount:
+\[
+10\% \text{ of } \$50.00 = 0.10 \times \$50.00 = \$5.00
+\]
+
+Subtracting the discount from the subtotal gives the final total bill:
+\[
+\$50.00 - \$5.00 = \$45.00
+\]
+
+The answer is Marcus' total bill is \$45.00. | 5 croissants cost $3.00 each so they cost 5*3 = $<<5*3=15.00>>15.00
+4 cinnamon rolls cost $2.50 each so they cost 4*2.5 =$<<4*2.5=10.00>>10.00
+3 mini quiches cost $4.00 each so they cost 3*4 = $<<3*4=12.00>>12.00
+13 blueberry muffins cost $1.00 each so the cost 13*1 = $<<13*1=13.00>>13.00
+All total, his pastries costs 15+10+12+13 = $<<15+10+12+13=50.00>>50.00
+His has a 10% coupon for his $50.00 purchase so that saves him .10*50 = $<<10*.01*50=5.00>>5.00
+His total bill is $50 minus his discount of $5.00 so 50-5 = $<<50-5=45.00>>45.00
+#### 45
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.43it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-75: 82 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/75_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 16.2s. Mem: 14.32/79.18 GB. [gsm-75]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.31it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-76: 80 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To find the total number of taps Helga makes, we need to calculate the taps for the time when her arms are not raised and when they are raised separately, then sum them up.
+
+1. **Without arms raised (3 minutes):**
+   - Right foot: 300 taps/minute
+   - Left foot: 250 taps/minute
+   - Combined: \(300 + 250 = 550\) taps/minute
+   - For 3 minutes: \(550 \times 3 = 1650\) taps
+
+2. **With arms raised (2 minutes):**
+   - Right foot: 200 taps/minute
+   - Left foot: 200 taps/minute
+   - Combined: \(200 + 200 = 400\) taps/minute
+   - For 2 minutes: \(400 \times 2 = 800\) taps
+
+Adding these together gives the total number of taps:
+\[1650 + 800 = 2450\]
+
+The answer is the combined total number of times that she taps both of her feet is 2450. | During the 5 minutes of dancing, 2 minutes were performed with hands raised and 5-2=3 minutes were performed without hands raised.
+With hands not raised, her right foot tapped 3*300=<<3*300=900>>900 times.
+With hands not raised, her left foot tapped 3*250=<<3*250=750>>750 times.
+With hands raised, her right foot tapped 2*200=<<2*200=400>>400 times.
+With hands raised, her left foot tapped 2*200=<<2*200=400>>400 times.
+Thus, in total, she tapped 900+750+400+400=<<900+750+400+400=2450>>2450 times
+#### 2450
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.58it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-76: 80 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/76_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 15.2s. Mem: 14.32/79.18 GB. [gsm-76]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.42it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-77: 84 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much money Ron saves by fixing the pothole, we need to compare the total cost of having the city council fix the pothole (which is $450) with the total cost of Ron fixing it himself. The total cost for Ron includes the fine for unauthorized road maintenance ($120) and the cost of the asphalt ($25 per bucket for 3 buckets).
+
+The total cost for Ron to fix the pothole himself is:
+\[ \$120 \text{ (fine)} + 3 \times \$25 \text{ (asphalt)} = \$120 + \$75 = \$195 \]
+
+The difference between the cost of having the city council fix the pothole and the cost for Ron to fix it himself is:
+\[ \$450 - \$195 = \$255 \]
+
+Therefore, the amount of money Ron saves by fixing the pothole himself is $255. 
+
+The answer is Ron saves $255 by fixing the pothole. | First find the total cost of the asphalt by multiplying the number of buckets by the cost per bucket: 3 buckets * $25/bucket = $<<3*25=75>>75
+Now subtract the cost of the asphalt and the fine from the cost of the damage Ron avoids: $450 - $75 - $120 = $<<450-75-120=255>>255
+#### 255
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.49it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-77: 84 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/77_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 14.0s. Mem: 14.32/79.18 GB. [gsm-77]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.16it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-78: 94 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Initially, Gunther had 48 bananas. Arnold stole half, which is 24 bananas, leaving Gunther with 24 bananas. The next day, Gunther added 25 more, making the total 49 bananas. Arnold then stole 12 bananas, leaving Gunther with 37 bananas. On the third day, Gunther added another 6 bananas. Therefore, the total number of bananas Gunther found in the pile was 37 + 6 = 43 bananas. The answer is Gunther found 43 bananas were in the pile. | Half of 48 bananas is 48/2=<<48/2=24>>24 bananas.
+Arnold's first act of thievery removes 24 bananas, leaving 48-24=24 bananas.
+Starting with the remaining 24 bananas, adding 25 bananas to the pile brings the total to 24+25=<<24+25=49>>49 bananas.
+Arnold's second act of thievery resulted in 49-12=<<49-12=37>>37 bananas remaining.
+Gunther adds another 6 bananas, resulting in the final number of 37+6=<<37+6=43>>43 bananas.
+#### 43
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.43it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-78: 94 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/78_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 8.6s. Mem: 14.32/79.18 GB. [gsm-78]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.29it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-79: 95 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many buttons Lorraine has by the end, we need to follow the trades step-by-step:
+
+1. **Initial Stickers:**
+   - Small stickers: 30
+   - Large stickers: 40
+
+2. **Trading Small Stickers:**
+   - Lorraine trades 90% of her small stickers for large buttons.
+   - 90% of 30 small stickers = \( 0.9 \times 30 = 27 \) small stickers.
+   - Each small sticker is worth 1 small button, so she gets 27 small buttons from this trade.
+
+3. **Trading Large Stickers:**
+   - Lorraine trades 50% of her large stickers for large buttons.
+   - 50% of 40 large stickers = \( 0.5 \times 40 = 20 \) large stickers.
+   - Each large sticker is worth 3 small buttons, so she gets \( 20 \times 3 = 60 \) small buttons from this trade.
+
+4. **Remaining Stickers:**
+   - After trading 27 small stickers, she has \( 30 - 27 = 3 \) small stickers left.
+   - After trading 20 large stickers, she has \( 40 - 20 = 20 \) large stickers left.
+
+5. **Trading Remaining Large Stickers:**
+   - The remaining 20 large stickers are traded for small buttons.
+   - Each large sticker is worth 3 small buttons, so she gets \( 20 \times 3 = 60 \) small buttons from this trade.
+
+6. **Total Small Buttons:**
+   - From trading small stickers: 27 small buttons.
+   - From trading large stickers (first part): 60 small buttons.
+   - From trading remaining large stickers: 60 small buttons.
+   - Total small buttons = \( 27 + 60 + 60 = 147 \).
+
+7. **Total Large Buttons:**
+   - From trading large stickers (second part): 60 large buttons.
+
+8. **Final Count of Buttons:**
+   - Total small buttons: 147
+   - Total large buttons: 60
+
+The answer is that Lorraine has 147 small buttons and 60 large buttons by the end, totaling 207 buttons. | She trades 27 small stickers because 30 x .9 = <<27=27>>27
+She gets 9 large buttons for these because 27 / 3 = <<27/3=9>>9
+She trades 20 large stickers for large buttons because 40 x .5 = 20
+She gets 20 large buttons for these because 20 / 1 = <<20/1=20>>20
+She trades 50% of her large stickers for small buttons because 100 - 50 = <<100-50=50>>50
+She trades 20 large stickers for small buttons because 40 x .5 = 20
+She gets 60 small buttons because 20 x 3 = <<20*3=60>>60
+She has 89 buttons at the end because 9 + 20 + 60 = <<9+20+60=89>>89
+#### 89
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.39it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-79: 95 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/79_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 24.8s. Mem: 14.32/79.18 GB. [gsm-79]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 24.90it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-80: 91 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many more vanilla scents sold compared with the fruity scents, we first calculate the total number of each type sold. For the vanilla scents, they sold 5 of each, and there are 4 different vanilla scents, so the total number of vanilla scents sold is \(5 \times 4 = 20\). For the fruity scents, they sold 2 of each, and there are 8 different fruity scents, so the total number of fruity scents sold is \(2 \times 8 = 16\).
+
+Next, we find the difference between the number of vanilla scents sold and the number of fruity scents sold. This is calculated as \(20 - 16 = 4\).
+
+Therefore, the answer is the vanilla scents sold 4 more than the fruity scents. | The store sold 4 types of vanilla scents * 5 sales each = <<4*5=20>>20 of the vanilla scents.
+The store sold 8 types of fruity scents * 2 sales each = <<8*2=16>>16 of the fruity scents.
+This means that the store sold 20 vanilla – 16 fruity = <<20-16=4>>4 more vanilla scents.
+#### 4
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.44it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-80: 91 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/80_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 8.9s. Mem: 14.32/79.18 GB. [gsm-80]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.15it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-81: 74 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the total cost of replacing Mike's movie collection with digital versions, we need to break down the costs based on the given information:
+
+1. **Total number of movies**: 600
+2. **Movies in series**: \( \frac{1}{3} \times 600 = 200 \)
+3. **Cost of series movies**: \( \frac{1}{3} \) of the cost of a normal movie, which is \( \frac{1}{3} \times 10 = \$3.33 \) per series movie.
+4. **Remaining movies after series**: \( 600 - 200 = 400 \)
+5. **Older movies (40% of the remaining)**: \( 0.4 \times 400 = 160 \)
+6. **Cost of older movies**: \( 160 \times 5 = \$800 \)
+7. **Remaining non-series, non-older movies**: \( 400 - 160 = 240 \)
+8. **Cost of non-series, non-older movies**: \( 240 \times 10 = \$2400 \)
+
+Now, summing up all the costs:
+- Series movies: \( 200 \times 3.33 = \$666 \)
+- Older movies: \( \$800 \)
+- Non-series, non-older movies: \( \$2400 \)
+
+Total cost: \( 666 + 800 + 2400 = \$3866 \)
+
+The answer is: The total cost of replacing the movies is \$3866. | There are 600/3=<<600/3=200>>200 movies in series
+So he pays 200*6=$<<200*6=1200>>1200
+He has 600-200=<<600-200=400>>400 movies not in series
+400*.4=<<400*.4=160>>160 movies are old
+So those cost 160*5=$<<160*5=800>>800
+400-160=<<400-160=240>>240 movies are neither old nor in series
+They cost 240*10=$<<240*10=2400>>2400
+So the total cost is 1200+800+2400=$<<1200+800+2400=4400>>4400
+#### 4400
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.52it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-81: 74 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/81_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 18.0s. Mem: 14.32/79.18 GB. [gsm-81]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 24.99it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-82: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the difference between Ava's and Emma's scores, we need to calculate the points for each based on the given conditions:
+
+For Ava:
+- Points from jumping on enemies: \(8 \text{ enemies} \times 10 \text{ points/enemy} = 80 \text{ points}\)
+- Points from collecting berries: \(3 \text{ berries} \times 5 \text{ points/berry} = 15 \text{ points}\)
+- Points from the timer: Since she finishes 4 seconds slower, she loses \(4 \text{ seconds} \times 30 \text{ points/second} = 120 \text{ points}\)
+
+Total score for Ava: \(80 + 15 - 120 = -25\)
+
+For Emma:
+- Points from jumping on enemies: \(0 \text{ enemies} \times 10 \text{ points/enemy} = 0 \text{ points}\) (since it's not specified that she jumped on any enemies)
+- Points from collecting berries: \(0 \text{ berries} \times 5 \text{ points/berry} = 0 \text{ points}\) (since it's not specified that she collected any berries)
+- Points from the timer: \(0 \text{ seconds} \times 30 \text{ points/second} = 0 \text{ points}\)
+
+Total score for Emma: \(0 + 0 - 0 = 0\)
+
+The difference between their scores: \(0 - (-25) = 25\)
+
+The answer is the difference between their scores is 25. | For jumping on enemies, Emma earns 8 * 10 = <<8*10=80>>80 fewer points than Ava.
+For collecting berries, Emma earns 3 * 5 = <<3*5=15>>15 fewer points than Ava.
+For finishing the level faster, Emma earns 4 * 30 = <<4*30=120>>120 more points than Ava.
+Overall, Emma has 120 – 80 - 15 = <<120-80-15=25>>25 more points than Ava.
+#### 25
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 12.92it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-82: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/82_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 22.4s. Mem: 14.32/79.18 GB. [gsm-82]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 24.83it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-83: 94 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many white fish Bob bought, we need to analyze the information given:
+
+1. Initially, Bob had 7 fish: 3 orange and 4 white.
+2. After buying more fish, he had twice as many orange fish as white fish.
+3. A total of 17 fish were bought from the pet store and added to the pond.
+
+Let's denote:
+- \( x \) as the number of white fish Bob bought.
+- \( y \) as the number of orange fish Bob bought.
+
+From the problem, we know:
+\[ x + y = 17 \]
+
+After adding these fish, the total number of fish in the pond became:
+- Orange fish: \( 3 + y \)
+- White fish: \( 4 + x \)
+
+According to the problem, after the purchase, the number of orange fish was twice the number of white fish:
+\[ 3 + y = 2(4 + x) \]
+
+Now, let's solve these equations step by step.
+
+First, simplify the second equation:
+\[ 3 + y = 8 + 2x \]
+\[ y = 2x + 5 \]
+
+Substitute \( y = 2x + 5 \) into the first equation:
+\[ x + (2x + 5) = 17 \]
+\[ 3x + 5 = 17 \]
+\[ 3x = 12 \]
+\[ x = 4 \]
+
+So, Bob bought 4 white fish. The answer is: The answer is 4. | Bob started with 7 fish and bought seventeen, so he had 7 + 17 = <<7+17=24>>24 fish.
+Let x = the number of white fish.
+Bob has twice as many orange fish as white fish, so 2*x + x = 24 fish
+3*x = 24
+x = 24/3 = <<24/3=8>>8 white fish.
+Bob started with 4 white fish, so he bought 8 - 4 = 4 white fish at the store.
+#### 4
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.42it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-83: 94 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/83_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 15.9s. Mem: 14.32/79.18 GB. [gsm-83]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.26it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-84: 91 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] First, let's determine Billy's hourly wage after all his raises:
+
+1. Billy starts at $10 per hour.
+2. After 2 months, he gets a raise of $0.50 per hour, making his new rate $10.50 per hour.
+3. On his first anniversary, he gets another raise of $1.00 per hour, making his final rate $11.50 per hour.
+
+Now, let's find out Sally's starting hourly wage:
+- Sally's starting salary is $0.50 more per hour than Billy's starting salary, which means Sally starts at $10.50 per hour.
+
+Next, we calculate the earnings for both Billy and Sally over 20 hours:
+- Billy earns $11.50 per hour * 20 hours = $230.
+- Sally earns $10.50 per hour * 20 hours = $210.
+
+Finally, we find the difference in their earnings:
+- The difference is $230 - $210 = $20.
+
+The answer is that Billy will earn $20 more than Sally if they both work 20 hours. | Billy has a salary of $10+0.50+$1.00=$<<10+0.5+1=11.50>>11.50 per hour.
+Sally is paid $0.50 more per hour than Billy's initial salary, for a total of $10+$0.50=$<<10+0.5=10.50>>10.50 per hour.
+If Billy works 20 hours, he will be paid 20*$11.50=$<<20*11.5=230>>230
+If Sally works 20 hours, she will be paid 20*$10.50=$<<20*10.50=210>>210.
+Thus, if both work 20 hours, Billy will be paid $230-$210=$20 more.
+#### 20
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.44it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-84: 91 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/84_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 15.3s. Mem: 14.32/79.18 GB. [gsm-84]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 24.97it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-85: 73 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Dale initially had 100 candies, sold 150, and then ordered 100 more. This means he sold more than he initially had and ordered additional candies. The total number of candies Dale has now is the initial 100 minus the 150 sold plus the 100 he ordered, which results in -50 + 100 = 50 additional candies ordered beyond what was sold. Therefore, Dale needs to sell 50 candies to sell all of his current stock. The answer is: The answer is 50. | Dale starts off selling 100 butterscotch candies that he ordered, but ends up selling 150, 100 - 150 = <<100-150=-50>>-50 candies.
+So Dale orders 100 more candies to make up for the deficit and to sell even more, -50 candies + 100 candies = <<100-50=50>>50 candies Dale has left and still needs to sell.
+#### 50
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.52it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-85: 73 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/85_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 8.5s. Mem: 14.32/79.18 GB. [gsm-85]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.15it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-86: 104 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] First, let's calculate the total number of petals Rose initially has:
+
+- From the first batch: \(3 \text{ flowers} \times 5 \text{ petals each} = 15 \text{ petals}\)
+- From the second batch: \(4 \text{ flowers} \times 6 \text{ petals each} = 24 \text{ petals}\)
+- From the third batch: \(5 \text{ flowers} \times 4 \text{ petals each} = 20 \text{ petals}\)
+- From the fourth batch: \(6 \text{ flowers} \times 7 \text{ petals each} = 42 \text{ petals}\)
+
+Adding these together gives the total number of petals before any are dropped:
+\[15 + 24 + 20 + 42 = 101 \text{ petals}\]
+
+Rose drops 1 flower from each batch, so she loses:
+\[1 \text{ (from the first batch)} + 1 \text{ (from the second batch)} + 1 \text{ (from the third batch)} + 1 \text{ (from the fourth batch)} = 4 \text{ flowers}\]
+
+Each of these dropped flowers had the following number of petals:
+- The first flower had 5 petals.
+- The second flower had 6 petals.
+- The third flower had 4 petals.
+- The fourth flower had 7 petals.
+
+So, the total number of petals lost is:
+\[5 + 6 + 4 + 7 = 22 \text{ petals}\]
+
+Subtracting the lost petals from the initial total gives:
+\[101 - 22 = 79 \text{ petals}\]
+
+Therefore, the answer is: The answer is 79 petals. | Rose picks 3*5=<<3*5=15>>15 petals worth of the 5 petal flowers.
+Rose then picks 4*6=<<4*6=24>>24 petals worth of the 6 petal flowers.
+Rose then picks 5*4=<<5*4=20>>20 petals worth of the 4 petal flowers.
+Finally, Rose picks 6*7=<<6*7=42>>42 petals worth of the 7 petal flowers.
+Rose carries 15+24+20+42=<<15+24+20+42=101>>101 petals worth of flowers back to the vase.
+But the wind blows 5+6+4+7=<<5+6+4+7=22>>22 petals worth of flowers away.
+So Rose has 101-22=<<101-22=79>>79 petals worth remaining
+#### 79
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.46it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-86: 104 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/86_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 19.4s. Mem: 14.32/79.18 GB. [gsm-86]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.31it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-87: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much money is used, we need to calculate the total time each person plays and then convert that into quarters. 
+
+Jack plays for 4 hours, which is 240 minutes. Since each game lasts 20 minutes, Jack can play \( \frac{240}{20} = 12 \) games. Each game costs 1 quarter, so Jack uses \( 12 \times 1 = 12 \) quarters.
+
+Two of Jack's friends can only play half as long as Jack, so they can play for \( \frac{240}{2 \times 20} = 6 \) games each. Therefore, each of these two friends uses \( 6 \times 1 = 6 \) quarters.
+
+The friend who is significantly better can play for 1.5 times as long as Jack, so this friend can play for \( \frac{240 \times 1.5}{20} = 18 \) games. This friend uses \( 18 \times 1 = 18 \) quarters.
+
+Adding all the quarters together, the total number of quarters used is \( 12 + 6 + 6 + 18 = 42 \).
+
+The answer is the total amount of money used is 42 quarters. | Jack puts change in 60/20=<<60/20=3>>3 times an hour
+So he spends 3*.25=$<<3*.25=.75>>.75 an hour
+His two friends add change 3*2=<<3*2=6>>6 times an hour
+So they spend 6*.25=$<<6*.25=1.5>>1.5 an hour
+His last friend puts in money 3/1.5=<<3/1.5=2>>2 times an hour
+So he spends 2*.25=$<<2*.25=.50>>.50 an hour
+So in total they spend .75+1.5+.5=$<<.75+1.5+.5=2.75>>2.75 an hour
+So they spend 2.75*4=$<<2.75*4=11>>11 in the 4 hours
+#### 11
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.53it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-87: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/87_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 9.7s. Mem: 14.32/79.18 GB. [gsm-87]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.27it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-88: 88 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] In the first game, Sasha scored 14 points. Julie scored 4 fewer points than Sasha, which means Julie scored 10 points in the first game. Therefore, Sasha's score in the first game does not change and remains 14 points.
+
+For the second game, Sasha scored 6 fewer points than Julie's score in the first game. Since Julie scored 10 points in the first game, Sasha scored \(10 - 6 = 4\) points in the second game.
+
+To find the total points Sasha scored during both games, we add her scores from each game: \(14 + 4 = 18\).
+
+The answer is Sasha scored a total of 18 points during both games. | In the first game, Sasha scored 14 points, and Julie scored four fewer points: 14-4 = <<14-4=10>>10 points.
+In the second game, Sasha scored 6 points fewer than Julie's score in the first game, meaning she scored 10-6=<<10-6=4>>4 points.
+Sasha scored 10+4=<<10+4=14>>14 points in the two games.
+#### 14
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.49it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-88: 88 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/88_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 9.7s. Mem: 14.32/79.18 GB. [gsm-88]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.32it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-89: 80 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the total cost for Angela, we need to break down the items she requires and compare them to the services offered by the interior design firm.
+
+The firm's base service cost is $129.00, which includes:
+- Hanging 4 mirrors
+- Installing 2 shelves
+- Hanging 1 chandelier
+- Hanging 10 pictures
+
+Angela needs:
+- 6 mirrors (2 more than included in the base service)
+- 2 chandeliers (1 more than included in the base service)
+- 20 pictures (10 more than included in the base service)
+
+The cost for additional items is $15.00 per item. Therefore, the additional costs will be calculated as follows:
+- Additional mirrors: \(2 \times \$15.00 = \$30.00\)
+- Additional chandeliers: \(1 \times \$15.00 = \$15.00\)
+- Additional pictures: \(10 \times \$15.00 = \$150.00\)
+
+Adding these amounts to the base service cost:
+\[ \$129.00 + \$30.00 + \$15.00 + \$150.00 = \$324.00 \]
+
+The answer is: The cost will be $324.00. | The service includes 4 mirrors and she has 6 so that's 6-4 = <<6-4=2>>2 extra mirrors
+An additional item is an extra $15.00 so that's 2*15 = $30.00
+The service includes 1 chandelier and she has 2 so that's 2-1 = 1 extra chandelier
+An additional item is an extra $15.00 so that's 1*15 = $<<1*15=15.00>>15.00
+The service includes 10 pictures and she has 20 to that's 20-10 = <<20-10=10>>10 extra pictures
+An additional item is an extra $15.00 so that's 10*15 = $<<10*15=150.00>>150.00
+The service costs $129.00 and the extra mirrors are $30.00, the chandelier is $15.00 and the pictures are $150.00 for a total of 129+30+15+150 = $<<129+30+15+150=324.00>>324.00
+#### 324
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.53it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-89: 80 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/89_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 12.2s. Mem: 14.32/79.18 GB. [gsm-89]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.14it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-90: 100 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much money Erika has in her purse, we need to calculate the total amount of money she currently has from various sources and then see how much more she needs to reach the final cost after the trade-in discount.
+
+1. The cost of the new laptop after the trade-in discount is $600 - $200 = $400.
+2. Erika still needs $50 more to buy the laptop, so she has $400 - $50 = $350 in total.
+
+Now, let's break down the sources of her current funds:
+- She was paid $150 this week.
+- Her mom gave her $80.
+
+Adding these amounts together gives us the total amount of money she has from these sources: $150 + $80 = $230.
+
+Since she has $350 in total and $230 comes from her recent sources, the remaining amount must be in her purse. Therefore, the amount of money she has in her purse is $350 - $230 = $120.
+
+The answer is: The answer is $120. | Selling the old laptop reduced the cost of the new laptop to $600 – $200 = $<<600-200=400>>400 dollars.
+We know she doesn't have all the money yet, so she actually has $400 – $50 = $<<400-50=350>>350 dollars.
+Some of this money came from her mom, so the money she had herself was $350 – $80 = $<<350-80=270>>270.
+Subtracting her part-time wages shows that she had $270 – $150 = $<<270-150=120>>120 in her purse.
+#### 120
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.45it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-90: 100 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/90_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 12.0s. Mem: 14.32/79.18 GB. [gsm-90]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.37it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-91: 75 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much Greg will spend on jello, we first need to calculate the total number of jello cups required. With 30 kids and each needing 4 jello cups, the total number of cups needed is \(30 \times 4 = 120\) cups.
+
+Since a 3-ounce box of jello makes 10 small cups, we can find out how many boxes are needed by dividing the total number of cups by the number of cups per box: \(120 \div 10 = 12\) boxes.
+
+Given that each box costs $1.25, the total cost for 12 boxes is \(12 \times 1.25 = 15\).
+
+Therefore, the answer is he will spend $15 on jello. | There will be 30 kids and he wants each kid to have 4 servings so that's 30*4 = <<30*4=120>>120 jello cups
+1 box of jello makes 10 jello cups and he needs to make 120 jello cups so he needs 120/10 = <<120/10=12>>12 boxes of jello
+Each box of jello is $1.25 and he needs 12 boxes so he will spend 1.25*12 = $<<1.25*12=15.00>>15.00 on jello
+#### 15
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.53it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-91: 75 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/91_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 10.5s. Mem: 14.32/79.18 GB. [gsm-91]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.28it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-92: 90 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] First, let's calculate the cost of each item:
+
+- The 5 packs of bacon cost $10 in total, so each pack of bacon costs $10 / 5 = $2.
+- Each packet of chicken costs twice as much as a pack of bacon, so each packet of chicken costs $2 * 2 = $4.
+- Each pack of strawberries costs $4.
+- Each pack of apples costs half the price of a pack of strawberries, so each pack of apples costs $4 / 2 = $2.
+
+Now, let's calculate the total cost of all items:
+
+- Bacon: 5 packs * $2 = $10
+- Chicken: 6 packets * $4 = $24
+- Strawberries: 3 packs * $4 = $12
+- Apples: 7 packs * $2 = $14
+
+Adding these up gives us the total cost:
+$10 + $24 + $12 + $14 = $60
+
+Kelly's budget is $65, so if we subtract the total cost from her budget, we get:
+$65 - $60 = $5
+
+The answer is Kelly has $5 left in her budget. | Each pack of bacon costs Kelly $10 total / 5 packs of bacon = $<<10/5=2>>2.
+So each pack of chicken costs $2 per pack of bacon * 2 = $<<2*2=4>>4.
+All of the chicken will therefore cost 6 packets of chicken * $4 per pack of chicken = $<<6*4=24>>24.
+The strawberries will cost her 3 packs of strawberries * $4 per pack of strawberries = $<<3*4=12>>12.
+Each pack of apples costs Kelly $4 per pack of strawberries / 2 = $<<4/2=2>>2.
+So all of the apples will cost her a combined total of 7 packs of apples * $2 per pack of apples = $<<7*2=14>>14.
+In total, Kelly’s shopping so far costs $10 for bacon + $24 for chicken + $12 for strawberries + $14 for apples = $<<10+24+12+14=60>>60.
+She therefore has $65 budget - $60 for shopping = $<<65-60=5>>5 left in the budget.
+#### 5
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.51it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-92: 90 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/92_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 16.5s. Mem: 14.32/79.18 GB. [gsm-92]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.34it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-93: 81 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To find out how much Julia and Nadine's mother gave each one of them, we need to calculate the total expenses and then determine the initial allowance from which these expenses were covered.
+
+First, let's calculate the cost of the items they bought:
+- Cake: $11
+- Balloons: Since balloons are sold at $0.5 for 2 balloons, a dozen (12 balloons) would cost \( \frac{12}{2} \times 0.5 = 6 \) dollars.
+- Ice cream: 2 tubs at $7 each would cost \( 2 \times 7 = 14 \) dollars.
+
+Adding these up gives us the total expenditure:
+\[ 11 + 6 + 14 = 31 \text{ dollars} \]
+
+This $31 was the combined allowance of Julia and Nadine. Since they had the same allowance, we divide this amount by 2 to find out how much each received:
+\[ \frac{31}{2} = 15.5 \text{ dollars} \]
+
+Therefore, the answer is: The answer is $15.5. | There are 12/2 = <<12/2=6>>6 pairs of balloons in 1 dozen.
+The cost for buying a dozen balloons was $0.5 x 6 = $<<0.5*6=3>>3.
+The cost of 2 tubs of ice cream was $7 x 2 = $<<7*2=14>>14.
+The total cost of their purchases is $11 + $3 +$14 = $<<11+3+14=28>>28.
+So their mother gave each of them $28/2 = $<<28/2=14>>14.
+#### 14
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.57it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-93: 81 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/93_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 13.7s. Mem: 14.32/79.18 GB. [gsm-93]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.30it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-94: 75 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine the total number of pets Larry has, we need to calculate the number of each type of pet based on the information given:
+
+1. Larry has 3 cats.
+2. He has 3 times as many dogs as cats, so he has \(3 \times 3 = 9\) dogs.
+3. He has 2 fewer rabbits than dogs, so he has \(9 - 2 = 7\) rabbits.
+4. The number of fish is three times the number of rabbits, so he has \(7 \times 3 = 21\) fish.
+5. The number of gerbils is one-third the number of fish, so he has \(\frac{21}{3} = 7\) gerbils.
+
+Now, we sum up all the pets:
+- Cats: 3
+- Dogs: 9
+- Rabbits: 7
+- Fish: 21
+- Gerbils: 7
+
+Adding these together gives us the total number of pets: \(3 + 9 + 7 + 21 + 7 = 47\).
+
+The answer is Larry has 47 pets. | Larry has 3 cats and 3 times as many dogs as cats, for 3*3=<<3*3=9>>9 dogs
+Larry has 2 fewer rabbits than his 9 dogs, for 9-2=7 rabbits
+Larry has 3 times as many fish as rabbits, for 3*7=<<7*3=21>>21 fish
+Larry has 1 /3 as many gerbils as he has fish, for 21/3= 7 gerbils
+Adding these all together, he has 9+7+21+7+3= <<9+7+21+7+3=47>>47 pets
+#### 47
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.35it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-94: 75 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/94_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 11.3s. Mem: 14.32/79.18 GB. [gsm-94]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.51it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-95: 86 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many more movies Colby can see, we need to account for his expenses and remaining budget. 
+
+First, calculate the total amount spent on popcorn and candy:
+- Each tub of popcorn costs $8, so 2 tubs cost \(2 \times 8 = 16\) dollars.
+- Each box of candy costs $2, so 4 boxes cost \(4 \times 2 = 8\) dollars.
+- Total spent on popcorn and candy: \(16 + 8 = 24\) dollars.
+
+Next, calculate the remaining budget:
+- Colby starts with $150.
+- After spending $24, he has \(150 - 24 = 126\) dollars left.
+
+Now, determine how many tickets he can buy with the remaining budget:
+- Friday/Saturday tickets cost $10 each.
+- To find out how many tickets he can buy, divide the remaining budget by the ticket price: \(126 \div 10 = 12.6\).
+
+Since he can only buy whole tickets, he can purchase 12 more tickets.
+
+He has already seen 5 movies on a Friday or Saturday and 8 movies on other days this month. Therefore, the total number of movies he has seen so far is \(5 + 8 = 13\).
+
+Adding the 12 additional movies he can see this month:
+- Total movies he can see this month: \(13 + 12 = 25\).
+
+The answer is: The answer is he can see 12 more movies this month. | He has spent $50 on Fri/Sat movies because 5 x 10 = <<50=50>>50
+He has spent $56 on movies the rest of the day because 8 x 7 = <<8*7=56>>56
+He has spent $16 on popcorn because 2 x 8 = <<16=16>>16
+He has spent $8 on candy because 4 x 2 = <<4*2=8>>8
+He has spent 130 in total because 50 + 56 + 16 + 8 = <<50+56+16+8=130>>130
+He plans to spend $10 on popcorn and candy because 8 + 2 = <<8+2=10>>10
+He has $10 left to spend because 150 - 130 - 10 = <<150-130-10=10>>10
+He can see 1 movie because 10 / 10 = <<10/10=1>>1
+#### 1
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.57it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-95: 86 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/95_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 13.8s. Mem: 14.32/79.18 GB. [gsm-95]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.74it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-96: 81 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To find out how many bouncy balls came in the tube, we need to consider the total number of toys Sophie has after buying the tube of bouncy balls. We know the quantities of the other toys: 31 building blocks, 8 stuffed animals, and 9 stacking rings. Adding these together gives us 31 + 8 + 9 = 48 toys. Since Sophie now has a total of 62 toys, the difference between the total number of toys and the sum of the other toys will give us the number of bouncy balls. So, 62 - 48 = 14. The answer is 14 bouncy balls came in the tube. | Let T be the number of bouncy balls in the tube.
+After buying the tube of balls, Sophie has 31 + 8 + 9 + T = 48 + T = 62 toys for her nephew.
+Thus, T = 62 - 48 = <<62-48=14>>14 bouncy balls came in the tube.
+#### 14
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.86it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-96: 81 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/96_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 10.8s. Mem: 14.32/79.18 GB. [gsm-96]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 21.50it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-97: 110 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how much Cameron would save, we first need to calculate the cost under both options.
+
+**Option 1 (24-hour stay):**
+- Fixed cost for 24 hours = 1600 pesos.
+
+**Option 2 (12-hour stay plus additional hours):**
+- Cost for the first 12 hours = 1000 pesos.
+- Cameron stays for an additional 10 hours (from 12 midnight to 10 am).
+- Additional cost per hour = 70 pesos.
+- Total additional cost = 10 hours * 70 pesos/hour = 700 pesos.
+- Total cost for this option = 1000 pesos + 700 pesos = 1700 pesos.
+
+Now, we compare the two options:
+- Cost for 24-hour stay = 1600 pesos.
+- Cost for 12-hour stay plus additional hours = 1700 pesos.
+
+Cameron would save by choosing the 24-hour stay option:
+- Savings = 1700 pesos - 1600 pesos = 100 pesos.
+
+The answer is Cameron would save 100 pesos. | 12 hours after 5 pm is 5 am.
+If Cameron wants to leave at 10 am, he must pay for an additional 10 am - 5 am = <<10-5=5>>5 hours.
+This means that he must pay an additional 70 pesos x 5 hours = <<70*5=350>>350 pesos.
+Altogether, he must pay 1000 pesos + 350 pesos = <<1000+350=1350>>1350 pesos.
+Therefore, he will save 1600 pesos - 1350 pesos = <<1600-1350=250>>250 pesos.
+#### 250
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.69it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-97: 110 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/97_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 14.3s. Mem: 14.32/79.18 GB. [gsm-97]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.46it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-98: 75 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how long it took James to get across the lake, we need to break down the problem into several steps:
+
+1. Calculate the distance James swims initially:
+   - Total distance = 20 miles
+   - Distance swum initially = 60% of 20 miles = 0.6 * 20 = 12 miles
+
+2. Calculate the time taken to swim the initial distance:
+   - Speed = 2 miles per hour
+   - Time = Distance / Speed = 12 miles / 2 mph = 6 hours
+
+3. Determine the rest time:
+   - Rest time = Half the swimming time = 6 hours / 2 = 3 hours
+
+4. Calculate the remaining distance:
+   - Remaining distance = Total distance - Initial distance = 20 miles - 12 miles = 8 miles
+
+5. Determine the new speed for the remaining distance:
+   - New speed = Half the original speed = 2 mph / 2 = 1 mph
+
+6. Calculate the time taken to swim the remaining distance:
+   - Time = Distance / Speed = 8 miles / 1 mph = 8 hours
+
+7. Calculate the total time to cross the lake:
+   - Total time = Initial swimming time + Rest time + Remaining swimming time = 6 hours + 3 hours + 8 hours = 17 hours
+
+The answer is: The answer is 17 hours. | He swam 20*.6=<<20*.6=12>>12 miles.
+That took him 12/2=<<12/2=6>>6 hours.
+So he rested 6/2=<<6/2=3>>3 hours.
+He then swam the remaining 20-12=<<20-12=8>>8 miles.
+His pace was 2/2=<<2/2=1>>1 mph.
+So it took him 8/1=<<8/1=8>>8 hours.
+So in total, he took 6+3+8=<<6+3+8=17>>17 hours.
+#### 17
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.86it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-98: 75 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/98_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 15.3s. Mem: 14.32/79.18 GB. [gsm-98]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.56it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-99: 100 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many minutes Kim slept on her bed that day, we need to calculate her total sleep time, accounting for her sleepwalking period and the fact that she woke up earlier.
+
+1. Kim's usual bedtime is 10 p.m., and she usually wakes up at 6 a.m., which totals 9 hours of sleep.
+2. That day, she woke up 5 minutes earlier, so her wake-up time was 5:55 a.m.
+3. Her sleepwalking period was from 2:15 a.m. to 2:38 a.m., which is 23 minutes.
+4. Subtracting the sleepwalking period and the early wake-up from her usual sleep duration:
+
+   Usual sleep duration: 9 hours = 540 minutes
+   Sleepwalking period: 23 minutes
+   Early wake-up: -5 minutes
+
+5. Calculation: 540 minutes (usual sleep) - 23 minutes (sleepwalking) - 5 minutes (early wake-up) = 512 minutes
+
+The answer is she slept on her bed for 512 minutes that day. | Out of 24 hours in a day, 10 pm represents 22 hours.
+Until 12 p.m. or 24 hours, Kim slept 24 - 22 = <<24-22=2>>2 hours.
+In total, Kim usually sleeps 2 + 6 = <<2+6=8>>8 hours a day.
+In minutes, Kim usually sleeps 8 * 60 = <<8*60=480>>480 minutes
+Kim was sleepwalking for a total of 38 - 15 = <<38-15=23>>23 minutes.
+Within her usual sleep routine, Kim was sleepwalking or awake a total of 23 + 5 =<<23+5=28>>28 minutes.
+On that day, Kim slept in her bed for 480 - 28 = <<480-28=452>>452 minutes.
+#### 452
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 13.60it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m gsm-99: 100 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/99_qwen2.5-7b-instruct-1m_fastkvzip__pnm_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 9.3s. Mem: 14.32/79.18 GB. [gsm-99]
+
+Finished.
