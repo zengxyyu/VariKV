@@ -1,0 +1,46 @@
+tag: _fastkvzip__r5m_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.82it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.85it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.85it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.93it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.89it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/ctrl_b_a1_s0.pt/memoryless.pt mode=memoryless slots=8 typed=True alpha=0.9990 params=637.8K
+['scbench_prefix_suffix']
+
+scbench_prefix_suffix loaded, #data: 100
+set generation length: 128 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~100 samples
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.53it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.42it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.17it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.04s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.26s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.59s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.36s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-0: 112577 tokens, KV cache 6.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] _TmwCWPliaoDImvXiOvic+KJB | _TmwCWPliaoDImvXiOvic+KJB
+[QA 1] The word in the dictionary that has both the prefix `+hVce` and the suffix `rOtsm` is `+hVce--_DsdvGHJSvDSxrOtsm`. | +hVce--_DsdvGHJSvDSxrOtsm
+[QA 2] The word in the dictionary that has both the prefix "LBlPU" and the suffix "zVdkS" is:
+
+**LBlPUsjuZYtqz** | LBlPUIsjuZYbsHkx^fkUzVdkS
+[QA 3] The word in the dictionary that has both the prefix "RviB-" and the suffix "mszHq" is:
+
+`RviB-YiaAUgc_nSFCgaamszHq` | RviB-YiaAUgc_nSFCgaamszHq
+[QA 4] kTqWXSWpGAlpNJNdeLUymkfXA | kTqWXSWpGAlpNJNdeLUymkfXA
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.54it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.45it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.39it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.37it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.35it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.86it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.55it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-0: 112577 tokens, KV cache 6.5 GB, torch.bfloat16
+Results saved at ./results/scbench_prefix_suffix/0_qwen2.5-7b-instruct-1m_fastkvzip__r5m_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 28.1s. Mem: 14.32/79.18 GB. [scbench_prefix_suffix-0]
+
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.27it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.56s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.31s/it]

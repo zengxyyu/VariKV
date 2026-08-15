@@ -87,13 +87,21 @@ if __name__ == "__main__":
         _mode = args.ctrlm_mode or _ck.get("mode", "stateful")
         args.tag += f"_ctrlm{_mode[:4]}{_ck.get('slots', args.ctrlm_slots)}"
         model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
+        _arch = _ck.get("arch", "memory")
         _ns = _ck.get("slots", args.ctrlm_slots)
         # **typed 从权重形状推断，别依赖构造函数默认值。** typed=True 时状态按动作
         # 分型（前 K 槽=保留史、后 K 槽=驱逐史），M_init 是 2K 槽；默认值改过一次，
         # 靠默认值加载会在某天静默错配。
-        _typed = _ck["state"]["M_init"].shape[2] == 2 * _ns
-        _cm = _CM(_ck.get("d_kv", 128), _ck["L"], _ck["H"], n_slots=_ns,
-                  d_m=_ck.get("dim", args.ctrlm_dim), mode=_mode, typed=_typed)
+        if _arch == "memory":
+            _typed = _ck["state"]["M_init"].shape[2] == 2 * _ns
+            _cls, _kw = _CM, {"typed": _typed}
+        else:
+            from attention.calib_scorer import CalibScorer as _CS
+            _typed, _cls, _kw = None, _CS, {"arch": _arch}
+            _mode = "memoryless"            # CalibScorer 无记忆
+            args.tag += f"_{_arch}"
+        _cm = _cls(_ck.get("d_kv", 128), _ck["L"], _ck["H"], n_slots=_ns,
+                   d_m=_ck.get("dim", args.ctrlm_dim), mode=_mode, **_kw)
         _cm.load_state_dict(_ck["state"])
         if args.ctrlm_alpha >= 0:
             import math as _math

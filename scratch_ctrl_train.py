@@ -48,6 +48,7 @@ import torch.nn.functional as F
 ROOT = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(ROOT, "external/FastKVzip/prefill"))
 from attention.control_memory import ControlMemory           # noqa: E402
+from attention.calib_scorer import CalibScorer               # noqa: E402
 
 
 def _pw(du, mode):
@@ -208,6 +209,12 @@ def main():
     ap.add_argument("--split_seed", type=int, default=42,
                     help="**与 --seed 分开**：只决定 train/val 的文档划分。\n合在一起的话，跨种子跨度里会同时混进优化方差与划分方差——而只有 2 篇验证\n文档时，划分方差很可能是主导项，跨种子的差就没法归因了。")
     ap.add_argument("--val_frac", type=float, default=0.25)
+    ap.add_argument("--arch", default="memory",
+                    choices=["memory", "bias", "affine", "scalar", "kv"],
+                    help="memory = ControlMemory；其余是把 memoryless 的 +4.27 "
+                         "拆开的消融（见 attention/calib_scorer.py）。"
+                         "affine 只有 224 个参数，若它就够，说明增益是"
+                         "跨层/头的分数尺度重校准，不是 KV 语义")
     ap.add_argument("--alpha_init", type=float, default=0.05)
     ap.add_argument("--freeze_alpha", action="store_true",
                     help="冻结 α。默认让它自学，但实测它几乎不动（40 epoch 从\n0.050 到 0.0555），因为 dL/dalpha 正比于 tanh(raw)，头的方向还没学对时这个梯度\n平均为零——合成诊断里同样的 α 自举问题当初就是靠冻结解决的。而 α 直接决定\n重排权限：α=0.0555 时 Δs 满幅只有近阈值池内典型 |Δs0| 的 12%%，只有 24%% 的成对\n翻得动，Δacc 因此被构造性封顶，效应存在也测不出来。")
@@ -233,11 +240,15 @@ def main():
 
     os.makedirs(os.path.join(ROOT, a.out), exist_ok=True)
     hist = {}
-    for mode in ("stateful", "memoryless", "shuffled"):
+    arms = ("stateful", "memoryless", "shuffled") if a.arch == "memory" \
+        else ("memoryless",)   # CalibScorer 无记忆，三臂同解，跑三遍是自欺
+    for mode in arms:
         # **三臂必须同一初始化、同一数据顺序、同一 pair 采样**，否则差异混进随机性
         torch.manual_seed(a.seed)
-        cm = ControlMemory(a.d_kv, L, H, n_slots=a.slots, d_m=a.dim,
-                           mode=mode, alpha_init=a.alpha_init).to(dev)
+        Cls = ControlMemory if a.arch == "memory" else CalibScorer
+        kw = {} if a.arch == "memory" else {"arch": a.arch}
+        cm = Cls(a.d_kv, L, H, n_slots=a.slots, d_m=a.dim,
+                 mode=mode, alpha_init=a.alpha_init, **kw).to(dev)
         if a.freeze_alpha:
             cm.alpha_on.requires_grad_(False)
         opt = torch.optim.AdamW([p_ for p_ in cm.parameters() if p_.requires_grad],
@@ -278,7 +289,7 @@ def main():
                   f"alpha {float(cm.alpha):.4f}", flush=True)
             hist.setdefault(mode, []).append((va / max(m_, 1), vg / max(m_, 1)))
         torch.save(dict(state=cm.state_dict(), mode=mode, slots=a.slots,
-                        dim=a.dim, d_kv=a.d_kv, L=L, H=H, args=vars(a)),
+                        dim=a.dim, d_kv=a.d_kv, L=L, H=H, arch=a.arch, args=vars(a)),
                    os.path.join(ROOT, a.out, f"{mode}.pt"))
 
     print("\n" + "=" * 78)
