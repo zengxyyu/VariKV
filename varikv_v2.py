@@ -68,8 +68,18 @@ utility **`full_single`（= U^full，满缓存单 token 移除损伤）**。
 >     10 篇 → 训练 8 / 验证 2　验证集 = [3, 7]
 >     30 篇 → 训练 23 / 验证 7　验证集 = [5, 6, 10, 14, 19, 22, 26]
 >
-> 所以本文件加了 **`--n_docs`（默认 10）**，只取排序后的前 N 篇。要在全部 30 篇上
-> 训练就显式传 `--n_docs 0`，但那不再是 v2 的数据。
+> 而且**数据的生成方式也换了**，不只是篇数：v2 那 10 篇来自上游
+> `load_fineweb("fineweb_10k_cat")`（教师 `--n_cat 0`，即默认），后 20 篇来自
+> `load_cat_many(30)`（教师 `--n_cat 30`），后者是为绕开上游 10⁶ token 上限写的。
+> **两条路径已实测嵌套**：`load_cat_many(30)` 的前 10 篇与上游那 10 篇**逐字节
+> 相同**（10/10，2026-08-16 在 CPU 上直接比过文本），所以 30 篇是 10 篇的严格超集，
+> "取前 10 篇"确实是 v2 那批，不是另一个数据集的前 10 篇。
+>
+> 本文件因此用**一个档位参数** `--data {v2,v3,all}` 表达这件事，而不是让人自己数篇数：
+>
+>     --data v2   前 10 篇 + sha256 校验 → 8 / 2　　ctrl_b_a1_s*（v2）
+>     --data v3   全部 30 篇             → 23 / 7　ctrl_smc_s*（v3）与 dec_* 四臂
+>     --data all  目录里有什么用什么，不校验（新实验用）
 
 **训练**（3 个种子，只变初始化/采样/顺序）：
 
@@ -188,6 +198,22 @@ V2_TRACES = {
     "doc007.pt": "7ac23e46642a27434762538bec21fef58c958fc93159aa9c10c0c57bd35c870d",
     "doc008.pt": "82b64f7f2e60fa91ef48e7128b07011455a5e07259841b9506991240e1d13a20",
     "doc009.pt": "d6fa9b075208fc211b8c9d67909a3a4ae155bf2eebb2f59e1273e99ff3cbab75",
+}
+
+
+# 数据档位。**两条生成路径是嵌套的**，这一点已实测：`load_cat_many(30)` 的前 10 篇
+# 与上游 `load_fineweb("fineweb_10k_cat")` 的 10 篇**逐字节相同**（10/10，字符数与
+# 哈希均一致，2026-08-16 在 CPU 上直接比过文本）。所以 30 篇是 10 篇的严格超集，
+# "取前 10 篇"确实等于"v2 那批"，而不是另一个数据集的前 10 篇。
+#
+#   档位   教师命令                                  篇数   划分     谁用的
+#   v2     scratch_ctrl_teacher.py --out DIR         10    8 / 2   ctrl_b_a1_s*（v2）
+#   v3     scratch_ctrl_teacher.py --n_cat 30 --out DIR  30  23 / 7  ctrl_smc_s*（v3）
+#                                                                    + dec_* 四臂
+REGIME = {
+    "v2": (10, "上游 load_fineweb('fineweb_10k_cat')，教师 --n_cat 0（默认）"),
+    "v3": (30, "load_cat_many(30) 扩容，教师 --n_cat 30"),
+    "all": (0, "目录里有什么用什么，不校验"),
 }
 
 
@@ -631,17 +657,21 @@ def train(a):
     # 之后 10 分钟才为别的实验扩的），而 `--split_seed` 是对**当前文件列表**做
     # shuffle —— 篇数一变，训练集和验证集全变。不设这个上限，照原命令重跑得到的是
     # 另一份数据上的另一次实验，却看不出任何异常。
-    if a.n_docs > 0:
-        if len(files) > a.n_docs:
-            print(f"  [注意] 目录有 {len(files)} 篇，按 --n_docs {a.n_docs} 只取前 "
-                  f"{a.n_docs} 篇（v2 的配置）。要全用请传 --n_docs 0")
-        files = files[:a.n_docs]
-    # **内容级核对**，不是文件名级：只有当"取前 10 篇 + 默认 traces 目录"这个
-    # 组合出现时才有 v2 的参照，所以只在这一档校验 sha256。
-    if a.n_docs == 10 and os.path.basename(a.traces.rstrip("/")) == \
+    n_want, how = REGIME[a.data]
+    if n_want:
+        assert len(files) >= n_want, \
+            f"--data {a.data} 需要 {n_want} 篇，目录里只有 {len(files)} 篇"
+        if len(files) != n_want:
+            print(f"  [档位 {a.data}] 目录有 {len(files)} 篇，取前 {n_want} 篇（{how}）")
+        files = files[:n_want]
+    # **内容级核对**，不是文件名级。只有 v2 档有已知的参照摘要；v3 档的 20 篇扩容
+    # 文档没有存过摘要，所以只报篇数不校验内容 —— 说清楚比假装校验过好。
+    if a.data == "v2" and os.path.basename(a.traces.rstrip("/")) == \
             "scratch_ctrl_traces_v2":
         check_v2_traces(files)
         print("  [校验] 10 篇 trace 的 sha256 与 v2 训练时逐字节相同")
+    elif a.data == "v2":
+        print(f"  [注意] traces 不是默认目录，跳过 sha256 校验")
     docs = [torch.load(f, map_location="cpu") for f in files]
     L, H = docs[0]["L"], docs[0]["H"]
     # **d_kv 从 trace 推**，不要信 argparse 的默认值：不一致时只会在 `x_proj` 里
@@ -1010,11 +1040,12 @@ def _train_args():
                    help="只控制初始化 / pair 采样 / 训练顺序")
     t.add_argument("--split_seed", type=int, default=42, help="只控制 train/val 划分")
     t.add_argument("--val_frac", type=float, default=0.25)
-    t.add_argument("--n_docs", type=int, default=10,
-                   help="**v2 没有这个参数**，是本文件加的。原版就一句 "
-                        "glob(doc*.pt)，目录里有几篇用几篇；v2 训练那一刻目录里恰好"
-                        "只有 10 篇，此事无任何参数记录。目录后来长到 30 篇，同一条"
-                        "命令的含义就变了。默认 10 = 当时的篇数；传 0 表示全用")
+    t.add_argument("--data", default="v2", choices=list(REGIME),
+                   help="**数据档位。v2 没有这个参数**，是本文件加的 —— 原版只是 "
+                        "glob(doc*.pt) 用目录里的全部，而目录的内容随时间变过。"
+                        "v2=前 10 篇（上游 load_fineweb 那批，sha256 校验）；"
+                        "v3=全部 30 篇（load_cat_many 扩容后，v3 与拆解四臂用的）；"
+                        "all=目录里有什么用什么，不校验（做新实验用）")
     t.add_argument("--alpha_init", type=float, default=1.0)
     t.add_argument("--freeze_alpha", action="store_true", default=True)
     t.add_argument("--no_freeze_alpha", dest="freeze_alpha", action="store_false")
@@ -1037,7 +1068,8 @@ def verify_args(a):
     v2 的 args 里**没有** `arch` / `replace`：那两个是训完 v2 之后为拆解实验才加进
     原脚本的，所以 v2 时代只有 ControlMemory 一条路径。本文件同样没有这两项。
 
-    两项故意多出来的会单列而不算失配，理由见 `_train_args` 里各自的 help。
+    两项故意多出来的（`--data` 档位、`--skip_first`）会单列而不算失配，
+    理由见 `_train_args` 里各自的 help。
     `out` 只是输出路径，不参与比较。
     """
     sd = torch.load(os.path.join(ROOT, a.ckpt), map_location="cpu")
