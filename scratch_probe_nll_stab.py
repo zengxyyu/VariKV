@@ -1,35 +1,46 @@
 #!/usr/bin/env python3
-"""`U^NLL` 的有效性对照 —— 那个 Spearman≈0 到底是"靶子错了"还是"探针在测噪声"。
+"""效用标签的**信度曲线** —— 单条 KV 的边际效用在多局部的扰动下才是可复现的。
 
-`scratch_probe_nll_oracle.py` 在两个 panel 上都测到 `corr(U^NLL, U^attn) ≈ 0`
-（Retr.KV +0.032 p=0.42，Retr.MultiHop −0.013 p=0.75）。在把它当成"注意力靶子与
-真实预测效用无关"之前，必须先排掉一个更平庸的解释：
+--------------------------------------------------------------------------------
+首版（2026-08-16 上午）的结论已撤回，因为对照的量纲错了。记在这里免得重犯：
 
-    翻转 16.9 万条 KV 里的**一条**，NLL 的变化（中位 2.2e-3）可能根本不是那条
-    KV 的"效用"，而是一次混沌扰动 —— 换个存活集合 S 再测一遍就完全变样。
+    pk = pidx[randperm(len(pidx))[:int(len(pidx) * 0.01)]]   # pidx = **全体**可驱逐格子
+    V.view(-1)[pk] = ~V.view(-1)[pk]                         # 直接 toggle
 
-若是后者，`U^NLL` 本身没有作为"效用"的可复现性，它和**任何**东西的相关都会是 0，
-包括和它自己。那这个零结果就什么也没证明。
+`level="pair"` 下全体可驱逐格子 ≈ 28×4×165k = 18.5M，而保留集只有 ~1.44M
+（scbench_kv @0.1 的**有效** chunk_ratio 是 0.078，不是 0.1）。于是"1% 扰动"实际是
 
-三个对照，成本从低到高：
+    翻掉 185k 格 = 保留集的 **12.8%**；
+    被翻的 ~90% 原本是驱逐态 ⇒ 预算从 1.44M 涨到 1.60M，**+10.8%**。
 
-A. **确定性**：同一掩码连算两次 NLL。前向是确定的 ⇒ 应当逐位相同。若不同，说明有
-   非确定性内核，后面所有差分都要先减掉这个底噪。
+所以首版比较的根本不是"两个邻近的等预算存活集合"，而是"10% 预算的缓存"对
+"约 10.8% 预算、且随机塞进 17 万条低分 token 的缓存"。测到的 ρ=−0.22 只能说明
+**单条效用对缓存构型敏感**，不能说明等预算局部扰动下没有稳定成分。
 
-B. **块级方向性**：从存活集合里按分数**最高 / 最低 / 随机**各去掉 B 条，比较 ΔNLL。
-   若"去掉高分"明显比"去掉低分"更伤，说明本探针的 NLL 差分在**聚合层面**确实能分辨
-   重要性 —— 那么单条效应小只是效应量小，不是测不准。若三者无差别，探针本身失效。
+同一个量纲错误在对照 B 上也犯过（`G=256` 只占保留集 0.0139%）。**任何"扰动多少 /
+删掉多少"都要按保留集 `|S|` 取比例。**
 
-C. **跨存活集合的可复现性**（决定性的那个）：同一批候选，在两个只差 1% 随机翻转的
-   存活集合 `S` 与 `S'` 上各算一次 `U^NLL`，看两者的 Spearman。
+--------------------------------------------------------------------------------
+本版的三个改动
 
-     高（≳0.5）⇒ `U^NLL` 是候选自身的稳定属性，Spearman≈0 是真结论：
-                 **注意力靶子与预测效用无关**，换教师有据；
-     低（≲0.2）⇒ 单条翻转是混沌，`U^NLL` 不能当效用标签用，oracle 结论作废，
-                 且**任何**基于单条边际效用的教师（含 `U^setmarginal`）都可疑。
+1. **严格等预算互换**：从 `S∖cand` 抽 `n_swap` 条踢出，同时从 `S̄∖cand` 抽 `n_swap`
+   条放进，`|S'| = |S|` 逐位成立（断言）。
+2. **ε 相对 `|S|` 定义**，并扫多档 —— 输出的是一条**信度曲线**而不是单点。
+   曲线形状本身就是答案：
+       ε=0.1% 就 ρ≈0      ⇒ 单条边际确实不是良定义的量（首版想说的那件事，这才算证明）
+       ρ 随 ε 单调衰减     ⇒ 效用局部稳定、全局 set-dependent；教师可用，但标签要在
+                            与训练时相同的 S 分布上取，且噪声决定所需数据量（∝1/ρ）
+3. **同一批扰动下同时测 `U^attn` 的信度。** 这是最有决策价值的一格，而且几乎免费
+   （闭式秩一更新，不用前向）。被训练的打分器用的标签是 `U^attn` 而不是 `U^NLL`，
+   所以只有它的信度才直接约束"教师能不能学"：
+       `U^attn` 信度高而 `U^NLL` 低 ⇒ 教师标签自洽，但它代理的东西不自洽（靶子问题）
+       两个都低                     ⇒ 教师标签自身就抖，`ratio × 样本` 再多也没用
+       两个都高                     ⇒ 首版结论彻底反了，回到"靶子是否错位"的原问题
 
-注意 C 的上界不是 1：`S` 与 `S'` 本来就不同，真实边际效用本就该有点差别。所以低相关
-有歧义，高相关才是干净的结论 —— 这是这个对照的固有不对称，不要反过来读。
+另外两档扰动分布，因为它们对应两种不同的问题：
+   `--swap_mode random`   全局随机互换 —— 测 set sensitivity 的上界
+   `--swap_mode boundary` 只在阈值邻域互换 —— 真实 reranker 只会改动决策边界附近的
+                          成员，这一档才是 v2 残差实际所处的工作点
 """
 import argparse
 import os
@@ -55,15 +66,66 @@ def nll(model, ids, n_ans, kv):
     return float(-p.gather(1, lab[:, None]).clamp_min(1e-12).log().mean())
 
 
+@torch.inference_mode()
+def attn_util(model, kv, qcap, cand, keep_flat, n_ctx, sink, H, N):
+    """`U^attn`：给定存活集合 S 的边际效用，`err(o)=‖W_O(o_full−o_S)‖²`。
+
+    与 `scratch_ctrl_teacher.py:utility_setmarginal` 同式（softmax 的秩一更新）。
+    **按 (层, kv头) 分组**后再循环候选 —— `e`/`o_full`/`Gram` 只依赖 (l,h) 不依赖
+    候选，也不依赖扰动，逐候选重算会把 [G,T,169k] 的指数表建上百遍。
+    """
+    d = model.config.hidden_size // model.config.num_attention_heads
+    grp = {}
+    for t, (l, h, i) in enumerate(cand):
+        grp.setdefault((l, h), []).append((t, i))
+    out = np.zeros(len(cand))
+    for (l, h), items in grp.items():
+        Aq = qcap[l][0].float() * (d ** -0.5)
+        HQ, T, _ = Aq.shape
+        G = HQ // H
+        Aq = Aq.view(H, G, T, d)[h]
+        K = kv.key_cache[l][0][h, :n_ctx].float()
+        Vv = kv.value_cache[l][0][h, :n_ctx].float()
+        WO = model.model.model.layers[l].self_attn.o_proj.weight.detach().float()
+        W = WO[:, h * G * d:(h + 1) * G * d]
+        Gram = W.T @ W
+        a = torch.einsum("gtd,nd->gtn", Aq, K)
+        e = (a - a.amax(-1, keepdim=True)).exp()
+        o_full = torch.einsum("gtn,nd->gtd", e, Vv) / e.sum(-1, keepdim=True)
+        # off-by-sink：`valid` 只覆盖可驱逐区，前 sink 个永远保留，必须补 True 对齐
+        mv = keep_flat.view(-1, H, N)[l, h].to(K.device)
+        m = torch.cat([torch.ones(sink, dtype=mv.dtype, device=K.device), mv])
+        eS = e * m[None, None, :]
+        ZS = eS.sum(-1, keepdim=True).clamp_min(1e-30)
+        NS = torch.einsum("gtn,nd->gtd", eS, Vv)
+
+        def err(o):
+            z = (o_full - o).permute(1, 0, 2).reshape(T, G * d)
+            return ((z @ Gram) * z).sum(-1).mean()
+
+        es = err(NS / ZS)
+        for (t, i) in items:
+            ia = i + sink
+            sg = -1.0 if bool(m[ia]) else 1.0
+            Zp = (ZS + sg * e[..., ia:ia + 1]).clamp_min(1e-30)
+            Np = NS + sg * e[..., ia:ia + 1] * Vv[ia]
+            eo = err(Np / Zp)
+            out[t] = float(eo - es) if bool(m[ia]) else float(es - eo)
+        del a, e, eS, NS
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("-d", "--data", default="scbench_kv")
     ap.add_argument("--ratio", type=float, default=0.1)
-    ap.add_argument("--num", type=int, default=5)
-    ap.add_argument("--n_cand", type=int, default=24)
-    ap.add_argument("--block", type=int, default=256, help="对照 B 的块大小")
-    ap.add_argument("--perturb", type=float, default=0.01,
-                    help="对照 C 里 S' 相对 S 的随机翻转比例")
+    ap.add_argument("--num", type=int, default=6)
+    ap.add_argument("--n_cand", type=int, default=20)
+    ap.add_argument("--eps", type=float, nargs="+",
+                    default=[0.001, 0.005, 0.02, 0.10],
+                    help="互换比例，**相对保留集 |S|**，不是相对全体格子")
+    ap.add_argument("--swap_mode", default="random", choices=["random", "boundary"])
+    ap.add_argument("--no_attn", action="store_true", help="跳过 U^attn（省一次满缓存预填）")
     ap.add_argument("--model", default="Qwen/Qwen2.5-7B-Instruct-1M")
     ap.add_argument("--chunk", type=int, default=16000)
     ap.add_argument("--window", type=int, default=4096)
@@ -72,100 +134,126 @@ def main():
     m = ModelKVzip(a.model, "retain", "fastkvzip")
     ds = DataWrapper(a.data, load_dataset_all(a.data, m.tokenizer), m)
     set_gen_length(a.data, m)
+    L = m.config.num_hidden_layers
     g = torch.Generator(device="cpu").manual_seed(0)
-    det, blocks, pairs = [], [], []
+    det, U_nll, U_att = [], {}, {}          # eps -> list of per-sample arrays
 
     for si in range(min(a.num, len(ds))):
+        qcap, ids, n_ans, n_ctx = None, None, None, None
         kv_f = ds.prefill_context(si, do_score=False)
         inputs, _ = ds.generate_answer(si, kv_f, prob=False)
         task = "qa" if "qa" in inputs else list(inputs.keys())[0]
         ids = torch.cat([inputs[task][k] for k in ("q", "a")], dim=-1)
         n_ans = len(inputs[task]["a"][0])
+        n_ctx = kv_f.key_cache[0].shape[2]
+        if not a.no_attn:
+            kv_f.capture_q, kv_f._q_cap = True, {}
+            m.model(ids, past_key_values=kv_f)
+            kv_f.capture_q = False
+            qcap = {l: kv_f._q_cap[l] for l in range(L)}
         del kv_f
         torch.cuda.empty_cache()
 
         kv = ds.prefill_context(si, prefill_chunk=a.chunk, window_size=a.window,
                                 chunk_ratio=a.ratio, level="pair")
-        kv.valid = kv.valid.clone()      # prefill 在 inference_mode 下建的张量不可就地改
+        kv.valid = kv.valid.clone()     # prefill 在 inference_mode 下建的张量不可就地改
         V, sink = kv.valid, kv.sink
+        H, N = V.shape[1], V.shape[2]
+        Vf = V.view(-1)
         base = nll(m, ids, n_ans, kv)
-
-        # ---- A 确定性 ------------------------------------------------------
-        det.append(abs(nll(m, ids, n_ans, kv) - base))
+        det.append(abs(nll(m, ids, n_ans, kv) - base))      # A：确定性（应恒为 0）
 
         sc = torch.stack(kv.score, 0)[:, 0]
-        s_ev = sc[..., sink:sink + V.shape[-1]].float()
-        L_, H_, N_ = s_ev.shape
-        keep = V.reshape(-1)
-        s_flat = s_ev.reshape(-1)
-
-        # ---- B 块级方向性：只在**存活**条目里挑，去掉 B 条 -----------------
-        ki = keep.nonzero(as_tuple=True)[0]
-        ks = s_flat[ki]
-        nb = min(a.block, len(ki) // 4)
-        order = ks.argsort(descending=True)
-        sel = {"top": ki[order[:nb]], "bot": ki[order[-nb:]],
-               "rand": ki[torch.randperm(len(ki), generator=g)[:nb]]}
-        row = {}
-        for nm, idx in sel.items():
-            V.view(-1)[idx] = False
-            row[nm] = nll(m, ids, n_ans, kv) - base
-            V.view(-1)[idx] = True
-        blocks.append(row)
-
-        # ---- C 跨存活集合的可复现性 ---------------------------------------
-        # 候选取全局阈值附近（与 oracle 同口径：离阈值远的怎么改分也翻不了）
+        s_flat = sc[..., sink:sink + N].float().reshape(-1)
         tau = s_flat.sort(descending=True).values[
             max(int(s_flat.numel() * a.ratio) - 1, 0)]
-        cand = (s_flat - tau).abs().argsort()[:a.n_cand]
-        # S' = S 随机翻转 1%；**候选本身必须排除在扰动之外**，否则测的是
-        # "翻转它两次"而不是"在不同背景下翻转它"
-        pool = torch.ones(len(s_flat), dtype=torch.bool)
-        pool[cand] = False
-        pidx = pool.nonzero(as_tuple=True)[0]
-        pk = pidx[torch.randperm(len(pidx), generator=g)[:int(len(pidx) * a.perturb)]]
+        cand_i = (s_flat - tau).abs().argsort()[:a.n_cand]
+        cand = [(int(t // (H * N)), int((t // N) % H), int(t % N))
+                for t in cand_i.tolist()]
+        n_ret0 = int(Vf.sum())
+        print(f"  样本 {si}: base {base:.4f}  |S| {n_ret0/1e6:.3f}M / "
+              f"{len(s_flat)/1e6:.2f}M 格 (有效 ratio {n_ret0/len(s_flat):.4f})", flush=True)
 
-        def u_all():
+        # 候选排除在互换池外：否则测的是"翻它两次"而不是"在不同背景下翻它"
+        free = torch.ones(len(s_flat), dtype=torch.bool)
+        free[cand_i] = False
+        ret_pool = (Vf.cpu() & free).nonzero(as_tuple=True)[0]
+        evi_pool = (~Vf.cpu() & free).nonzero(as_tuple=True)[0]
+        if a.swap_mode == "boundary":
+            # 真实 reranker 只动决策边界附近的成员，按 |s−τ| 升序取
+            dist = (s_flat - tau).abs().cpu()
+            ret_pool = ret_pool[dist[ret_pool].argsort()]
+            evi_pool = evi_pool[dist[evi_pool].argsort()]
+
+        def measure():
             b = nll(m, ids, n_ans, kv)
-            out = []
-            for c in cand.tolist():
-                kept = bool(V.view(-1)[c])
-                V.view(-1)[c] = not kept
+            un = []
+            for (l, h, i) in cand:
+                t = l * H * N + h * N + i
+                kept = bool(Vf[t])
+                Vf[t] = not kept
                 n2 = nll(m, ids, n_ans, kv)
-                V.view(-1)[c] = kept
-                out.append((n2 - b) if kept else (b - n2))
-            return np.array(out)
+                Vf[t] = kept
+                un.append((n2 - b) if kept else (b - n2))
+            ua = (None if a.no_attn else
+                  attn_util(m, kv, qcap, cand, Vf, n_ctx, sink, H, N))
+            return np.array(un), ua
 
-        uS = u_all()
-        V.view(-1)[pk] = ~V.view(-1)[pk]
-        uS2 = u_all()
-        V.view(-1)[pk] = ~V.view(-1)[pk]
-        pairs.append((uS, uS2))
+        for eps in [0.0] + list(a.eps):
+            if eps > 0:
+                ns = max(int(n_ret0 * eps), 1)
+                if ns > min(len(ret_pool), len(evi_pool)):
+                    continue
+                out_i = (ret_pool[torch.randperm(len(ret_pool), generator=g)[:ns]]
+                         if a.swap_mode == "random" else ret_pool[:ns])
+                in_i = (evi_pool[torch.randperm(len(evi_pool), generator=g)[:ns]]
+                        if a.swap_mode == "random" else evi_pool[:ns])
+                Vf[out_i.to(Vf.device)] = False
+                Vf[in_i.to(Vf.device)] = True
+                # **等预算是这个探针的全部意义所在**，所以断言而不是相信构造
+                assert int(Vf.sum()) == n_ret0, (int(Vf.sum()), n_ret0)
+            un, ua = measure()
+            U_nll.setdefault(eps, []).append(un)
+            if ua is not None:
+                U_att.setdefault(eps, []).append(ua)
+            if eps > 0:
+                Vf[out_i.to(Vf.device)] = True
+                Vf[in_i.to(Vf.device)] = False
+                assert int(Vf.sum()) == n_ret0
         from scipy.stats import spearmanr
-        print(f"  样本 {si}: base {base:.4f}  确定性 |Δ| {det[-1]:.2e}  "
-              f"块 top {row['top']:+.4f} / rand {row['rand']:+.4f} / bot {row['bot']:+.4f}  "
-              f"C-corr {spearmanr(uS, uS2).statistic:+.3f}", flush=True)
+        msg = "  ".join(
+            f"ε={e:g}:{spearmanr(U_nll[0.0][-1], U_nll[e][-1]).statistic:+.2f}"
+            for e in a.eps if e in U_nll)
+        print(f"    ρ(U^NLL(S), U^NLL(S_ε))  {msg}", flush=True)
         del kv
         torch.cuda.empty_cache()
 
     from scipy.stats import spearmanr
-    np.save(os.path.join(ROOT, f"scratch_nllstab_{a.data}.npy"),
-            np.array([np.concatenate([p[0], p[1]]) for p in pairs]))
-    print(f"\n=== {a.data} @ ratio {a.ratio}　{len(pairs)} 篇 ===")
-    print(f"A 确定性：同掩码两次 NLL 的 |Δ| 最大 {max(det):.3e}  "
-          f"（应为 0；非 0 则是底噪，需与 |U^NLL| 中位 2.2e-3 比）")
-    for nm in ("top", "bot", "rand"):
-        v = np.array([b[nm] for b in blocks])
-        print(f"B 去掉 {a.block} 条 {nm:<5} 的 ΔNLL： {v.mean():+.4f} ± {v.std():.4f}")
-    print("  判读：top ≫ rand ≳ bot ⇒ 探针在聚合层面能分辨重要性，单条效应小只是效应量小")
-    allc = [spearmanr(p[0], p[1]).statistic for p in pairs]
-    cat = (np.concatenate([p[0] for p in pairs]),
-           np.concatenate([p[1] for p in pairs]))
-    print(f"C 跨存活集合 Spearman(U^NLL(S), U^NLL(S'))： 合并 "
-          f"{spearmanr(*cat).statistic:+.4f}   逐样本中位 {np.median(allc):+.4f}"
-          f"  （{len(allc)} 篇：" + " ".join(f"{x:+.2f}" for x in allc) + "）")
-    print("  ≳0.5 ⇒ U^NLL 是候选的稳定属性，oracle 的零相关是真结论；"
-          "≲0.2 ⇒ 单条翻转是混沌，oracle 与任何单条边际效用教师都作废")
+    np.savez(os.path.join(ROOT, f"scratch_nllstab_{a.data}_{a.swap_mode}.npz"),
+             **{f"nll_{e}": np.array(v) for e, v in U_nll.items()},
+             **{f"att_{e}": np.array(v) for e, v in U_att.items()})
+    n = len(U_nll[0.0])
+    print(f"\n=== {a.data} @ ratio {a.ratio}　{n} 篇 × {a.n_cand} 候选　"
+          f"互换模式 {a.swap_mode} ===")
+    print(f"A 确定性：同掩码两次 NLL |Δ| 最大 {max(det):.3e}（应为 0）")
+    print(f"\n{'ε (相对|S|)':>12}{'ρ(U^NLL)':>12}{'逐样本中位':>12}"
+          f"{'ρ(U^attn)':>12}{'逐样本中位':>12}")
+    for e in a.eps:
+        if e not in U_nll:
+            continue
+        def rho(D):
+            cat = spearmanr(np.concatenate(D[0.0]), np.concatenate(D[e])).statistic
+            per = [spearmanr(x, y).statistic for x, y in zip(D[0.0], D[e])]
+            return cat, float(np.median(per))
+        rn, mn = rho(U_nll)
+        ra, ma = (rho(U_att) if e in U_att else (float("nan"),) * 2)
+        print(f"{e:>12g}{rn:>12.3f}{mn:>12.3f}{ra:>12.3f}{ma:>12.3f}")
+    print("\n判读：")
+    print("  最小 ε 就 ρ(U^NLL)≈0        ⇒ 单条边际不是良定义的量（首版想证的那件事）")
+    print("  ρ 随 ε 单调衰减              ⇒ 局部稳定、全局 set-dependent；教师可用，"
+          "但所需数据量 ∝ 1/信度")
+    print("  ρ(U^attn) 高而 ρ(U^NLL) 低   ⇒ 教师标签自洽，它代理的东西不自洽（靶子问题）")
+    print("  两个都低                     ⇒ 教师标签自身就抖，加样本也救不回来")
 
 
 if __name__ == "__main__":
