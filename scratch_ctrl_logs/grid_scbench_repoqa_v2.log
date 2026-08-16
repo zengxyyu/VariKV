@@ -18332,3 +18332,472 @@ Chunked prefilling with 0.30 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_repoqa-75: 67153 tokens, KV cache 3.9 GB, torch.bfloat16
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.75it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.56it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-75: 67153 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.47it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.38it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.89it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.66it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-75: 67153 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.50it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.46it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.99it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.72it/s]
+Chunked prefilling with 0.05 ratio, window 3357
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-75: 67153 tokens, KV cache 3.9 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/75_qwen2.5-7b-instruct-1m_fastkvzip__g8v2_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 386.3s. Mem: 14.32/79.18 GB. [scbench_repoqa-75]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.32it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-76: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```go
+func ValidatePort(port int, fieldPath string) error {
+	if 0 <= port && port <= 65535 {
+		return nil
+	}
+	return fmt.Errorf("%s: port number %d must be in the range 0..65535", fieldPath, port)
+}
+``` | func ValidatePort(port int, fieldPath string) error {
+	if 0 <= port && port <= 65535 {
+		return nil
+	}
+	return fmt.Errorf("%s: port number %d must be in the range 0..65535", fieldPath, port)
+}
+[QA 1] ```go
+// Test that loading in strict mode fails when the config is invalid.
+func TestLoadServerConfigStrictMode(t *testing.T) {
+	tests := []struct {
+		name    string
+		content string
+	}{
+		{"toml", tomlServerContent},
+		{"yaml", yamlServerContent},
+		{"json", jsonServerContent},
+	}
+
+	for _, strict := range []bool{false, true} {
+		for _, test := range tests {
+			t.Run(fmt.Sprintf("%s-strict-%t", test.name, strict), func(t *testing.T) {
+				require := require.New(t)
+				// Break the content with an innocent typo
+				brokenContent := strings.Replace(test.content, "bindAddr", "bindAdur", 1)
+				svrCfg := v1.ServerConfig{}
+				err := LoadConfigure([]byte(brokenContent), &svrCfg, strict)
+				if strict {
+					require.ErrorContains(err, "bindAdur")
+				} else {
+					require.NoError(err)
+					// BindAddr didn't get parsed because of the typo.
+					require.EqualValues("", svrCfg.BindAddr)
+				}
+			})
+		}
+	}
+}
+``` | func TestCustomStructStrictMode(t *testing.T) {
+	require := require.New(t)
+
+	proxyStr := `
+serverPort = 7000
+
+[[proxies]]
+name = "test"
+type = "tcp"
+remotePort = 6000
+`
+	clientCfg := v1.ClientConfig{}
+	err := LoadConfigure([]byte(proxyStr), &clientCfg, true)
+	require.NoError(err)
+
+	proxyStr += `unknown = "unknown"`
+	err = LoadConfigure([]byte(proxyStr), &clientCfg, true)
+	require.Error(err)
+
+	visitorStr := `
+serverPort = 7000
+
+[[visitors]]
+name = "test"
+type = "stcp"
+bindPort = 6000
+serverName = "server"
+`
+	err = LoadConfigure([]byte(visitorStr), &clientCfg, true)
+	require.NoError(err)
+
+	visitorStr += `unknown = "unknown"`
+	err = LoadConfigure([]byte(visitorStr), &clientCfg, true)
+	require.Error(err)
+
+	pluginStr := `
+serverPort = 7000
+
+[[proxies]]
+name = "test"
+type = "tcp"
+remotePort = 6000
+[proxies.plugin]
+type = "unix_domain_socket"
+unixPath = "/tmp/uds.sock"
+`
+	err = LoadConfigure([]byte(pluginStr), &clientCfg, true)
+	require.NoError(err)
+	pluginStr += `unknown = "unknown"`
+	err = LoadConfigure([]byte(pluginStr), &clientCfg, true)
+	require.Error(err)
+}
+[QA 2] ```go
+func UnmarshalClientConfFromIni(source interface{}) (ClientCommonConf, error) {
+	f, err := ini.LoadSources(ini.LoadOptions{
+		Insensitive:         false,
+		InsensitiveSections: false,
+		InsensitiveKeys:     false,
+		IgnoreInlineComment: true,
+		AllowBooleanKeys:    true,
+	}, source)
+	if err != nil {
+		return ClientCommonConf{}, err
+	}
+
+	s, err := f.GetSection("common")
+	if err != nil {
+		return ClientCommonConf{}, fmt.Errorf("invalid configuration file, not found [common] section")
+	}
+
+	common := GetDefaultClientConf()
+	err = s.MapTo(&common)
+	if err != nil {
+		return ClientCommonConf{}, err
+	}
+
+	common.Metas = GetMapWithoutPrefix(s.KeysHash(), "meta_")
+	common.ClientConfig.OidcAdditionalEndpointParams = GetMapWithoutPrefix(s.KeysHash(), "oidc_additional_")
+
+	return common, nil
+}
+``` | func UnmarshalClientConfFromIni(source interface{}) (ClientCommonConf, error) {
+	f, err := ini.LoadSources(ini.LoadOptions{
+		Insensitive:         false,
+		InsensitiveSections: false,
+		InsensitiveKeys:     false,
+		IgnoreInlineComment: true,
+		AllowBooleanKeys:    true,
+	}, source)
+	if err != nil {
+		return ClientCommonConf{}, err
+	}
+
+	s, err := f.GetSection("common")
+	if err != nil {
+		return ClientCommonConf{}, fmt.Errorf("invalid configuration file, not found [common] section")
+	}
+
+	common := GetDefaultClientConf()
+	err = s.MapTo(&common)
+	if err != nil {
+		return ClientCommonConf{}, err
+	}
+
+	common.Metas = GetMapWithoutPrefix(s.KeysHash(), "meta_")
+	common.ClientConfig.OidcAdditionalEndpointParams = GetMapWithoutPrefix(s.KeysHash(), "oidc_additional_")
+
+	return common, nil
+}
+[QA 3] ```go
+func NewVisitorConfigurerByType(t VisitorType) VisitorConfigurer {
+	v, ok := visitorConfigTypeMap[t]
+	if !ok {
+		return nil
+	}
+	vc := reflect.New(v).Interface().(VisitorConfigurer)
+	vc.GetBaseConfig().Type = string(t)
+	return vc
+}
+``` | func NewVisitorConfigurerByType(t VisitorType) VisitorConfigurer {
+	v, ok := visitorConfigTypeMap[t]
+	if !ok {
+		return nil
+	}
+	vc := reflect.New(v).Interface().(VisitorConfigurer)
+	vc.GetBaseConfig().Type = string(t)
+	return vc
+}
+[QA 4] ```go
+func NewPortsRangeSliceFromString(str string) ([]PortsRange, error) {
+	str = strings.TrimSpace(str)
+	out := []PortsRange{}
+	numRanges := strings.Split(str, ",")
+	for _, numRangeStr := range numRanges {
+		// 1000-2000 or 2001
+		numArray := strings.Split(numRangeStr, "-")
+		// length: only 1 or 2 is correct
+		rangeType := len(numArray)
+		switch rangeType {
+		case 1:
+			// single number
+			singleNum, err := strconv.ParseInt(strings.TrimSpace(numArray[0]), 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("range number is invalid, %v", err)
+			}
+			out = append(out, PortsRange{Single: int(singleNum)})
+		case 2:
+			// range numbers
+			min, err := strconv.ParseInt(strings.TrimSpace(numArray[0]), 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("range number is invalid, %v", err)
+			}
+			max, err := strconv.ParseInt(strings.TrimSpace(numArray[1]), 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("range number is invalid, %v", err)
+			}
+			if max < min {
+				return nil, fmt.Errorf("range number is invalid")
+			}
+			out = append(out, PortsRange{Start: int(min), End: int(max)})
+		default:
+			return nil, fmt.Errorf("range number is invalid")
+		}
+	}
+	return out, nil
+}
+``` | func NewPortsRangeSliceFromString(str string) ([]PortsRange, error) {
+	str = strings.TrimSpace(str)
+	out := []PortsRange{}
+	numRanges := strings.Split(str, ",")
+	for _, numRangeStr := range numRanges {
+		// 1000-2000 or 2001
+		numArray := strings.Split(numRangeStr, "-")
+		// length: only 1 or 2 is correct
+		rangeType := len(numArray)
+		switch rangeType {
+		case 1:
+			// single number
+			singleNum, err := strconv.ParseInt(strings.TrimSpace(numArray[0]), 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("range number is invalid, %v", err)
+			}
+			out = append(out, PortsRange{Single: int(singleNum)})
+		case 2:
+			// range numbers
+			min, err := strconv.ParseInt(strings.TrimSpace(numArray[0]), 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("range number is invalid, %v", err)
+			}
+			max, err := strconv.ParseInt(strings.TrimSpace(numArray[1]), 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("range number is invalid, %v", err)
+			}
+			if max < min {
+				return nil, fmt.Errorf("range number is invalid")
+			}
+			out = append(out, PortsRange{Start: int(min), End: int(max)})
+		default:
+			return nil, fmt.Errorf("range number is invalid")
+		}
+	}
+	return out, nil
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.32it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-76: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.31it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.27it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-76: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.47it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.35it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-76: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.40it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.56it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.42it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-76: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.20it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.67it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-76: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.80it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.59it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-76: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.38it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.94it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.69it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-76: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.50it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.46it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.04it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.75it/s]
+Chunked prefilling with 0.05 ratio, window 3307
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-76: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/76_qwen2.5-7b-instruct-1m_fastkvzip__g8v2_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 354.3s. Mem: 14.32/79.18 GB. [scbench_repoqa-76]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.28it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-77: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```go
+func ValidateProxyConfigurerForServer(c v1.ProxyConfigurer, s *v1.ServerConfig) error {
+	base := c.GetBaseConfig()
+	if err := validateProxyBaseConfigForServer(base); err != nil {
+		return err
+	}
+
+	switch v := c.(type) {
+	case *v1.TCPProxyConfig:
+		return validateTCPProxyConfigForServer(v, s)
+	case *v1.UDPProxyConfig:
+		return validateUDPProxyConfigForServer(v, s)
+	case *v1.TCPMuxProxyConfig:
+		return validateTCPMuxProxyConfigForServer(v, s)
+	case *v1.HTTPProxyConfig:
+		return validateHTTPProxyConfigForServer(v, s)
+	case *v1.HTTPSProxyConfig:
+		return validateHTTPSProxyConfigForServer(v, s)
+	case *v1.STCPProxyConfig:
+		return validateSTCPProxyConfigForServer(v, s)
+	case *v1.XTCPProxyConfig:
+		return validateXTCPProxyConfigForServer(v, s)
+	case *v1.SUDPProxyConfig:
+		return validateSUDPProxyConfigForServer(v, s)
+	default:
+		return errors.New("unknown proxy config type")
+	}
+}
+``` | func validateTCPMuxProxyConfigForServer(c *v1.TCPMuxProxyConfig, s *v1.ServerConfig) error {
+	if c.Multiplexer == string(v1.TCPMultiplexerHTTPConnect) &&
+		s.TCPMuxHTTPConnectPort == 0 {
+		return fmt.Errorf("tcpmux with multiplexer httpconnect not supported because this feature is not enabled in server")
+	}
+
+	return validateDomainConfigForServer(&c.DomainConfig, s)
+}
+[QA 1] ```go
+func WordSepNormalizeFunc(f *pflag.FlagSet, name string) pflag.NormalizedName {
+	if strings.Contains(name, "_") {
+		return pflag.NormalizedName(strings.ReplaceAll(name, "_", "-"))
+	}
+	return pflag.NormalizedName(name)
+}
+``` | func WordSepNormalizeFunc(f *pflag.FlagSet, name string) pflag.NormalizedName {
+	if strings.Contains(name, "_") {
+		return pflag.NormalizedName(strings.ReplaceAll(name, "_", "-"))
+	}
+	return pflag.NormalizedName(name)
+}
+[QA 2] ```go
+func preUnmarshalFromIni(cfg ProxyConf, prefix string, name string, section *ini.Section) error {
+	err := section.MapTo(cfg)
+	if err != nil {
+		return err
+	}
+
+	err = cfg.GetBaseConfig().decorate(prefix, name, section)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+``` | func preUnmarshalFromIni(cfg ProxyConf, prefix string, name string, section *ini.Section) error {
+	err := section.MapTo(cfg)
+	if err != nil {
+		return err
+	}
+
+	err = cfg.GetBaseConfig().decorate(prefix, name, section)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+[QA 3] ```go
+func (c *ClientCommonConfig) Complete() {
+	c.ServerAddr = util.EmptyOr(c.ServerAddr, "0.0.0.0")
+	c.ServerPort = util.EmptyOr(c.ServerPort, 7000)
+	c.LoginFailExit = util.EmptyOr(c.LoginFailExit, lo.ToPtr(true))
+	c.NatHoleSTUNServer = util.EmptyOr(c.NatHoleSTUNServer, "stun.easyvoip.com:3478")
+
+	c.Auth.Complete()
+	c.Log.Complete()
+	c.Transport.Complete()
+	c.WebServer.Complete()
+
+	c.UDPPacketSize = util.EmptyOr(c.UDPPacketSize, 1500)
+}
+``` | func TestClientConfigComplete(t *testing.T) {
+	require := require.New(t)
+	c := &ClientConfig{}
+	c.Complete()
+
+	require.EqualValues("token", c.Auth.Method)
+	require.Equal(true, lo.FromPtr(c.Transport.TCPMux))
+	require.Equal(true, lo.FromPtr(c.LoginFailExit))
+	require.Equal(true, lo.FromPtr(c.Transport.TLS.Enable))
+	require.Equal(true, lo.FromPtr(c.Transport.TLS.DisableCustomTLSFirstByte))
+	require.NotEmpty(c.NatHoleSTUNServer)
+}
+[QA 4] ```go
+package client
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+
+	"github.com/fatedier/frp/client"
+	httppkg "github.com/fatedier/frp/pkg/util/http"
+)
+
+type Client struct {
+	address  string
+	authUser string
+	authPwd  string
+}
+
+func New(host string, port int) *Client {
+	return &Client{
+		address: net.JoinHostPort(host, strconv.Itoa(port)),
+	}
+}
+
+func (c *Client) SetAuth(user, pwd string) {
+	c.authUser = user
+	c.authPwd = pwd
+}
+``` | func NewContext(ctx context.Context, xl *Logger) context.Context {
+	return context.WithValue(ctx, xlogKey, xl)
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-77: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.30it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.08it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.09s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.27it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-77: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.47it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.35it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-77: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.39it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.56it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.42it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-77: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.20it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.66it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.49it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-77: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.62it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.80it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-77: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.38it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.94it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.68it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-77: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.50it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.47it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.03it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.75it/s]

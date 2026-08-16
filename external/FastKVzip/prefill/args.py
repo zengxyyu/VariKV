@@ -81,6 +81,8 @@ parser.add_argument("--ctrl_beta_group", type=float, default=0.0,
                          "的另一半能力。默认关，但第一批 null 结果不能在它没测过时下定论")
 # --- 学习版控制臂的**评测期 α 覆盖**。`--ctrlm_ckpt` 等早就存在（见下方），
 # 接线一直是通的；学习版 B 没上过评测纯粹是因为没人跑，不是缺 flag。
+parser.add_argument("--ctrlm_rho_max", type=float, default=1.0,
+                    help="只在 ratio ≤ 此值时施加 Δs。**可部署的门控**——ratio 推理时\n已知，而 headroom 不知道（要跑满缓存）。实测残差在宽松预算上让出 1–4 分、\n在 0.2 上补回 18.8 分，所以无条件施加是亏的")
 parser.add_argument("--ctrlm_alpha", type=float, default=-1.0,
                     help=">=0 时在评测期覆盖 α。训练是在 α=1 下做的，而手工版实测"
                          "大幅扰动基线排序本身有害 —— 但这是**评测期超参**，"

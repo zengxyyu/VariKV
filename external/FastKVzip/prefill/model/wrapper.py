@@ -198,6 +198,7 @@ class ModelKVzip:
                     ctrl=getattr(self, "ctrl_module", None),
                     train_mode=getattr(self, "ctrl_train", False),
                     seed=getattr(self, "ctrl_seed", 0),
+                    rho_max=getattr(self, "ctrl_rho_max", 1.0),
                 )
             elif self.kv_type == "memory":
                 # VariKV（Stage 2b，本地新增）：被驱逐的 KV 吸收进分布式记忆而非丢弃。

@@ -27,7 +27,8 @@ from .kvcache import RetainCache
 
 class LearnedControlRetainCache(RetainCache):
     def __init__(self, model, evict_range: Tuple[int, int], ctrl=None,
-                 train_mode: bool = False, seed: int = 0, n_write: int = 512):
+                 train_mode: bool = False, seed: int = 0, n_write: int = 512,
+                 rho_max: float = 1.0):
         super().__init__(model, evict_range)
         self.ctrl = ctrl                       # ControlMemory，None ⇒ 纯基线
         self.train_mode = train_mode
@@ -40,6 +41,13 @@ class LearnedControlRetainCache(RetainCache):
         # ⇒ M_gru 的训练/部署分布不一致。统一到同一个采样规模，顺带让写入开销
         # 与 chunk 大小解耦。
         self.n_write = int(n_write)
+        # **按预算门控修正**：ratio > rho_max 时不施加 Δs。
+        # 依据是实测的曲线形状：残差在宽松预算上让出 1–4 分（基线本来近乎无损），
+        # 在 0.2 上补回 18.8 分 —— 也就是它"把曲线压平"。压平在紧预算侧是收益、
+        # 在宽松侧是纯损失，所以不该无条件施加。
+        # 关键是**这个门控可部署**：ratio 在推理时已知，而 headroom 不知道
+        # （要跑满缓存才能算）。
+        self.rho_max = float(rho_max)
         self.M = None                          # [L][(M_gru, M_dir)]，惰性初始化
         self._gen = torch.Generator(device="cpu").manual_seed(seed)
         # 诊断
@@ -102,13 +110,13 @@ class LearnedControlRetainCache(RetainCache):
                     # 手工版正是在这里踩过 917 MB 的坑。写入阶段重算一次特征更划算。
                     feats.append(None)
                     del k, v, x, r, q, xr_raw
-            if self.active:
+            if self.active and ratio <= self.rho_max:
                 score = score0 + delta.to(score0.dtype)
                 self.delta_std.append(float(delta.std()))
 
         valid, thres = self.threshold(score, ratio, level)          # [L,H,n]
 
-        if self.active:
+        if self.active and ratio <= self.rho_max:
             with torch.no_grad():                                   # 自包含 flip rate
                 v0, _ = self.threshold(score0, ratio, level)
                 self.flip_frac.append(float((valid ^ v0).float().mean()))

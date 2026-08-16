@@ -111,6 +111,9 @@ if __name__ == "__main__":
             args.tag += f"_a{args.ctrlm_alpha:g}"
         model.ctrl_module = _cm.to(model.device).eval()
         model.ctrl_seed = args.ctrl_seed
+        model.ctrl_rho_max = args.ctrlm_rho_max
+        if args.ctrlm_rho_max < 1.0:
+            args.tag += f"_rm{args.ctrlm_rho_max:g}"
         print(f"[CtrlM] {args.ctrlm_ckpt} mode={_mode} slots={_ns} "
               f"typed={_typed} alpha={float(_cm.alpha):.4f} "
               f"params={_cm.n_params()/1e3:.1f}K")
