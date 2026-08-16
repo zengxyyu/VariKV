@@ -144,6 +144,7 @@ v2 的配置。但要留意：这些默认值与**原脚本**的 argparse 默认
         --epochs 40 --seed 0 --out varikv/v2_clean.pt
 """
 import argparse
+import hashlib
 import os
 import random
 import sys
@@ -160,6 +161,58 @@ if _P not in sys.path:
 
 # memoryless 下永不被调用的模块 —— `verify` 用它做强制断言
 DEAD = ("k_ret", "v_ret", "k_evi", "v_evi", "q_slot", "mix", "gru", "dir_decay")
+
+# ══════════════════════════════════════════════════════════════════
+# v2 训练时**实际读到的那 10 篇** trace 的 sha256。
+#
+# 为什么需要它：v2 用哪些文档，**没有被任何参数记录**。原版就一句
+# `glob(traces/"doc*.pt")`，目录里有几篇用几篇；14:00 训练那一刻目录里恰好只有
+# 10 篇，14:10–14:15 又扩到了 30 篇。`sorted()[:10]` 只保证**文件名顺序**
+# （名字补零三位，所以字典序 == 数字序，这一点可证），**不保证内容没被改过**。
+#
+# 这 10 个摘要是 2026-08-16 从磁盘上算的。它们代表 v2 见过的那批数据，依据是：
+#   1. 十个文件的 **ctime**（inode 变动时间，任何写入都会刷新）都是
+#      12:39:18–12:41:56，**早于 14:00 的 ckpt**，且未被 14:10 的扩容触碰；
+#   2. 教师日志是两次运行 `>>` 共享的，每个 `docNNN` **只出现一次** ⇒ 扩容只写了
+#      doc010–029，没有重写前 10 篇。
+# 所以这不是"假定它们没变"，是有证据支持、并且从此刻起**被代码锁死**：
+# 任何后续改动都会让 `train` 直接报错，而不是静默换一批数据继续训。
+V2_TRACES = {
+    "doc000.pt": "6afb0849af6a05cc12480efa41392a763add6d1a38a7c0085a049275d4b51daa",
+    "doc001.pt": "bfb9e62e46ddf490fc89d50957fd2ae9e0b7801b173fae3d8362d212bcdbc5ef",
+    "doc002.pt": "6b2a5347c1914b63cedcade070dae4f4d1d81d625574866d95621c5995eebb10",
+    "doc003.pt": "cec15e404ddf047f2d56688ca2f61e15e56185955386b0c02930efac7a00aaac",
+    "doc004.pt": "ef7548cb569007e9df1beb7f877e87edd8539d16d1d8875f3ea6827b23bee10c",
+    "doc005.pt": "6c40a0d435893e7f2c866954fdcf848510cd89b8c5fd7ce0e63b99848c18d020",
+    "doc006.pt": "d6a1f79242009e76ab32552960f3a194c691404d0b77a75380b3971535af3a24",
+    "doc007.pt": "7ac23e46642a27434762538bec21fef58c958fc93159aa9c10c0c57bd35c870d",
+    "doc008.pt": "82b64f7f2e60fa91ef48e7128b07011455a5e07259841b9506991240e1d13a20",
+    "doc009.pt": "d6fa9b075208fc211b8c9d67909a3a4ae155bf2eebb2f59e1273e99ff3cbab75",
+}
+
+
+def _sha256(path, buf=1 << 22):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for b in iter(lambda: f.read(buf), b""):
+            h.update(b)
+    return h.hexdigest()
+
+
+def check_v2_traces(files, strict=True):
+    """核对给定文件列表就是 v2 那 10 篇（内容级，不是文件名级）。约 3 秒 / 3.09 GiB。"""
+    got = [os.path.basename(f) for f in files]
+    exp = sorted(V2_TRACES)
+    assert got == exp, f"文件名对不上 v2 的 10 篇：\n  期望 {exp}\n  实得 {got}"
+    bad = [(n, d) for n, f in zip(got, files)
+           if (d := _sha256(f)) != V2_TRACES[n]]
+    if bad and strict:
+        raise AssertionError(
+            "以下 trace 的内容与 v2 训练时**不同**：\n  "
+            + "\n  ".join(f"{n}: 实得 {d[:16]}… 期望 {V2_TRACES[n][:16]}…"
+                          for n, d in bad)
+            + "\n⇒ 这不再是 v2 的数据，任何与 +4.27 的比较都不成立。")
+    return not bad
 
 
 # ══════════════════════════════════════════════════════════════════ 模型
@@ -583,6 +636,12 @@ def train(a):
             print(f"  [注意] 目录有 {len(files)} 篇，按 --n_docs {a.n_docs} 只取前 "
                   f"{a.n_docs} 篇（v2 的配置）。要全用请传 --n_docs 0")
         files = files[:a.n_docs]
+    # **内容级核对**，不是文件名级：只有当"取前 10 篇 + 默认 traces 目录"这个
+    # 组合出现时才有 v2 的参照，所以只在这一档校验 sha256。
+    if a.n_docs == 10 and os.path.basename(a.traces.rstrip("/")) == \
+            "scratch_ctrl_traces_v2":
+        check_v2_traces(files)
+        print("  [校验] 10 篇 trace 的 sha256 与 v2 训练时逐字节相同")
     docs = [torch.load(f, map_location="cpu") for f in files]
     L, H = docs[0]["L"], docs[0]["H"]
     # **d_kv 从 trace 推**，不要信 argparse 的默认值：不一致时只会在 `x_proj` 里
