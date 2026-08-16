@@ -184,8 +184,32 @@ def main():
                         assert torch.allclose(cnt_, ref, atol=1.0), \
                             f"层 {l} 簇计数不符：重算 {cnt_.sum():.0f} vs 缓存 {ref.sum():.0f}"
                     logn2 = torch.where(logn[h] > -1e29, logn[h] + 0.5 * var_, logn[h])
-                    LE2 = torch.logsumexp(sbar + logn2, -1)            # E4 的质量（二阶 MGF）
-                    vEc = torch.softmax(r, -1) @ (vbar[h] + cov_a)     # E2 的方向
+                    r2 = sbar + logn2
+                    LE2 = torch.logsumexp(r2, -1)                      # 二阶累积量质量
+                    vEc = torch.softmax(r, -1) @ (vbar[h] + cov_a)     # 只换方向（一阶权重）
+                    # **真正的 joint Gaussian 必须用二阶权重给簇加权。**
+                    # joint 公式是  N̂_E = Σ_j e^{r2_j}(μ_v,j + Σ_vk,j a)，
+                    # 所以方向是 softmax(**r2**) @ (μ_v + Σ_vk a)，不是 softmax(r)。
+                    # 旧的「两者都换」格拿二阶的**总质量**配一阶的**簇间权重**，
+                    # 那不是任何一个估计器：设两簇一阶 logits 相等（权重 0.5/0.5）、
+                    # 而第二簇 ½aᵀΣa=3，则真 joint 应给它 0.953 的权重，旧写法仍给 0.5。
+                    # 方向误差会因此很大。保留旧格（列 14）作对照，新格是列 16。
+                    vEc2 = torch.softmax(r2, -1) @ (vbar[h] + cov_a)
+                    # ---- exact-MGF oracle：逐簇的精确 logsumexp ----
+                    # 有了它才能把 Jensen 缺口分解成「二阶吃掉多少 / 高阶累积量剩多少」：
+                    #   r_ex − r0 = 一阶漏掉的全部（Jensen 缺口）
+                    #   r_ex − r2 = 二阶之后还剩的（κ₃/6 + κ₄/24 + …）
+                    # 注意 logsumexp_j(r_ex_j) 恒等于 LE，所以"精确质量"不是新信息；
+                    # 有信息的是**逐簇**的两个残差之比。
+                    _ninf = torch.full_like(z1, float("-inf"))
+                    mx = _ninf.scatter_reduce(0, b_of, sE, "amax", include_self=True)
+                    ex = z1.clone().index_add_(0, b_of, (sE - mx[b_of]).exp())
+                    r_ex = mx + ex.clamp_min(1e-30).log()              # [K]
+                    _oc = cnt_ > 0
+                    g0 = (r_ex - (sbar + logn[h]))[_oc].abs()          # |Jensen 缺口|
+                    g2 = (r_ex - r2)[_oc].abs()                        # 二阶后的残差
+                    jg0 = float(g0.median()) if g0.numel() else float("nan")
+                    jg2 = float(g2.median()) if g2.numel() else float("nan")
                     # ---- 四格 ----
                     def cell(LEx, vx):
                         lam = torch.exp(LR - torch.logaddexp(LR, LEx))
@@ -206,8 +230,13 @@ def main():
                         1.0 / (1.0 + e * e),                     # 预测 γ*
                         float((W @ (cell(LE2, vEh) - o_full)).norm() / nd),   # E4 质量
                         float((W @ (cell(LEh, vEc) - o_full)).norm() / nd),   # E2 方向
-                        float((W @ (cell(LE2, vEc) - o_full)).norm() / nd),   # 两者都换
-                        float((vEc - vE).norm() / vE.norm().clamp_min(1e-30)),  # e(+Σvk)
+                        float((W @ (cell(LE2, vEc) - o_full)).norm() / nd),   # 14 旧「两者都换」**权重错**
+                        float((vEc - vE).norm() / vE.norm().clamp_min(1e-30)),  # 15 e(+Σvk)
+                        # **追加列，不前插** —— 前插会改动所有既有报告的列号
+                        float((W @ (cell(LE2, vEc2) - o_full)).norm() / nd),  # 16 真 joint
+                        float((vEc2 - vE).norm() / vE.norm().clamp_min(1e-30)),  # 17 e(joint)
+                        jg0, jg2,                                             # 18/19 Jensen 缺口
+                        (1.0 - jg2 / jg0) if jg0 > 1e-12 else float("nan"),   # 20 二阶解释率
                     ))
                     # ---- γ-sweep（保持 v̂ 不变，只缩放真实质量）----
                     errs = []
