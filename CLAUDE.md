@@ -49,16 +49,17 @@ this repo had been treating as its results are both compromised:
   is a critique of our implementation choice, not an impossibility result — and the 13.9×
   mass-underestimate measurement and the `γ ≈ 0.75` shrinkage story built on it must be
   re-measured with k-means clusters before being treated as findings.
-  **Gap closed 2026-08-16 — see `P0_FINDINGS.md` §5.4b.** Re-measured with Euclidean
-  Lloyd: the second-order denominator is accurate (log error +0.003, first-order
-  underestimates 8x, exactly the Jensen direction), but the value-direction error stays
-  at 0.448 (K=16) / 0.367 (K=1024) against 0.438 for position bins with the *full* cross
-  covariance — three routes all stuck at 0.37-0.45. And `d_eff = 39.4` is **identical**
-  at K=16 and K=1024: the tilted mean is always dominated by ~39 members and that count
-  does not fall as clusters tighten, so a cluster-level `(mu, Sigma)` cannot in principle
-  know which ones. That invariant is the ceiling on the whole distributional-summary
-  route, and it is why attention wants sparse content-addressed recall of specific items
-  rather than prototype recall of an average.
+  **Re-measured 2026-08-16 — see `P0_FINDINGS.md` §5.4b, and note it retracts a wrong
+  version written the same day.** Split by clustering scheme and measured through `W_O`
+  (the only decision-relevant projection), the second-order denominator term cuts the
+  error by **19–58%**, more the better the clustering, and clustering choice matters
+  hugely: position 0.9366 → eucl-Lloyd 0.9045 → Cq-Lloyd 0.7961 → score-oracle 0.4045
+  at K=16. So §5.4's refutation holds only for **position bins**. The reconciliation with
+  §5.5's downstream refutation of second-order is that this metric is **fidelity to full
+  cache**, and fidelity has since been measured not to be the objective — second-order
+  does its job well, and its job is the wrong one. Caveat that must travel with the
+  table: `--n` defaults to **8 documents**, and the saved arrays carry no sample id, so
+  no document-level pairing is possible.
 - **The learned module is not a memory.** 86% of its gain is mediated by *which KV are
   retained* (frozen-mask 2×2), its positive result is irreproducible (four trainings spread
   34.8 points), and `dist` is not separated from `point` once sampling is matched.
