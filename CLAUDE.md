@@ -127,6 +127,23 @@ CUDA_VISIBLE_DEVICES=0 VARIKV_RATIOS=0.3,0.2 ../../../.venv/bin/python -B eval_c
 .venv/bin/python scratch_model_registry.py --md      # regenerate MODELS.md tables
 ```
 
+### 保真度 2×2：只有一半立住（2026-08-16）
+
+`scratch_probe_fidelity.py` 直接测答案位置上的 `KL(p_full‖p)`（两臂共用同一串
+teacher-forced token —— 各自调 `generate_answer` 会得到长度不同的答案，33 vs 35，
+根本没法比），n=30：
+
+| panel | 任务 Δ | KL base → ours | 判定 |
+|---|---|---|---|
+| Retr.MultiHop | −9.96★ | 0.2575 → 0.1779 | **t=−3.49 显著更接近 full** |
+| Retr.KV | +4.40★ | 0.3576 → 0.3157 | t=−1.61 **不可分** |
+
+**立住的**：MultiHop 上残差显著更忠实于满缓存、同时掉 9.96 分 ⇒
+**"更忠实于满缓存 ≠ 任务上更好"是测出来的**，不是从分数曲线推的。
+
+**没立住的**：Retr.KV 的 +4.40 **不能**归因于保真度——那里的提升与零不可分，
+**机制仍未查明**。基于 n=4 预览把 Retr.KV 归到 "fidelity recovery" 的说法已撤回。
+
 ### VariKV-B 的结论（2026-08-14 夜，下游完成）：残差有效、记忆无效
 
 **这是项目第一个未被撤回的正结果，同时也是对它自己中心命题的严格否定。完整方法说明见
