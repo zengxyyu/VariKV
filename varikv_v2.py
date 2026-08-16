@@ -935,6 +935,73 @@ def verify_real(a):
     print("\n真模型端到端验收通过。")
 
 
+def _train_args():
+    """train 的参数表单独一份，好让 `verify-args` 直接读**这个** parser 的默认值。
+    另抄一张表去核对是自欺欺人 —— 两处会各改各的。"""
+    t = argparse.ArgumentParser(add_help=False)
+    t.add_argument("--traces", default="scratch_ctrl_traces_v2")
+    t.add_argument("--out", default="varikv/v2_clean.pt")
+    t.add_argument("--epochs", type=int, default=40)
+    t.add_argument("--lr", type=float, default=3e-4)
+    t.add_argument("--n_pairs", type=int, default=256)
+    t.add_argument("--slots", type=int, default=8)
+    t.add_argument("--dim", type=int, default=128)
+    t.add_argument("--d_kv", type=int, default=128)
+    t.add_argument("--seed", type=int, default=0,
+                   help="只控制初始化 / pair 采样 / 训练顺序")
+    t.add_argument("--split_seed", type=int, default=42, help="只控制 train/val 划分")
+    t.add_argument("--val_frac", type=float, default=0.25)
+    t.add_argument("--n_docs", type=int, default=10,
+                   help="**v2 没有这个参数**，是本文件加的。原版就一句 "
+                        "glob(doc*.pt)，目录里有几篇用几篇；v2 训练那一刻目录里恰好"
+                        "只有 10 篇，此事无任何参数记录。目录后来长到 30 篇，同一条"
+                        "命令的含义就变了。默认 10 = 当时的篇数；传 0 表示全用")
+    t.add_argument("--alpha_init", type=float, default=1.0)
+    t.add_argument("--freeze_alpha", action="store_true", default=True)
+    t.add_argument("--no_freeze_alpha", dest="freeze_alpha", action="store_false")
+    t.add_argument("--pair_w", default="linear", choices=["linear", "none"])
+    t.add_argument("--lam_global", type=float, default=1.0)
+    t.add_argument("--skip_first", action="store_true", default=True,
+                   help="跳过每篇第一个 chunk 的损失。**原版不是 argparse 项**，是 "
+                        "run_doc 的函数默认 True 且 main 从不传它 ⇒ v2 用的就是 True")
+    t.add_argument("--no_skip_first", dest="skip_first", action="store_false")
+    return t
+
+
+def verify_args(a):
+    """**逐项核对本文件的 argparse 默认值 == v2 ckpt 里存的 `args`。**
+
+    "参数和 v2 一样"不该由注释担保。`varikv/ctrl_b_a1_s0.pt/memoryless.pt` 顶层就存着
+    那次运行的完整 `args`（15 项）—— 这比驱动脚本更硬，脚本可能事后被改过，而 ckpt 是
+    当时写下的。（注意 v2 之后的 `dec_*` ckpt 存的是 `arch` 而不是 `args`，格式不同。）
+
+    v2 的 args 里**没有** `arch` / `replace`：那两个是训完 v2 之后为拆解实验才加进
+    原脚本的，所以 v2 时代只有 ControlMemory 一条路径。本文件同样没有这两项。
+
+    两项故意多出来的会单列而不算失配，理由见 `_train_args` 里各自的 help。
+    `out` 只是输出路径，不参与比较。
+    """
+    sd = torch.load(os.path.join(ROOT, a.ckpt), map_location="cpu")
+    assert "args" in sd, (f"{a.ckpt} 里没有 args —— 它不是 v2 那一代的 ckpt")
+    ref = sd["args"]
+    mine = {x.dest: x.default for x in _train_args()._actions if x.dest != "help"}
+    print(f"ckpt {a.ckpt}　存了 {len(ref)} 项 args")
+    print(f"\n  {'参数':<12}{'v2 ckpt':<26}{'本文件默认':<24}")
+    bad = []
+    for k in sorted(ref):
+        if k == "out":
+            continue
+        got = mine.get(k, "<本文件没有>")
+        same = got == ref[k]
+        if not same:
+            bad.append(k)
+        print(f"  {k:<12}{str(ref[k]):<26}{str(got):<24}{'' if same else '✗ 不一致'}")
+    for k in sorted(set(mine) - set(ref)):
+        print(f"  {k:<12}{'（v2 无此项）':<24}{str(mine[k]):<24}＋ 本文件新增")
+    assert not bad, f"与 v2 不一致：{bad}"
+    print(f"\nv2 的 {len(ref) - 1} 项参数（除 out）逐项一致。多出的 2 项见 --help。")
+
+
 def main():
     ap = argparse.ArgumentParser(description="VariKV v2 最小实现")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -960,32 +1027,14 @@ def main():
     rr.add_argument("--window", type=int, default=4096)
     rr.set_defaults(fn=verify_real)
 
-    t = sub.add_parser("train", help="训练（需要教师 trace）")
-    t.add_argument("--traces", default="scratch_ctrl_traces_v2")
-    t.add_argument("--out", default="varikv/v2_clean.pt")
-    t.add_argument("--epochs", type=int, default=40)
-    t.add_argument("--lr", type=float, default=3e-4)
-    t.add_argument("--n_pairs", type=int, default=256)
-    t.add_argument("--slots", type=int, default=8)
-    t.add_argument("--dim", type=int, default=128)
-    t.add_argument("--d_kv", type=int, default=128)
-    t.add_argument("--seed", type=int, default=0,
-                   help="只控制初始化 / pair 采样 / 训练顺序")
-    t.add_argument("--split_seed", type=int, default=42, help="只控制 train/val 划分")
-    t.add_argument("--val_frac", type=float, default=0.25)
-    t.add_argument("--n_docs", type=int, default=10,
-                   help="只用排序后的前 N 篇 trace。默认 10 = v2 训练时目录里的篇数；"
-                        "传 0 表示全用（那就不是 v2 的数据了）")
-    t.add_argument("--alpha_init", type=float, default=1.0)
-    t.add_argument("--freeze_alpha", action="store_true", default=True)
-    t.add_argument("--no_freeze_alpha", dest="freeze_alpha", action="store_false")
-    t.add_argument("--pair_w", default="linear", choices=["linear", "none"])
-    t.add_argument("--lam_global", type=float, default=1.0)
-    t.add_argument("--skip_first", action="store_true", default=True,
-                   help="跳过每篇第一个 chunk 的损失（v2 原默认；memoryless 下纯丢数据）")
-    t.add_argument("--no_skip_first", dest="skip_first", action="store_false")
+    t = sub.add_parser("train", help="训练（需要教师 trace）",
+                       parents=[_train_args()])
     t.set_defaults(fn=train)
 
+    va = sub.add_parser("verify-args",
+                        help="本文件默认值 == v2 ckpt 里存的 args（逐项）")
+    va.add_argument("--ckpt", default="varikv/ctrl_b_a1_s0.pt/memoryless.pt")
+    va.set_defaults(fn=verify_args)
     a = ap.parse_args()
     return a.fn(a)
 
