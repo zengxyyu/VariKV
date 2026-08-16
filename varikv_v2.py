@@ -40,10 +40,31 @@ bootstrap，见 `varikv_b_method.md` §9），所以 stateful / shuffled 两臂�
 | `typed=False` 分支 | v2 的 ckpt 是 typed（`M_init` 第 3 维 = 2K），另一支从未用于正结果 |
 
 --------------------------------------------------------------------------------
+三条**已知的、有意为之的**差异 —— 等价性验收覆盖不到它们，所以写在这里
+
+1. **`train` 的随机初始化与原版不同，因此不会复现出 `ctrl_b_a1_s0.pt` 的权重。**
+   `ControlMemory.__init__` 在 `q_read` 与 `head` 之间还构造 5 个 Linear + 1 个
+   `mix` + 1 个 `GRUCell`，它们**消耗随机数**；本类直接跳到 `head`，于是同一个
+   `--seed` 下 `head` 的初值不同。刻意"烧掉"同样多的随机数只会得到一份 bug 兼容的
+   代码，没有收益。**结论：本文件 `train` 出来的是一个新种子，不是对 v2 的重新推导。**
+   要用 v2 本身，`V2Scorer.from_ckpt(...)` 加载既有 ckpt。
+   而这一点在本项目尤其要当真：`一次训练不是一次测量`——v1 同一份代码三次重训跨度
+   39 分，所以任何新训练都必须 n≥3 种子并报跨种子散布。
+2. **trace 缺 `gsig`/`sig_h`/`thres` 时硬失败，而原版会 warn 并退回子集统计。**
+   那个回退正是 `delta` 里点名的危险路径（子集 σ 低估 ⇒ 部署扰动大于训练时学到的
+   幅度），静默用错的 σ 比崩掉糟得多。`scratch_ctrl_traces_v2` 三个字段齐全，
+   所以对 v2 无影响。
+3. **`rho_max` 预算门控没有移植。** 加回只需在 `V2RetainCache.prune_chunk` 里把
+   `if self.active:` 改成 `if self.active and ratio <= self.rho_max:`，并在
+   `__init__` 里存下它。留空是因为它是 v2 之后的追加，默认 1.0 时逐位无操作。
+
+--------------------------------------------------------------------------------
 用法
 
-    # 逐位等价性验收（不需要 GPU 上的模型，只加载 ckpt）
-    .venv/bin/python varikv_v2.py verify
+    # 三级等价性验收，全部在 CPU 上跑，不需要模型权重
+    .venv/bin/python varikv_v2.py verify         # 打分器：60 次随机微分测试
+    .venv/bin/python varikv_v2.py verify-cache   # cache：valid 掩码逐位相同
+    .venv/bin/python varikv_v2.py verify-train   # 训练：loss 与随机数流同步
 
     # 评测：把 v2 接进 harness（与 eval_chunk.py 的 --ctrlm_ckpt 等价）
     #   在 eval_chunk.py 里把 kv_class 换成 V2RetainCache 并传入 scorer 即可，
@@ -91,6 +112,7 @@ class V2Scorer(nn.Module):
                  alpha_init: float = 1.0):
         super().__init__()
         self.L, self.H, self.K, self.d_m = n_layers, n_heads_kv, n_slots, d_m
+        self.d_kv = int(d_kv)          # 只为 to_compat_ckpt 记账，不参与前向
         d_x = 2 * d_kv                                  # 候选特征 = [k_i ; v_i]
 
         # ---- 码本：前 K 槽 = "像被保留的"，后 K 槽 = "像被驱逐的" ----
@@ -219,10 +241,39 @@ class V2Scorer(nn.Module):
         assert not r.missing_keys, f"本类缺少 ckpt 里有的参数：{r.missing_keys}"
         if strict_dead:
             got = sorted({k.split(".")[0] for k in r.unexpected_keys})
-            assert got == sorted(DEAD), \
-                (f"未使用的键与预期的死代码不符。\n  预期 {sorted(DEAD)}\n  实得 {got}\n"
-                 "  ⇒ 说明 memoryless 下的存活集合变了，简化的前提失效，必须重新核对")
+            # **两种合法情形**：原版 ControlMemory 的 ckpt 会多出恰好那 8 个死模块；
+            # 本文件自己训出来的 ckpt 一个都不多。首版只允许前者，于是加载自己的产物
+            # 必然断言失败 —— 一个只在"训练→再加载"这条闭环上才暴露的 bug。
+            assert got in ([], sorted(DEAD)), \
+                (f"未使用的键既不是空集也不是预期的死代码。\n  预期 {sorted(DEAD)} 或 []\n"
+                 f"  实得 {got}\n"
+                 "  ⇒ memoryless 下的存活集合变了，简化的前提失效，必须重新核对")
         return m
+
+    def to_compat_ckpt(self, path):
+        """导出成 `ControlMemory` 形状的 ckpt，好让**现有** `eval_chunk.py --ctrlm_ckpt`
+        直接吃。
+
+        为什么需要：`eval_chunk.py` 用 `strict=True` 加载进 `ControlMemory`，缺那 8 个
+        死模块会直接报错。而所有下游数字都是那条路径产出的，不能因为换了实现就断掉
+        与历史结果的可比性。死模块填零是安全的 —— `verify` 已经证明 memoryless 下它们
+        不参与前向，`ControlMemory.write` 与 `LearnedControlRetainCache._write` 都在
+        第一行短路。
+        """
+        from attention.control_memory import ControlMemory
+        cm = ControlMemory(self.d_kv, self.L, self.H,
+                           n_slots=self.K, d_m=self.d_m, mode="memoryless",
+                           typed=True)
+        for n_, p in cm.named_parameters():
+            if n_.split(".")[0] in DEAD:
+                torch.nn.init.zeros_(p)
+        miss = cm.load_state_dict(self.state_dict(), strict=False)
+        assert not miss.unexpected_keys, miss.unexpected_keys
+        assert sorted({k.split(".")[0] for k in miss.missing_keys}) == sorted(DEAD)
+        torch.save(dict(state=cm.state_dict(), mode="memoryless", arch="memory",
+                        slots=self.K, dim=self.d_m, d_kv=self.d_kv,
+                        L=self.L, H=self.H), path)
+        return path
 
 
 # ══════════════════════════════════════════════════════════════════ 推理
@@ -371,8 +422,17 @@ def run_doc(m, doc, dev, n_pairs, gen, lam_global=1.0, skip_first=True,
     losses, gl, tl, ta, tg, c, gc = [], [], 0.0, 0.0, 0.0, 0, 0
     for ci, ch in enumerate(doc["chunks"]):
         g_sp, g_s0, g_U = [], [], []
+        assert "gsig" in ch, "trace 缺 gsig（旧版教师）——见下面对 sig_h 的同一条说明"
         gsig = torch.tensor(float(ch["gsig"]), device=dev).clamp_min(1e-6)
         for l, pl in enumerate(ch["layers"]):
+            # **原版在缺 `gsig`/`sig_h` 时会 warn 并退回"从手上这批候选现算"。
+            # 本实现改成硬失败**，因为那个回退恰好就是 `delta` 的 docstring 里点名的
+            # 危险路径：近阈值子集的 σ 被系统性低估，而 σ 直接乘在 Δs 上。
+            # 静默用错的 σ 比崩掉糟得多。
+            for _f in ("mu_h", "sig_h", "thres"):
+                assert _f in pl, (
+                    f"trace 缺字段 {_f}——这是旧版教师产出的。请用 "
+                    "scratch_ctrl_teacher.py 重新采集，不要退回子集统计")
             k = pl["k"].to(dev).float()
             v = pl["v"].to(dev).float()
             s0 = pl["s0"].to(dev).float()
@@ -463,10 +523,16 @@ def train(a):
               f"val 头内Δacc {vh/k:+.4f} **全局Δacc {vg/k:+.4f}**", flush=True)
 
     os.makedirs(os.path.dirname(os.path.join(ROOT, a.out)) or ".", exist_ok=True)
+    # **只存可序列化的标量。** `set_defaults(fn=train)` 会把函数对象放进
+    # `vars(a)`，而 torch 2.6+ 的 `weights_only=True`（默认）会因此拒收
+    # 整个 ckpt —— 存得下、读不出，最坏的一种失败。
+    args = {k: v for k, v in vars(a).items()
+            if isinstance(v, (int, float, str, bool, type(None)))}
     torch.save(dict(state=m.state_dict(), mode="memoryless", arch="memory",
                     slots=a.slots, dim=a.dim, d_kv=a.d_kv, L=L, H=H,
-                    args=vars(a)), os.path.join(ROOT, a.out))
-    print(f"已保存 {a.out}")
+                    args=args), os.path.join(ROOT, a.out))
+    m.to_compat_ckpt(os.path.join(ROOT, a.out).replace('.pt', '_compat.pt'))
+    print(f"已保存 {a.out}　+ 兼容版 *_compat.pt（可直接喂 eval_chunk --ctrlm_ckpt）")
     # 训练侧 ranking 指标**与下游反相关**过（`ckpt_kl_v2a` 验证第一、下游最差），
     # 所以这条提醒必须跟着输出走，别让人拿验证曲线当结论。
     print("提醒：训练侧 Δacc 不是下游证据。历史上验证最好的 ckpt 下游最差。")
@@ -496,29 +562,44 @@ def verify(a):
     assert v2.n_params() + dead == cm.n_params()
     print(f"    死代码模块：{', '.join(DEAD)}")
 
+    # **随机微分测试，不是挑几个点看看。** 首版只测了 3 层、且 `margin` 恒不为 None、
+    # `stats` 恒为 [H] 形状 —— 那样测不到 `margin=None`（`mg = zeros_like(z)`）和
+    # `stats` 传 [H,1] 时的 `.view(-1,1)` 这两条分支。等价性断言必须覆盖被调用到的
+    # 全部分支，否则"逐位等价"只是对那几个点成立。
     torch.manual_seed(0)
-    H, n, d = sd["H"], 97, sd.get("d_kv", 128)
-    worst, worst_l = 0.0, -1
+    H, d = sd["H"], sd.get("d_kv", 128)
+    worst, worst_cfg, cov = 0.0, None, {"mg=None": 0, "mg=有": 0, "stats2d": 0}
     with torch.no_grad():
-        for l in (0, sd["L"] // 2, sd["L"] - 1):
+        for t in range(60):
+            l = int(torch.randint(0, sd["L"], ()))
+            n = int(torch.randint(8, 200, ()))
             k, v = torch.randn(H, n, d), torch.randn(H, n, d)
-            s0 = torch.randn(H, n) * 3.0 + 1.0
-            mu_h, sig_h = s0.mean(-1), s0.std(-1)
+            s0 = torch.randn(H, n) * float(torch.rand(()) * 5 + 0.1) + \
+                float(torch.randn(()))
+            two_d = bool(torch.rand(()) < 0.5)          # stats 传 [H] 还是 [H,1]
+            mu_h = s0.mean(-1, keepdim=True) if two_d else s0.mean(-1)
+            sig_h = s0.std(-1, keepdim=True) if two_d else s0.std(-1)
             sig_g = s0.std()
-            mg = (s0 - 0.3) / sig_g
             st = (mu_h, sig_h, sig_g)
-            # 原版路径：raw → feat/q_read/read → delta（与 learned_ctrlcache 一致）
+            use_mg = bool(torch.rand(()) < 0.5)
+            mg = ((s0 - float(torch.randn(()))) / sig_g) if use_mg else None
+            cov["mg=有" if use_mg else "mg=None"] += 1
+            cov["stats2d"] += int(two_d)
+            # 原版路径：raw → feat/q_read/read → delta，与 learned_ctrlcache.py:98-108
+            # 逐字一致（那里 q_read 被调用两次——一次给 q、一次在 read 内部——本实现
+            # 只算一次，同一个 Linear 同一个输入，输出相同）
             xr = cm.raw(k, v)
             d_cm = cm.delta(cm.feat(xr), cm.read(cm.init_state(l), xr), s0,
                             q=cm.q_read(xr), margin=mg, stats=st)
             d_v2 = v2.delta(l, k, v, s0, mg, st)
             e = float((d_cm - d_v2).abs().max())
             if e > worst:
-                worst, worst_l = e, l
-            print(f"[2] 层 {l:>2}: max|Δs_orig − Δs_v2| = {e:.3e}"
-                  f"　(|Δs| 典型 {float(d_cm.abs().median()):.4f})")
-    assert worst < 1e-6, f"层 {worst_l} 不等价，误差 {worst:.3e}"
-    print(f"    ⇒ 最大误差 {worst:.3e} < 1e-6，**逐位等价**")
+                worst, worst_cfg = e, (l, n, use_mg, two_d)
+    print(f"[2] 60 次随机微分测试（层/长度/尺度/margin 有无/stats 形状全随机）")
+    print(f"    覆盖：margin=None {cov['mg=None']} 次、margin=有 {cov['mg=有']} 次、"
+          f"stats 传 [H,1] {cov['stats2d']} 次")
+    assert worst < 1e-6, f"不等价：{worst_cfg} 处误差 {worst:.3e}"
+    print(f"    max|Δs_orig − Δs_v2| = {worst:.3e} < 1e-6　⇒ **逐位等价**")
 
     # α=0 的构造性保证：这是一条关于 α=0 的命题，不是关于初始化的断言，所以显式置 0 测
     with torch.no_grad():
@@ -604,6 +685,67 @@ def verify_cache(a):
     print("\ncache 层验收通过。")
 
 
+def verify_train(a):
+    """训练路径的等价性 —— `verify` / `verify-cache` 都没覆盖到的第三块。
+
+    只证明打分器与 cache 等价是不够的：`run_doc` 重写时任何一处顺序改动都会改变
+    **随机数流**（每个非跳过的层 2 次 `randint`，每个 chunk 再 2 次），从而改变采到的
+    成对样本，训练轨迹就分岔了。这里让原版 `scratch_ctrl_train.run_doc` 与本文件的
+    `run_doc` 在**同一篇 trace、同一个 generator 种子、同权重**下各跑一遍，比较
+    loss / 头内Δacc / 全局Δacc。
+
+    `shuf_gen` 在原版里是喂给 `write()` 的独立 generator；memoryless 下 `write` 第一行
+    就返回，**不消耗任何随机数**，所以本实现不建它也不影响 `gen` 的流 —— 这个测试正是
+    用来证实这一点的，而不是靠读代码断言。
+    """
+    import glob
+    import scratch_ctrl_train as orig
+    from attention.control_memory import ControlMemory
+
+    files = sorted(glob.glob(os.path.join(ROOT, a.traces, "*.pt")))
+    assert files, f"{a.traces} 里没有 trace"
+    doc = torch.load(files[0], map_location="cpu")
+    L, H = doc["L"], doc["H"]
+    torch.manual_seed(3)
+    cm = ControlMemory(128, L, H, n_slots=8, d_m=128, mode="memoryless",
+                       typed=True, alpha_init=1.0)
+    v2 = V2Scorer(128, L, H, n_slots=8, d_m=128, alpha_init=1.0)
+    v2.load_state_dict(cm.state_dict(), strict=False)   # 共权重，只比代码路径
+
+    print(f"trace {os.path.basename(files[0])}　L={L} H={H} "
+          f"chunks={len(doc['chunks'])}")
+    ok = True
+    for skip in (True, False):
+        gA = torch.Generator().manual_seed(999)
+        gAs = torch.Generator().manual_seed(555)        # 原版的 shuffle 流
+        gB = torch.Generator().manual_seed(999)
+        with torch.no_grad():
+            A = orig.run_doc(cm, doc, "cpu", 64, gA, train=False,
+                             lam_global=1.0, skip_first_loss=skip,
+                             shuf_gen=gAs, pair_w="linear", replace=False)
+            B = run_doc(v2, doc, "cpu", 64, gB, lam_global=1.0,
+                        skip_first=skip, pair_w="linear")
+        dl = abs(float(A[0]) - float(B[0]))
+        d1, d2 = abs(A[2] - B[2]), abs(A[3] - B[3])
+        ok &= dl < 1e-9 and d1 < 1e-9 and d2 < 1e-9
+        print(f"  skip_first={str(skip):<5} loss {float(A[0]):.8f} vs "
+              f"{float(B[0]):.8f}　|Δ|={dl:.2e}　头内Δacc |Δ|={d1:.2e}　"
+              f"全局Δacc |Δ|={d2:.2e}")
+    # generator 是否被消耗了同样多的随机数 —— 若两边流不同步，后续 epoch 会分岔
+    gA = torch.Generator().manual_seed(999)
+    gB = torch.Generator().manual_seed(999)
+    with torch.no_grad():
+        orig.run_doc(cm, doc, "cpu", 64, gA, train=False, shuf_gen=
+                     torch.Generator().manual_seed(555))
+        run_doc(v2, doc, "cpu", 64, gB)
+    same_stream = bool(torch.equal(torch.randint(0, 10**6, (32,), generator=gA),
+                                   torch.randint(0, 10**6, (32,), generator=gB)))
+    print(f"  跑完后两边 generator 的后续抽样一致：{same_stream}"
+          f"　⇒ 随机数流同步，多 epoch 不会分岔")
+    assert ok and same_stream, "训练路径不等价"
+    print("\n训练路径验收通过。")
+
+
 def main():
     ap = argparse.ArgumentParser(description="VariKV v2 最小实现")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -614,6 +756,10 @@ def main():
 
     c = sub.add_parser("verify-cache", help="cache 层 valid 掩码的等价性（CPU）")
     c.set_defaults(fn=verify_cache)
+
+    w = sub.add_parser("verify-train", help="训练路径与随机数流的等价性（CPU）")
+    w.add_argument("--traces", default="scratch_ctrl_traces_v2")
+    w.set_defaults(fn=verify_train)
 
     t = sub.add_parser("train", help="训练（需要教师 trace）")
     t.add_argument("--traces", default="scratch_ctrl_traces_v2")
