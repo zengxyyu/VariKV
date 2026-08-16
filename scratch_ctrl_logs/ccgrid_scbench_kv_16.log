@@ -1,0 +1,71 @@
+tag: _fastkvzip__cc16_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.68it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.71it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.68it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.76it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.74it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: centroid_control
+[Cen+Ctrl] K=16 arch=memory alpha=0.9990 rope=post
+['scbench_kv']
+
+scbench_kv loaded, #data: 100
+set generation length: 96 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~100 samples
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   0%|          | 0/11 [00:01<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/eval_chunk.py", line 213, in <module>
+    kv = dataset.prefill_context(data_idx, do_score=False)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/data/wrapper.py", line 50, in prefill_context
+    kv = self.model.prefill(
+         ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/model/wrapper.py", line 252, in prefill
+    return self._prefill_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/model/wrapper.py", line 298, in _prefill_impl
+    self.__call__(input_ids, kv, update_cache=True)
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/model/wrapper.py", line 130, in __call__
+    _ = self.model.model(input_ids, past_key_values=kv, *args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/utils/generic.py", line 965, in wrapper
+    output = func(self, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 549, in forward
+    layer_outputs = decoder_layer(
+                    ^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 278, in forward
+    hidden_states = self.mlp(hidden_states)
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 59, in forward
+    down_proj = self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x))
+                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 580.00 MiB. GPU 0 has a total capacity of 79.18 GiB of which 327.00 MiB is free. Process 385733 has 30.47 GiB memory in use. Process 429089 has 30.14 GiB memory in use. Including non-PyTorch memory, this process has 18.22 GiB memory in use. Of the allocated memory 16.72 GiB is allocated by PyTorch, and 866.45 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)

@@ -74,3 +74,6 @@ class CentroidControlCache(CentroidRetainCache, LearnedControlRetainCache):
         # 让同类错误崩掉而不是静默降级成纯质心
         assert self.ctrl is not None, "组合臂必须有 ctrl，否则等于只跑质心"
         assert self.centroid_mode, "组合臂必须开质心，否则等于只跑残差"
+        # 递归历史已被证否（TOST 等价，varikv_b_method.md §9），组合臂不得把它重新打开
+        assert getattr(ctrl, "mode", None) == "memoryless", \
+            f"组合臂只允许 memoryless 残差，收到 mode={getattr(ctrl, 'mode', None)}"

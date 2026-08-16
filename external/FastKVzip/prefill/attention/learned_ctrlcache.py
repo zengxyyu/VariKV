@@ -137,6 +137,11 @@ class LearnedControlRetainCache(RetainCache):
 
     # ------------------------------------------------------------------ 写
     def _write(self, lo: int, hi: int, valid: torch.Tensor):
+        # **memoryless 直接短路。** `ControlMemory.write` 在 memoryless 下立刻原样
+        # 返回状态，但走到那一步之前，下面已经把 28 层的 KV gather 出来、算完
+        # `feat()` 了 —— 纯浪费。不是正确性问题，但每个 chunk 白算 28 次投影。
+        if getattr(self.ctrl, "mode", None) == "memoryless":
+            return
         n = hi - lo
         if self.n_write and n > self.n_write:      # 与训练同规模的随机子样本
             sub = torch.stack([torch.randperm(n, generator=self._gen)[:self.n_write]

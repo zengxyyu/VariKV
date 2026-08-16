@@ -102,8 +102,21 @@ if __name__ == "__main__":
         model.ctrl_seed, model.ctrl_rho_max = args.ctrl_seed, args.ctrlm_rho_max
         model.varikv_K = args.centroid_k
         model.varikv_rope_mode = args.centroid_rope
+        # `inv` 需要注入 inv_freq，否则 CentroidRetainCache 的断言会崩。
+        # 与纯质心分支保持一致；此前组合分支漏了这一段。
+        if args.centroid_rope == "inv":
+            _rot = getattr(model.model.model, "rotary_emb", None)
+            assert _rot is not None, "inv 模式需要 rotary_emb"
+            model.varikv_inv_freq = _rot.inv_freq.detach().clone()
+        # α 覆盖必须与普通残差臂语义一致，否则以后扫 α 时组合臂会静默不响应
+        if args.ctrlm_alpha >= 0:
+            import math as _math
+            with _torch.no_grad():
+                _p = min(max(args.ctrlm_alpha / _cm.alpha_max, 1e-6), 1 - 1e-6)
+                _cm.alpha_on.fill_(_math.log(_p / (1 - _p)))
+            args.tag += f"_a{args.ctrlm_alpha:g}"
         print(f"[Cen+Ctrl] K={args.centroid_k} arch={_arch} "
-              f"alpha={float(_cm.alpha):.4f}")
+              f"alpha={float(_cm.alpha):.4f} rope={args.centroid_rope}")
     elif args.ctrlm_ckpt:
         # VariKV-B 最终版：学出来的历史控制状态
         import sys as _sys, torch as _torch
