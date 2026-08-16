@@ -1,0 +1,51 @@
+tag: _fastkvzip__cc_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.64it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.67it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.67it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.73it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: centroid_control
+[Cen+Ctrl] K=1024 arch=memory alpha=0.9990
+['squad']
+datasets failed on squad (Feature type 'List' not found. Available feature types: ['Value', 'ClassLabel', 'Translation', 'TranslationVariableLanguages', 'LargeList', 'Sequence', 'Array2D', 'Array3D', 'Array4D', 'Array5D', 'Audio', 'Image', 'Video', 'Pdf']); falling back to pyarrow
+
+squad loaded, #data: 101
+set generation length: 256 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~100 samples
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.30it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.30it/s]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Saint Bernadette Soubirous | Saint Bernadette Soubirous
+[QA 1] A copper statue of Christ with arms upraised with the legend "Venite Ad Me Omnes". | a copper statue of Christ
+[QA 2] The Basilica of the Sacred Heart is next to the Main Building. | the Main Building
+[QA 3] The Grotto at Notre Dame is a Marian place of prayer and reflection, designed as a replica of the grotto at Lourdes, France, where the Virgin Mary is reputedly said to have appeared to Saint Bernadette Soubirous in 1858. | a Marian place of prayer and reflection
+[QA 4] A gold dome with a golden statue of the Virgin Mary. | a golden statue of the Virgin Mary
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.72it/s]
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.93it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.93it/s]
+Chunked prefilling with 0.75 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.99it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.99it/s]
+Chunked prefilling with 0.50 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.66it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.66it/s]
+Chunked prefilling with 0.40 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.53it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.53it/s]
+Chunked prefilling with 0.30 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.84it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.84it/s]
+Chunked prefilling with 0.20 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.88it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.88it/s]

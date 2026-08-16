@@ -33,13 +33,23 @@
 
 恰好就是想要的顺序。抄代码会立刻产生两份需要同步维护的阈值化逻辑。
 
-**`__init__` 的顺序是有讲究的**：先 `LearnedControlRetainCache.__init__`（它会跑
-`RetainCache.__init__` 并设好控制字段），再 `CentroidRetainCache.__init__`（会**再跑一次**
-`RetainCache.__init__`）。第二次重置的只是基类字段，而基类字段此刻还没被用过；
-控制字段是 Learned 自己设的，`RetainCache.__init__` 碰不到，所以能存活。反过来写
-就会把质心的字段冲掉。
+**`__init__` 有一个会静默失效的坑，第一版就踩了。** `super()` 按**实例的 MRO** 解析，
+不按定义它的类。所以 `CentroidRetainCache.__init__` 里那句 `super().__init__(...)`，
+在本类的实例上解析到的是 **`LearnedControlRetainCache.__init__`**（MRO 的下一个），
+而不是 `RetainCache.__init__`。
+
+于是「先显式调 Learned 设好 ctrl，再显式调 Centroid」这种写法，第二步会**用默认参数
+重跑 Learned 的 __init__**，把 `ctrl` 覆盖回 `None` —— `prune_chunk` 里
+`if self.ctrl is not None` 直接跳过整个修正块，**组合臂退化成纯质心，不报任何错**。
+冒烟测试也抓不到：`[Cen+Ctrl] ...` 那行是 `eval_chunk` 在建 cache 之前打的。
+
+正确写法是**只调一次** `CentroidRetainCache.__init__`，让它沿 MRO 自己把
+Learned -> RetainCache 串起来（控制字段会拿到默认值），**之后**再把非默认的控制字段
+显式设上。末尾的断言是为了让同类错误下次直接崩掉而不是静默降级。
 """
 from typing import Tuple
+
+import torch
 
 from .centroid import CentroidRetainCache
 from .learned_ctrlcache import LearnedControlRetainCache
@@ -51,16 +61,16 @@ class CentroidControlCache(CentroidRetainCache, LearnedControlRetainCache):
                  n_clusters: int = 1024, rope_inv_freq=None,
                  rope_mode: str = "post", seed: int = 0,
                  rho_max: float = 1.0, n_write: int = 512):
-        # 顺序不能反，见模块 docstring
-        LearnedControlRetainCache.__init__(
-            self, model, evict_range, ctrl=ctrl, train_mode=False,
-            seed=seed, n_write=n_write, rho_max=rho_max)
+        # **只调这一次**：它的 super() 沿 MRO 依次走 LearnedControlRetainCache
+        # -> RetainCache，两层的字段都会建好（控制字段取默认值）。
         CentroidRetainCache.__init__(
             self, model, evict_range, n_clusters=n_clusters,
             rope_inv_freq=rope_inv_freq, rope_mode=rope_mode)
-        # CentroidRetainCache.__init__ 走了一遍 RetainCache.__init__，把
-        # LearnedControlRetainCache 依赖的诊断列表连同基类字段一起重置了。
-        # 控制字段（ctrl / M / rho_max / _gen / n_write）是 Learned 自己设的，
-        # RetainCache 碰不到，所以还在；只有这三个诊断列表要补回来。
-        self.flip_frac, self.retain_delta, self.delta_std = [], [], []
-        self.trace = []
+        # 再把非默认的控制字段设上。**必须在上面之后**，否则会被那一步覆盖。
+        self.ctrl = ctrl
+        self.rho_max = float(rho_max)
+        self.n_write = int(n_write)
+        self._gen = torch.Generator(device="cpu").manual_seed(seed)
+        # 让同类错误崩掉而不是静默降级成纯质心
+        assert self.ctrl is not None, "组合臂必须有 ctrl，否则等于只跑质心"
+        assert self.centroid_mode, "组合臂必须开质心，否则等于只跑残差"

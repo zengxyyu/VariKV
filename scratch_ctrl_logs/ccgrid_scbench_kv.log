@@ -1,6 +1,6 @@
 tag: _fastkvzip__cc_chunk16k_w4096
 Replace qwen2.5 attention with gating
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.74it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.76it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.75it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.85it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.81it/s]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.91it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.96it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.96it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.05it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.01it/s]
 
 Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
 load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
@@ -22,7 +22,7 @@ set generation length: 96 (see utils/func.py)
 ================================================================================ 
 Start evaluation with 0~100 samples
 chunk inputs, size: 16000 (num 11)
-Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:01<00:10,  1.04s/it]Prefill:   9%|▉         | 1/11 [00:01<00:18,  1.83s/it]
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:07,  1.25it/s]Prefill:   9%|▉         | 1/11 [00:01<00:13,  1.35s/it]
 Traceback (most recent call last):
   File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/eval_chunk.py", line 200, in <module>
     kv = dataset.prefill_context(data_idx, do_score=False)

@@ -1,0 +1,40 @@
+tag: _fastkvzip__cc_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.80it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.77it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.76it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.84it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.81it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: centroid_control
+[Cen+Ctrl] K=1024 arch=memory alpha=0.9990
+['gsm']
+
+gsm loaded, #data: 100
+set generation length: 512 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~100 samples
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.14it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.14it/s]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m gsm-0: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many cups of feed Wendi needs to give her chickens in the final meal of the day, we first calculate the total amount of feed each chicken should receive daily. Since each chicken gets 3 cups of feed per day and there are 20 chickens, the total daily feed requirement is \(20 \times 3 = 60\) cups.
+
+Next, we know that Wendi has already given her chickens 15 cups in the morning and 25 cups in the afternoon, which totals \(15 + 25 = 40\) cups. To find out how much more feed is needed for the final meal, we subtract the amount already given from the total daily requirement: \(60 - 40 = 20\) cups.
+
+Therefore, the answer is: The answer is 20 cups of feed. | If each chicken eats 3 cups of feed per day, then for 20 chickens they would need 3*20=<<3*20=60>>60 cups of feed per day.
+If she feeds the flock 15 cups of feed in the morning, and 25 cups in the afternoon, then the final meal would require 60-15-25=<<60-15-25=20>>20 cups of chicken feed.
+#### 20
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 24.24it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-0: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.75it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.75it/s]
+Chunked prefilling with 0.75 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-0: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.47it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.47it/s]

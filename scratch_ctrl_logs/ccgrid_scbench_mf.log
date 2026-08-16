@@ -1,6 +1,6 @@
 tag: _fastkvzip__cc_chunk16k_w4096
 Replace qwen2.5 attention with gating
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.60it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.60it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.62it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.64it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.63it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.63it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.72it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.68it/s]
 
 Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
 load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
@@ -15,14 +15,14 @@ load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
 ))
 KV type: centroid_control
 [Cen+Ctrl] K=1024 arch=memory alpha=0.9990
-['scbench_vt']
+['scbench_mf']
 
-scbench_vt loaded, #data: 90
-set generation length: 96 (see utils/func.py)
+scbench_mf loaded, #data: 100
+set generation length: 48 (see utils/func.py)
 ================================================================================ 
-Start evaluation with 0~90 samples
-chunk inputs, size: 16000 (num 8)
-Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:01<00:07,  1.04s/it]Prefill:  12%|█▎        | 1/8 [00:01<00:12,  1.83s/it]
+Start evaluation with 0~100 samples
+chunk inputs, size: 16000 (num 10)
+Prefill:   0%|          | 0/10 [00:00<?, ?it/s]Prefill:  10%|█         | 1/10 [00:01<00:10,  1.15s/it]Prefill:  10%|█         | 1/10 [00:02<00:18,  2.05s/it]
 Traceback (most recent call last):
   File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/eval_chunk.py", line 200, in <module>
     kv = dataset.prefill_context(data_idx, do_score=False)
@@ -68,4 +68,4 @@ Traceback (most recent call last):
   File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 59, in forward
     down_proj = self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x))
                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
-torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 580.00 MiB. GPU 0 has a total capacity of 79.18 GiB of which 195.00 MiB is free. Process 385733 has 30.47 GiB memory in use. Process 429089 has 30.14 GiB memory in use. Including non-PyTorch memory, this process has 18.35 GiB memory in use. Of the allocated memory 16.95 GiB is allocated by PyTorch, and 761.57 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 580.00 MiB. GPU 0 has a total capacity of 79.18 GiB of which 197.00 MiB is free. Process 385733 has 30.47 GiB memory in use. Process 429089 has 30.14 GiB memory in use. Including non-PyTorch memory, this process has 18.35 GiB memory in use. Of the allocated memory 16.95 GiB is allocated by PyTorch, and 758.22 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
