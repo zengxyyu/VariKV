@@ -1,0 +1,48 @@
+15:01 [GPU6] 信度曲线冒烟
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.75it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.83it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.83it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.96it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.90it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: retain
+
+scbench_kv loaded, #data: 100
+set generation length: 96 (see utils/func.py)
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.56it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.43it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.18it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:07,  1.04s/it]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.25s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.49s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.74s/it]Prefill:  73%|███████▎  | 8/11 [00:12<00:05,  2.00s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.27s/it]Prefill:  91%|█████████ | 10/11 [00:18<00:02,  2.55s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.56s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.88s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_kv-0: 169035 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] "cb59052b-9128-4979-9c0e-e1de4adcf73b" | cb59052b-9128-4979-9c0e-e1de4adcf73b
+[QA 1] "a9ee6345-2331-4914-b32b-25a780931d45" | a9ee6345-2331-4914-b32b-25a780931d45
+[QA 2] 5e6b7b90-710d-4953-9b18-3e96b2cadbf2 | 5e6b7b90-710d-4953-9b18-3e96b2cadbf2
+[QA 3] 3b2dd49b-7437-4432-ac24-06fb8f7f862e | 3b2dd49b-7437-4432-ac24-06fb8f7f862e
+[QA 4] 89545afe-fded-413c-aa0e-f8bb3e5fd45e | 96945afe-fded-413c-aa0e-f8bb3e5fd45e
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.74it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.56it/s]Prefill:  27%|██▋       | 3/11 [00:01<00:05,  1.48it/s]Prefill:  36%|███▋      | 4/11 [00:02<00:04,  1.43it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.38it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.34it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.30it/s]Prefill:  73%|███████▎  | 8/11 [00:05<00:02,  1.26it/s]Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.22it/s]Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.35it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-0: 169035 tokens, KV cache 9.7 GB, torch.bfloat16
+  样本 0: base 0.2349  |S| 1.893M / 18.93M 格 (有效 ratio 0.1000)
+    ρ(U^NLL(S), U^NLL(S_ε))  ε=0.001:+1.00  ε=0.02:+0.40
+
+=== scbench_kv @ ratio 0.1　1 篇 × 4 候选　互换模式 random ===
+A 确定性：同掩码两次 NLL |Δ| 最大 0.000e+00（应为 0）
+
+   ε (相对|S|)    ρ(U^NLL)       逐样本中位   ρ(U^attn)       逐样本中位
+       0.001       1.000       1.000       1.000       1.000
+        0.02       0.400       0.400       1.000       1.000
+
+判读：
+  最小 ε 就 ρ(U^NLL)≈0        ⇒ 单条边际不是良定义的量（首版想证的那件事）
+  ρ 随 ε 单调衰减              ⇒ 局部稳定、全局 set-dependent；教师可用，但所需数据量 ∝ 1/信度
+  ρ(U^attn) 高而 ρ(U^NLL) 低   ⇒ 教师标签自洽，它代理的东西不自洽（靶子问题）
+  两个都低                     ⇒ 教师标签自身就抖，加样本也救不回来

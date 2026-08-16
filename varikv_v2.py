@@ -40,7 +40,52 @@ bootstrap，见 `varikv_b_method.md` §9），所以 stateful / shuffled 两臂�
 | `typed=False` 分支 | v2 的 ckpt 是 typed（`M_init` 第 3 维 = 2K），另一支从未用于正结果 |
 
 --------------------------------------------------------------------------------
-三条**已知的、有意为之的**差异 —— 等价性验收覆盖不到它们，所以写在这里
+v2 的**完整训练配方**（从 `scratch_ctrl_teacher_ext.sh` / `scratch_ctrl_train_run.sh`
+考出来的实际命令，不是脚本的 argparse 默认值 —— 两者不一样）
+
+**教师**（产出 `scratch_ctrl_traces_v2`，30 篇，每篇约 359 MB）：
+
+    scratch_ctrl_teacher.py --n_cat 30 --out scratch_ctrl_traces_v2
+
+其余全取默认：`Qwen2.5-7B-Instruct-1M` / gate `fastkvzip` / ratio **0.1** /
+chunk **16000** / window **4096** / level `pair` / max_ctx **131072** /
+target_len 256 / n_qpos 16 / **n_keep 256**（近阈值候选）+ **n_rand 512**（随机，
+只喂 writer，本实现不读）/ min_prunes 2 / task `continuation` /
+utility **`full_single`（= U^full，满缓存单 token 移除损伤）**。
+
+注意 `max_ctx 131072` 与 `n_short 0 / n_long 10` 是**非退化门槛**逼出来的，不是随手
+调的：`ratio × clen ≤ window` 时 `wrapper.py:271-277` 会把 chunk_ratio 置 0，驱逐退化
+成"只留局部窗口"，**任何改分数的方法都恒为 no-op**。门槛是 `clen > 4096/0.1 = 40,960`，
+而 `fineweb_10k` 最长才约 31k ⇒ 全部退化，只有 `fineweb_10k_cat` 能用。
+
+**训练**（3 个种子，只变初始化/采样/顺序）：
+
+    scratch_ctrl_train.py --traces scratch_ctrl_traces_v2 --epochs 40 \
+        --seed {0,1,2} --split_seed 42 --alpha_init 1.0 --freeze_alpha \
+        --pair_w linear --lam_global 1.0 --out varikv/ctrl_b_a1_s{S}.pt
+
+未覆盖的默认值即实际值：`--slots 8 --dim 128 --d_kv 128 --lr 3e-4 --n_pairs 256
+--val_frac 0.25`，优化器 AdamW(weight_decay=0.01) + `clip_grad_norm_(1.0)`。
+原脚本一次训练**三条臂**（stateful / memoryless / shuffled）各存一个 `{mode}.pt`；
+**v2 就是其中的 `memoryless.pt`**。
+
+**本文件的 argparse 默认值已经全部对齐上面这份配方**，所以 `train` 不带任何参数就是
+v2 的配置。但要留意：这些默认值与**原脚本**的 argparse 默认值不同（原脚本是
+`epochs 8 / alpha_init 0.05 / freeze_alpha False / traces scratch_ctrl_traces`），
+因为本文件提炼的是"真正拿到 +4.27 的那次运行"，不是复刻早期脚本。
+
+| | v2 实际用的 | 原脚本默认 | 本文件默认 |
+|---|---|---|---|
+| epochs | 40 | 8 | **40** |
+| alpha_init | 1.0 | 0.05 | **1.0** |
+| freeze_alpha | 是 | 否 | **是** |
+| traces | `..._v2` | `scratch_ctrl_traces` | **`..._v2`** |
+| lr / n_pairs / slots / dim | 3e-4 / 256 / 8 / 128 | 同左 | 同左 |
+| split_seed / val_frac | 42 / 0.25 | 同左 | 同左 |
+| pair_w / lam_global | linear / 1.0 | 同左 | 同左 |
+
+--------------------------------------------------------------------------------
+四条**已知的、有意为之的**差异 —— 等价性验收覆盖不到它们，所以写在这里
 
 1. **`train` 的随机初始化与原版不同，因此不会复现出 `ctrl_b_a1_s0.pt` 的权重。**
    `ControlMemory.__init__` 在 `q_read` 与 `head` 之间还构造 5 个 Linear + 1 个
@@ -56,7 +101,10 @@ bootstrap，见 `varikv_b_method.md` §9），所以 stateful / shuffled 两臂�
    所以对 v2 无影响。
 3. **`rho_max` 预算门控没有移植。** 加回只需在 `V2RetainCache.prune_chunk` 里把
    `if self.active:` 改成 `if self.active and ratio <= self.rho_max:`，并在
-   `__init__` 里存下它。留空是因为它是 v2 之后的追加，默认 1.0 时逐位无操作。
+   `__init__` 里存下它。留空是因为它是 v2 之后的追加，默认 1.0 时逐位无操作
+   （ratio ∈ (0,1] 恒 ≤ 1）—— 对历史 +4.27 无影响，但不能宣称"对
+   `LearnedControlRetainCache` 的任意构造参数都行为相同"。
+4. **`prune()` 改成抛错**，而原版会静默给出基线结果。方向是更安全，见该方法的说明。
 
 --------------------------------------------------------------------------------
 用法
@@ -309,10 +357,10 @@ class V2RetainCache(RetainCache):
     仍派生自 `RetainCache`（逻辑掩码，物理保留全部 KV），所以能回答"选择改变有没有
     用"，**不能**声称峰值显存下降。
 
-    **只覆盖 `prune_chunk`，没有覆盖 `prune`。** 后者是不分块的那条路径，`eval.py`
-    在用；走那条路 v2 **一声不响地完全不生效**（拿到的就是基线）。原版
-    `LearnedControlRetainCache` 同样如此，这里照抄不是疏忽，但它属于本项目反复吃亏的
-    静默失败类，所以写明：**评测一律走 `eval_chunk.py`。**
+    **`prune()`（不分块路径）被显式改成抛错。** 原版 `LearnedControlRetainCache`
+    只覆盖 `prune_chunk`，于是走 `eval.py` 时父类会给出一个看不出异常的**基线**结果
+    —— 静默失败。这是本实现**有意**与原版不等价的第四处，方向是更安全。
+    评测一律走 `eval_chunk.py`。
     """
 
     def __init__(self, model, evict_range: Tuple[int, int], scorer=None):
@@ -323,6 +371,19 @@ class V2RetainCache(RetainCache):
     @property
     def active(self) -> bool:
         return self.scorer is not None and float(self.scorer.alpha) != 0.0
+
+    def prune(self, *_a, **_kw):
+        """**不分块的那条路径不支持，直接报错而不是静默退回基线。**
+
+        `eval.py:104` 与 `eval_mrcr.py:67` 是全树仅有的两个 `prune()` 调用点，都不在
+        v2 的工作路径上。父类的实现会跑出一个**完全正常的基线结果**，看不出任何异常
+        —— 这正是本项目反复吃亏的静默失败类（原版 `LearnedControlRetainCache` 也有
+        这个洞，只是从没人踩到）。宁可炸。
+        """
+        raise RuntimeError(
+            "V2RetainCache 只支持分块预填（prune_chunk / eval_chunk.py）。"
+            "eval.py 走的不分块 prune() 上 v2 不生效，父类会静默给出基线结果，"
+            "所以这里直接报错。")
 
     def prune_chunk(self, ratio: float, evict_range: Tuple[int, int] = None,
                     level: str = "pair"):
@@ -495,8 +556,11 @@ def run_doc(m, doc, dev, n_pairs, gen, lam_global=1.0, skip_first=True,
 def train(a):
     import glob
     dev = "cuda" if torch.cuda.is_available() else "cpu"
-    files = sorted(glob.glob(os.path.join(ROOT, a.traces, "*.pt")))
-    assert files, f"{a.traces} 里没有 trace"
+    # **`doc*.pt` 而不是 `*.pt`**，与原版 `scratch_ctrl_train.py:236` 一致。
+    # 教师目录里以后一旦多出 `stats.pt` / `merged.pt` 之类，`*.pt` 会把它们当文档读
+    # 进来，然后在 `doc["chunks"]` 上抛 KeyError —— 或者更糟，形状恰好能走通。
+    files = sorted(glob.glob(os.path.join(ROOT, a.traces, "doc*.pt")))
+    assert files, f"{a.traces} 里没有 doc*.pt"
     docs = [torch.load(f, map_location="cpu") for f in files]
     L, H = docs[0]["L"], docs[0]["H"]
     # **d_kv 从 trace 推**，不要信 argparse 的默认值：不一致时只会在 `x_proj` 里
@@ -738,8 +802,8 @@ def verify_train(a):
     import scratch_ctrl_train as orig
     from attention.control_memory import ControlMemory
 
-    files = sorted(glob.glob(os.path.join(ROOT, a.traces, "*.pt")))
-    assert files, f"{a.traces} 里没有 trace"
+    files = sorted(glob.glob(os.path.join(ROOT, a.traces, "doc*.pt")))
+    assert files, f"{a.traces} 里没有 doc*.pt"
     doc = torch.load(files[0], map_location="cpu")
     L, H = doc["L"], doc["H"]
     torch.manual_seed(3)
