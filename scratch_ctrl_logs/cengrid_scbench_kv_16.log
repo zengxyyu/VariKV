@@ -1,0 +1,26 @@
+tag: _fastkvzip__cg16_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.63it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.70it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.67it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.80it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.75it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: centroid
+[Centroid] K=16/head rope=post
+['scbench_kv']
+
+scbench_kv loaded, #data: 100
+set generation length: 96 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~100 samples
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:07,  1.28it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:08,  1.08it/s]Prefill:  27%|██▋       | 3/11 [00:03<00:09,  1.15s/it]Prefill:  36%|███▋      | 4/11 [00:05<00:09,  1.40s/it]Prefill:  45%|████▌     | 5/11 [00:07<00:10,  1.69s/it]Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.99s/it]Prefill:  64%|██████▎   | 7/11 [00:13<00:09,  2.42s/it]Prefill:  73%|███████▎  | 8/11 [00:18<00:10,  3.52s/it]Prefill:  82%|████████▏ | 9/11 [00:25<00:08,  4.45s/it]Prefill:  91%|█████████ | 10/11 [00:32<00:05,  5.29s/it]Prefill: 100%|██████████| 11/11 [00:38<00:00,  5.48s/it]Prefill: 100%|██████████| 11/11 [00:38<00:00,  3.50s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.

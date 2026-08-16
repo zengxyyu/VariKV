@@ -21,6 +21,7 @@ the dedicated docs below revises it. When they disagree, the dedicated doc wins.
 
 | read this | for |
 |---|---|
+| `RESULTS_GRID.md` | **全网格：4 条臂 × 11 panel × 8 个 ratio 的配对 Δ**（2026-08-16）。学习残差 v2/v3 与训练无关质心 K=16/K=1024 放在同一张表、同一基线上。由 `scratch_all_report.py` 生成，**别手改**。三个结论：ρ=0.1 上质心 +3.66 **赢过**学习残差 +1.02；两条线的最佳工作点不同（质心 0.1、残差 0.2）；Retr.MultiHop 上四条臂同向失败 |
 | `RESULTS_2026-08-12.md` | **the single entry point for every measured result.** Supersedes the result tables in this file |
 | `JOURNAL.md` | **the chronological record, split out of this file on 2026-08-13.** Every dated result narrative — Stage 1, Stage 2b's first benchmark, the Figure-11 reproduce, the residual round, the 08-11 sweeps, the teacher-KL round, the forensics. This file keeps the standing conclusions and points there for how each was obtained |
 | `MODELS.md` | the checkpoint registry (38 ckpts). Read before citing any checkpoint |

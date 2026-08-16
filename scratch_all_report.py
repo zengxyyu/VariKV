@@ -1,0 +1,176 @@
+#!/usr/bin/env python3
+"""把学习残差（v2/v3）与训练无关质心（K=16/K=1024）放进同一张表。
+
+统一口径，三条都是这个项目付过学费的：
+
+1. **只报配对 Δ，不报跨运行的绝对分。** `results.parse` 的相对行按各自的满缓存分
+   归一，而满缓存分逐运行漂移；绝对分也只在两臂样本集完全一致时才可比（慢的那一臂
+   没跑到的样本会被交集丢掉）。
+2. **共同基线**用 `__g8base`（全 11 panel × 8 ratio 的那次），这样质心与残差对的是
+   同一批基线数字，两条线之间才可比。
+3. **完成判定看日志的 `Finished.`，不看结果文件计数** —— choice_eng 18 条、
+   qa_eng 20、many_shot 54、repoqa 88、vt 90，计数法会把完整的当成截断的。
+
+`--md` 输出 markdown。
+"""
+import argparse
+import contextlib
+import io
+import json
+import os
+import sys
+
+import numpy as np
+
+_P = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                  "external/FastKVzip/prefill")
+sys.path.insert(0, _P)
+os.chdir(_P)
+from results.parse import parse_answer, evaluate_answer          # noqa: E402
+
+RAT = [1.0, 0.75, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05]
+PANEL = {"scbench_kv": "Retr.KV", "scbench_prefix_suffix": "Retr.PrefSuf",
+         "scbench_repoqa": "Code.RepoQA", "squad": "SQuAD", "gsm": "GSM8K",
+         "scbench_qa_eng": "En.QA", "scbench_choice_eng": "En.MultiChoice",
+         "scbench_summary": "En.Summary", "scbench_vt": "Retr.MultiHop",
+         "scbench_mf": "Math.Find", "scbench_many_shot": "ICL.ManyShot"}
+# 质心的 tag 是分几批跑出来的，命名不统一，这里显式列出而不是拼规则——
+# 拼规则拼错会静默返回空字典，然后整格显示成"缺数据"，很难发现。
+# 目录名的形状是 `fastkvzip_<tag>_chunk16k_w4096_cen<K>` —— tag 与 `_cen<K>` 之间
+# 还夹着 `_chunk16k_w4096`。首版漏了中间那段，四列全空且不报错（`per_sample` 找不到
+# 目录就返回空字典），只能靠"整片都是 —"发现。
+_C = "_chunk16k_w4096_cen"
+CEN = {
+    "scbench_kv": {16: f"__cen16{_C}16", 1024: f"__cen1024{_C}1024"},
+    "scbench_vt": {16: f"__p2_cen16_vt{_C}16", 1024: f"__p2_cen1024_vt{_C}1024"},
+    "scbench_prefix_suffix": {16: f"__p2_cen16_ps{_C}16",
+                              1024: f"__p2_cen1024_ps{_C}1024"},
+    "scbench_repoqa": {16: f"__p2_cen16_rq{_C}16", 1024: f"__p2_cen1024_rq{_C}1024"},
+}
+for d in ("gsm", "squad", "scbench_qa_eng", "scbench_choice_eng",
+          "scbench_summary", "scbench_mf", "scbench_many_shot"):
+    CEN[d] = {16: f"__cen16_{d}{_C}16", 1024: f"__cen1024_{d}{_C}1024"}
+# 另外两批：`_c23*` 覆盖 ratio 0.3/0.2（6 panel），`_r05c*` 覆盖 0.05/0.1（5 panel）。
+# 同一 (panel, K) 的不同 ratio 散在不同 tag 里，所以取值时要按 ratio 找对应那批。
+CEN23 = {d: {16: f"__c2316_{d}{_C}16", 1024: f"__c231024_{d}{_C}1024"}
+         for d in ("scbench_kv", "scbench_mf", "scbench_prefix_suffix",
+                   "scbench_repoqa", "scbench_summary", "scbench_vt")}
+CEN05 = {d: {16: f"__r05c16{_C}16", 1024: f"__r05c1024{_C}1024"}
+         for d in ("scbench_kv", "scbench_prefix_suffix", "scbench_repoqa",
+                   "scbench_summary", "scbench_vt")}
+
+
+def cen_sfx(d, K, r):
+    """同一 (panel,K) 的不同 ratio 分散在三批 tag 里，按 ratio 选对应那批。"""
+    if r in (0.3, 0.2) and d in CEN23:
+        return CEN23[d][K]
+    if r == 0.05 and d in CEN05:
+        return CEN05[d][K]
+    return CEN[d][K] if r == 0.1 else None
+
+_M = contextlib.redirect_stdout(io.StringIO())
+
+
+def per_sample(data, suffix, ratio):
+    with _M:
+        ANSW, SUBT = parse_answer(data)
+    out, i = {}, 0
+    while True:
+        f = f"results/{data}/{i}_qwen2.5-7b-instruct-1m_fastkvzip{suffix}/output-pair.json"
+        if not os.path.exists(f):
+            break
+        dd = json.load(open(f))
+        p, ans = [], []
+        for fmt in [k for k in dd if k.startswith("qa")]:
+            for info, txt in dd[fmt]:
+                if abs(float(info[0]) - ratio) < 1e-9:
+                    p.append(txt["pruned"]); ans.append(txt["answer"])
+        gold = ANSW[i] if ANSW else ans
+        sub = SUBT[i] if SUBT else None
+        if p:
+            with _M:
+                out[i] = float(np.mean(evaluate_answer(p, gold, data, "qa",
+                                                       subtask=sub)))
+        i += 1
+    return out
+
+
+def boot(d, n=4000, seed=0):
+    r = np.random.default_rng(seed)
+    b = np.array([d[r.integers(0, len(d), len(d))].mean() for _ in range(n)])
+    return d.mean(), np.percentile(b, 2.5), np.percentile(b, 97.5)
+
+
+def cell(base, arm):
+    c = sorted(set(base) & set(arm))
+    if not c:
+        return None
+    d = (np.array([arm[j] for j in c]) - np.array([base[j] for j in c])) * 100
+    m, lo, hi = boot(d)
+    return m, (lo > 0 or hi < 0), len(c)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--md", action="store_true")
+    a = ap.parse_args()
+    ARMS = [("v2", lambda d: "__g8v2_chunk16k_w4096_ctrlmmemo8"),
+            ("v3", lambda d: "__g8v3_chunk16k_w4096_ctrlmmemo8"),
+            ("cen16", None), ("cen1024", None)]     # 质心按 ratio 选 tag
+    agg = {a_: {r: [] for r in RAT} for a_, _ in ARMS}
+    rows = []
+    for d, name in PANEL.items():
+        B = {r: per_sample(d, "__g8base_chunk16k_w4096", r) for r in RAT}
+        full = np.mean(list(B[1.0].values())) * 100 if B[1.0] else float("nan")
+        for a_, sfx in ARMS:
+            try:
+                if sfx is None:                          # 质心：逐 ratio 找 tag
+                    K = 16 if a_ == "cen16" else 1024
+                    A = {}
+                    for r in RAT:
+                        t = cen_sfx(d, K, r)
+                        if t:
+                            A[r] = per_sample(d, t, r)
+                else:
+                    A = {r: per_sample(d, sfx(d), r) for r in RAT}
+            except Exception:
+                A = {}
+            got = {}
+            for r in RAT[1:]:
+                if not A.get(r) or not B.get(r):
+                    continue
+                c = cell(B[r], A[r])
+                if c:
+                    got[r] = c
+                    agg[a_][r].append(c[0])
+            rows.append((name, full, a_, got))
+    W = 13
+    hd = f"| {'panel':<15}| {'full':>5} | {'arm':<8}|" + "".join(
+        f" {('ρ=%g' % r):>{W}} |" for r in RAT[1:])
+    print(hd)
+    print("|" + "|".join(["-" * 16, "-" * 7, "-" * 9]
+                         + ["-" * (W + 2)] * (len(RAT) - 1)) + "|")
+    last = None
+    for name, full, a_, got in rows:
+        n = name if name != last else ""
+        last = name
+        line = f"| {n:<15}| {full:>5.1f} | {a_:<8}|"
+        for r in RAT[1:]:
+            if r not in got:
+                line += f" {'—':>{W}} |"
+            else:
+                m, sig, _ = got[r]
+                line += f" {('%+.2f' % m) + ('★' if sig else ''):>{W}} |"
+        print(line)
+    print("|" + "|".join(["-" * 16, "-" * 7, "-" * 9]
+                         + ["-" * (W + 2)] * (len(RAT) - 1)) + "|")
+    for a_, _ in ARMS:
+        line = f"| {'**均值**':<15}| {'':>5} | {a_:<8}|"
+        for r in RAT[1:]:
+            v = agg[a_][r]
+            line += f" {(('%+.2f (%d)' % (np.mean(v), len(v))) if v else '—'):>{W}} |"
+        print(line)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
