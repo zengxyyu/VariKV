@@ -270,6 +270,9 @@ def main():
               flush=True)
 
     A = np.array(rows); Gm = np.array(gam); B = np.array(lay_rows)
+    # **一定要存盘。** 这一跑要 40 分钟 × 20 篇 169k 预填；上一次因为算了列 16–20
+    # 却忘了打印，整跑 GPU 时间全废了，只能重来。存了盘就再也不会。
+    np.save(str(ROOT / f"scratch_massdir_{a.data}_K{a.K}.npy"), A)
     md = lambda c: float(np.median(A[:, c]))                     # noqa: E731
     print("\n" + "=" * 96)
     print(f"(mass × direction) oracle 2×2　{a.data} @ratio {a.ratio}　K={a.K}　"
@@ -312,6 +315,29 @@ def main():
           f"　（P0 记的是 0.666 → 0.438）")
     print("  判读：若「E4 式」明显差于「现方法」⇒ 复现 P0 的灾难；若反而更好 ⇒")
     print("        P0 的 +1249% 是 n=6 的假象，或来自它把质量与方向一起改了")
+    print("-" * 96)
+    # 第 14 列（旧「两者都换」）把**一阶** softmax 权重配上**二阶**质量 LE2，不是任何
+    # 一个自洽的估计量。第 16 列才是真 joint：权重也用二阶 logits。两者之差量化了
+    # 那个不一致到底有多大——若可忽略，之前所有基于第 14 列的读数不必改口径。
+    print("【一阶权重 vs 真 joint —— 修掉「二阶质量配一阶方向」的不一致】")
+    print(f"{'':<42}{'误差中位':>10}{'P90':>10}")
+    for nm, c in (("旧写法  LE2 × softmax(一阶 r)  [列14]", 14),
+                  ("真 joint LE2 × softmax(二阶 r2) [列16]", 16)):
+        print(f"  {nm:<40}{md(c):>10.4f}{np.percentile(A[:,c],90):>10.4f}")
+    print(f"  方向误差 e：一阶权重 {md(15):.4f}  →  二阶权重 {md(17):.4f}")
+    print("-" * 96)
+    # Jensen 缺口的分解：`r_ex` 是**精确** MGF（对簇内成员做分段 logsumexp），所以
+    #   列18 = |r_ex − r0| 一阶漏掉的全部，  列19 = |r_ex − r2| 二阶之后还剩的。
+    # 解释率 1 − 列19/列18 就是"二阶到底补上了 Jensen 缺口的百分之几"。这是唯一
+    # 能把"二阶够不够"和"二阶方向对不对"分开的数字。
+    print("【Jensen 缺口：二阶 MGF 补上了多少（对精确 MGF 的分段 logsumexp 而言）】")
+    print(f"  一阶缺口 |r_ex−r0|   中位 {md(18):.4f}   P90 {np.percentile(A[:,18],90):.4f}")
+    print(f"  二阶残差 |r_ex−r2|   中位 {md(19):.4f}   P90 {np.percentile(A[:,19],90):.4f}")
+    _er = A[:, 20][np.isfinite(A[:, 20])]
+    print(f"  二阶解释率 1−残差/缺口  中位 {np.median(_er):.3f}   "
+          f"P10 {np.percentile(_er,10):.3f}   为负比例 {np.mean(_er<0):.1%}")
+    print("  判读：解释率高而列16 不比列6 好 ⇒ 质量估准了但下游不吃这一套（对齐问题）；")
+    print("        解释率低 ⇒ 二阶不够，需要每簇一个标量校正（P0 §5.5 的提法）")
     print("-" * 96)
     print("【γ-sweep：保持 v̂ 不变，只缩放真实质量 γ·D_E】")
     print(f"{'γ':>8}{'误差中位':>12}{'误差均值':>12}")

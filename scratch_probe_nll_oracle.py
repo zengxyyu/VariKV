@@ -62,7 +62,7 @@ def nll(model, ids, n_ans, kv):
 
 
 @torch.inference_mode()
-def attn_marginal(model, kv, qcap, layers, cand, keep, n_ctx):
+def attn_marginal(model, kv, qcap, layers, cand, keep, n_ctx, sink):
     """`U^attn`：条件于存活集合 S 的边际效用，与 scratch_ctrl_teacher 的
     `utility_setmarginal` 同一公式（秩一更新，不重算 softmax）。"""
     d = model.config.hidden_size // model.config.num_attention_heads
@@ -81,7 +81,15 @@ def attn_marginal(model, kv, qcap, layers, cand, keep, n_ctx):
         a = torch.einsum("gtd,nd->gtn", Aq, K)
         e = (a - a.amax(-1, keepdim=True)).exp()
         o_full = torch.einsum("gtn,nd->gtd", e, V) / e.sum(-1, keepdim=True)
-        m = keep[l][h].to(K.device)
+        # **off-by-sink**：`kv.valid` 只覆盖可驱逐区 `[sink, sink+ctx_len)`，
+        # 而 `key_cache` / `e` 是绝对位置、长度 n_ctx = sink + ctx_len。
+        # 前 sink 个是 attention sink，**永远保留**，必须补成 True 再对齐。
+        # 冒烟直接崩在这里（169063 vs 169035，差 28 = sink），是好事：
+        # 若形状恰好能广播就会静默算错。
+        mv = keep[l][h].to(K.device)
+        m = torch.cat([torch.ones(sink, dtype=mv.dtype, device=K.device), mv])
+        assert m.numel() == n_ctx, (m.numel(), n_ctx)
+        ia = i + sink                                  # 候选下标也要转成绝对位置
         eS = e * m[None, None, :]
         ZS = eS.sum(-1, keepdim=True).clamp_min(1e-30)
         NS = torch.einsum("gtn,nd->gtd", eS, V)
@@ -90,11 +98,11 @@ def attn_marginal(model, kv, qcap, layers, cand, keep, n_ctx):
             z = (o_full - o).permute(1, 0, 2).reshape(T, G * d)
             return ((z @ Gram) * z).sum(-1).mean()
 
-        sg = -1.0 if bool(m[i]) else 1.0               # 保留⇒移出，驱逐⇒加回
-        Zp = (ZS + sg * e[..., i:i + 1]).clamp_min(1e-30)
-        Np = NS + sg * e[..., i:i + 1] * V[i]
+        sg = -1.0 if bool(m[ia]) else 1.0              # 保留⇒移出，驱逐⇒加回
+        Zp = (ZS + sg * e[..., ia:ia + 1]).clamp_min(1e-30)
+        Np = NS + sg * e[..., ia:ia + 1] * V[ia]
         eo, es = err(Np / Zp), err(NS / ZS)
-        out[(l, h, i)] = float(eo - es) if bool(m[i]) else float(es - eo)
+        out[(l, h, i)] = float(eo - es) if bool(m[ia]) else float(es - eo)
         del a, e, eS, NS
     return out
 
@@ -135,6 +143,10 @@ def main():
 
         kv = ds.prefill_context(si, prefill_chunk=a.chunk, window_size=a.window,
                                 chunk_ratio=a.ratio, level="pair")
+        # **必须 clone。** `prefill` 带 `@torch.inference_mode()`，它建出来的张量是
+        # inference tensor，**在推理上下文之外不允许就地修改**（这是 CLAUDE.md 记过的
+        # 同一类坑）。而本探针的做法正是逐个候选翻转 `valid` 的一位再重算 NLL。
+        kv.valid = kv.valid.clone()
         V = kv.valid                                   # [L,H,ctx_len]（含末尾永久窗口）
         sink = kv.sink
         assert V.shape[-1] == kv.ctx_len, (V.shape, kv.ctx_len)
@@ -155,7 +167,7 @@ def main():
                 for t in idx.tolist()]
 
         ua = attn_marginal(m, kv, qcap, list(range(L)), cand,
-                           {l: V[l] for l in range(L)}, n_ctx)
+                           {l: V[l] for l in range(L)}, n_ctx, sink)
         for (l, h, i) in cand:
             V[l, h, i] = ~V[l, h, i]                   # 翻转，重算 NLL
             n2 = nll(m, ids, n_ans, kv)

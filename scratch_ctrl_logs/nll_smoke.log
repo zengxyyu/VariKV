@@ -1,5 +1,5 @@
 Replace qwen2.5 attention with gating
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.76it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.80it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.75it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.88it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.84it/s]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.06it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.10it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.08it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.17it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.14it/s]
 
 Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
 load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
@@ -17,7 +17,7 @@ KV type: retain
 scbench_kv loaded, #data: 100
 set generation length: 96 (see utils/func.py)
 chunk inputs, size: 16000 (num 11)
-Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.54it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.42it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.18it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:07,  1.03s/it]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.25s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.48s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.73s/it]Prefill:  73%|███████▎  | 8/11 [00:12<00:05,  1.99s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.26s/it]Prefill:  91%|█████████ | 10/11 [00:18<00:02,  2.54s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.56s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.88s/it]
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.59it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.46it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.19it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:07,  1.03s/it]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.24s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.48s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.73s/it]Prefill:  73%|███████▎  | 8/11 [00:12<00:05,  1.99s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.26s/it]Prefill:  91%|█████████ | 10/11 [00:18<00:02,  2.54s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.56s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.88s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_kv-0: 169035 tokens, KV cache 9.7 GB, torch.bfloat16
 # Generated output | Ground truth
 The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
@@ -27,20 +27,12 @@ The attention mask is not set and cannot be inferred from input because pad toke
 [QA 3] 3b2dd49b-7437-4432-ac24-06fb8f7f862e | 3b2dd49b-7437-4432-ac24-06fb8f7f862e
 [QA 4] 89545afe-fded-413c-aa0e-f8bb3e5fd45e | 96945afe-fded-413c-aa0e-f8bb3e5fd45e
 chunk inputs, size: 16000 (num 11)
-Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.73it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.56it/s]Prefill:  27%|██▋       | 3/11 [00:01<00:05,  1.48it/s]Prefill:  36%|███▋      | 4/11 [00:02<00:04,  1.43it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.38it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.33it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.29it/s]Prefill:  73%|███████▎  | 8/11 [00:05<00:02,  1.25it/s]Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.22it/s]Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.34it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.33it/s]
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.72it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.55it/s]Prefill:  27%|██▋       | 3/11 [00:01<00:05,  1.48it/s]Prefill:  36%|███▋      | 4/11 [00:02<00:04,  1.43it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.38it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.34it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.30it/s]Prefill:  73%|███████▎  | 8/11 [00:05<00:02,  1.26it/s]Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.22it/s]Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.34it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.33it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_kv-0: 169035 tokens, KV cache 9.7 GB, torch.bfloat16
-Traceback (most recent call last):
-  File "/home/ubuntu/zxy/vlm-memory/scratch_probe_nll_oracle.py", line 196, in <module>
-    raise SystemExit(main())
-                     ^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/scratch_probe_nll_oracle.py", line 157, in main
-    ua = attn_marginal(m, kv, qcap, list(range(L)), cand,
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/scratch_probe_nll_oracle.py", line 85, in attn_marginal
-    eS = e * m[None, None, :]
-         ~~^~~~~~~~~~~~~~~~~~
-RuntimeError: The size of tensor a (169063) must match the size of tensor b (169035) at non-singleton dimension 2
+
+=== scbench_kv @ ratio 0.1  4 个候选 / 1 篇 ===
+  合并 Spearman(U^NLL, U^attn) = +0.4000  p=6.00e-01
+
+判读：Retr.KV 强正、MultiHop 弱或反号 ⇒ 靶子错位是 −9.96 的原因，换教师有据；
+      两个 panel 都强正 ⇒ 靶子不是病根，换了也白换。

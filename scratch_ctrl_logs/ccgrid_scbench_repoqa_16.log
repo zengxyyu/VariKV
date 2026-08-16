@@ -1,6 +1,6 @@
 tag: _fastkvzip__cc16_chunk16k_w4096
 Replace qwen2.5 attention with gating
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.50it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.52it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.50it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.61it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.57it/s]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.72it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.79it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.78it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.90it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.85it/s]
 
 Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
 load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
@@ -22,50 +22,361 @@ set generation length: 512 (see utils/func.py)
 ================================================================================ 
 Start evaluation with 0~88 samples
 chunk inputs, size: 16000 (num 5)
-Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:   0%|          | 0/5 [00:02<?, ?it/s]
-Traceback (most recent call last):
-  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/eval_chunk.py", line 213, in <module>
-    kv = dataset.prefill_context(data_idx, do_score=False)
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/data/wrapper.py", line 50, in prefill_context
-    kv = self.model.prefill(
-         ^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/model/wrapper.py", line 252, in prefill
-    return self._prefill_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/model/wrapper.py", line 298, in _prefill_impl
-    self.__call__(input_ids, kv, update_cache=True)
-  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/model/wrapper.py", line 130, in __call__
-    _ = self.model.model(input_ids, past_key_values=kv, *args, **kwargs)
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/utils/generic.py", line 965, in wrapper
-    output = func(self, *args, **kwargs)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 549, in forward
-    layer_outputs = decoder_layer(
-                    ^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 278, in forward
-    hidden_states = self.mlp(hidden_states)
-                    ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 59, in forward
-    down_proj = self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x))
-                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
-torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 580.00 MiB. GPU 0 has a total capacity of 79.18 GiB of which 327.00 MiB is free. Process 385733 has 30.47 GiB memory in use. Process 429089 has 30.14 GiB memory in use. Including non-PyTorch memory, this process has 18.22 GiB memory in use. Of the allocated memory 16.71 GiB is allocated by PyTorch, and 868.65 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.55it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.18it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.03s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```python
+def _can_omit_closing_paren(line: Line, *, last: Leaf, line_length: int) -> bool:
+    """See `can_omit_invisible_parens`."""
+    length = 4 * line.depth
+    seen_other_brackets = False
+    for _index, leaf, leaf_length in line.enumerate_with_length():
+        length += leaf_length
+        if leaf is last.opening_bracket:
+            if seen_other_brackets or length <= line_length:
+                return True
+
+        elif leaf.type in OPENING_BRACKETS:
+            # There are brackets we can further split on.
+            seen_other_brackets = True
+
+    return False
+``` | def _can_omit_closing_paren(line: Line, *, last: Leaf, line_length: int) -> bool:
+    """See `can_omit_invisible_parens`."""
+    length = 4 * line.depth
+    seen_other_brackets = False
+    for _index, leaf, leaf_length in line.enumerate_with_length():
+        length += leaf_length
+        if leaf is last.opening_bracket:
+            if seen_other_brackets or length <= line_length:
+                return True
+
+        elif leaf.type in OPENING_BRACKETS:
+            # There are brackets we can further split on.
+            seen_other_brackets = True
+
+    return False
+[QA 1] ```python
+def fstring_contains_expr(s: str) -> bool:
+    return any(iter_fexpr_spans(s))
+``` | def fstring_contains_expr(s: str) -> bool:
+    return any(iter_fexpr_spans(s))
+[QA 2] ```python
+def supports_feature(target_versions: Set[TargetVersion], feature: Feature) -> bool:
+    return all(feature in VERSION_TO_FEATURES[version] for version in target_versions)
+``` | def supports_feature(target_versions: Set[TargetVersion], feature: Feature) -> bool:
+    return all(feature in VERSION_TO_FEATURES[version] for version in target_versions)
+[QA 3] ```python
+@staticmethod
+def _remove_backslash_line_continuation_chars(
+    line: Line, string_indices: List[int]
+) -> TResult[Line]:
+    """
+    Merge strings that were split across multiple lines using
+    line-continuation backslashes.
+
+    Returns:
+        Ok(new_line), if @line contains backslash line-continuation
+        characters.
+            OR
+        Err(CannotTransform), otherwise.
+    """
+    LL = line.leaves
+
+    indices_to_transform = []
+    for string_idx in string_indices:
+        string_leaf = LL[string_idx]
+        if (
+            string_leaf.type == token.STRING
+            and "\\\n" in string_leaf.value
+            and not has_triple_quotes(string_leaf.value)
+        ):
+            indices_to_transform.append(string_idx)
+
+    if not indices_to_transform:
+        return TErr(
+            "Found no string leaves that contain backslash line continuation"
+            " characters."
+        )
+
+    new_line = line.clone()
+    new_line.comments = line.comments.copy()
+    append_leaves(new_line, line, LL)
+
+    for string_idx in indices_to_transform:
+        new_string_leaf = new_line.leaves[string_idx]
+        new_string_leaf.value = new_string_leaf.value.replace("\\\n", "")
+
+    return Ok(new_line)
+``` |     def _remove_backslash_line_continuation_chars(
+        line: Line, string_indices: List[int]
+    ) -> TResult[Line]:
+        """
+        Merge strings that were split across multiple lines using
+        line-continuation backslashes.
+
+        Returns:
+            Ok(new_line), if @line contains backslash line-continuation
+            characters.
+                OR
+            Err(CannotTransform), otherwise.
+        """
+        LL = line.leaves
+
+        indices_to_transform = []
+        for string_idx in string_indices:
+            string_leaf = LL[string_idx]
+            if (
+                string_leaf.type == token.STRING
+                and "\\\n" in string_leaf.value
+                and not has_triple_quotes(string_leaf.value)
+            ):
+                indices_to_transform.append(string_idx)
+
+        if not indices_to_transform:
+            return TErr(
+                "Found no string leaves that contain backslash line continuation"
+                " characters."
+            )
+
+        new_line = line.clone()
+        new_line.comments = line.comments.copy()
+        append_leaves(new_line, line, LL)
+
+        for string_idx in indices_to_transform:
+            new_string_leaf = new_line.leaves[string_idx]
+            new_string_leaf.value = new_string_leaf.value.replace("\\\n", "")
+
+        return Ok(new_line)
+[QA 4] ```python
+def _get_illegal_split_indices(self, string: str) -> Set[Index]:
+    illegal_indices: Set[Index] = set()
+    iterators = [
+        self._iter_fexpr_slices(string),
+        self._iter_nameescape_slices(string),
+    ]
+    for it in iterators:
+        for begin, end in it:
+            illegal_indices.update(range(begin, end + 1))
+    return illegal_indices
+``` |     def _get_illegal_split_indices(self, string: str) -> Set[Index]:
+        illegal_indices: Set[Index] = set()
+        iterators = [
+            self._iter_fexpr_slices(string),
+            self._iter_nameescape_slices(string),
+        ]
+        for it in iterators:
+            for begin, end in it:
+                illegal_indices.update(range(begin, end + 1))
+        return illegal_indices
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.32it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.03it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.16it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.46it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.24it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.06it/s]Prefill:  80%|████████  | 4/5 [00:04<00:01,  1.11s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.15it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.11it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.58it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.33it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.16it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.04it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.32it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.26it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.56it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.34it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.21it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.09it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.32it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.55it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.16it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.39it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.55it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.39it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.24it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.61it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.47it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.55it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.41it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.32it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.74it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.56it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.55it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.40it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.38it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.83it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.62it/s]
+Chunked prefilling with 0.05 ratio, window 3417
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/0_qwen2.5-7b-instruct-1m_fastkvzip__cc16_chunk16k_w4096_cc16_memory/output-pair.json
+## Time: 390.4s. Mem: 14.32/79.18 GB. [scbench_repoqa-0]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.34it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.82it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.31it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.02it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.04it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.16it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-1: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```python
+def enumerate_reversed(sequence: Sequence[T]) -> Iterator[Tuple[Index, T]]:
+    """Like `reversed(enumerate(sequence))` if that were possible."""
+    index = len(sequence) - 1
+    for element in reversed(sequence):
+        yield (index, element)
+        index -= 1
+``` | def enumerate_reversed(sequence: Sequence[T]) -> Iterator[Tuple[Index, T]]:
+    """Like `reversed(enumerate(sequence))` if that were possible."""
+    index = len(sequence) - 1
+    for element in reversed(sequence):
+        yield (index, element)
+        index -= 1
+[QA 1] ```python
+def _return_match(LL: List[Leaf]) -> Optional[int]:
+    """
+    Returns:
+        string_idx such that @LL[string_idx] is equal to our target (i.e.
+        matched) string, if this line matches the return/yield statement
+        requirements listed in the 'Requirements' section of this classes'
+        docstring.
+            OR
+        None, otherwise.
+    """
+    # If this line is a part of a return/yield statement and the first leaf
+    # contains either the "return" or "yield" keywords...
+    if parent_type(LL[0]) in [syms.return_stmt, syms.yield_expr] and LL[
+        0
+    ].value in ["return", "yield"]:
+        is_valid_index = is_valid_index_factory(LL)
+
+        idx = 2 if is_valid_index(1) and is_empty_par(LL[1]) else 1
+        # The next visible leaf MUST contain a string...
+        if is_valid_index(idx) and LL[idx].type == token.STRING:
+            return idx
+
+    return None
+``` |         def more_splits_should_be_made() -> bool:
+            """
+            Returns:
+                True iff `rest_value` (the remaining string value from the last
+                split), should be split again.
+            """
+            if use_custom_breakpoints:
+                return len(custom_splits) > 1
+            else:
+                return str_width(rest_value) > max_last_string_column()
+[QA 2] ```python
+def max_delimiter_priority_in_atom(node: LN) -> Priority:
+    """Return maximum delimiter priority inside `node`.
+
+    This is specific to atoms with contents contained in a pair of parentheses.
+    If `node` isn't an atom or there are no enclosing parentheses, returns 0.
+    """
+    if node.type != syms.atom:
+        return 0
+
+    first = node.children[0]
+    last = node.children[-1]
+    if not (first.type == token.LPAR and last.type == token.RPAR):
+        return 0
+
+    bt = BracketTracker()
+    for c in node.children[1:-1]:
+        if isinstance(c, Leaf):
+            bt.mark(c)
+        else:
+            for leaf in c.leaves():
+                bt.mark(leaf)
+    try:
+        return bt.max_delimiter_priority()
+
+    except ValueError:
+        return 0
+```
+``` | def max_delimiter_priority_in_atom(node: LN) -> Priority:
+    """Return maximum delimiter priority inside `node`.
+
+    This is specific to atoms with contents contained in a pair of parentheses.
+    If `node` isn't an atom or there are no enclosing parentheses, returns 0.
+    """
+    if node.type != syms.atom:
+        return 0
+
+    first = node.children[0]
+    last = node.children[-1]
+    if not (first.type == token.LPAR and last.type == token.RPAR):
+        return 0
+
+    bt = BracketTracker()
+    for c in node.children[1:-1]:
+        if isinstance(c, Leaf):
+            bt.mark(c)
+        else:
+            for leaf in c.leaves():
+                bt.mark(leaf)
+    try:
+        return bt.max_delimiter_priority()
+
+    except ValueError:
+        return 0
+[QA 3] ```python
+@staticmethod
+def _return_match(LL: List[Leaf]) -> Optional[int]:
+    """
+    Returns:
+        string_idx such that @LL[string_idx] is equal to our target (i.e.
+        matched) string, if this line matches the return/yield statement
+        requirements listed in the 'Requirements' section of this classes'
+        docstring.
+            OR
+        None, otherwise.
+    """
+    # If this line is a part of a return/yield statement and the first leaf
+    # contains either the "return" or "yield" keywords...
+    if parent_type(LL[0]) in [syms.return_stmt, syms.yield_expr] and LL[
+        0
+    ].value in ["return", "yield"]:
+        is_valid_index = is_valid_index_factory(LL)
+
+        idx = 2 if is_valid_index(1) and is_empty_par(LL[1]) else 1
+        # The next visible leaf MUST contain a string...
+        if is_valid_index(idx) and LL[idx].type == token.STRING:
+            return idx
+
+    return None
+``` |     def _return_match(LL: List[Leaf]) -> Optional[int]:
+        """
+        Returns:
+            string_idx such that @LL[string_idx] is equal to our target (i.e.
+            matched) string, if this line matches the return/yield statement
+            requirements listed in the 'Requirements' section of this classes'
+            docstring.
+                OR
+            None, otherwise.
+        """
+        # If this line is a part of a return/yield statement and the first leaf
+        # contains either the "return" or "yield" keywords...
+        if parent_type(LL[0]) in [syms.return_stmt, syms.yield_expr] and LL[
+            0
+        ].value in ["return", "yield"]:
+            is_valid_index = is_valid_index_factory(LL)
+
+            idx = 2 if is_valid_index(1) and is_empty_par(LL[1]) else 1
+            # The next visible leaf MUST contain a string...
+            if is_valid_index(idx) and LL[idx].type == token.STRING:
+                return idx
+
+        return None
+[QA 4] ```python
+@mypyc_attr(patchable=True)
+def _err(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+    if message is not None:
+        if "fg" not in styles:
+            styles["fg"] = "red"
+        message = style(message, **styles)
+    echo(message, nl=nl, err=True)
+``` | def _out(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+    if message is not None:
+        if "bold" not in styles:
+            styles["bold"] = True
+        message = style(message, **styles)
+    echo(message, nl=nl, err=True)
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.34it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.31it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.03it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.16it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-1: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.58it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.28it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.07it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.10s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.15it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.13it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-1: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.58it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.33it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.16it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.04it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.32it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.26it/s]

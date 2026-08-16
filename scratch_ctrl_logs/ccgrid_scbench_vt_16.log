@@ -1,6 +1,6 @@
 tag: _fastkvzip__cc16_chunk16k_w4096
 Replace qwen2.5 attention with gating
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.93it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.98it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.98it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.07it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.03it/s]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.76it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.84it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.80it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.94it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.89it/s]
 
 Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
 load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
@@ -22,50 +22,209 @@ set generation length: 96 (see utils/func.py)
 ================================================================================ 
 Start evaluation with 0~90 samples
 chunk inputs, size: 16000 (num 8)
-Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:   0%|          | 0/8 [00:01<?, ?it/s]
-Traceback (most recent call last):
-  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/eval_chunk.py", line 213, in <module>
-    kv = dataset.prefill_context(data_idx, do_score=False)
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/data/wrapper.py", line 50, in prefill_context
-    kv = self.model.prefill(
-         ^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/model/wrapper.py", line 252, in prefill
-    return self._prefill_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/model/wrapper.py", line 298, in _prefill_impl
-    self.__call__(input_ids, kv, update_cache=True)
-  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/model/wrapper.py", line 130, in __call__
-    _ = self.model.model(input_ids, past_key_values=kv, *args, **kwargs)
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/utils/generic.py", line 965, in wrapper
-    output = func(self, *args, **kwargs)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 549, in forward
-    layer_outputs = decoder_layer(
-                    ^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 278, in forward
-    hidden_states = self.mlp(hidden_states)
-                    ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 59, in forward
-    down_proj = self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x))
-                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
-torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 580.00 MiB. GPU 0 has a total capacity of 79.18 GiB of which 325.00 MiB is free. Process 385733 has 30.47 GiB memory in use. Process 429089 has 30.14 GiB memory in use. Including non-PyTorch memory, this process has 18.23 GiB memory in use. Of the allocated memory 16.72 GiB is allocated by PyTorch, and 869.80 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.57it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.44it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.18it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.04s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.25s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.90s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.48s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_vt-0: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] CTLFS VVUTI PZHIE HQXNY CPVLP | CTLFS, VVUTI, QBORE, IHQFY, JWJQC
+[QA 1] NHPIA QBORE USYVS IHQFY JWJQC | NHPIA, DSITT, ROLJC, JIAXN, CPVLP
+[QA 2] VAR DJHTA UJCKV HQXNY LZJRW JWJQC | DJHTA, HNZYZ, BRWEV, SDGAU, UGDVG
+[QA 3] PZHIE UGDVG AFCBD | PZHIE, UJCKV, HQTDP, USYVS, AFCBD
+[QA 4] VAR TMTZY VAR BRWEV VAR UGDVG VAR DSITT VAR IJTOJ | KFWJP, TMTZY, HQXNY, LZJRW, IJTOJ
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.27it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.79it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.00it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.74s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.90s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.44s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-0: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.46it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.24it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.04it/s]Prefill:  50%|█████     | 4/8 [00:04<00:04,  1.12s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.29s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.67s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.71s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.42s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-0: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.57it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.32it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.15it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.02it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.10s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.22s/it]Prefill:  88%|████████▊ | 7/8 [00:08<00:01,  1.35s/it]Prefill: 100%|██████████| 8/8 [00:09<00:00,  1.36s/it]Prefill: 100%|██████████| 8/8 [00:09<00:00,  1.18s/it]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-0: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.56it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.34it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.19it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.07it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.03s/it]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.12s/it]Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.22s/it]Prefill: 100%|██████████| 8/8 [00:08<00:00,  1.22s/it]Prefill: 100%|██████████| 8/8 [00:08<00:00,  1.08s/it]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-0: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.56it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.35it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.23it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.14it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.05it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.02s/it]Prefill:  88%|████████▊ | 7/8 [00:06<00:01,  1.10s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.08s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.02it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-0: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.55it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.38it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.21it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.15it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:01,  1.09it/s]Prefill:  88%|████████▊ | 7/8 [00:06<00:00,  1.03it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.07it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.13it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-0: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.56it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.40it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.34it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.29it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.26it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.22it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.19it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.27it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-0: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.54it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.41it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.36it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.34it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.28it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-0: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/0_qwen2.5-7b-instruct-1m_fastkvzip__cc16_chunk16k_w4096_cc16_memory/output-pair.json
+## Time: 122.0s. Mem: 14.32/79.18 GB. [scbench_vt-0]
+
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.27it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.00s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.74s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.90s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.44s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-1: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] NJXBK ORAIW KDHDD MFWHK PBKUT | NJXBK, ORAIW, KDHDD, MFWHK, TGSRO
+[QA 1] VIJLB YHUFS SCBVZ DNQDC DXBAT | VIJLB, YHUFS, THZTJ, SCBVZ, DNQDC
+[QA 2] VAR CBCYN | CBCYN, YXRHR, AQIQY, ACOIE, CDUDB
+[QA 3] SYDOT DXBAT DNQDC | SYDOT, PXYGE, CWXUU, ANYZV, DXBAT
+[QA 4] JXYCR THZTJ SCBVZ | JXYCR, OQWFT, MYHHN, PLESR, PBKUT
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.24it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.00s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.90s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.45s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-1: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.58it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.27it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.06it/s]Prefill:  50%|█████     | 4/8 [00:04<00:04,  1.11s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.29s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.67s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.71s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.42s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-1: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.56it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.31it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.15it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.02it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.10s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.23s/it]Prefill:  88%|████████▊ | 7/8 [00:08<00:01,  1.35s/it]Prefill: 100%|██████████| 8/8 [00:09<00:00,  1.36s/it]Prefill: 100%|██████████| 8/8 [00:09<00:00,  1.18s/it]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-1: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.55it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.33it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.19it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.07it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.02s/it]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.12s/it]Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.22s/it]Prefill: 100%|██████████| 8/8 [00:08<00:00,  1.22s/it]Prefill: 100%|██████████| 8/8 [00:08<00:00,  1.08s/it]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-1: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.56it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.36it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.24it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.14it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.06it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.02s/it]Prefill:  88%|████████▊ | 7/8 [00:06<00:01,  1.09s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.08s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.02it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-1: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.56it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.38it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.21it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.15it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:01,  1.09it/s]Prefill:  88%|████████▊ | 7/8 [00:06<00:00,  1.03it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.07it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.13it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-1: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.55it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.40it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.34it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.29it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.26it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.22it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.19it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.27it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-1: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.56it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.42it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.36it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.34it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.28it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-1: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/1_qwen2.5-7b-instruct-1m_fastkvzip__cc16_chunk16k_w4096_cc16_memory/output-pair.json
+## Time: 115.0s. Mem: 14.32/79.18 GB. [scbench_vt-1]
+
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.24it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.00it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.90s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.45s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-2: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] QNIKX YLIUH | QNIKX, YLIUH, NHEAI, GCZFF, WERUM
+[QA 1] RUAEL VAR QUNEA VAR ATPAG VAR JUDMU VAR WERUM | RUAEL, YIHEY, XCYEF, ZYTNQ, ATPAG
+[QA 2] VAR DYWLR VAR NDNRD VAR ZWASC VAR DCTEM VAR WERUM | DYWLR, GQKFQ, NDNRD, ZWASC, DCTEM
+[QA 3] VAR PNJOK  
+VAR NDNRD  
+VAR DCTEM  
+VAR WERUM  
+VAR JUDMU | PNJOK, QCCYW, OAECB, ZZFAG, JUDMU
+[QA 4] QCCYW ZWASC ATPAG JUDMU WERUM | ECOUQ, QUNEA, ALDRD, VPYPB, LANFQ
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.25it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.00s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.91s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.45s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-2: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.59it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.28it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.06it/s]Prefill:  50%|█████     | 4/8 [00:04<00:04,  1.11s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.29s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.67s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.42s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-2: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.57it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.32it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.15it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.02it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.10s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.22s/it]Prefill:  88%|████████▊ | 7/8 [00:08<00:01,  1.35s/it]Prefill: 100%|██████████| 8/8 [00:09<00:00,  1.37s/it]Prefill: 100%|██████████| 8/8 [00:09<00:00,  1.18s/it]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-2: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.55it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.33it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.19it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.07it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.03s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.12s/it]Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.22s/it]Prefill: 100%|██████████| 8/8 [00:08<00:00,  1.22s/it]Prefill: 100%|██████████| 8/8 [00:08<00:00,  1.08s/it]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-2: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.56it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.36it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.24it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.14it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.06it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.02s/it]Prefill:  88%|████████▊ | 7/8 [00:06<00:01,  1.10s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.08s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.02it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-2: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.55it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.38it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.21it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.15it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:01,  1.09it/s]Prefill:  88%|████████▊ | 7/8 [00:06<00:00,  1.03it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.07it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.13it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-2: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.56it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.40it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.34it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.29it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.26it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.22it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.19it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.27it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-2: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.54it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.41it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.36it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.33it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.31it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.28it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-2: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/2_qwen2.5-7b-instruct-1m_fastkvzip__cc16_chunk16k_w4096_cc16_memory/output-pair.json
+## Time: 133.1s. Mem: 14.32/79.18 GB. [scbench_vt-2]
+
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.28it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.79it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.00it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.74s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.90s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.44s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-3: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ZWCPJ PJJHP RPULT GIFCQ | ZWCPJ, PJJHP, BYOYO, XMGDS, EFXGQ
+[QA 1] SLOYB GSSZH YISRC | SLOYB, GSSZH, RPULT, SMWTW, GIFCQ
+[QA 2] YMXZC CEFWN GIFCQ | YMXZC, VWULN, RVSOL, YTIBQ, CEFWN
+[QA 3] IABIJ GIFCQ YISRC FOQCT ANOBX | TFKIQ, MOFDF, IABIJ, EXUWV, YISRC
+[QA 4] ASOZB BYOYO EXUWV YISRC FOQCT | ASOZB, MUMDN, CTPON, ANOBX, FOQCT
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.25it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.00s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.90s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.45s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-3: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.58it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.27it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.06it/s]Prefill:  50%|█████     | 4/8 [00:04<00:04,  1.11s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.29s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.67s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.71s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.42s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-3: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.56it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.31it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.15it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.02it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.10s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.22s/it]Prefill:  88%|████████▊ | 7/8 [00:08<00:01,  1.35s/it]Prefill: 100%|██████████| 8/8 [00:09<00:00,  1.36s/it]Prefill: 100%|██████████| 8/8 [00:09<00:00,  1.18s/it]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-3: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.55it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.33it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.19it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.07it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.03s/it]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.12s/it]Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.22s/it]Prefill: 100%|██████████| 8/8 [00:08<00:00,  1.22s/it]Prefill: 100%|██████████| 8/8 [00:08<00:00,  1.08s/it]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-3: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.57it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.36it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.24it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.15it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.06it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.02s/it]Prefill:  88%|████████▊ | 7/8 [00:06<00:01,  1.09s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.08s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.02it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-3: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.55it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.38it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.21it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.15it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:01,  1.09it/s]Prefill:  88%|████████▊ | 7/8 [00:06<00:00,  1.04it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.07it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.13it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-3: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.54it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.40it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.33it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.29it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.26it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.22it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.19it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.27it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-3: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.55it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.41it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.37it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.34it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.32it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.28it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.38it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.35it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-3: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/3_qwen2.5-7b-instruct-1m_fastkvzip__cc16_chunk16k_w4096_cc16_memory/output-pair.json
+## Time: 121.1s. Mem: 14.32/79.18 GB. [scbench_vt-3]
+
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.28it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.79it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.00it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.74s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.90s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.44s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-4: 124537 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] PSVUL ACBWM | PSVUL, JAPBF, PGPVT, RXBGK, AZXWX
+[QA 1] VAR PFQSE ACBWM | PFQSE, EWYUB, IZTMW, ITCYH, ACBWM
+[QA 2] VAR UXDBM ACBWM ACBWM ACBWM ACBWM | UXDBM, GIJRH, WTLRY, MJGCQ, EUIHC
+[QA 3] UIQCQ ACBWM ITCYH MJGCQ LACGR | UIQCQ, VIUIT, ZVZYG, AZDEM, PHJXW
+[QA 4] VAR BIVLK  
+VAR EWYUB  
+VAR MJGCQ  
+VAR ACBWM  
+VAR ITCYH | BIVLK, ODFUD, MCJMI, ZCIMI, LACGR
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.26it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.76it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.00s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.90s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.45s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-4: 124537 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.58it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.27it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.06it/s]Prefill:  50%|█████     | 4/8 [00:04<00:04,  1.11s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.29s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.67s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.42s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-4: 124537 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.57it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.31it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.15it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.02it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.10s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.22s/it]Prefill:  88%|████████▊ | 7/8 [00:08<00:01,  1.35s/it]Prefill: 100%|██████████| 8/8 [00:09<00:00,  1.37s/it]Prefill: 100%|██████████| 8/8 [00:09<00:00,  1.18s/it]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-4: 124537 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.55it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.33it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.19it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.07it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.03s/it]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.13s/it]Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.23s/it]Prefill: 100%|██████████| 8/8 [00:08<00:00,  1.22s/it]Prefill: 100%|██████████| 8/8 [00:08<00:00,  1.08s/it]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-4: 124537 tokens, KV cache 7.1 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.55it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.35it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.23it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.13it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.05it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.02s/it]Prefill:  88%|████████▊ | 7/8 [00:06<00:01,  1.10s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.08s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.02it/s]
