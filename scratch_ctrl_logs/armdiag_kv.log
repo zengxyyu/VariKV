@@ -1,0 +1,44 @@
+15:15 [GPU6] 臂诊断 kv
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.76it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.81it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.77it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.90it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.86it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: retain
+
+scbench_kv loaded, #data: 100
+[arm] /home/ubuntu/zxy/vlm-memory/varikv/dec_kv_s0.pt/memoryless.pt  arch=kv  alpha=0.9990  params=53378
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:09,  1.05it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:07,  1.23it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.30it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:05,  1.32it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.31it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.30it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.27it/s]Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.24it/s]Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.21it/s]Prefill:  91%|█████████ | 10/11 [00:08<00:00,  1.17it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.33it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.27it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-0: 169035 tokens, KV cache 9.7 GB, torch.bfloat16
+  样本 0: τ 中位 0.99175  翻转比例中位 4.12e-03  |ΔB|/B 中位 0.1636
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.78it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.57it/s]Prefill:  27%|██▋       | 3/11 [00:01<00:05,  1.49it/s]Prefill:  36%|███▋      | 4/11 [00:02<00:04,  1.43it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.38it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.34it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.30it/s]Prefill:  73%|███████▎  | 8/11 [00:05<00:02,  1.26it/s]Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.22it/s]Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.33it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.33it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-1: 169258 tokens, KV cache 9.7 GB, torch.bfloat16
+  样本 1: τ 中位 0.99385  翻转比例中位 3.07e-03  |ΔB|/B 中位 0.2074
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.77it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.57it/s]Prefill:  27%|██▋       | 3/11 [00:01<00:05,  1.49it/s]Prefill:  36%|███▋      | 4/11 [00:02<00:04,  1.44it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.38it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.34it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.30it/s]Prefill:  73%|███████▎  | 8/11 [00:05<00:02,  1.26it/s]Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.22it/s]Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.18it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.35it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.34it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-2: 169016 tokens, KV cache 9.7 GB, torch.bfloat16
+  样本 2: τ 中位 0.99355  翻转比例中位 3.22e-03  |ΔB|/B 中位 0.2501
+
+=== memoryless.pt  arch=kv  3 篇 ===
+头内秩保持  Kendall τ 中位 0.993550   最小 0.153200
+            逐对翻转比例 中位 3.225e-03  P90 2.750e-01  最大 4.234e-01
+逐 (层,头) 预算  |ΔB|/B 中位 0.1930  P90 19.6356  最大 198.0000
+            净增头数 172 / 净减 43 / 共 336
+
+判读：τ≈1 且 |ΔB|/B 大 ⇒ 纯跨层头预算再校准（最干净的方法命题）；
+      τ 明显<1 ⇒ 名为校准实为头内重排序，校准故事不成立；
+      |ΔB|/B≈0 ⇒ 增益不走预算通道，另找机制

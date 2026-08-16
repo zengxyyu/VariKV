@@ -43,20 +43,33 @@ bootstrap，见 `varikv_b_method.md` §9），所以 stateful / shuffled 两臂�
 v2 的**完整训练配方**（从 `scratch_ctrl_teacher_ext.sh` / `scratch_ctrl_train_run.sh`
 考出来的实际命令，不是脚本的 argparse 默认值 —— 两者不一样）
 
-**教师**（产出 `scratch_ctrl_traces_v2`，30 篇，每篇约 359 MB）：
+**教师**（产出 `scratch_ctrl_traces_v2` 的**前 10 篇**）：
 
-    scratch_ctrl_teacher.py --n_cat 30 --out scratch_ctrl_traces_v2
+    scratch_ctrl_teacher.py --out scratch_ctrl_traces_v2        # 全默认
 
-其余全取默认：`Qwen2.5-7B-Instruct-1M` / gate `fastkvzip` / ratio **0.1** /
+`--n_cat` 默认 0 ⇒ 走 `--n_short 0 --n_long 10` 这条路，即 `fineweb_10k_cat` 全部
+10 篇。其余默认：`Qwen2.5-7B-Instruct-1M` / gate `fastkvzip` / ratio **0.1** /
 chunk **16000** / window **4096** / level `pair` / max_ctx **131072** /
 target_len 256 / n_qpos 16 / **n_keep 256**（近阈值候选）+ **n_rand 512**（随机，
 只喂 writer，本实现不读）/ min_prunes 2 / task `continuation` /
 utility **`full_single`（= U^full，满缓存单 token 移除损伤）**。
 
-注意 `max_ctx 131072` 与 `n_short 0 / n_long 10` 是**非退化门槛**逼出来的，不是随手
-调的：`ratio × clen ≤ window` 时 `wrapper.py:271-277` 会把 chunk_ratio 置 0，驱逐退化
-成"只留局部窗口"，**任何改分数的方法都恒为 no-op**。门槛是 `clen > 4096/0.1 = 40,960`，
+`max_ctx 131072` 与 `n_short 0 / n_long 10` 是**非退化门槛**逼出来的，不是随手调的：
+`ratio × clen ≤ window` 时 `wrapper.py:271-277` 会把 chunk_ratio 置 0，驱逐退化成
+"只留局部窗口"，**任何改分数的方法都恒为 no-op**。门槛是 `clen > 4096/0.1 = 40,960`，
 而 `fineweb_10k` 最长才约 31k ⇒ 全部退化，只有 `fineweb_10k_cat` 能用。
+
+> **⚠ 目录现在有 30 篇，而 v2 只见过前 10 篇 —— 照原命令重跑复现不出 v2。**
+> 时间线（文件 mtime，2026-08-14）：`doc000–009` 12:39–12:41 → **ckpt 14:00** →
+> `doc010–029` 14:10–14:15。后 20 篇是 `scratch_ctrl_teacher_ext.sh --n_cat 30`
+> 在 ckpt **之后**为别的实验（拆解四臂等）扩的，v2 从未见过。
+> 而 `--split_seed 42` 是对**当前文件列表**做 shuffle，篇数一变划分全变：
+>
+>     10 篇 → 训练 8 / 验证 2　验证集 = [3, 7]
+>     30 篇 → 训练 23 / 验证 7　验证集 = [5, 6, 10, 14, 19, 22, 26]
+>
+> 所以本文件加了 **`--n_docs`（默认 10）**，只取排序后的前 N 篇。要在全部 30 篇上
+> 训练就显式传 `--n_docs 0`，但那不再是 v2 的数据。
 
 **训练**（3 个种子，只变初始化/采样/顺序）：
 
@@ -79,7 +92,7 @@ v2 的配置。但要留意：这些默认值与**原脚本**的 argparse 默认
 | epochs | 40 | 8 | **40** |
 | alpha_init | 1.0 | 0.05 | **1.0** |
 | freeze_alpha | 是 | 否 | **是** |
-| traces | `..._v2` | `scratch_ctrl_traces` | **`..._v2`** |
+| traces | `..._v2` 的前 **10** 篇 | `scratch_ctrl_traces` | **`..._v2` + `--n_docs 10`** |
 | lr / n_pairs / slots / dim | 3e-4 / 256 / 8 / 128 | 同左 | 同左 |
 | split_seed / val_frac | 42 / 0.25 | 同左 | 同左 |
 | pair_w / lam_global | linear / 1.0 | 同左 | 同左 |
@@ -561,6 +574,15 @@ def train(a):
     # 进来，然后在 `doc["chunks"]` 上抛 KeyError —— 或者更糟，形状恰好能走通。
     files = sorted(glob.glob(os.path.join(ROOT, a.traces, "doc*.pt")))
     assert files, f"{a.traces} 里没有 doc*.pt"
+    # **只取前 n_docs 篇。** v2 训练时目录里只有 10 篇（`doc010-029` 是 ckpt 存盘
+    # 之后 10 分钟才为别的实验扩的），而 `--split_seed` 是对**当前文件列表**做
+    # shuffle —— 篇数一变，训练集和验证集全变。不设这个上限，照原命令重跑得到的是
+    # 另一份数据上的另一次实验，却看不出任何异常。
+    if a.n_docs > 0:
+        if len(files) > a.n_docs:
+            print(f"  [注意] 目录有 {len(files)} 篇，按 --n_docs {a.n_docs} 只取前 "
+                  f"{a.n_docs} 篇（v2 的配置）。要全用请传 --n_docs 0")
+        files = files[:a.n_docs]
     docs = [torch.load(f, map_location="cpu") for f in files]
     L, H = docs[0]["L"], docs[0]["H"]
     # **d_kv 从 trace 推**，不要信 argparse 的默认值：不一致时只会在 `x_proj` 里
@@ -951,6 +973,9 @@ def main():
                    help="只控制初始化 / pair 采样 / 训练顺序")
     t.add_argument("--split_seed", type=int, default=42, help="只控制 train/val 划分")
     t.add_argument("--val_frac", type=float, default=0.25)
+    t.add_argument("--n_docs", type=int, default=10,
+                   help="只用排序后的前 N 篇 trace。默认 10 = v2 训练时目录里的篇数；"
+                        "传 0 表示全用（那就不是 v2 的数据了）")
     t.add_argument("--alpha_init", type=float, default=1.0)
     t.add_argument("--freeze_alpha", action="store_true", default=True)
     t.add_argument("--no_freeze_alpha", dest="freeze_alpha", action="store_false")
