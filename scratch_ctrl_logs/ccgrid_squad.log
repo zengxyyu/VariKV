@@ -1,6 +1,6 @@
 tag: _fastkvzip__cc_chunk16k_w4096
 Replace qwen2.5 attention with gating
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.64it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.67it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.67it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.78it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.73it/s]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.83it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.88it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.71it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.73it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.75it/s]
 
 Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
 load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
@@ -31,21 +31,159 @@ The attention mask is not set and cannot be inferred from input because pad toke
 [QA 2] The Basilica of the Sacred Heart is next to the Main Building. | the Main Building
 [QA 3] The Grotto at Notre Dame is a Marian place of prayer and reflection, designed as a replica of the grotto at Lourdes, France, where the Virgin Mary is reputedly said to have appeared to Saint Bernadette Soubirous in 1858. | a Marian place of prayer and reflection
 [QA 4] A gold dome with a golden statue of the Virgin Mary. | a golden statue of the Virgin Mary
-Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.72it/s]
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.65it/s]
 # prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
-Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.93it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.93it/s]
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.99it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.99it/s]
 Chunked prefilling with 0.75 ratio, window 3
 # prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
-Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.99it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.99it/s]
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.50it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.50it/s]
 Chunked prefilling with 0.50 ratio, window 3
 # prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
-Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.66it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.66it/s]
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.46it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.46it/s]
 Chunked prefilling with 0.40 ratio, window 3
 # prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
-Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.53it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.53it/s]
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.54it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.54it/s]
 Chunked prefilling with 0.30 ratio, window 3
 # prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
-Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.84it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.84it/s]
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.37it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.37it/s]
 Chunked prefilling with 0.20 ratio, window 3
 # prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
-Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.88it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.88it/s]
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.39it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.14it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.14it/s]
+Chunked prefilling with 0.05 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/0_qwen2.5-7b-instruct-1m_fastkvzip__cc_chunk16k_w4096_cc1024_memory/output-pair.json
+## Time: 250.4s. Mem: 14.32/79.18 GB. [squad-0]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 14.75it/s]
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The Scholastic Magazine of Notre Dame began publishing in September 1876. | September 1876
+[QA 1] Twice a year. | twice
+[QA 2] The Observer | The Observer
+[QA 3] Three newspapers. | three
+[QA 4] 1987 | 1987
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 26.01it/s]
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.87it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.86it/s]
+Chunked prefilling with 0.75 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.35it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.34it/s]
+Chunked prefilling with 0.50 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.39it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.39it/s]
+Chunked prefilling with 0.40 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.30it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.29it/s]
+Chunked prefilling with 0.30 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.26it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.26it/s]
+Chunked prefilling with 0.20 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.29it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.29it/s]
+Chunked prefilling with 0.10 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.26it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.25it/s]
+Chunked prefilling with 0.05 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/1_qwen2.5-7b-instruct-1m_fastkvzip__cc_chunk16k_w4096_cc1024_memory/output-pair.json
+## Time: 83.0s. Mem: 14.32/79.18 GB. [squad-1]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 16.70it/s]
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The headquarters of the Congregation of the Holy Cross are in Rome. | Rome
+[QA 1] The primary seminary of the Congregation of the Holy Cross is Moreau Seminary. | Moreau Seminary
+[QA 2] Old College is the oldest building on campus. | Old College
+[QA 3] Retired priests and brothers live at Fatima House at Notre Dame. | Retired priests and brothers
+[QA 4] Frederick Buechner created the Buechner Prize for Preaching. | Buechner Prize for Preaching
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 25.92it/s]
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.94it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.94it/s]
+Chunked prefilling with 0.75 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.47it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.47it/s]
+Chunked prefilling with 0.50 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.54it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.54it/s]
+Chunked prefilling with 0.40 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.47it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.47it/s]
+Chunked prefilling with 0.30 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.31it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.31it/s]
+Chunked prefilling with 0.20 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.57it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.57it/s]
+Chunked prefilling with 0.10 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.16it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.16it/s]
+Chunked prefilling with 0.05 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/2_qwen2.5-7b-instruct-1m_fastkvzip__cc_chunk16k_w4096_cc1024_memory/output-pair.json
+## Time: 200.2s. Mem: 14.32/79.18 GB. [squad-2]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 16.61it/s]
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Eight B.S. degrees are offered in the College of Engineering at Notre Dame. | eight
+[QA 1] The College of Engineering at Notre Dame was formed in 1920. | 1920
+[QA 2] The College of Science. | the College of Science
+[QA 3] Based on the information provided, the number of departments specifically housed in the Stinson-Remick Hall of Engineering is not directly stated. Therefore, I cannot determine how many departments are within the Stinson-Remick Hall from the given context. | five
+[QA 4] The College of Science began to offer civil engineering courses beginning in the 1870s at Notre Dame. | the 1870s
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 26.07it/s]
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.75it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.75it/s]
+Chunked prefilling with 0.75 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.45it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.45it/s]
+Chunked prefilling with 0.50 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.32it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.32it/s]
+Chunked prefilling with 0.40 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.30it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.30it/s]
+Chunked prefilling with 0.30 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:01<00:00,  1.10s/it]Prefill: 100%|██████████| 1/1 [00:01<00:00,  1.10s/it]
+Chunked prefilling with 0.20 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.08it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.08it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.10it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.10it/s]
+Chunked prefilling with 0.05 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/3_qwen2.5-7b-instruct-1m_fastkvzip__cc_chunk16k_w4096_cc1024_memory/output-pair.json
+## Time: 297.7s. Mem: 14.32/79.18 GB. [squad-3]
+
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 15.78it/s]
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The Learning Resource Center provides help with time management for new students at Notre Dame. | Learning Resource Center
+[QA 1] Five | five
+[QA 2] The First Year of Studies program was created at Notre Dame in 1962 to assist first-year students. | The First Year of Studies program
+[QA 3] U.S. News & World Report | U.S. News & World Report
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 26.11it/s]
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.71it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.71it/s]
+Chunked prefilling with 0.75 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.35it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.35it/s]
+Chunked prefilling with 0.50 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.29it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.28it/s]
+Chunked prefilling with 0.40 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.20it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.20it/s]
+Chunked prefilling with 0.30 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.25it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  1.25it/s]
+Chunked prefilling with 0.20 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.34it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.34it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.35it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  3.35it/s]
