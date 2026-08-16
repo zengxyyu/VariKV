@@ -61,14 +61,22 @@ bootstrap，见 `varikv_b_method.md` §9），所以 stateful / shuffled 两臂�
 --------------------------------------------------------------------------------
 用法
 
-    # 三级等价性验收，全部在 CPU 上跑，不需要模型权重
+    # 四级等价性验收。前三级在 CPU 上跑、不需要模型权重；第四级要 GPU。
     .venv/bin/python varikv_v2.py verify         # 打分器：60 次随机微分测试
-    .venv/bin/python varikv_v2.py verify-cache   # cache：valid 掩码逐位相同
+    .venv/bin/python varikv_v2.py verify-cache   # cache：valid 掩码逐位相同（stub）
     .venv/bin/python varikv_v2.py verify-train   # 训练：loss 与随机数流同步
+    .venv/bin/python varikv_v2.py verify-real    # 真 7B：valid 与生成文本都逐位相同
 
-    # 评测：把 v2 接进 harness（与 eval_chunk.py 的 --ctrlm_ckpt 等价）
-    #   在 eval_chunk.py 里把 kv_class 换成 V2RetainCache 并传入 scorer 即可，
-    #   或直接用现成路径：eval_chunk.py ... --ctrlm_ckpt <ckpt>
+    # 为什么第四级不能省：前三级喂的都是 fp32 随机张量，而真实路径上 score 与 KV 是
+    # **bf16**，`delta` 内部一路 fp32、最后 `.to(score0.dtype)` 降回 bf16，**降精度
+    # 发生在阈值化之前**。原则上存在"两边的 Δs 舍入到不同 bf16 值 ⇒ 阈值处翻转不同"
+    # 的可能，只有真跑能排除。
+
+    # 评测：训练会同时写出 `*_compat.pt`（ControlMemory 形状），直接喂现有 harness，
+    # 这样新实现产出的数字与历史结果仍在同一条路径上可比：
+    #   cd external/FastKVzip/prefill && eval_chunk.py ... --ctrlm_ckpt <*_compat.pt>
+    # **注意只覆盖了 `prune_chunk`**：`eval.py` 走的不分块 `prune()` 路径上 v2
+    # 一声不响地不生效，评测一律走 `eval_chunk.py`。
 
     # 训练（需要教师 trace，格式见 run_doc 的 docstring）
     .venv/bin/python varikv_v2.py train --traces scratch_ctrl_traces_v2 \
@@ -261,6 +269,12 @@ class V2Scorer(nn.Module):
         第一行短路。
         """
         from attention.control_memory import ControlMemory
+        # **ckpt 格式里没有 alpha_max 这一栏**，而 `eval_chunk.py` 建 ControlMemory 时
+        # 用的是默认 1.0。`alpha = alpha_max·sigmoid(alpha_on)`，所以 alpha_max≠1 会在
+        # 导出时被**静默丢掉**，部署的修正幅度与训练时不同。宁可在这里崩。
+        assert self.alpha_max == 1.0, (
+            f"alpha_max={self.alpha_max}，但 ckpt 格式无此字段、eval_chunk 恒用 1.0"
+            "　⇒ 导出会静默改变 alpha。要支持请先给 ckpt 加字段并改 eval_chunk")
         cm = ControlMemory(self.d_kv, self.L, self.H,
                            n_slots=self.K, d_m=self.d_m, mode="memoryless",
                            typed=True)
@@ -294,6 +308,11 @@ class V2RetainCache(RetainCache):
 
     仍派生自 `RetainCache`（逻辑掩码，物理保留全部 KV），所以能回答"选择改变有没有
     用"，**不能**声称峰值显存下降。
+
+    **只覆盖 `prune_chunk`，没有覆盖 `prune`。** 后者是不分块的那条路径，`eval.py`
+    在用；走那条路 v2 **一声不响地完全不生效**（拿到的就是基线）。原版
+    `LearnedControlRetainCache` 同样如此，这里照抄不是疏忽，但它属于本项目反复吃亏的
+    静默失败类，所以写明：**评测一律走 `eval_chunk.py`。**
     """
 
     def __init__(self, model, evict_range: Tuple[int, int], scorer=None):
@@ -305,7 +324,12 @@ class V2RetainCache(RetainCache):
     def active(self) -> bool:
         return self.scorer is not None and float(self.scorer.alpha) != 0.0
 
-    def prune_chunk(self, ratio: float, evict_range=tuple, level: str = "pair"):
+    def prune_chunk(self, ratio: float, evict_range: Tuple[int, int] = None,
+                    level: str = "pair"):
+        # 参数顺序与 `wrapper.py:302` 的 `kv.prune_chunk(ratio, (lo,hi), level)` 对齐。
+        # 原版这里的默认值写成 `evict_range=tuple`（一个类型对象），漏传时会报
+        # "cannot unpack type"；改成 None 只是让错误信息可读，调用方从不漏传。
+        assert evict_range is not None, "evict_range 必传，形如 (start_idx, end_idx)"
         lo, hi = evict_range
         score0 = torch.stack(self.score, dim=0)[..., lo:hi]        # [L,1,H,n]
         score = score0
@@ -475,6 +499,11 @@ def train(a):
     assert files, f"{a.traces} 里没有 trace"
     docs = [torch.load(f, map_location="cpu") for f in files]
     L, H = docs[0]["L"], docs[0]["H"]
+    # **d_kv 从 trace 推**，不要信 argparse 的默认值：不一致时只会在 `x_proj` 里
+    # 抛一个看不懂的形状错误，而不是在这里说清楚。
+    d_kv = int(docs[0]["chunks"][0]["layers"][0]["k"].shape[-1])
+    assert d_kv == a.d_kv, (f"trace 的 d_kv={d_kv} 与 --d_kv={a.d_kv} 不符；"
+                            f"请传 --d_kv {d_kv}")
     # **划分种子与训练种子分开**：`--seed` 只该控制初始化/采样/顺序，若它同时决定
     # train/val 划分，跨种子比较就同时变了两样东西。
     idx = list(range(len(docs)))
@@ -531,7 +560,14 @@ def train(a):
     torch.save(dict(state=m.state_dict(), mode="memoryless", arch="memory",
                     slots=a.slots, dim=a.dim, d_kv=a.d_kv, L=L, H=H,
                     args=args), os.path.join(ROOT, a.out))
-    m.to_compat_ckpt(os.path.join(ROOT, a.out).replace('.pt', '_compat.pt'))
+    # **必须用 splitext，不能 str.replace('.pt', ...)。** `--out varikv/v2clean`
+    # （无后缀）时 replace 是恒等映射 ⇒ 兼容版**覆盖掉刚存好的主 ckpt**；而
+    # `a/b.pt/c.pt` 这种路径会被替换到错误的目录里去。
+    _base = os.path.join(ROOT, a.out)
+    _root, _ext = os.path.splitext(_base)
+    _compat = _root + "_compat" + (_ext or ".pt")
+    assert _compat != _base
+    m.to_compat_ckpt(_compat)
     print(f"已保存 {a.out}　+ 兼容版 *_compat.pt（可直接喂 eval_chunk --ctrlm_ckpt）")
     # 训练侧 ranking 指标**与下游反相关**过（`ckpt_kl_v2a` 验证第一、下游最差），
     # 所以这条提醒必须跟着输出走，别让人拿验证曲线当结论。
@@ -746,6 +782,73 @@ def verify_train(a):
     print("\n训练路径验收通过。")
 
 
+def verify_real(a):
+    """真模型上的端到端等价性 —— 前三个验收都用 stub / 随机张量，这一个用 7B 真跑。
+
+    `verify-cache` 已经证明"同样的输入 ⇒ 同样的 `valid`"，但它喂的是 fp32 随机张量。
+    真实路径里 `score` 是 bf16、KV 是 bf16、n≈16000、层数 28，而 `delta` 内部一路
+    fp32、最后 `delta.to(score0.dtype)` 降回 bf16。**降精度发生在阈值化之前**，所以
+    原则上存在"两边算出的 Δs 在 bf16 下舍入到不同值 ⇒ 阈值处翻转不同"的可能。
+    只有真跑才能排除。
+
+    比较两样东西，都要求逐位相同：`kv.valid` 掩码，以及最终生成的答案字符串。
+    """
+    from attention.control_memory import ControlMemory
+    from attention.learned_ctrlcache import LearnedControlRetainCache
+    from data import DataWrapper, load_dataset_all
+    from model import ModelKVzip
+    from utils import set_gen_length
+
+    os.chdir(_P)
+    m = ModelKVzip(a.model, "retain", "fastkvzip")
+    ds = DataWrapper(a.data, load_dataset_all(a.data, m.tokenizer), m)
+    set_gen_length(a.data, m)
+    sd = torch.load(os.path.join(ROOT, a.ckpt), map_location="cpu")
+    cm = ControlMemory(sd.get("d_kv", 128), sd["L"], sd["H"],
+                       n_slots=sd.get("slots", 8), d_m=sd.get("dim", 128),
+                       mode="memoryless", typed=True)
+    cm.load_state_dict(sd["state"])
+    cm = cm.to(m.device).eval()
+    v2 = V2Scorer.from_ckpt(os.path.join(ROOT, a.ckpt)).to(m.device).eval()
+
+    # 两臂都走**同一条** dispatch（`wrapper.py:206 kv_type == "control_learned"`），
+    # 只在 v2 那一遍把模块属性临时换成一个 shim —— wrapper 是在分支**内部**才
+    # `from attention.learned_ctrlcache import ...`，所以打模块属性有效。这样两臂
+    # 除了 cache 类之外，连预填的调用路径都逐字相同。
+    import attention.learned_ctrlcache as _lc
+    _real = _lc.LearnedControlRetainCache
+
+    class _Shim(V2RetainCache):
+        def __init__(self, model, evict_range, ctrl=None, **_kw):
+            super().__init__(model, evict_range, scorer=v2)
+
+    m.kv_type = "control_learned"
+    m.ctrl_module = cm
+    ok = True
+    for si in range(a.num):
+        outs = {}
+        for name in ("orig", "v2"):
+            _lc.LearnedControlRetainCache = _real if name == "orig" else _Shim
+            kv = ds.prefill_context(si, prefill_chunk=a.chunk,
+                                    window_size=a.window, chunk_ratio=a.ratio,
+                                    level="pair")
+            assert type(kv) is (_real if name == "orig" else _Shim), \
+                f"dispatch 没走到预期的类：{type(kv)}"
+            _, txt = ds.generate_answer(si, kv, prob=False)
+            outs[name] = (kv.valid.clone().cpu(), str(txt))
+            del kv
+            torch.cuda.empty_cache()
+        _lc.LearnedControlRetainCache = _real
+        same_v = bool(torch.equal(outs["orig"][0], outs["v2"][0]))
+        same_t = outs["orig"][1] == outs["v2"][1]
+        ok &= same_v and same_t
+        diff = float((outs["orig"][0] ^ outs["v2"][0]).float().mean())
+        print(f"  样本 {si}: valid 逐位相同 {same_v}（不一致 {diff:.2e}）　"
+              f"生成文本相同 {same_t}", flush=True)
+    assert ok, "真模型上不等价"
+    print("\n真模型端到端验收通过。")
+
+
 def main():
     ap = argparse.ArgumentParser(description="VariKV v2 最小实现")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -760,6 +863,16 @@ def main():
     w = sub.add_parser("verify-train", help="训练路径与随机数流的等价性（CPU）")
     w.add_argument("--traces", default="scratch_ctrl_traces_v2")
     w.set_defaults(fn=verify_train)
+
+    rr = sub.add_parser("verify-real", help="真 7B 模型上的端到端等价性（需 GPU）")
+    rr.add_argument("--ckpt", default="varikv/ctrl_b_a1_s0.pt/memoryless.pt")
+    rr.add_argument("--model", default="Qwen/Qwen2.5-7B-Instruct-1M")
+    rr.add_argument("-d", "--data", default="scbench_kv")
+    rr.add_argument("--num", type=int, default=2)
+    rr.add_argument("--ratio", type=float, default=0.1)
+    rr.add_argument("--chunk", type=int, default=16000)
+    rr.add_argument("--window", type=int, default=4096)
+    rr.set_defaults(fn=verify_real)
 
     t = sub.add_parser("train", help="训练（需要教师 trace）")
     t.add_argument("--traces", default="scratch_ctrl_traces_v2")
