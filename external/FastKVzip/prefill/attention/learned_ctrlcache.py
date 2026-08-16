@@ -110,7 +110,9 @@ class LearnedControlRetainCache(RetainCache):
                     # 手工版正是在这里踩过 917 MB 的坑。写入阶段重算一次特征更划算。
                     feats.append(None)
                     del k, v, x, r, q, xr_raw
-            if self.active and ratio <= self.rho_max:
+            if getattr(self.ctrl, "replace", False):
+                score = delta.to(score0.dtype)         # 独立打分器：完全不用 s⁰
+            elif self.active and ratio <= self.rho_max:
                 score = score0 + delta.to(score0.dtype)
                 self.delta_std.append(float(delta.std()))
 

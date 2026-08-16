@@ -44,18 +44,25 @@ import torch.nn as nn
 
 
 class CalibScorer(nn.Module):
-    MODES = ("bias", "affine", "scalar", "kv")
+    MODES = ("bias", "affine", "scalar", "kv", "k", "v")
 
     def __init__(self, d_kv: int, n_layers: int, n_heads_kv: int, arch: str = "affine",
                  n_slots: int = 8, d_m: int = 128, mode: str = "memoryless",
                  alpha_max: float = 1.0, alpha_init: float = 1.0, typed: bool = True,
-                 d_emb: int = 16):
+                 d_emb: int = 16, replace: bool = False):
         super().__init__()
         assert arch in self.MODES, arch
         # mode 只为与 ControlMemory 的三臂接口兼容；本模块无记忆，三臂必然同解，
         # 所以只允许 memoryless，避免有人误读成"对照做过了"
         assert mode == "memoryless", "CalibScorer 无记忆，只跑 memoryless 臂"
         self.arch, self.mode = arch, mode
+        # **replace=True：分数不再是 s⁰+Δs，而是 Δs 本身。**
+        # 这一条决定方法的身份：若独立打分器追平残差，FastKVzip 的分数就不是必要组件，
+        # 方法是"从 KV 学驱逐效用"——那正是 KVP (2602.10238) 的地盘；若残差明显更强，
+        # 方法就是"对一个强先验做残差修正"，与 KVP / KVpop（都是 standalone）区分开。
+        # replace 时输出**不经 tanh、不乘 σ_h、不乘 α**：那三样是"有界修正"的语义，
+        # 对一个从头打的分没有意义，加上反而把分数压进 ±σ_h 的窄带。
+        self.replace = bool(replace)
         self.L, self.H, self.d_m = n_layers, n_heads_kv, d_m
         d_x = 2 * d_kv
 
@@ -67,8 +74,11 @@ class CalibScorer(nn.Module):
             d_in = (3 + d_emb) if arch == "scalar" else (d_m + d_emb)
             self.head = nn.Sequential(nn.Linear(d_in, d_m), nn.GELU(),
                                       nn.Linear(d_m, 1))
-            if arch == "kv":
-                self.x_proj = nn.Linear(d_x, d_m)
+            # k / v 单独测：`f(K)≈f(K,V)` ⇒ 学的是"将来是否容易被 query 匹配到"
+            # （addressability）；`f(V)≈f(K,V)` ⇒ 学的是 payload 本身的重要性；
+            # 只有 K+V 才行 ⇒ 效用依赖两者的交互。三个故事完全不同。
+            if arch in ("kv", "k", "v"):
+                self.x_proj = nn.Linear(d_x if arch == "kv" else d_kv, d_m)
         self.alpha_max = float(alpha_max)
         _p = min(max(alpha_init, 1e-6), 0.999)
         self.alpha_on = nn.Parameter(
@@ -90,7 +100,14 @@ class CalibScorer(nn.Module):
         return torch.cat([k, v], dim=-1).float()
 
     def feat(self, x_raw):
-        return self.x_proj(x_raw) if self.arch == "kv" else x_raw
+        d = x_raw.shape[-1] // 2                       # raw = [k ; v]
+        if self.arch == "kv":
+            return self.x_proj(x_raw)
+        if self.arch == "k":
+            return self.x_proj(x_raw[..., :d])
+        if self.arch == "v":
+            return self.x_proj(x_raw[..., d:])
+        return x_raw
 
     def q_read(self, x_raw):
         return x_raw
@@ -129,5 +146,7 @@ class CalibScorer(nn.Module):
             feats = ([z[..., None], mg[..., None], rs[..., None], e]
                      if self.arch == "scalar" else [x, e])
             raw = self.head(torch.cat(feats, dim=-1)).squeeze(-1)
+        if self.replace:
+            return raw                                 # 独立打分器：分数本身，不设界
         # 与 ControlMemory 同一条输出规范：有界、逐头尺度、乘 α
         return self.alpha * sig_h * torch.tanh(raw)

@@ -103,7 +103,7 @@ def pair_loss(sp, s0r, U, sigma, n_pairs, gen, pair_w="linear"):
 
 
 def run_doc(cm, doc, dev, n_pairs, gen, train=True, lam_global=1.0,
-            skip_first_loss=True, shuf_gen=None, pair_w="linear"):
+            skip_first_loss=True, shuf_gen=None, pair_w="linear", replace=False):
     """重放一篇文档的所有 chunk：读 M_{t-1} → 损失 → 写 M_t。
 
     **pair RNG 与 shuffle RNG 必须分开。** 若共用一个 generator，`shuffled` 臂在
@@ -159,7 +159,10 @@ def run_doc(cm, doc, dev, n_pairs, gen, train=True, lam_global=1.0,
             st_ = None if "sig_h" not in pl else (
                 pl["mu_h"].to(dev).float(), pl["sig_h"].to(dev).float(), gsig_doc)
             ds = cm.delta(x, r, s0, q=q, margin=mg, stats=st_)
-            sp = s0 + ds
+            # replace 时排序损失直接作用在 Δs 上；s⁰ 完全不参与。
+            # **必须走参数而不是 argparse 的 `a`**：本作用域里 `a` 是 pair_loss 返回的
+            # 准确率（float），首次循环时甚至还没赋值 —— 那会是 NameError 或静默错值。
+            sp = ds if replace else s0 + ds
             sig = s0.std(-1, keepdim=True).clamp_min(1e-6)
             # **只在近阈值子集上算排序损失**
             # 第一个 chunk 还没有历史可读，它的监督对 B 的命题无信息
@@ -215,6 +218,8 @@ def main():
                          "拆开的消融（见 attention/calib_scorer.py）。"
                          "affine 只有 224 个参数，若它就够，说明增益是"
                          "跨层/头的分数尺度重校准，不是 KV 语义")
+    ap.add_argument("--replace", action="store_true",
+                    help="分数用 Δs 本身而不是 s⁰+Δs（独立打分器 vs 残差修正）")
     ap.add_argument("--alpha_init", type=float, default=0.05)
     ap.add_argument("--freeze_alpha", action="store_true",
                     help="冻结 α。默认让它自学，但实测它几乎不动（40 epoch 从\n0.050 到 0.0555），因为 dL/dalpha 正比于 tanh(raw)，头的方向还没学对时这个梯度\n平均为零——合成诊断里同样的 α 自举问题当初就是靠冻结解决的。而 α 直接决定\n重排权限：α=0.0555 时 Δs 满幅只有近阈值池内典型 |Δs0| 的 12%%，只有 24%% 的成对\n翻得动，Δacc 因此被构造性封顶，效应存在也测不出来。")
@@ -246,7 +251,7 @@ def main():
         # **三臂必须同一初始化、同一数据顺序、同一 pair 采样**，否则差异混进随机性
         torch.manual_seed(a.seed)
         Cls = ControlMemory if a.arch == "memory" else CalibScorer
-        kw = {} if a.arch == "memory" else {"arch": a.arch}
+        kw = {} if a.arch == "memory" else {"arch": a.arch, "replace": a.replace}
         cm = Cls(a.d_kv, L, H, n_slots=a.slots, d_m=a.dim,
                  mode=mode, alpha_init=a.alpha_init, **kw).to(dev)
         if a.freeze_alpha:
@@ -265,7 +270,7 @@ def main():
             for di in order:
                 loss, l_, acc, gacc = run_doc(cm, docs_tr[di], dev, a.n_pairs, g,
                                               lam_global=a.lam_global, shuf_gen=gs,
-                                              pair_w=a.pair_w)
+                                              pair_w=a.pair_w, replace=a.replace)
                 if loss is None:
                     continue
                 opt.zero_grad(set_to_none=True)
@@ -282,7 +287,7 @@ def main():
                     _, l_, acc, gacc = run_doc(cm, d_, dev, a.n_pairs, gv,
                                                train=False,
                                                lam_global=a.lam_global,
-                                               shuf_gen=gvs, pair_w=a.pair_w)
+                                               shuf_gen=gvs, pair_w=a.pair_w, replace=a.replace)
                     vl += l_; va += acc; vg += gacc; m_ += 1
             print(f"  ep{ep} train loss {el/max(n,1):.4f} acc {ea/max(n,1):.4f} | "
                   f"val 头内Δacc {va/max(m_,1):+.4f} **全局Δacc {vg/max(m_,1):+.4f}** | "

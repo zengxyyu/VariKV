@@ -20131,3 +20131,1683 @@ Chunked prefilling with 0.30 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_repoqa-82: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.28it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.81it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.59it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-82: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.47it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.38it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.96it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.69it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-82: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.62it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.46it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.06it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.76it/s]
+Chunked prefilling with 0.05 ratio, window 3289
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-82: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/82_qwen2.5-7b-instruct-1m_fastkvzip__g8v2_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 269.4s. Mem: 14.32/79.18 GB. [scbench_repoqa-82]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-83: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```go
+type FilteredList[T comparable] struct {
+	allItems []T
+	// indices of items in the allItems slice that are included in the filtered list
+	indices []int
+
+	mutex sync.RWMutex
+}
+
+func NewFilteredList[T comparable]() *FilteredList[T] {
+	return &FilteredList[T]{}
+}
+
+func (self *FilteredList[T]) SetItems(items []T) {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	self.allItems = items
+	self.indices = make([]int, len(items))
+	for i := range self.indices {
+		self.indices[i] = i
+	}
+}
+
+func (self *FilteredList[T]) Filter(filter func(T, int) bool) {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	self.indices = self.indices[:0]
+	for i, item := range self.allItems {
+		if filter(item, i) {
+			self.indices = append(self.indices, i)
+		}
+	}
+}
+
+func (self *FilteredList[T]) Sort(less func(T, T) bool) {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	if less == nil {
+		return
+	}
+
+	sort.Slice(self.indices, func(i, j int) bool {
+		return less(self.allItems[self.indices[i]], self.allItems[self.indices[j]])
+	})
+}
+
+func (self *FilteredList[T]) Get(index int) T {
+	self.mutex.RLock()
+	defer self.mutex.RUnlock()
+
+	return self.allItems[self.indices[index]]
+}
+
+func (self *FilteredList[T]) TryGet(index int) (T, bool) {
+	self.mutex.RLock()
+	defer self.mutex.RUnlock()
+
+	if index < 0 || index >= len(self.indices) {
+		var zero T
+		return zero, false
+	}
+
+	return self.allItems[self.indices[index]], true
+}
+
+// returns the length of the filtered list
+func (self *FilteredList[T]) Len() int {
+	self.mutex.RLock()
+	defer self.mutex.RUnlock()
+
+	return len(self.indices)
+}
+
+func (self *FilteredList[T]) GetIndex(item T) int {
+	self.mutex.RLock()
+	defer self.mutex.RUnlock()
+
+	for i, index := range self.indices {
+		if self.allItems[index] == item {
+			return i
+		}
+	}
+	return -1
+}
+
+func (self *FilteredList[T]) GetItems() []T {
+	self.mutex.RLock()
+	defer self.mutex.RUnlock()
+
+	result := make([]T, len(self.indices))
+	for i, index := range self.indices {
+		result[i] | func NewFilteredList[T comparable]() *FilteredList[T] {
+	return &FilteredList[T]{}
+}
+[QA 1] ```go
+package app
+
+import (
+	"io"
+	"strings"
+
+	"github.com/jesseduffield/lazydocker/pkg/commands"
+	"github.com/jesseduffield/lazydocker/pkg/config"
+	"github.com/jesseduffield/lazydocker/pkg/gui"
+	"github.com/jesseduffield/lazydocker/pkg/i18n"
+	"github.com/jesseduffield/lazydocker/pkg/log"
+	"github.com/jesseduffield/lazydocker/pkg/utils"
+	"github.com/sirupsen/logrus"
+)
+
+// App struct
+type App struct {
+	closers []io.Closer
+
+	Config        *config.AppConfig
+	Log           *logrus.Entry
+	OSCommand     *commands.OSCommand
+	DockerCommand *commands.DockerCommand
+	Gui           *gui.Gui
+	Tr            *i18n.TranslationSet
+	ErrorChan     chan error
+}
+
+// NewApp bootstrap a new application
+func NewApp(config *config.AppConfig) (*App, error) {
+	app := &App{
+		closers:   []io.Closer{},
+		Config:    config,
+		ErrorChan: make(chan error),
+	}
+	var err error
+	app.Log = log.NewLogger(config, "23432119147a4367abf7c0de2aa99a2d")
+	app.Tr, err = i18n.NewTranslationSetFromConfig(app.Log, config.UserConfig.Gui.Language)
+	if err != nil {
+		return app, err
+	}
+	app.OSCommand = commands.NewOSCommand(app.Log, config)
+
+	// here is the place to make use of the docker-compose.yml file in the current directory
+
+	app.DockerCommand, err = commands.NewDockerCommand(app.Log, app.OSCommand, app.Tr, app.Config, app.ErrorChan)
+	if err != nil {
+		return app, err
+	}
+	app.closers = append(app.closers, app.DockerCommand)
+	app.Gui, err = gui.NewGui(app.Log, app.DockerCommand, app.OSCommand, app.Tr, config, app.ErrorChan)
+	if err != nil {
+		return app, err
+	}
+	return app, nil
+}
+
+func (app *App) Run() error {
+	return app.Gui.Run()
+}
+
+func (app *App) Close() error {
+	return utils.CloseMany(app.closers)
+}
+
+type errorMapping struct {
+	originalError string
+	newError      string
+}
+
+// | func NewApp(config *config.AppConfig) (*App, error) {
+	app := &App{
+		closers:   []io.Closer{},
+		Config:    config,
+		ErrorChan: make(chan error),
+	}
+	var err error
+	app.Log = log.NewLogger(config, "23432119147a4367abf7c0de2aa99a2d")
+	app.Tr, err = i18n.NewTranslationSetFromConfig(app.Log, config.UserConfig.Gui.Language)
+	if err != nil {
+		return app, err
+	}
+	app.OSCommand = commands.NewOSCommand(app.Log, config)
+
+	// here is the place to make use of the docker-compose.yml file in the current directory
+
+	app.DockerCommand, err = commands.NewDockerCommand(app.Log, app.OSCommand, app.Tr, app.Config, app.ErrorChan)
+	if err != nil {
+		return app, err
+	}
+	app.closers = append(app.closers, app.DockerCommand)
+	app.Gui, err = gui.NewGui(app.Log, app.DockerCommand, app.OSCommand, app.Tr, config, app.ErrorChan)
+	if err != nil {
+		return app, err
+	}
+	return app, nil
+}
+[QA 2] ```go
+func NewDockerCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.TranslationSet, config *config.AppConfig, errorChan chan error) (*DockerCommand, error) {
+	tunnelCloser, err := ssh.NewSSHHandler(osCommand).HandleSSHDockerHost()
+	if err != nil {
+		ogLog.Fatal(err)
+	}
+
+	dockerHost, err := determineDockerHost()
+	if err != nil {
+		ogLog.Printf("> could not determine host %v", err)
+	}
+
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithVersion(APIVersion), client.WithHost(dockerHost))
+	if err != nil {
+		ogLog.Fatal(err)
+	}
+
+	dockerCommand := &DockerCommand{
+		Log:                    log,
+		OSCommand:              osCommand,
+		Tr:                     tr,
+		Config:                 config,
+		Client:                 cli,
+		ErrorChan:              errorChan,
+		InDockerComposeProject: true,
+		Closers:                []io.Closer{tunnelCloser},
+	}
+
+	command := utils.ApplyTemplate(
+		config.UserConfig.CommandTemplates.CheckDockerComposeConfig,
+		dockerCommand.NewCommandObject(CommandObject{}),
+	)
+
+	log.Warn(command)
+
+	err = osCommand.RunCommand(
+		utils.ApplyTemplate(
+			config.UserConfig.CommandTemplates.CheckDockerComposeConfig,
+			dockerCommand.NewCommandObject(CommandObject{}),
+		),
+	)
+	if err != nil {
+		dockerCommand.InDockerComposeProject = false
+		log.Warn(err.Error())
+	}
+
+	return dockerCommand, nil
+}
+``` | func NewDockerCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.TranslationSet, config *config.AppConfig, errorChan chan error) (*DockerCommand, error) {
+	tunnelCloser, err := ssh.NewSSHHandler(osCommand).HandleSSHDockerHost()
+	if err != nil {
+		ogLog.Fatal(err)
+	}
+
+	dockerHost, err := determineDockerHost()
+	if err != nil {
+		ogLog.Printf("> could not determine host %v", err)
+	}
+
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithVersion(APIVersion), client.WithHost(dockerHost))
+	if err != nil {
+		ogLog.Fatal(err)
+	}
+
+	dockerCommand := &DockerCommand{
+		Log:                    log,
+		OSCommand:              osCommand,
+		Tr:                     tr,
+		Config:                 config,
+		Client:                 cli,
+		ErrorChan:              errorChan,
+		InDockerComposeProject: true,
+		Closers:                []io.Closer{tunnelCloser},
+	}
+
+	command := utils.ApplyTemplate(
+		config.UserConfig.CommandTemplates.CheckDockerComposeConfig,
+		dockerCommand.NewCommandObject(CommandObject{}),
+	)
+
+	log.Warn(command)
+
+	err = osCommand.RunCommand(
+		utils.ApplyTemplate(
+			config.UserConfig.CommandTemplates.CheckDockerComposeConfig,
+			dockerCommand.NewCommandObject(CommandObject{}),
+		),
+	)
+	if err != nil {
+		dockerCommand.InDockerComposeProject = false
+		log.Warn(err.Error())
+	}
+
+	return dockerCommand, nil
+}
+[QA 3] ```go
+// NewDummyDockerCommand creates a new dummy DockerCommand for testing
+func NewDummyDockerCommand() *DockerCommand {
+	return NewDummyDockerCommandWithOSCommand(NewDummyOSCommand())
+}
+
+// NewDummyDockerCommandWithOSCommand creates a new dummy DockerCommand for testing
+func NewDummyDockerCommandWithOSCommand(osCommand *OSCommand) *DockerCommand {
+	newAppConfig := NewDummyAppConfig()
+	return &DockerCommand{
+		Log:       NewDummyLog(),
+		OSCommand: osCommand,
+		Tr:        i18n.NewTranslationSet(NewDummyLog(), newAppConfig.UserConfig.Gui.Language),
+		Config:    newAppConfig,
+	}
+}
+``` | func NewDummyDockerCommandWithOSCommand(osCommand *OSCommand) *DockerCommand {
+	newAppConfig := NewDummyAppConfig()
+	return &DockerCommand{
+		Log:       NewDummyLog(),
+		OSCommand: osCommand,
+		Tr:        i18n.NewTranslationSet(NewDummyLog(), newAppConfig.UserConfig.Gui.Language),
+		Config:    newAppConfig,
+	}
+}
+[QA 4] ```go
+package app
+
+import (
+	"io"
+	"strings"
+
+	"github.com/jesseduffield/lazydocker/pkg/commands"
+	"github.com/jesseduffield/lazydocker/pkg/config"
+	"github.com/jesseduffield/lazydocker/pkg/gui"
+	"github.com/jesseduffield/lazydocker/pkg/i18n"
+	"github.com/jesseduffield/lazydocker/pkg/log"
+	"github.com/jesseduffield/lazydocker/pkg/utils"
+	"github.com/sirupsen/logrus"
+)
+
+// App struct
+type App struct {
+	closers []io.Closer
+
+	Config        *config.AppConfig
+	Log           *logrus.Entry
+	OSCommand     *commands.OSCommand
+	DockerCommand *commands.DockerCommand
+	Gui           *gui.Gui
+	Tr            *i18n.TranslationSet
+	ErrorChan     chan error
+}
+
+// NewApp bootstrap a new application
+func NewApp(config *config.AppConfig) (*App, error) {
+	app := &App{
+		closers:   []io.Closer{},
+		Config:    config,
+		ErrorChan: make(chan error),
+	}
+	var err error
+	app.Log = log.NewLogger(config, "23432119147a4367abf7c0de2aa99a2d")
+	app.Tr, err = i18n.NewTranslationSetFromConfig(app.Log, config.UserConfig.Gui.Language)
+	if err != nil {
+		return app, err
+	}
+	app.OSCommand = commands.NewOSCommand(app.Log, config)
+
+	// here is the place to make use of the docker-compose.yml file in the current directory
+
+	app.DockerCommand, err = commands.NewDockerCommand(app.Log, app.OSCommand, app.Tr, app.Config, app.ErrorChan)
+	if err != nil {
+		return app, err
+	}
+	app.closers = append(app.closers, app.DockerCommand)
+	app.Gui, err = gui.NewGui(app.Log, app.DockerCommand, app.OSCommand, app.Tr, config, app.ErrorChan)
+	if err != nil {
+		return app, err
+	}
+	return app, nil
+}
+
+func (app *App) Run() error {
+	return app.Gui.Run()
+}
+
+func (app *App) Close() error {
+	return utils.CloseMany(app.closers)
+}
+
+type errorMapping struct {
+	originalError string
+	newError      string
+}
+
+// | func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool, composeFiles []string, projectDir string) (*AppConfig, error) {
+	configDir, err := findOrCreateConfigDir(name)
+	if err != nil {
+		return nil, err
+	}
+
+	userConfig, err := loadUserConfigWithDefaults(configDir)
+	if err != nil {
+		return nil, err
+	}
+
+	// Pass compose files as individual -f flags to docker-compose
+	if len(composeFiles) > 0 {
+		userConfig.CommandTemplates.DockerCompose += " -f " + strings.Join(composeFiles, " -f ")
+	}
+
+	appConfig := &AppConfig{
+		Name:        name,
+		Version:     version,
+		Commit:      commit,
+		BuildDate:   date,
+		Debug:       debuggingFlag || os.Getenv("DEBUG") == "TRUE",
+		BuildSource: buildSource,
+		UserConfig:  userConfig,
+		ConfigDir:   configDir,
+		ProjectDir:  projectDir,
+	}
+
+	return appConfig, nil
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.30it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.77it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-83: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.30it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.08it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.28it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-83: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.36it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-83: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.40it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.43it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-83: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.31it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.69it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.51it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-83: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.82it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.59it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-83: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.43it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.39it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.97it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.70it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-83: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.62it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.47it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.06it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.76it/s]
+Chunked prefilling with 0.05 ratio, window 3289
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-83: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/83_qwen2.5-7b-instruct-1m_fastkvzip__g8v2_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 529.2s. Mem: 14.32/79.18 GB. [scbench_repoqa-83]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.30it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-84: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```go
+package dbtest
+
+import (
+	"database/sql"
+	"testing"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/stretchr/testify/assert"
+)
+
+// RunTest runs a test function with a mock database.
+func RunTest(t *testing.T, fn func(db *sql.DB, mock sqlmock.Sqlmock)) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer func() {
+		_ = db.Close()
+	}()
+
+	fn(db, mock)
+
+	if err = mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+``` | func RunTest(t *testing.T, fn func(db *sql.DB, mock sqlmock.Sqlmock)) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer func() {
+		_ = db.Close()
+	}()
+
+	fn(db, mock)
+
+	if err = mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+[QA 1] ```go
+func TestCache(t *testing.T) {
+	cache, err := NewCache(time.Second*2, WithName("any"))
+	assert.Nil(t, err)
+
+	cache.Set("first", "first element")
+	cache.SetWithExpire("second", "second element", time.Second*3)
+
+	value, ok := cache.Get("first")
+	assert.True(t, ok)
+	assert.Equal(t, "first element", value)
+	value, ok = cache.Get("second")
+	assert.True(t, ok)
+	assert.Equal(t, "second element", value)
+
+	cache.Set("third", "third element")
+	cache.Set("fourth", "fourth element")
+
+	_, ok = cache.Get("first")
+	assert.False(t, ok)
+	value, ok = cache.Get("second")
+	assert.True(t, ok)
+	assert.Equal(t, "second element", value)
+	value, ok = cache.Get("third")
+	assert.True(t, ok)
+	assert.Equal(t, "third element", value)
+	value, ok = cache.Get("fourth")
+	assert.True(t, ok)
+	assert.Equal(t, "fourth element", value)
+
+	_, ok = cache.Get("first")
+	assert.False(t, ok)
+	value, ok = cache.Get("second")
+	assert.True(t, ok)
+	assert.Equal(t, "second element", value)
+	value, ok = cache.Get("third")
+	assert.True(t, ok)
+	assert.Equal(t, "third element", value)
+	value, ok = cache.Get("fourth")
+	assert.True(t, ok)
+	assert.Equal(t, "fourth element", value)
+
+	assert.Equal(t, 4, cache.size())
+}
+``` | func TestCacheSet(t *testing.T) {
+	cache, err := NewCache(time.Second*2, WithName("any"))
+	assert.Nil(t, err)
+
+	cache.Set("first", "first element")
+	cache.SetWithExpire("second", "second element", time.Second*3)
+
+	value, ok := cache.Get("first")
+	assert.True(t, ok)
+	assert.Equal(t, "first element", value)
+	value, ok = cache.Get("second")
+	assert.True(t, ok)
+	assert.Equal(t, "second element", value)
+}
+[QA 2] ```go
+func newCollection(collection *mongo.Collection, brk breaker.Breaker) Collection {
+	return &decoratedCollection{
+		Collection: collection,
+		name:       collection.Name(),
+		brk:        brk,
+	}
+}
+``` | func newCollection(collection *mongo.Collection, brk breaker.Breaker) Collection {
+	return &decoratedCollection{
+		Collection: collection,
+		name:       collection.Name(),
+		brk:        brk,
+	}
+}
+[QA 3] ```go
+func newRedis(addr string, opts ...Option) *Redis {
+	r := &Redis{
+		Addr: addr,
+		Type: NodeType,
+		brk:  breaker.NewBreaker(),
+	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
+}
+``` | func newRedis(addr string, opts ...Option) *Redis {
+	r := &Redis{
+		Addr: addr,
+		Type: NodeType,
+		brk:  breaker.NewBreaker(),
+	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
+}
+[QA 4] ```go
+package queue
+
+import (
+	"runtime"
+	"sync"
+	"sync/atomic"
+	"time"
+
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/rescue"
+	"github.com/zeromicro/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/core/threading"
+	"github.com/zeromicro/go-zero/core/timex"
+)
+
+const queueName = "queue"
+
+type (
+	// A Queue is a message queue.
+	Queue struct {
+		name                 string
+		metrics              *stat.Metrics
+		producerFactory      ProducerFactory
+		producerRoutineGroup *threading.RoutineGroup
+		consumerFactory      ConsumerFactory
+		consumerRoutineGroup *threading.RoutineGroup
+		producerCount        int
+		consumerCount        int
+		active               int32
+		channel              chan string
+		quit                 chan struct{}
+		listeners            []Listener
+		eventLock            sync.Mutex
+		eventChannels        []chan any
+	}
+
+	// A Listener interface represents a listener that can be notified with queue events.
+	Listener interface {
+		OnPause()
+		OnResume()
+	}
+
+	// A Poller interface wraps the method Poll.
+	Poller interface {
+		Name() string
+		Poll() string
+	}
+
+	// A Pusher interface wraps the method Push.
+	Pusher interface {
+		Name() string
+		Push(string) error
+	}
+)
+
+// NewQueue returns a Queue.
+func NewQueue(producerFactory ProducerFactory, consumerFactory ConsumerFactory) *Queue {
+	q := &Queue{
+		metrics:              stat.NewMetrics(queueName),
+		producerFactory:      producerFactory,
+		producerRoutineGroup: threading.NewRoutineGroup(),
+		consumerFactory:      consumerFactory,
+		consumerRoutineGroup: threading.NewRoutineGroup(),
+		producerCount:        runtime.NumCPU(),
+		consumerCount:        runtime.NumCPU() << 1,
+		channel:              make(chan string),
+		quit:                 make(chan struct{}),
+	}
+	q.SetName(queueName)
+
+	return q
+}
+
+// AddListener adds a listener to q.
+func (q *Queue) AddListener(listener Listener) {
+	q.listeners = append(q.listeners, listener)
+}
+
+// Broadcast broadcasts the message to all event channels.
+func (q *Queue) Broadcast(message any) {
+	go func() {
+		q.eventLock.Lock()
+		defer q.event | func TestFifo(t *testing.T) {
+	elements := [][]byte{
+		[]byte("hello"),
+		[]byte("world"),
+		[]byte("again"),
+	}
+	queue := NewQueue(8)
+	for i := range elements {
+		queue.Put(elements[i])
+	}
+
+	for _, element := range elements {
+		body, ok := queue.Take()
+		assert.True(t, ok)
+		assert.Equal(t, string(element), string(body.([]byte)))
+	}
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.28it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-84: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.31it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-84: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.33it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-84: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.39it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-84: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.41it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.20it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-84: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.77it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-84: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.47it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.38it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.92it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-84: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.50it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.47it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.02it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.74it/s]
+Chunked prefilling with 0.05 ratio, window 3329
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-84: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/84_qwen2.5-7b-instruct-1m_fastkvzip__g8v2_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 448.4s. Mem: 14.32/79.18 GB. [scbench_repoqa-84]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.27it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-85: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```go
+func NewFakeTicker() FakeTicker {
+	return &fakeTicker{
+		c:    make(chan time.Time, 1),
+		done: make(chan lang.PlaceholderType, 1),
+	}
+}
+``` | func NewFakeTicker() FakeTicker {
+	return &fakeTicker{
+		c:    make(chan time.Time, 1),
+		done: make(chan lang.PlaceholderType, 1),
+	}
+}
+[QA 1] ```go
+func NewTicker(d time.Duration) Ticker {
+	return &realTicker{
+		Ticker: time.NewTicker(d),
+	}
+}
+``` | func NewTicker(d time.Duration) Ticker {
+	return &realTicker{
+		Ticker: time.NewTicker(d),
+	}
+}
+[QA 2] ```go
+func Cluster() Option {
+	return func(r *Redis) {
+		r.Type = ClusterType
+	}
+}
+``` | func Cluster() Option {
+	return func(r *Redis) {
+		r.Type = ClusterType
+	}
+}
+[QA 3] ```go
+func TestRedisBitSet_New_Set_Test(t *testing.T) {
+	store := redistest.CreateRedis(t)
+	ctx := context.Background()
+
+	bitSet := newRedisBitSet(store, "test_key", 1024)
+	isSetBefore, err := bitSet.check(ctx, []uint{0})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if isSetBefore {
+		t.Fatal("Bit should not be set")
+	}
+	err = bitSet.set(ctx, []uint{512})
+	if err != nil {
+		t.Fatal(err)
+	}
+	isSetAfter, err := bitSet.check(ctx, []uint{512})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !isSetAfter {
+		t.Fatal("Bit should be set")
+	}
+	err = bitSet.expire(3600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = bitSet.del()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+``` | func TestRedisBitSet_Add(t *testing.T) {
+	store := redistest.CreateRedis(t)
+
+	filter := New(store, "test_key", 64)
+	assert.Nil(t, filter.Add([]byte("hello")))
+	assert.Nil(t, filter.Add([]byte("world")))
+	ok, err := filter.Exists([]byte("hello"))
+	assert.Nil(t, err)
+	assert.True(t, ok)
+}
+[QA 4] ```go
+func TestSetManyTimes(t *testing.T) {
+	const iteration = maxDeletion * 2
+	m := NewSafeMap()
+	for i := 0; i < iteration; i++ {
+		m.Set(i, i)
+		if i%3 == 0 {
+			m.Del(i / 2)
+		}
+	}
+	var count int
+	m.Range(func(k, v any) bool {
+		count++
+		return count < maxDeletion/2
+	})
+	assert.Equal(t, maxDeletion/2, count)
+	for i := 0; i < iteration; i++ {
+		m.Set(i, i)
+		if i%3 == 0 {
+			m.Del(i / 2)
+		}
+	}
+	for i := 0; i < iteration; i++ {
+		m.Set(i, i)
+		if i%3 == 0 {
+			m.Del(i / 2)
+		}
+	}
+
+	count = 0
+	m.Range(func(k, v any) bool {
+		count++
+		return count < maxDeletion
+	})
+	assert.Equal(t, maxDeletion, count)
+}
+``` | func TestSetManyTimes(t *testing.T) {
+	const iteration = maxDeletion * 2
+	m := NewSafeMap()
+	for i := 0; i < iteration; i++ {
+		m.Set(i, i)
+		if i%3 == 0 {
+			m.Del(i / 2)
+		}
+	}
+	var count int
+	m.Range(func(k, v any) bool {
+		count++
+		return count < maxDeletion/2
+	})
+	assert.Equal(t, maxDeletion/2, count)
+	for i := 0; i < iteration; i++ {
+		m.Set(i, i)
+		if i%3 == 0 {
+			m.Del(i / 2)
+		}
+	}
+	for i := 0; i < iteration; i++ {
+		m.Set(i, i)
+		if i%3 == 0 {
+			m.Del(i / 2)
+		}
+	}
+	for i := 0; i < iteration; i++ {
+		m.Set(i, i)
+		if i%3 == 0 {
+			m.Del(i / 2)
+		}
+	}
+
+	count = 0
+	m.Range(func(k, v any) bool {
+		count++
+		return count < maxDeletion
+	})
+	assert.Equal(t, maxDeletion, count)
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-85: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.30it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-85: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.19it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.33it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-85: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.39it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.12it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.40it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-85: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.65it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.49it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-85: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.78it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-85: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.47it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.38it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.92it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-85: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.62it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.50it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.46it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.02it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.74it/s]
+Chunked prefilling with 0.05 ratio, window 3329
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-85: 66584 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/85_qwen2.5-7b-instruct-1m_fastkvzip__g8v2_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 272.5s. Mem: 14.32/79.18 GB. [scbench_repoqa-85]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.05it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.17it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-86: 67317 tokens, KV cache 3.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```go
+func getMacID() string {
+	var macID string
+	chars := []string{
+		"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "n", "m", "o", "p", "q", "r", "s", "t", "u", "v",
+		"w", "x", "y", "z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+	}
+	size := len(chars)
+	for i := 0; i < 32; i++ {
+		macID += chars[rand.Intn(size)]
+	}
+	return macID
+}
+```
+<|im_start|> | func getMacID() string {
+	var macID string
+	chars := []string{
+		"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "n", "m", "o", "p", "q", "r", "s", "t", "u", "v",
+		"w", "x", "y", "z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+	}
+	size := len(chars)
+	for i := 0; i < 32; i++ {
+		macID += chars[rand.Intn(size)]
+	}
+	return macID
+}
+[QA 1] ```go
+func (e *extractor) Extract(url string, option extractors.Options) ([]*extractors.Data, error) {
+	if !option.Playlist {
+		video, err := e.client.GetVideo(url)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		return []*extractors.Data{e.youtubeDownload(url, video)}, nil
+	}
+
+	playlist, err := e.client.GetPlaylist(url)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	needDownloadItems := utils.NeedDownloadList(option.Items, option.ItemStart, option.ItemEnd, len(playlist.Videos))
+	extractedData := make([]*extractors.Data, len(needDownloadItems))
+	wgp := utils.NewWaitGroupPool(option.ThreadNumber)
+	dataIndex := 0
+	for index, videoEntry := range playlist.Videos {
+		if !slices.Contains(needDownloadItems, index+1) {
+			continue
+		}
+
+		wgp.Add()
+		go func(index int, entry *youtube.PlaylistEntry, extractedData []*extractors.Data) {
+			defer wgp.Done()
+			video, err := e.client.VideoFromPlaylistEntry(entry)
+			if err != nil {
+				return
+			}
+			extractedData[index] = e.youtubeDownload(url, video)
+		}(dataIndex, videoEntry, extractedData)
+		dataIndex++
+	}
+	wgp.Wait()
+	return extractedData, nil
+}
+```
+``` | func fetchVideoQuality(videoID string) (map[string]*extractors.Stream, error) {
+	reqURL := fmt.Sprintf(`https://rumble.com/embedJS/u3/?request=video&ver=2&v=%s&ext={"ad_count":null}&ad_wt=0`, videoID)
+
+	res, err := request.Request(http.MethodGet, reqURL, nil, nil)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	defer res.Body.Close() // nolint
+
+	var reader io.ReadCloser
+	switch res.Header.Get("Content-Encoding") {
+	case "gzip":
+		reader, _ = gzip.NewReader(res.Body)
+	case "deflate":
+		reader = flate.NewReader(res.Body)
+	default:
+		reader = res.Body
+	}
+	defer reader.Close() // nolint
+
+	b, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	var rs rumbleStreams
+	if err := json.Unmarshal(b, &rs); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	streams := make(map[string]*extractors.Stream, 9)
+	rs.makeAllVODStreams(streams)
+	_ = rs.makeAllLiveStreams(streams)
+
+	return streams, nil
+}
+[QA 2] ```go
+package mgtv
+
+import (
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/pkg/errors"
+
+	"github.com/iawia002/lux/extractors"
+	"github.com/iawia002/lux/request"
+	"github.com/iawia002/lux/utils"
+)
+
+func init() {
+	extractors.Register("mgtv", New())
+}
+
+type mgtvVideoStream struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+	Def  string `json:"def"`
+}
+
+type mgtvVideoInfo struct {
+	Title string `json:"title"`
+	Desc  string `json:"desc"`
+}
+
+type mgtvVideoData struct {
+	Stream       []mgtvVideoStream `json:"stream"`
+	StreamDomain []string          `json:"stream_domain"`
+	Info         mgtvVideoInfo     `json:"info"`
+}
+
+type mgtv struct {
+	Data mgtvVideoData `json:"data"`
+}
+
+type mgtvVideoAddr struct {
+	Info string `json:"info"`
+}
+
+type mgtvURLInfo struct {
+	URL  string
+	Size int64
+}
+
+type mgtvPm2Data struct {
+	Data struct {
+		Atc struct {
+			Pm2 string `json:"pm2"`
+		} `json:"atc"`
+		Info mgtvVideoInfo `json:"info"`
+	} `json:"data"`
+}
+
+func mgtvM3u8(url string) ([]mgtvURLInfo, int64, error) {
+	var data []mgtvURLInfo
+	var temp mgtvURLInfo
+	var size, totalSize int64
+	urls, err := utils.M3u8URLs(url)
+	if err != nil {
+		return nil, 0, err
+	}
+	m3u8String, err := request.Get(url, url, nil)
+	if err != nil {
+		return nil, 0, err
+	}
+	sizes := utils.MatchAll(m3u8String, `#EXT-MGTV-File-SIZE:(\d+)`)
+	// sizes: [[#EXT-MGTV-File-SIZE:1893724, 1893724]]
+	for index, u := range urls {
+		size, err = strconv.ParseInt(sizes[index | func mgtvM3u8(url string) ([]mgtvURLInfo, int64, error) {
+	var data []mgtvURLInfo
+	var temp mgtvURLInfo
+	var size, totalSize int64
+	urls, err := utils.M3u8URLs(url)
+	if err != nil {
+		return nil, 0, err
+	}
+	m3u8String, err := request.Get(url, url, nil)
+	if err != nil {
+		return nil, 0, err
+	}
+	sizes := utils.MatchAll(m3u8String, `#EXT-MGTV-File-SIZE:(\d+)`)
+	// sizes: [[#EXT-MGTV-File-SIZE:1893724, 1893724]]
+	for index, u := range urls {
+		size, err = strconv.ParseInt(sizes[index][1], 10, 64)
+		if err != nil {
+			return nil, 0, err
+		}
+		totalSize += size
+		temp = mgtvURLInfo{
+			URL:  u,
+			Size: size,
+		}
+		data = append(data, temp)
+	}
+	return data, totalSize, nil
+}
+[QA 3] ```go
+package reddit
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/pkg/errors"
+
+	"github.com/iawia002/lux/extractors"
+	"github.com/iawia002/lux/request"
+	"github.com/iawia002/lux/utils"
+)
+
+func init() {
+	extractors.Register("reddit", New())
+}
+
+const (
+	referer  = "https://www.reddit.com"
+	siteName = "Reddit reddit.com"
+
+	redditMP4API = "https://v.redd.it/"
+	redditIMGAPI = "https://i.redd.it/"
+	audioURLPart = "/DASH_audio.mp4"
+)
+
+var resMap = map[string]string{
+	"720p": "/DASH_720.mp4",
+	"480p": "/DASH_480.mp4",
+	"360p": "/DASH_360.mp4",
+	"240p": "/DASH_240.mp4",
+	"220p": "/DASH_220.mp4",
+}
+
+type extractor struct{}
+
+func New() extractors.Extractor {
+	return &extractor{}
+}
+
+func (e *extractor) Extract(url string, option extractors.Options) ([]*extractors.Data, error) {
+	html, err := request.Get(url, referer, nil)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	// set thread number to 1 manually to avoid http 412 error
+	option.ThreadNumber = 1
+
+	title := utils.MatchOneOf(html, `<title>(.+?)<\/title>`)[1]
+
+	if utils.MatchOneOf(html, `meta property="og:video" content=.*HLSPlaylist`) != nil {
+		mp4URL := utils.MatchOneOf(html, `https://v.redd.it/(.+?)/HLSPlaylist`)[1]
+		if mp4URL == "" {
+			return nil, errors.New("can't match mp4 content downloadable url")
+		}
+
+		audioURL := fmt.Sprintf("%s%s%s", redditMP4API, mp4URL, audioURLPart)
+		size, err := request.Size(audioURL, referer)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		audioPart := &extractors.Part{
+			URL:  audioURL,
+			Size: size,
+			Ext:  "mp | func TestReddit(t *testing.T) {
+	tests := []struct {
+		name string
+		args test.Args
+	}{
+		{
+			name: "normal test 0",
+			args: test.Args{
+				URL:   "https://www.reddit.com/r/space/comments/uj8sod/a_couple_of_days_ago_i_visited_this_place_an/",
+				Title: "A couple of days ago I visited this place. An abandoned space shuttle : space",
+			},
+		},
+		{
+			name: "normal test 1",
+			args: test.Args{
+				URL:   "https://www.reddit.com/r/DotA2/comments/uq012r/til_how_useful_hurricane_bird_is/",
+				Title: "TIL how useful hurricane bird is : DotA2",
+			},
+		},
+		{
+			name: "normal test 2",
+			args: test.Args{
+				URL:   "https://www.reddit.com/r/ProgrammerHumor/comments/uqovco/my_code_works/",
+				Title: "My code works : ProgrammerHumor",
+			},
+		},
+		{
+			name: "normal test 3",
+			args: test.Args{
+				URL:   "https://www.reddit.com/r/AnimatedPixelArt/comments/uomu32/animation_for_astral_ascent/",
+				Title: "Animation for Astral Ascent : AnimatedPixelArt",
+			},
+		},
+		{
+			name: "normal test 4",
+			args: test.Args{
+				URL:   "https://www.reddit.com/r/linuxmemes/comments/v1a4wh/please_olive_do_something/",
+				Title: "Please Olive, do something... : linuxmemes",
+			},
+		},
+		{
+			name: "normal test 5",
+			args: test.Args{
+				URL:   "https://www.reddit.com/r/gaming/comments/v27m79/skyrim_probably/",
+				Title: "Skyrim, probably : gaming",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := New().Extract(tt.args.URL, extractors.Options{})
+			test.CheckError(t, err)
+			test.Check(t, tt.args, data[0])
+		})
+	}
+}
+[QA 4] ```go
+package extractors
+
+import (
+	"sync"
+
+	"github.com/iawia002/lux/utils"
+)
+
+var lock sync.RWMutex
+var extractorMap = make(map[string]Extractor)
+
+// Register registers an Extractor.
+func Register(domain string, e Extractor) {
+	lock.Lock()
+	extractorMap[domain] = e
+	lock.Unlock()
+}
+```
+``` | func Register(domain string, e Extractor) {
+	lock.Lock()
+	extractorMap[domain] = e
+	lock.Unlock()
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.27it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.05it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.17it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-86: 67317 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.30it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.09s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.17it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-86: 67317 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.19it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.32it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-86: 67317 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.39it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.12it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.39it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-86: 67317 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.62it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-86: 67317 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.74it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-86: 67317 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.47it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.41it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.38it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.88it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.65it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-86: 67317 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.50it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.46it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.98it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.72it/s]
+Chunked prefilling with 0.05 ratio, window 3365
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-86: 67317 tokens, KV cache 3.9 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/86_qwen2.5-7b-instruct-1m_fastkvzip__g8v2_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 610.7s. Mem: 14.32/79.18 GB. [scbench_repoqa-86]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.30it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.05it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.17it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-87: 67317 tokens, KV cache 3.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```go
+package extractors
+
+import (
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"github.com/iawia002/lux/extractors"
+	"github.com/iawia002/lux/request"
+	"github.com/iawia002/lux/utils"
+)
+
+// Extract is the main function to extract and download video data from a specific website.
+func (e *extractor) Extract(url string, option extractors.Options) ([]*extractors.Data, error) {
+	var err error
+	html, err := request.Get(url, url, nil)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	// Extract the video title using predefined patterns.
+	titles := utils.MatchOneOf(html, `<title>(.+?)</title>`)
+	if titles == nil || len(titles) < 2 {
+		return nil, errors.New("can not found title")
+	}
+	title := regexp.MustCompile(`\n+`).ReplaceAllString(strings.TrimSpace(titles[1]), " ")
+
+	// Extract the actual video URL from the HTML content.
+	videoURLs := utils.MatchOneOf(html, `video:'(.+?)'`, `video:"(.+?)"`, `<video[^>]*src="(.+?)"`, `play_url:\s*"(.+?)",`)
+	if len(videoURLs) < 2 {
+		return nil, errors.New("can not found video URL")
+	}
+
+	realURL := strings.ReplaceAll(videoURLs[1], `\u002F`, "/")
+
+	// Calculate the size of the video file.
+	size, err := request.Size(realURL, url)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	// Construct a structured data object with the extracted information.
+	streams := map[string]*extractors.Stream{
+		"default": {
+			Parts: []*extractors.Part{
+				{
+					URL:  realURL,
+					Size: size,
+					Ext:  "mp4",
+				},
+			},
+			Size: size,
+		},
+	}
+
+	return []*extractors.Data{
+		{
+			Site:    "Unknown",
+			Title:   title,
+			Type:    extractors.DataTypeVideo,
+			Streams: streams,
+			URL:     url,
+		},
+	}, nil
+}
+```
+``` | func tangdouDownload(uri string) *extractors.Data {
+	html, err := request.Get(uri, uri, defaultHeader)
+	if err != nil {
+		return extractors.EmptyData(uri, err)
+	}
+
+	titles := utils.MatchOneOf(
+		html, `<div class="title">(.+?)</div>`, `<meta name="description" content="(.+?)"`, `<title>(.+?)</title>`,
+	)
+	if titles == nil || len(titles) < 2 {
+		return extractors.EmptyData(uri, errors.WithStack(extractors.ErrURLParseFailed))
+	}
+	title := titles[1]
+
+	videoURLs := utils.MatchOneOf(
+		html, `video:'(.+?)'`, `video:"(.+?)"`, `<video[^>]*src="(.+?)"`, `play_url:\s*"(.+?)",`,
+	)
+
+	if len(videoURLs) < 2 {
+		return extractors.EmptyData(uri, errors.WithStack(extractors.ErrURLParseFailed))
+	}
+
+	realURL := strings.ReplaceAll(videoURLs[1], `\u002F`, "/")
+
+	size, err := request.Size(realURL, uri)
+	if err != nil {
+		return extractors.EmptyData(uri, err)
+	}
+
+	streams := map[string]*extractors.Stream{
+		"default": {
+			Parts: []*extractors.Part{
+				{
+					URL:  realURL,
+					Size: size,
+					Ext:  "mp4",
+				},
+			},
+			Size: size,
+		},
+	}
+
+	return &extractors.Data{
+		Site:    "糖豆广场舞 tangdou.com",
+		Title:   title,
+		Type:    extractors.DataTypeVideo,
+		Streams: streams,
+		URL:     uri,
+	}
+}
+[QA 1] ```go
+func createCookie() (string, error) {
+	v1, err := msToken(107)
+	if err != nil {
+		return "", err
+	}
+	v2, err := ttwid()
+	if err != nil {
+		return "", err
+	}
+	v3 := "324fb4ea4a89c0c05827e18a1ed9cf9bf8a17f7705fcc793fec935b637867e2a5a9b8168c885554d029919117a18ba69"
+	v4 := "eyJiZC10aWNrZXQtZ3VhcmQtdmVyc2lvbiI6MiwiYmQtdGlja2V0LWd1YXJkLWNsaWVudC1jc3IiOiItLS0tLUJFR0lOIENFUlRJRklDQVRFIFJFUVVFU1QtLS0tLVxyXG5NSUlCRFRDQnRRSUJBREFuTVFzd0NRWURWUVFHRXdKRFRqRVlNQllHQTFVRUF3d1BZbVJmZEdsamEyVjBYMmQxXHJcbllYSmtNRmt3RXdZSEtvWkl6ajBDQVFZSUtvWkl6ajBEQVFjRFFnQUVKUDZzbjNLRlFBNUROSEcyK2F4bXAwNG5cclxud1hBSTZDU1IyZW1sVUE5QTZ4aGQzbVlPUlI4NVRLZ2tXd1FJSmp3Nyszdnc0Z2NNRG5iOTRoS3MvSjFJc3FBc1xyXG5NQ29HQ1NxR1NJYjNEUUVKRGpFZE1Cc3dHUVlEVlIwUkJCSXdFSUlPZDNkM0xtUnZkWGxwYmk1amIyMHdDZ1lJXHJcbktvWkl6ajBFQXdJ | func createCookie() (string, error) {
+	v1, err := msToken(107)
+	if err != nil {
+		return "", err
+	}
+	v2, err := ttwid()
+	if err != nil {
+		return "", err
+	}
+	v3 := "324fb4ea4a89c0c05827e18a1ed9cf9bf8a17f7705fcc793fec935b637867e2a5a9b8168c885554d029919117a18ba69"
+	v4 := "eyJiZC10aWNrZXQtZ3VhcmQtdmVyc2lvbiI6MiwiYmQtdGlja2V0LWd1YXJkLWNsaWVudC1jc3IiOiItLS0tLUJFR0lOIENFUlRJRklDQVRFIFJFUVVFU1QtLS0tLVxyXG5NSUlCRFRDQnRRSUJBREFuTVFzd0NRWURWUVFHRXdKRFRqRVlNQllHQTFVRUF3d1BZbVJmZEdsamEyVjBYMmQxXHJcbllYSmtNRmt3RXdZSEtvWkl6ajBDQVFZSUtvWkl6ajBEQVFjRFFnQUVKUDZzbjNLRlFBNUROSEcyK2F4bXAwNG5cclxud1hBSTZDU1IyZW1sVUE5QTZ4aGQzbVlPUlI4NVRLZ2tXd1FJSmp3Nyszdnc0Z2NNRG5iOTRoS3MvSjFJc3FBc1xyXG5NQ29HQ1NxR1NJYjNEUUVKRGpFZE1Cc3dHUVlEVlIwUkJCSXdFSUlPZDNkM0xtUnZkWGxwYmk1amIyMHdDZ1lJXHJcbktvWkl6ajBFQXdJRFJ3QXdSQUlnVmJkWTI0c0RYS0c0S2h3WlBmOHpxVDRBU0ROamNUb2FFRi9MQnd2QS8xSUNcclxuSURiVmZCUk1PQVB5cWJkcytld1QwSDZqdDg1czZZTVNVZEo5Z2dmOWlmeTBcclxuLS0tLS1FTkQgQ0VSVElGSUNBVEUgUkVRVUVTVC0tLS0tXHJcbiJ9"
+	cookie := fmt.Sprintf("msToken=%s;ttwid=%s;odin_tt=%s;bd_ticket_guard_client_data=%s;", v1, v2, v3, v4)
+	return cookie, nil
+}
+[QA 2] ```go
+func getVideoAudio(v *youtube.Video, mimeType string) (*youtube.Format, error) {
+    audioFormats := v.Formats.Type(mimeType).Type("audio")
+    if len(audioFormats) == 0 {
+        return nil, errors.New("no audio format found after filtering")
+    }
+    audioFormats.Sort()
+    return &audioFormats[0], nil
+}
+```
+``` | func getVideoAudio(v *youtube.Video, mimeType string) (*youtube.Format, error) {
+	audioFormats := v.Formats.Type(mimeType).Type("audio")
+	if len(audioFormats) == 0 {
+		return nil, errors.New("no audio format found after filtering")
+	}
+	audioFormats.Sort()
+	return &audioFormats[0], nil
+}
+[QA 3] ```go
+package youtube
+
+import (
+	"fmt"
+	"net/http"
+	"slices"
+	"strconv"
+
+	"github.com/kkdai/youtube/v2"
+	"github.com/pkg/errors"
+
+	"github.com/iawia002/lux/extractors"
+	"github.com/iawia002/lux/request"
+	"github.com/iawia002/lux/utils"
+)
+
+func init() {
+	e := New()
+	extractors.Register("youtube", e)
+	extractors.Register("youtu", e) // youtu.be
+}
+
+const referer = "https://www.youtube.com"
+
+type extractor struct {
+	client *youtube.Client
+}
+
+// New returns a youtube extractor.
+func New() extractors.Extractor {
+	return &extractor{
+		client: &youtube.Client{
+			HTTPClient: &http.Client{
+				Transport: &http.Transport{
+					Proxy: http.ProxyFromEnvironment,
+				},
+			},
+		},
+	}
+}
+
+// Extract is the main function to extract the data.
+func (e *extractor) Extract(url string, option extractors.Options) ([]*extractors.Data, error) {
+	if !option.Playlist {
+		video, err := e.client.GetVideo(url)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		return []*extractors.Data{e.youtubeDownload(url, video)}, nil
+	}
+
+	playlist, err := e.client.GetPlaylist(url)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	needDownloadItems := utils.NeedDownloadList(option.Items, option.ItemStart, option.ItemEnd, len(playlist.Videos))
+	extractedData := make([]*extractors.Data, len(needDownloadItems))
+	wgp := utils.NewWaitGroupPool(option.ThreadNumber)
+	dataIndex := 0
+	for index, videoEntry := range playlist.Videos {
+		if !slices.Contains(needDownloadItems, index+1) {
+			continue
+		}
+
+		wgp.Add()
+		go func(index int, entry *youtube.PlaylistEntry, extractedData []*extractors.Data) {
+			defer wgp.Done()
+			video, err := e.client.VideoFromPlaylistEntry(entry)
+			if err != nil {
+				return
+			}
+			extractedData[index] = e.youtubeDownload(url, video)
+		}(dataIndex, videoEntry, extractedData)
+		dataIndex++
+	}
+	wgp.Wait()
+	return extractedData, nil
+}
+
+// youtube | func getAudioLang(lang string) string {
+	var youkuAudioLang = map[string]string{
+		"guoyu": "国语",
+		"ja":    "日语",
+		"yue":   "粤语",
+	}
+	translate, ok := youkuAudioLang[lang]
+	if !ok {
+		return lang
+	}
+	return translate
+}
+[QA 4] ```go
+func (e *extractor) Extract(url string, option extractors.Options) ([]*extractors.Data, error) {
+	res, err := request.Request(http.MethodGet, url, nil, nil)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	defer res.Body.Close() // nolint
+
+	var reader io.ReadCloser
+	switch res.Header.Get("Content-Encoding") {
+	case "gzip":
+		reader, _ = gzip.NewReader(res.Body)
+	case "deflate":
+		reader = flate.NewReader(res.Body)
+	default:
+		reader = res.Body
+	}
+	defer reader.Close() // nolint
+
+	b, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	html := string(b)
+	var title string
+	matchTitle := utils.MatchOneOf(html, `<title>(.+?)</title>`)
+	if len(matchTitle) > 1 {
+		title = matchTitle[1]
+	} else {
+		title = "pornhub video"
+	}
+
+	payload, err := readPayload(html)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	videoID, err := getVideoID(payload.EmbedURL)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	streams, err := fetchVideoQuality(videoID)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return []*extractors.Data{
+		{
+			Site:    "Pornhub pornhub.com",
+			Title:   title,
+			Type:    extractors.DataTypeVideo,
+			Streams: streams,
+			URL:     url,
+		},
+	}, nil
+}
+``` | func TestPornhub(t *testing.T) {
+	tests := []struct {
+		name string
+		args test.Args
+	}{
+		{
+			name: "normal test",
+			args: test.Args{
+				URL:   "https://www.pornhub.com/view_video.php?viewkey=ph5cb5fc41c6ebd",
+				Title: "Must watch Milf drilled by the fireplace",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			New().Extract(tt.args.URL, extractors.Options{})
+		})
+	}
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.28it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.05it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.16it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-87: 67317 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.30it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.08it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.09s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.16it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-87: 67317 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.19it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.05it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.40it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.31it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-87: 67317 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.39it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.12it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.38it/s]
