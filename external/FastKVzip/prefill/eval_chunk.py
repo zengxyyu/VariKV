@@ -76,6 +76,34 @@ if __name__ == "__main__":
         model.varikv_inv_freq = _rot.inv_freq.detach().clone() if _rot else None
         print(f"[VariKV] loaded {args.varikv_ckpt} mode={_ck.get('mode')} "
               f"M={args.varikv_slots}")
+    elif args.ctrlm_ckpt and args.centroid_k > 0:
+        # **组合臂**：两者同时开。此前 args.py 把它们写成互斥，所以这个格子一直空着。
+        import sys as _sys, torch as _torch
+        _sys.path.insert(0, "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill")
+        from attention.control_memory import ControlMemory as _CM
+        from attention.calib_scorer import CalibScorer as _CS
+
+        args.kv_type = "centroid_control"
+        _ck = _torch.load(args.ctrlm_ckpt, map_location="cpu")
+        _arch = _ck.get("arch", "memory")
+        _ns = _ck.get("slots", args.ctrlm_slots)
+        args.tag += f"_cc{args.centroid_k}_{_arch}"
+        model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
+        if _arch == "memory":
+            _cm = _CM(_ck.get("d_kv", 128), _ck["L"], _ck["H"], n_slots=_ns,
+                      d_m=_ck.get("dim", args.ctrlm_dim), mode="memoryless",
+                      typed=_ck["state"]["M_init"].shape[2] == 2 * _ns)
+        else:
+            _cm = _CS(_ck.get("d_kv", 128), _ck["L"], _ck["H"], n_slots=_ns,
+                      d_m=_ck.get("dim", args.ctrlm_dim), mode="memoryless",
+                      arch=_arch)
+        _cm.load_state_dict(_ck["state"])
+        model.ctrl_module = _cm.to(model.device).eval()
+        model.ctrl_seed, model.ctrl_rho_max = args.ctrl_seed, args.ctrlm_rho_max
+        model.varikv_K = args.centroid_k
+        model.varikv_rope_mode = args.centroid_rope
+        print(f"[Cen+Ctrl] K={args.centroid_k} arch={_arch} "
+              f"alpha={float(_cm.alpha):.4f}")
     elif args.ctrlm_ckpt:
         # VariKV-B 最终版：学出来的历史控制状态
         import sys as _sys, torch as _torch

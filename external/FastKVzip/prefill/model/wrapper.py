@@ -172,6 +172,20 @@ class ModelKVzip:
                     rope_inv_freq=getattr(self, "varikv_inv_freq", None),
                     rope_mode=getattr(self, "varikv_rope_mode", "post"),
                 )
+            elif self.kv_type == "centroid_control":
+                # 质心读出 + 学习残差改分**同时开**。两者动的是流水线不同环节
+                # （残差改"扔谁"、质心补"扔掉的"），此前一直互斥、从未同时测过。
+                from attention.centroid_control import CentroidControlCache
+
+                kv = CentroidControlCache(
+                    self.model, evict_range,
+                    ctrl=getattr(self, "ctrl_module", None),
+                    n_clusters=getattr(self, "varikv_K", 1024),
+                    rope_inv_freq=getattr(self, "varikv_inv_freq", None),
+                    rope_mode=getattr(self, "varikv_rope_mode", "post"),
+                    seed=getattr(self, "ctrl_seed", 0),
+                    rho_max=getattr(self, "ctrl_rho_max", 1.0),
+                )
             elif self.kv_type == "control":
                 # 记忆只修正驱逐分数，不进 attention。预算恒等匹配（threshold 按 ratio
                 # 取全局 top-n），ratio=1.0 时根本不进 prune_chunk ⇒ 满缓存参考天然干净。
