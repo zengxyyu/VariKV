@@ -13312,3 +13312,241 @@ Chunked prefilling with 0.30 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_repoqa-54: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.82it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.60it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-54: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.43it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.39it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.98it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.71it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-54: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.47it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.46it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.05 ratio, window 3292
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-54: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.57it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.19it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.02 ratio, window 1316
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-54: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/54_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 391.5s. Mem: 14.32/79.18 GB. [scbench_repoqa-54]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.30it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-55: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```typescript
+/**
+ * Creates a new CryptoSigner instance for the given app. If the app has been initialized with a
+ * service account credential, creates a ServiceAccountSigner.
+ *
+ * @param app - A FirebaseApp instance.
+ * @returns A CryptoSigner instance.
+ */
+export function cryptoSignerFromApp(app: App): CryptoSigner {
+  const credential = app.options.credential;
+  if (credential instanceof ServiceAccountCredential) {
+    return new ServiceAccountSigner(credential);
+  }
+
+  return new IAMSigner(new AuthorizedHttpClient(app as FirebaseApp), app.options.serviceAccountId);
+}
+``` | export function cryptoSignerFromApp(app: App): CryptoSigner {
+  const credential = app.options.credential;
+  if (credential instanceof ServiceAccountCredential) {
+    return new ServiceAccountSigner(credential);
+  }
+
+  return new IAMSigner(new AuthorizedHttpClient(app as FirebaseApp), app.options.serviceAccountId);
+}
+[QA 1] ```typescript
+function isStateful(service: any): service is StatefulFirebaseService {
+  return typeof service.delete === 'function';
+}
+``` | function isStateful(service: any): service is StatefulFirebaseService {
+  return typeof service.delete === 'function';
+}
+[QA 2] ```typescript
+export class AppStore {
+
+  private readonly appStore = new Map<string, FirebaseApp>();
+
+  public initializeApp(options?: AppOptions, appName: string = DEFAULT_APP_NAME): App {
+    if (typeof options === 'undefined') {
+      options = loadOptionsFromEnvVar();
+      options.credential = getApplicationDefault();
+    }
+
+    if (typeof appName !== 'string' || appName === '') {
+      throw new FirebaseAppError(
+        AppErrorCodes.INVALID_APP_NAME,
+        `Invalid Firebase app name "${appName}" provided. App name must be a non-empty string.`,
+      );
+    } else if (this.appStore.has(appName)) {
+      if (appName === DEFAULT_APP_NAME) {
+        throw new FirebaseAppError(
+          AppErrorCodes.DUPLICATE_APP,
+          'The default Firebase app already exists. This means you called initializeApp() ' +
+          'more than once without providing an app name as the second argument. In most cases ' +
+          'you only need to call initializeApp() once. But if you do want to initialize ' +
+          'multiple apps, pass a second argument to initializeApp() to give each app a unique ' +
+          'name.',
+        );
+      } else {
+        throw new FirebaseAppError(
+          AppErrorCodes.DUPLICATE_APP,
+          `Firebase app named "${appName}" already exists. This means you called initializeApp() ` +
+          'more than once with the same app name as the second argument. Make sure you provide a ' +
+          'unique name every time you call initializeApp().',
+        );
+      }
+    }
+
+    const app = new FirebaseApp(options, appName, this);
+    this.appStore.set(app.name, app);
+    return app;
+  }
+
+  public getApp(appName: string = DEFAULT_APP_NAME): App {
+    if (typeof appName !== 'string' || appName === '') {
+      throw new FirebaseAppError(
+        AppErrorCodes.INVALID_APP_NAME,
+        `Invalid Firebase app name "${appName}" provided. App name must be a non-empty string.`,
+      );
+    } else if (!this.appStore.has(appName)) {
+      let errorMessage: string = (appName === DEFAULT_APP_NAME)
+        ? 'The default Firebase app does not exist. ' : `Firebase app named "${appName}" does not exist. `;
+      errorMessage += 'Make sure you call initializeApp() before using any of the Firebase services.';
+
+      throw new FirebaseAppError(AppErrorCodes.NO_APP, errorMessage);
+    }
+
+    return this.app | export function initializeApp(options?: AppOptions, appName: string = DEFAULT_APP_NAME): App {
+  return defaultAppStore.initializeApp(options, appName);
+}
+[QA 3] ```typescript
+export function getApplicationDefault(httpAgent?: Agent): Credential {
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    return credentialFromFile(process.env.GOOGLE_APPLICATION_CREDENTIALS, httpAgent, false)!;
+  }
+
+  // It is OK to not have this file. If it is present, it must be valid.
+  if (GCLOUD_CREDENTIAL_PATH) {
+    const credential =  credentialFromFile(GCLOUD_CREDENTIAL_PATH, httpAgent, true);
+    if (credential) return credential
+  }
+
+  return new ComputeEngineCredential(httpAgent);
+}
+``` | export function getApplicationDefault(httpAgent?: Agent): Credential {
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    return credentialFromFile(process.env.GOOGLE_APPLICATION_CREDENTIALS, httpAgent, false)!;
+  }
+
+  // It is OK to not have this file. If it is present, it must be valid.
+  if (GCLOUD_CREDENTIAL_PATH) {
+    const credential =  credentialFromFile(GCLOUD_CREDENTIAL_PATH, httpAgent, true);
+    if (credential) return credential
+  }
+
+  return new ComputeEngineCredential(httpAgent);
+}
+[QA 4] ```typescript
+/**
+ * Parses a full HTTP response message containing both a header and a body.
+ *
+ * @param response - The HTTP response to be parsed.
+ * @param config - The request configuration that resulted in the HTTP response.
+ * @returns An object containing the parsed HTTP status, headers and the body.
+ */
+export function parseHttpResponse(
+  response: string | Buffer, config: HttpRequestConfig): HttpResponse {
+
+  const responseText: string = validator.isBuffer(response) ?
+    response.toString('utf-8') : response as string;
+  const endOfHeaderPos: number = responseText.indexOf('\r\n\r\n');
+  const headerLines: string[] = responseText.substring(0, endOfHeaderPos).split('\r\n');
+
+  const statusLine: string = headerLines[0];
+  const status: string = statusLine.trim().split(/\s/)[1];
+
+  const headers: {[key: string]: string} = {};
+  headerLines.slice(1).forEach((line) => {
+    const colonPos = line.indexOf(':');
+    const name = line.substring(0, colonPos).trim().toLowerCase();
+    const value = line.substring(colonPos + 1).trim();
+    headers[name] = value;
+  });
+
+  let data = responseText.substring(endOfHeaderPos + 4);
+  if (data.endsWith('\n')) {
+    data = data.slice(0, -1);
+  }
+  if (data.endsWith('\r')) {
+    data = data.slice(0, -1);
+  }
+
+  const lowLevelResponse: LowLevelResponse = {
+    status: parseInt(status, 10),
+    headers,
+    data,
+    config,
+    request: null,
+  };
+  if (!validator.isNumber(lowLevelResponse.status)) {
+    throw new FirebaseAppError(
+      'internal-error',
+      'Malformed HTTP status line.');
+  }
+  return new DefaultHttpResponse(lowLevelResponse);
+}
+``` | export function parseHttpResponse(
+  response: string | Buffer, config: HttpRequestConfig): HttpResponse {
+
+  const responseText: string = validator.isBuffer(response) ?
+    response.toString('utf-8') : response as string;
+  const endOfHeaderPos: number = responseText.indexOf('\r\n\r\n');
+  const headerLines: string[] = responseText.substring(0, endOfHeaderPos).split('\r\n');
+
+  const statusLine: string = headerLines[0];
+  const status: string = statusLine.trim().split(/\s/)[1];
+
+  const headers: {[key: string]: string} = {};
+  headerLines.slice(1).forEach((line) => {
+    const colonPos = line.indexOf(':');
+    const name = line.substring(0, colonPos).trim().toLowerCase();
+    const value = line.substring(colonPos + 1).trim();
+    headers[name] = value;
+  });
+
+  let data = responseText.substring(endOfHeaderPos + 4);
+  if (data.endsWith('\n')) {
+    data = data.slice(0, -1);
+  }
+  if (data.endsWith('\r')) {
+    data = data.slice(0, -1);
+  }
+
+  const lowLevelResponse: LowLevelResponse = {
+    status: parseInt(status, 10),
+    headers,
+    data,
+    config,
+    request: null,
+  };
+  if (!validator.isNumber(lowLevelResponse.status)) {
+    throw new FirebaseAppError(AppErrorCodes.INTERNAL_ERROR, 'Malformed HTTP status line.');
+  }
+  return new DefaultHttpResponse(lowLevelResponse);
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.26it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-55: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.31it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-55: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.38it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.49it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.36it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-55: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.39it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.43it/s]
