@@ -23,6 +23,7 @@ the dedicated docs below revises it. When they disagree, the dedicated doc wins.
 |---|---|
 | `ICLR_PLAN.md` | **下一步做什么、以及为什么**（2026-08-17）。收拢已站住的四条结论，标死两处**被自己数据证伪**的理论方向（逐 token state-aliasing 只有 2.8%；"有界保守修正"的界跨头差 413× 不是全局常数），并指出当前离投稿最远的一步：**现象基本只在 Retr.KV 上**——去掉它，ρ=0.2 的 11-panel 均值从 +2.12 塌到 +0.45。做任何新实验前先读这一份 |
 | `RESULTS_GRID.md` | **全网格：4 条臂 × 11 panel × 8 个 ratio 的配对 Δ**（2026-08-16）。学习残差 v2/v3 与训练无关质心 K=16/K=1024 放在同一张表、同一基线上。由 `scratch_all_report.py` 生成，**别手改**。三个结论：ρ=0.1 上质心 +3.66 **赢过**学习残差 +1.02；两条线的最佳工作点不同（质心 0.1、残差 0.2）；Retr.MultiHop 上四条臂同向失败 |
+| `ICLR_PLAN.md` §四之五 | **保序重标定 ≡ 逐头配额分配：定理 + 真实数据验证（2026-08-17）。** `scalar` 的全部 +4.73 可证地只是逐 (chunk,头) 配额重分配 —— 扔掉逐 token 修正、头内退回原排序，**逐位同一个保留集**（22/22，逆序对 0.0000%）。阴性对照 `kv` 0/22、逆序对 33.67%。且 `affine` 等量搬动配额（20.74 vs 20.50）却拿 +0.00 ⇒ **搬多少不重要，搬给谁才重要**。含边界密度 Jacobian、`1,232` 而非 `112` 的自由度更正、以及阻塞新颖性声明的 5 篇待读清单 |
 | `RESULTS_2026-08-12.md` | **the single entry point for every measured result.** Supersedes the result tables in this file |
 | `JOURNAL.md` | **the chronological record, split out of this file on 2026-08-13.** Every dated result narrative — Stage 1, Stage 2b's first benchmark, the Figure-11 reproduce, the residual round, the 08-11 sweeps, the teacher-KL round, the forensics. This file keeps the standing conclusions and points there for how each was obtained |
 | `MODELS.md` | the checkpoint registry (38 ckpts). Read before citing any checkpoint |
