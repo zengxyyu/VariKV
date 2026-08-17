@@ -187,7 +187,7 @@ def main():
                     got[r] = (c[0], c[1], 1)      # 单 ckpt ⇒ 种子数 1
                     agg[a_][r].append(c[0])
             rows.append((name, full, a_, got, d))
-    W = 17
+    W = 15
     hd = f"| {'panel':<15}| {'full':>5} | {'arm':<8}|" + "".join(
         f" {('ρ=%g' % r):>{W}} |" for r in RAT[1:])
     print(hd)
@@ -209,8 +209,11 @@ def main():
                 # 单个 ckpt `ctrl_b_a1_s0`；`+4.27 ± 0.19` 的三种子数字只存在于
                 # scbench_kv @0.1 那一格，从没有 11×8 的三种子版本）。只给 v2c 标
                 # 会让人误以为别人是多种子的。
-                body = "%+.2f" % m if sd is None else "%+.2f±%.2f" % (m, sd)
-                line += f" {body + ('★' if sig else '') + deg + f'({ns})':>{W}} |"
+                # **只有多种子的格子标 (n) 与散布**：单种子是常态（表头已声明），
+                # 每格都印 `(1)` 只是噪声。n≥2 时印 `±跨种子标准差(n)`。
+                body = "%+.2f" % m if ns < 2 else "%+.2f±%.2f" % (m, sd or 0.0)
+                tail = ("★" if sig else "") + deg + (f"({ns})" if ns >= 2 else "")
+                line += f" {body + tail:>{W}} |"
         print(line)
     print("|" + "|".join(["-" * 16, "-" * 7, "-" * 9]
                          + ["-" * (W + 2)] * (len(RAT) - 1)) + "|")

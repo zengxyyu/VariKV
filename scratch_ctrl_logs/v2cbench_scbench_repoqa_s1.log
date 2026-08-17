@@ -2901,4 +2901,273 @@ chunk inputs, size: 16000 (num 5)
 Chunked prefilling with 0.20 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_repoqa-10: 65975 tokens, KV cache 3.8 GB, torch.bfloat16
 chunk inputs, size: 16000 (num 5)
-Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.43it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.39it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.97it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.70it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-10: 65975 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.47it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.05 ratio, window 3298
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-10: 65975 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.62it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.53it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.17it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.84it/s]
+Chunked prefilling with 0.02 ratio, window 1319
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-10: 65975 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/10_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 374.6s. Mem: 14.32/79.18 GB. [scbench_repoqa-10]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.25it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-11: 65975 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```python
+class BaseEth(Module):
+    _default_account: Union[ChecksumAddress, Empty] = empty
+    _default_block: BlockIdentifier = "latest"
+    _default_contract_factory: Any = None
+    _gas_price_strategy = None
+
+    is_async = False
+    account = Account()
+
+    def namereg(self) -> NoReturn:
+        raise NotImplementedError()
+
+    def icap_namereg(self) -> NoReturn:
+        raise NotImplementedError()
+
+    @property
+    def default_block(self) -> BlockIdentifier:
+        return self._default_block
+
+    @default_block.setter
+    def default_block(self, value: BlockIdentifier) -> None:
+        self._default_block = value
+
+    @property
+    def default_account(self) -> Union[ChecksumAddress, Empty]:
+        return self._default_account
+
+    @default_account.setter
+    def default_account(self, account: Union[ChecksumAddress, Empty]) -> None:
+        self._default_account = account
+
+    def send_transaction_munger(self, transaction: TxParams) -> Tuple[TxParams]:
+        if "from" not in transaction and is_checksum_address(self.default_account):
+            transaction = assoc(transaction, "from", self.default_account)
+
+        return (transaction,)
+
+    def generate_gas_price(
+        self, transaction_params: Optional[TxParams] = None
+    ) -> Optional[Wei]:
+        if self._gas_price_strategy:
+            return self._gas_price_strategy(self.w3, transaction_params)
+        return None
+
+    def set_gas_price_strategy(
+        self, gas_price_strategy: Optional[GasPriceStrategy]
+    ) -> None:
+        self._gas_price_strategy = gas_price_strategy
+
+    def _eth_call_and_estimate_gas_munger(
+        self,
+        transaction: TxParams,
+        block_identifier: Optional[BlockIdentifier] = None,
+        state_override: Optional[StateOverride] = None,
+    ) -> Union[
+        Tuple[TxParams, BlockIdentifier],
+        Tuple[TxParams, BlockIdentifier, StateOverride],
+    ]:
+        # TODO: move to middleware
+        if "from" not in transaction and is_checksum_address(self.default_account):
+            transaction = assoc(transaction, "from", self.default_account)
+
+        # TODO: move to middleware
+        if block_identifier is None:
+            block_identifier = self.default_block
+
+        if state_override is None:
+            return (transaction, block_identifier)
+        else:
+            return (transaction, block_identifier, state_override)
+
+    def estimate_gas_munger |     async def accounts(self) -> Tuple[ChecksumAddress]:
+        return await self._accounts()
+[QA 1] ```python
+def construct_event_topic_set(
+    event_abi: ABIEvent,
+    abi_codec: ABICodec,
+    arguments: Optional[Union[Sequence[Any], Dict[str, Any]]] = None,
+) -> List[HexStr]:
+    if arguments is None:
+        arguments = {}
+    if isinstance(arguments, (list, tuple)):
+        if len(arguments) != len(event_abi["inputs"]):
+            raise ValueError(
+                "When passing an argument list, the number of arguments must "
+                "match the event constructor."
+            )
+        arguments = {
+            arg["name"]: [arg_value]
+            for arg, arg_value in zip(event_abi["inputs"], arguments)
+        }
+
+    normalized_args = {
+        key: value if is_list_like(value) else [value]
+        # type ignored b/c arguments is always a dict at this point
+        for key, value in arguments.items()  # type: ignore
+    }
+
+    # typed dict cannot be used w/ a normal Dict
+    # https://github.com/python/mypy/issues/4976
+    event_topic = encode_hex(event_abi_to_log_topic(event_abi))  # type: ignore
+    indexed_args = get_indexed_event_inputs(event_abi)
+    zipped_abi_and_args = [
+        (arg, normalized_args.get(arg["name"], [None])) for arg in indexed_args
+    ]
+    encoded_args = [
+        [
+            (
+                None
+                if option is None
+                else encode_hex(abi_codec.encode([arg["type"]], [option]))
+            )
+            for option in arg_options
+        ]
+        for arg, arg_options in zipped_abi_and_args
+    ]
+
+    topics = list(normalize_topic_list([event_topic] + encoded_args))
+    return topics
+``` | def construct_event_topic_set(
+    event_abi: ABIEvent,
+    abi_codec: ABICodec,
+    arguments: Optional[Union[Sequence[Any], Dict[str, Any]]] = None,
+) -> List[HexStr]:
+    if arguments is None:
+        arguments = {}
+    if isinstance(arguments, (list, tuple)):
+        if len(arguments) != len(event_abi["inputs"]):
+            raise ValueError(
+                "When passing an argument list, the number of arguments must "
+                "match the event constructor."
+            )
+        arguments = {
+            arg["name"]: [arg_value]
+            for arg, arg_value in zip(event_abi["inputs"], arguments)
+        }
+
+    normalized_args = {
+        key: value if is_list_like(value) else [value]
+        # type ignored b/c arguments is always a dict at this point
+        for key, value in arguments.items()  # type: ignore
+    }
+
+    # typed dict cannot be used w/ a normal Dict
+    # https://github.com/python/mypy/issues/4976
+    event_topic = encode_hex(event_abi_to_log_topic(event_abi))  # type: ignore
+    indexed_args = get_indexed_event_inputs(event_abi)
+    zipped_abi_and_args = [
+        (arg, normalized_args.get(arg["name"], [None])) for arg in indexed_args
+    ]
+    encoded_args = [
+        [
+            (
+                None
+                if option is None
+                else encode_hex(abi_codec.encode([arg["type"]], [option]))
+            )
+            for option in arg_options
+        ]
+        for arg, arg_options in zipped_abi_and_args
+    ]
+
+    topics = list(normalize_topic_list([event_topic] + encoded_args))
+    return topics
+[QA 2] ```python
+def request_blocking(
+    self,
+    method: Union[RPCEndpoint, Callable[..., RPCEndpoint]],
+    params: Any,
+    error_formatters: Optional[Callable[..., Any]] = None,
+    null_result_formatters: Optional[Callable[..., Any]] = None,
+) -> Any:
+    """
+    Make a synchronous request using the provider
+    """
+    response = self._make_request(method, params)
+    return self.formatted_response(
+        response, params, error_formatters, null_result_formatters
+    )
+``` |     def request_blocking(
+        self,
+        method: Union[RPCEndpoint, Callable[..., RPCEndpoint]],
+        params: Any,
+        error_formatters: Optional[Callable[..., Any]] = None,
+        null_result_formatters: Optional[Callable[..., Any]] = None,
+    ) -> Any:
+        """
+        Make a synchronous request using the provider
+        """
+        response = self._make_request(method, params)
+        return self.formatted_response(
+            response, params, error_formatters, null_result_formatters
+        )
+[QA 3] ```python
+class _AsyncPersistentMessageStream:
+    """
+    Async generator for pulling subscription responses from the request processor
+    subscription queue. This abstraction is necessary to define the `__aiter__()`
+    method required for use with "async for" loops.
+    """
+
+    def __init__(self, manager: RequestManager, *args: Any, **kwargs: Any) -> None:
+        self.manager = manager
+        self.provider: PersistentConnectionProvider = cast(
+            PersistentConnectionProvider, manager._provider
+        )
+        super().__init__(*args, **kwargs)
+
+    def __aiter__(self) -> Self:
+        return self
+
+    async def __anext__(self) -> RPCResponse:
+        try:
+            return await self.manager._get_next_message()
+        except ConnectionClosedOK:
+            raise StopAsyncIteration
+``` |     def subscriptions(self) -> Dict[str, Any]:
+        return self._manager._request_processor.active_subscriptions
+[QA 4] ```python
+def combine_middlewares(
+    middlewares: Sequence[Middleware],
+    w3: "Web3",
+    provider_request_fn: MakeRequestFn,
+) -> Callable[..., "RPCResponse"]:
+    """
+    Returns a callable function which takes method and params as positional arguments
+    and passes these args through the request processors, makes the request, and passes
+    the response through the response processors.
+    """
+    accumulator_fn = provider_request_fn
+    for middleware in reversed(middlewares):
+        # initialize the middleware and wrap the accumulator function down the stack
+        accumulator_fn = middleware(w3).wrap_make_request(accumulator_fn)
+    return accumulator_fn
+``` |     def expire_at(self) -> int:
+        if self.seconds is None:
+            raise ValueError(
+                "Timeouts with `seconds == None` do not have an expiration time"
+            )
+        elif self.begun_at is None:
+            raise ValueError("Timeout has not been started")
+        return self.begun_at + self.seconds
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.25it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.77it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.28it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.00s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-11: 65975 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.31it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.09s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.27it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-11: 65975 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.35it/s]
