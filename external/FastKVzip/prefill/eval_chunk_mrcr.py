@@ -39,7 +39,9 @@ if __name__ == "__main__":
         from attention.control_memory import ControlMemory as _CM
         args.kv_type = "control_learned"
         _ck = _torch.load(args.ctrlm_ckpt, map_location="cpu")
-        _mode = args.ctrlm_mode or _ck.get("mode", "stateful")
+        # 与 eval_chunk.py 同一条修复：`or` 会让非空的 CLI 默认值永远压过 ckpt
+        _mode = args.ctrlm_mode if args.ctrlm_mode is not None \
+            else _ck.get("mode", "stateful")
         _ns = _ck.get("slots", 8)
         args.tag += f"_ctrlm{_mode[:4]}{_ns}"
         model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)

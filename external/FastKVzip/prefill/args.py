@@ -106,9 +106,14 @@ parser.add_argument("--ctrlm_ckpt", type=str, default="",
                     help="ControlMemory 权重；给了就启用 kv_type=control_learned")
 parser.add_argument("--ctrlm_slots", type=int, default=8)
 parser.add_argument("--ctrlm_dim", type=int, default=128)
-parser.add_argument("--ctrlm_mode", type=str, default="stateful",
+parser.add_argument("--ctrlm_mode", type=str, default=None,
                     choices=["stateful", "memoryless", "shuffled"],
-                    help="memoryless=状态永不更新（可训练参数更少，对照不完全匹配）；"
+                    help="不传 ⇒ **跟随 ckpt 里存的 mode**（memoryless.pt 就跑 "
+                         "memoryless）。默认曾经是 'stateful'，而 eval_chunk 用的是 "
+                         "`args.ctrlm_mode or _ck['mode']` —— 非空字符串恒为真，"
+                         "于是 ckpt 的 mode **永远不生效**。这条静默地把一整批干净版 "
+                         "v2 的评测跑成了 stateful（2026-08-17 查出，结果全部作废）。"
+                         "memoryless=状态永不更新；"
                          "shuffled=写入照跑但成员身份随机置换（参数/计算全匹配，"
                          "只破坏历史↔候选的对应关系）——**这个才是强对照**")
 parser.add_argument("--centroid_rope", type=str, default="post",

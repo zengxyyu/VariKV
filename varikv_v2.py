@@ -211,7 +211,7 @@ V2_TRACES = {
 #   v3     scratch_ctrl_teacher.py --n_cat 30 --out DIR  30  23 / 7  ctrl_smc_s*（v3）
 #                                                                    + dec_* 四臂
 REGIME = {
-    "v2": (10, "上游 load_fineweb('fineweb_10k_cat')，教师 --n_cat 0（默认）"),
+    "v2": (10, "上游 load_fineweb('fineweb_10k_cat')，教师 --regime v2"),
     "v3": (30, "load_cat_many(30) 扩容，教师 --n_cat 30"),
     "all": (0, "目录里有什么用什么，不校验"),
 }
@@ -666,13 +666,26 @@ def train(a):
         files = files[:n_want]
     # **内容级核对**，不是文件名级。只有 v2 档有已知的参照摘要；v3 档的 20 篇扩容
     # 文档没有存过摘要，所以只报篇数不校验内容 —— 说清楚比假装校验过好。
-    if a.data == "v2" and os.path.basename(a.traces.rstrip("/")) == \
-            "scratch_ctrl_traces_v2":
+    if a.data == "v2" and os.path.basename(a.traces.rstrip("/")) in (
+            "scratch_ctrl_traces_v2", "scratch_ctrl_traces_v2_10"):
         check_v2_traces(files)
         print("  [校验] 10 篇 trace 的 sha256 与 v2 训练时逐字节相同")
     elif a.data == "v2":
         print(f"  [注意] traces 不是默认目录，跳过 sha256 校验")
     docs = [torch.load(f, map_location="cpu") for f in files]
+    # **trace 自描述的 regime 校验。** 新版教师（2026-08-17 起）会把 `regime` 与原文
+    # sha256 写进每个 doc.pt —— 因为"跑了哪条命令"留不住：`--n_cat 0`(v2) 与
+    # `--n_cat 30`(v3) 曾写进同一个目录，事后只能靠文件 mtime 反推谁是谁。
+    # 老 trace 没有这个字段，所以只提示不拦（拦了会把既有实验全挡在门外）。
+    rg = {d.get("regime") for d in docs}
+    if rg == {None}:
+        print("  [注意] trace 未记录 regime（旧版教师产出）——只能靠 sha256 与目录名判断")
+    else:
+        assert len(rg) == 1, f"同一目录下混了多个 regime 的 trace：{rg}　拒绝训练"
+        got = rg.pop()
+        assert a.data == "all" or got == a.data, \
+            f"trace 自称 regime={got}，而 --data {a.data}　—— 语料与档位不符"
+        print(f"  [校验] trace 自述 regime={got}，与 --data 一致")
     L, H = docs[0]["L"], docs[0]["H"]
     # **d_kv 从 trace 推**，不要信 argparse 的默认值：不一致时只会在 `x_proj` 里
     # 抛一个看不懂的形状错误，而不是在这里说清楚。

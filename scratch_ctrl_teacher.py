@@ -56,6 +56,7 @@ P0 探针测过**逐头损伤有 75% 在层内自相消**（`‖Σ_h W_O Δo_h�
    这正是 CLAUDE.md 记录的「不匹配的是任务，不是长度」。第一版沿用现有训练语料的做法。
 """
 import argparse
+import hashlib
 import os
 import random
 import sys
@@ -76,6 +77,46 @@ from model.wrapper import ModelKVzip                         # noqa: E402
 # `past_key_value.flatten` 为真时才调 `prepare`，而算 U 用的满缓存那次预填
 # `chunk_ratio=1.0` 从不进 `prune_chunk`、flatten 恒为 False ⇒ 钩子永不触发，
 # 首篇文档就 KeyError。教师此前从未真机跑过，所以这个 bug 一直没暴露。
+
+
+# ══════════════════════════════════════════════════════════════════
+#  数据档位：从**源头**显式声明用哪一批语料，不要靠 `--n_cat 0` 这种带历史
+#  含义的隐式默认。
+#
+#  为什么必须显式：v2 与 v3 的语料是**两条不同的代码路径**（上游 `load_fineweb`
+#  的 cat 变体 vs 本地 `load_cat_many`），而当初两次运行写进了**同一个目录**，
+#  事后只能靠文件 mtime 反推谁是谁。篇数一变，`--split_seed` 的划分也全变
+#  （10 篇 → 8/2、验证集 [3,7]；30 篇 → 23/7、验证集 [5,6,10,14,19,22,26]），
+#  而代码一行不用改、也不报错。
+#
+#  **档位不能取代哈希，两者管的是不同层次**：档位保证"走了同一条代码路径"，
+#  哈希保证"实际拿到同一批字节"。上游 dataset revision、tokenizer、预处理任何
+#  一个变了，同一条代码路径也会产出不同的语料。所以两个都要，写进 trace。
+REGIMES = {
+    "v2": ("上游 load_fineweb('fineweb_10k_cat')，恰好 10 篇；v2/ctrl_b_a1_* 用的就是它", 10),
+    "v3": ("本地 load_cat_many(30)，绕开上游 10^6 token 上限；前 10 篇与 v2 逐字节相同（实测 10/10）", 30),
+    "custom": ("手动用 --n_short/--n_long/--n_cat 指定（旧行为，不推荐）", None),
+}
+
+
+def select_docs(a):
+    """→ (原文列表, regime 名)。**唯一决定语料的地方**，别在别处再挑一次。"""
+    if a.regime == "v2":
+        docs = [d["context"] for d in load_fineweb("fineweb_10k_cat")]
+    elif a.regime == "v3":
+        docs = [d["context"] for d in load_cat_many(30)]
+    else:
+        docs = []
+        if a.n_cat > 0:
+            docs += [d["context"] for d in load_cat_many(a.n_cat)]
+        else:
+            for src, n in (("fineweb_10k", a.n_short), ("fineweb_10k_cat", a.n_long)):
+                docs += [d["context"] for d in load_fineweb(src)[:n]]
+    want = REGIMES[a.regime][1]
+    assert want is None or len(docs) == want, (
+        f"regime={a.regime} 期望 {want} 篇，实得 {len(docs)} 篇 —— 上游语料变了，"
+        "不要继续跑，否则会产出一批和历史不可比的 trace")
+    return docs, a.regime
 
 
 def load_cat_many(n_docs, min_len=10000, max_len=30000, target=100000):
@@ -316,7 +357,7 @@ def main():
     ap.add_argument("--n_qpos", type=int, default=16)
     ap.add_argument("--n_keep", type=int, default=256,
                     help="每 (chunk,层,kv头) 留多少个**最靠近阈值**的候选做排序损失。"
-                         "离阈值远的无论 Δs 多大都翻不了——手工版实测 β=0.5 只翻 0.895%")
+                         "离阈值远的无论 Δs 多大都翻不了——手工版实测 β=0.5 只翻 0.895%%")
     ap.add_argument("--n_rand", type=int, default=512,
                     help="额外随机采样，供 writer 汇总 retained/evicted 用")
     ap.add_argument("--min_prunes", type=int, default=2,
@@ -333,6 +374,9 @@ def main():
                     help="full_single = 满缓存下单 token 移除损伤（per-token 内在量，"
                          "**从定义上压掉历史效应**）；set_marginal = 条件于真实存活"
                          "集合的边际效用，才是固定预算 swap 的判据")
+    ap.add_argument("--regime", default="custom", choices=list(REGIMES),
+                    help="**从源头声明用哪批语料**。"
+                         + "；".join(f"{k}={v[0]}" for k, v in REGIMES.items()))
     ap.add_argument("--n_cat", type=int, default=0,
                     help=">0 时改用本地不受 10^6 上限约束的加载器取这么多篇长文档"
                          "（前 10 篇与上游 cat 变体逐字节相同）。检索探针在 n=6 时"
@@ -349,16 +393,14 @@ def main():
     n_prune = []
     # load_fineweb 返回 {'context': str}，**没有 .ids**，必须自己编码
     # （与评测同口径 add_special_tokens=False，见 scratch_stage2b_train.py:310）
-    docs = []
-    if a.n_cat > 0:
-        for d_ in load_cat_many(a.n_cat):
-            docs.append(m.encode(d_["context"])[0].tolist())
-    else:
-        for src, n_take in (("fineweb_10k", a.n_short), ("fineweb_10k_cat", a.n_long)):
-            for d_ in load_fineweb(src)[:n_take]:
-                docs.append(m.encode(d_["context"])[0].tolist())
-    print(f"训练文档 {len(docs)} 篇，长度 {min(map(len,docs))}-{max(map(len,docs))}",
-          flush=True)
+    texts, regime = select_docs(a)
+    docs = [m.encode(t)[0].tolist() for t in texts]
+    # **把 regime 与原文哈希写进每个 trace**，让 trace 自描述。
+    # 光靠"跑了哪条命令"是留不住的：`--n_cat 0`（v2）与 `--n_cat 30`（v3）曾写进
+    # **同一个目录**，事后只能靠文件 mtime 反推谁是谁（2026-08-16 就这么查的）。
+    doc_sha = [hashlib.sha256(t.encode()).hexdigest() for t in texts]
+    print(f"训练文档 {len(docs)} 篇（regime={regime}），"
+          f"长度 {min(map(len,docs))}-{max(map(len,docs))}", flush=True)
 
     for di, s in enumerate(docs):
         f = os.path.join(ROOT, a.out, f"doc{di:03d}.pt")
@@ -493,7 +535,9 @@ def main():
                     mu_h=c["mu_h"][l], sig_h=c["sig_h"][l],   # 全量，[H]
                     thres=float(c["thres"])))
             rec_out.append(dict(thres=c["thres"], gsig=c["gsig"], layers=per_l))
-        torch.save(dict(doc=di, chunks=rec_out, H=H, L=L), f)
+        torch.save(dict(doc=di, chunks=rec_out, H=H, L=L,
+                        regime=regime, text_sha256=doc_sha[di],
+                        n_docs_total=len(docs)), f)
         print(f"doc{di}: {len(rec_out)} 次驱逐 → {f}", flush=True)
         del kv
         torch.cuda.empty_cache()

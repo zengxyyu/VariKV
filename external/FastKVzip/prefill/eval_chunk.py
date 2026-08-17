@@ -125,7 +125,17 @@ if __name__ == "__main__":
 
         args.kv_type = "control_learned"
         _ck = _torch.load(args.ctrlm_ckpt, map_location="cpu")
-        _mode = args.ctrlm_mode or _ck.get("mode", "stateful")
+        # **`is None` 而不是 `or`。** `--ctrlm_mode` 曾默认 `"stateful"`，非空字符串
+        # 恒为真 ⇒ `args.ctrlm_mode or _ck[...]` 永远取 CLI 默认值，ckpt 存的 mode
+        # 从来不生效。后果不是"跑错一个开关"：memoryless 的 ckpt 在 stateful 下会真的
+        # 执行 `ControlMemory.write`（GRU/池化/EMA），而 `varikv_v2.py:to_compat_ckpt`
+        # 导出的 writer 权重是**填零**的（因为"memoryless 下不参与前向"），于是状态被
+        # 全零 writer 破坏。实测把干净版 v2 从 +4.27 打到 +1.40。
+        _mode = args.ctrlm_mode if args.ctrlm_mode is not None \
+            else _ck.get("mode", "stateful")
+        if _ck.get("mode") is not None and _mode != _ck["mode"]:
+            print(f"[CtrlM] ⚠ CLI 用 --ctrlm_mode {_mode} 覆盖了 ckpt 的 "
+                  f"{_ck['mode']} —— 只有做对照时才该这样", flush=True)
         args.tag += f"_ctrlm{_mode[:4]}{_ck.get('slots', args.ctrlm_slots)}"
         model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
         _arch = _ck.get("arch", "memory")
