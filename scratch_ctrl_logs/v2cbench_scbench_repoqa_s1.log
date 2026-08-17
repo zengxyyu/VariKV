@@ -12003,3 +12003,1312 @@ Chunked prefilling with 0.30 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_repoqa-49: 65641 tokens, KV cache 3.8 GB, torch.bfloat16
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.37it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.84it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.61it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-49: 65641 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.39it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.98it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.71it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-49: 65641 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.50it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.47it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.09it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.05 ratio, window 3282
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-49: 65641 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.57it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.19it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.02 ratio, window 1312
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-49: 65641 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/49_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 187.3s. Mem: 14.32/79.18 GB. [scbench_repoqa-49]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.27it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.09it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-50: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```javascript
+/**
+ * Encode a set of form elements as a string for submission.
+ *
+ * @category Forms
+ * @example
+ *
+ * ```js
+ * $('<form><input name="foo" value="bar" /></form>').serialize();
+ * //=> 'foo=bar'
+ * ```
+ *
+ * @returns The serialized form.
+ * @see {@link https://api.jquery.com/serialize/}
+ */
+export function serialize<T extends AnyNode>(this: Cheerio<T>): string {
+  // Convert form elements into name/value objects
+  const arr = this.serializeArray();
+
+  // Serialize each element into a key/value string
+  const retArr = arr.map(
+    (data) =>
+      `${encodeURIComponent(data.name)}=${encodeURIComponent(data.value)}`,
+  );
+
+  // Return the resulting serialization
+  return retArr.join('&').replace(r20, '+');
+}
+``` | export function serialize<T extends AnyNode>(this: Cheerio<T>): string {
+  // Convert form elements into name/value objects
+  const arr = this.serializeArray();
+
+  // Serialize each element into a key/value string
+  const retArr = arr.map(
+    (data) =>
+      `${encodeURIComponent(data.name)}=${encodeURIComponent(data.value)}`,
+  );
+
+  // Return the resulting serialization
+  return retArr.join('&').replace(r20, '+');
+}
+[QA 1] ```javascript
+/**
+ * Sets the value of a data attribute.
+ *
+ * @private
+ * @param elem - The element to set the data attribute on.
+ * @param name - The data attribute's name.
+ * @param value - The data attribute's value.
+ */
+function setData(
+  elem: Element,
+  name: string | Record<string, unknown>,
+  value?: unknown,
+) {
+  elem.data ??= {};
+
+  if (typeof name === 'object') Object.assign(elem.data, name);
+  else if (typeof name === 'string' && value !== undefined) {
+    elem.data[name] = value;
+  }
+}
+``` | function setData(
+  elem: DataElement,
+  name: string | Record<string, unknown>,
+  value?: unknown,
+) {
+  elem.data ??= {};
+
+  if (typeof name === 'object') Object.assign(elem.data, name);
+  else if (typeof name === 'string' && value !== undefined) {
+    elem.data[name] = value;
+  }
+}
+[QA 2] ```typescript
+/**
+ * The .unwrap() function, removes the parents of the set of matched elements
+ * from the DOM, leaving the matched elements in their place.
+ *
+ * @category Manipulation
+ * @example <caption>without selector</caption>
+ *
+ * ```js
+ * const $ = cheerio.load(
+ *   '<div id=test>\n  <div><p>Hello</p></div>\n  <div><p>World</p></div>\n</div>',
+ * );
+ * $('#test p').unwrap();
+ *
+ * //=> <div id=test>
+ * //     <p>Hello</p>
+ * //     <p>World</p>
+ * //   </div>
+ * ```
+ *
+ * @example <caption>with selector</caption>
+ *
+ * ```js
+ * const $ = cheerio.load(
+ *   '<div id=test>\n  <p>Hello</p>\n  <b><p>World</p></b>\n</div>',
+ * );
+ * $('#test p').unwrap('b');
+ *
+ * //=> <div id=test>
+ * //     <p>Hello</p>
+ * //     <p>World</p>
+ * //   </div>
+ * ```
+ *
+ * @param selector - A selector to check the parent element against. If an
+ *   element's parent does not match the selector, the element won't be
+ *   unwrapped.
+ * @returns The instance itself, for chaining.
+ * @see {@link https://api.jquery.com/unwrap/}
+ */
+export function unwrap<T extends AnyNode>(
+  this: Cheerio<T>,
+  selector?: string,
+): Cheerio<T> {
+  this.parent(selector)
+    .not('body')
+    .each((_, el) => {
+      this._make(el).replaceWith(el.children);
+    });
+  return this;
+}
+``` | export function unwrap<T extends AnyNode>(
+  this: Cheerio<T>,
+  selector?: string,
+): Cheerio<T> {
+  this.parent(selector)
+    .not('body')
+    .each((_, el) => {
+      this._make(el).replaceWith(el.children);
+    });
+  return this;
+}
+[QA 3] ```javascript
+function getText(el: Cheerio<Element>) {
+  if (el.length === 0) return undefined;
+  const [firstChild] = el[0].childNodes;
+  return isText(firstChild) ? firstChild.data : undefined;
+}
+``` | function getText(el: Cheerio<Element>) {
+  if (el.length === 0) return undefined;
+  const [firstChild] = el[0].childNodes;
+  return isText(firstChild)? firstChild.data : undefined;
+}
+[QA 4] ```typescript
+/**
+ * Removes all children from each item in the selection. Text nodes and comment
+ * nodes are left as is.
+ *
+ * @category Manipulation
+ * @example
+ *
+ * ```js
+ * $('ul').empty();
+ * $.html();
+ * //=>  <ul id="fruits"></ul>
+ * ```
+ *
+ * @returns The instance itself.
+ * @see {@link https://api.jquery.com/empty/}
+ */
+export function empty<T extends AnyNode>(this: Cheerio<T>): Cheerio<T> {
+  return domEach(this, (el) => {
+    if (!hasChildren(el)) return;
+    for (const child of el.children) {
+      child.next = child.prev = child.parent = null;
+    }
+
+    el.children.length = 0;
+  });
+}
+``` | export function empty<T extends AnyNode>(this: Cheerio<T>): Cheerio<T> {
+  return domEach(this, (el) => {
+    if (!hasChildren(el)) return;
+    for (const child of el.children) {
+      child.next = child.prev = child.parent = null;
+    }
+
+    el.children.length = 0;
+  });
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.28it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.09it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-50: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.30it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.21it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-50: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.37it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-50: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.40it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.60it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.44it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-50: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.71it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.52it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-50: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.84it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.61it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-50: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.43it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.39it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.99it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.71it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-50: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.47it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.46it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.09it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.05 ratio, window 3280
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-50: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.57it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.19it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.02 ratio, window 1312
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-50: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/50_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 319.8s. Mem: 14.32/79.18 GB. [scbench_repoqa-50]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.28it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.77it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.09it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-51: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```typescript
+/**
+ * Adds class(es) to all of the matched elements. Also accepts a `function`.
+ *
+ * @category Attributes
+ * @example
+ *
+ * ```js
+ * $('.pear').addClass('fruit').html();
+ * //=> <li class="pear fruit">Pear</li>
+ *
+ * $('.apple').addClass('fruit red').html();
+ * //=> <li class="apple fruit red">Apple</li>
+ * ```
+ *
+ * @param value - Name of new class.
+ * @returns The instance itself.
+ * @see {@link https://api.jquery.com/addClass/}
+ */
+export function addClass<T extends AnyNode, R extends ArrayLike<T>>(
+  this: R,
+  value?:
+    | string
+    | ((this: Element, i: number, className: string) => string | undefined),
+): R {
+  // Support functions
+  if (typeof value === 'function') {
+    return domEach(this, (el, i) => {
+      if (isTag(el)) {
+        const className = el.attribs['class'] || '';
+        addClass.call([el], value.call(el, i, className));
+      }
+    });
+  }
+
+  // Return if no value or not a string or function
+  if (!value || typeof value !== 'string') return this;
+
+  const classNames = value.split(rspace);
+  const numElements = this.length;
+
+  for (let i = 0; i < numElements; i++) {
+    const el = this[i];
+    // If selected element isn't a tag, move on
+    if (!isTag(el)) continue;
+
+    // If we don't already have classes — always set xmlMode to false here, as it doesn't matter for classes
+    const className = getAttr(el, 'class', false);
+
+    if (className) {
+      let setClass = ` ${className} `;
+
+      // Check if class already exists
+      for (const cn of classNames) {
+        const appendClass = `${cn} `;
+        if (!setClass.includes(` ${appendClass}`)) setClass += appendClass;
+      }
+
+      setAttr(el, 'class', setClass.trim());
+    } else {
+      setAttr(el, 'class', classNames.join(' ').trim());
+    }
+  }
+
+  return this;
+}
+``` | export function addClass<T extends AnyNode, R extends ArrayLike<T>>(
+  this: R,
+  value?:
+    | string
+    | ((this: Element, i: number, className: string) => string | undefined),
+): R {
+  // Support functions
+  if (typeof value === 'function') {
+    return domEach(this, (el, i) => {
+      if (isTag(el)) {
+        const className = el.attribs['class'] || '';
+        addClass.call([el], value.call(el, i, className));
+      }
+    });
+  }
+
+  // Return if no value or not a string or function
+  if (!value || typeof value !== 'string') return this;
+
+  const classNames = value.split(rspace);
+  const numElements = this.length;
+
+  for (let i = 0; i < numElements; i++) {
+    const el = this[i];
+    // If selected element isn't a tag, move on
+    if (!isTag(el)) continue;
+
+    // If we don't already have classes — always set xmlMode to false here, as it doesn't matter for classes
+    const className = getAttr(el, 'class', false);
+
+    if (className) {
+      let setClass = ` ${className} `;
+
+      // Check if class already exists
+      for (const cn of classNames) {
+        const appendClass = `${cn} `;
+        if (!setClass.includes(` ${appendClass}`)) setClass += appendClass;
+      }
+
+      setAttr(el, 'class', setClass.trim());
+    } else {
+      setAttr(el, 'class', classNames.join(' ').trim());
+    }
+  }
+
+  return this;
+}
+[QA 1] ```typescript
+/**
+ * Checks if an object is a Cheerio instance.
+ *
+ * @category Utils
+ * @param maybeCheerio - The object to check.
+ * @returns Whether the object is a Cheerio instance.
+ */
+export function isCheerio<T>(maybeCheerio: any): maybeCheerio is Cheerio<T> {
+  return maybeCheerio.cheerio != null;
+}
+``` | export function isCheerio<T>(maybeCheerio: any): maybeCheerio is Cheerio<T> {
+  return maybeCheerio.cheerio != null;
+}
+[QA 2] ```typescript
+function isArrayLike(item: unknown): item is ArrayLike<unknown> {
+  if (Array.isArray(item)) {
+    return true;
+  }
+
+  if (
+    typeof item !== 'object' ||
+    item === null ||
+    !('length' in item) ||
+    typeof item.length !== 'number' ||
+    item.length < 0
+  ) {
+    return false;
+  }
+
+  for (let i = 0; i < item.length; i++) {
+    if (!(i in item)) {
+      return false;
+    }
+  }
+  return true;
+}
+``` | function isArrayLike(item: unknown): item is ArrayLike<unknown> {
+  if (Array.isArray(item)) {
+    return true;
+  }
+
+  if (
+    typeof item !== 'object' ||
+    item === null ||
+    !('length' in item) ||
+    typeof item.length !== 'number' ||
+    item.length < 0
+  ) {
+    return false;
+  }
+
+  for (let i = 0; i < item.length; i++) {
+    if (!(i in item)) {
+      return false;
+    }
+  }
+  return true;
+}
+[QA 3] ```typescript
+/**
+ * Method for getting and setting properties. Gets the property value for only
+ * the first element in the matched set.
+ *
+ * @category Attributes
+ * @example
+ *
+ * ```js
+ * $('input[type="checkbox"]').prop('checked');
+ * //=> false
+ *
+ * $('input[type="checkbox"]').prop('checked', true).val();
+ * //=> ok
+ * ```
+ *
+ * @param name - Name of the property.
+ * @returns If `value` is specified the instance itself, otherwise the prop's
+ *   value.
+ * @see {@link https://api.jquery.com/prop/}
+ */
+export function prop<T extends AnyNode>(
+  this: Cheerio<T>,
+  name: 'tagName' | 'nodeName',
+): string | undefined;
+export function prop<T extends AnyNode>(
+  this: Cheerio<T>,
+  name: 'innerHTML' | 'outerHTML' | 'innerText' | 'textContent',
+): string | null;
+/**
+ * Get a parsed CSS style object.
+ *
+ * @param name - Name of the property.
+ * @returns The style object, or `undefined` if the element has no `style`
+ *   attribute.
+ */
+export function prop<T extends AnyNode>(
+  this: Cheerio<T>,
+  name: 'style',
+): StyleProp | undefined;
+/**
+ * Resolve `href` or `src` of supported elements. Requires the `baseURI` option
+ * to be set, and a global `URL` object to be part of the environment.
+ *
+ * @example With `baseURI` set to `'https://example.com'`:
+ *
+ * ```js
+ *($('<img src="image.png">').prop('src');
+ * //=> 'https://example.com/image.png'
+ * ```
+ *
+ * @param name - Name of the property.
+ * @returns The resolved URL, or `undefined` if the element is not supported.
+ */
+export function prop<T extends AnyNode>(
+  this: Cheerio<T>,
+  name: 'href' | 'src',
+): string | undefined;
+/**
+ * Get a property of an element.
+ *
+ * @param name - Name of the property.
+ * @returns The property's value.
+ */
+export function prop<T extends AnyNode, K extends keyof Element>(
+  this: Cheerio<T>,
+  name: K,
+): Element[K];
+/**
+ * Set a property of an element.
+ *
+ * @param name - Name of the property.
+ * @param value - Value to set the property to.
+ | function getCss(
+  el: AnyNode,
+  prop?: string | string[],
+): Record<string, string> | string | undefined {
+  if (!el || !isTag(el)) return;
+
+  const styles = parse(el.attribs['style']);
+  if (typeof prop === 'string') {
+    return styles[prop];
+  }
+  if (Array.isArray(prop)) {
+    const newStyles: Record<string, string> = {};
+    for (const item of prop) {
+      if (styles[item] != null) {
+        newStyles[item] = styles[item];
+      }
+    }
+    return newStyles;
+  }
+  return styles;
+}
+[QA 4] ```javascript
+/**
+ * Gets the element children of each element in the set of matched elements.
+ *
+ * @category Traversing
+ * @example
+ *
+ * ```js
+ * $('#fruits').children().length;
+ * //=> 3
+ *
+ * $('#fruits').children('.pear').text();
+ * //=> Pear
+ * ```
+ *
+ * @param selector - If specified filter for children.
+ * @returns The children.
+ * @see {@link https://api.jquery.com/children/}
+ */
+export const children = _matcher(
+  (elem) => getChildren(elem).filter(isTag),
+  _removeDuplicates,
+);
+``` | export function contents<T extends AnyNode>(
+  this: Cheerio<T>,
+): Cheerio<AnyNode> {
+  const elems = this.toArray().reduce<AnyNode[]>(
+    (newElems, elem) =>
+      hasChildren(elem) ? newElems.concat(elem.children) : newElems,
+    [],
+  );
+  return this._make(elems);
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-51: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.31it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.30it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.21it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-51: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.38it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.37it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-51: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.41it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.26it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.60it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.44it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-51: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.71it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.52it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-51: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.37it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.30it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.84it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.61it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-51: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.43it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.39it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.99it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.71it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-51: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.46it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.10it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.05 ratio, window 3280
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-51: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.57it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.20it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.02 ratio, window 1312
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-51: 65607 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/51_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 439.6s. Mem: 14.32/79.18 GB. [scbench_repoqa-51]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.24it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-52: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```typescript
+export default async (
+  req: NextApiRequestQueryBody<ReportRequestQuery, ReportRequestBody>,
+  res: NextApiResponse,
+) => {
+  await useCors(req, res);
+  await useAuth(req, res);
+  await useValidate(schema, req, res);
+
+  const { reportId } = req.query;
+  const {
+    user: { id: userId },
+  } = req.auth;
+
+  if (req.method === 'GET') {
+    const report = await getReport(reportId);
+
+    if (!(await canViewReport(req.auth, report))) {
+      return unauthorized(res);
+    }
+
+    report.parameters = JSON.parse(report.parameters);
+
+    return ok(res, report);
+  }
+
+  if (req.method === 'POST') {
+    const { websiteId, type, name, description, parameters } = req.body;
+
+    const report = await getReport(reportId);
+
+    if (!(await canUpdateReport(req.auth, report))) {
+      return unauthorized(res);
+    }
+
+    const result = await updateReport(reportId, {
+      websiteId,
+      userId,
+      type,
+      name,
+      description,
+      parameters: JSON.stringify(parameters),
+    } as any);
+
+    return ok(res, result);
+  }
+
+  if (req.method === 'DELETE') {
+    const report = await getReport(reportId);
+
+    if (!(await canDeleteReport(req.auth, report))) {
+      return unauthorized(res);
+    }
+
+    await deleteReport(reportId);
+
+    return ok(res);
+  }
+
+  return methodNotAllowed(res);
+};
+``` | export async function getUserReports(
+  userId: string,
+  filters?: ReportSearchFilter,
+): Promise<FilterResult<Report[]>> {
+  return getReports(
+    {
+      where: {
+        userId,
+      },
+      include: {
+        website: {
+          select: {
+            domain: true,
+            userId: true,
+          },
+        },
+      },
+    },
+    filters,
+  );
+}
+[QA 1] ```typescript
+export function notImplemented() {
+  throw new Error('Not implemented.');
+}
+``` | export function notImplemented() {
+  throw new Error('Not implemented.');
+}
+[QA 2] ```typescript
+export async function getReports(
+  criteria: ReportFindManyArgs,
+  filters: ReportSearchFilter = {},
+): Promise<FilterResult<Report[]>> {
+  const { query } = filters;
+
+  const where: Prisma.ReportWhereInput = {
+    ...criteria.where,
+    ...prisma.getSearchParameters(query, [
+      { name: 'contains' },
+      { description: 'contains' },
+      { type: 'contains' },
+      {
+        user: {
+          username: 'contains',
+        },
+      },
+      {
+        website: {
+          name: 'contains',
+        },
+      },
+      {
+        website: {
+          domain: 'contains',
+        },
+      },
+    ]),
+  };
+
+  return prisma.pagedQuery('report', { ...criteria, where }, filters);
+}
+``` | function convertFilters(filters: any[]) {
+  return filters.reduce((obj, filter) => {
+    obj[filter.name] = filter;
+
+    return obj;
+  }, {});
+}
+[QA 3] ```typescript
+export function getClientAuthToken() {
+  return getItem(AUTH_TOKEN);
+}
+``` | export function getClientAuthToken() {
+  return getItem(AUTH_TOKEN);
+}
+[QA 4] ```typescript
+import clickhouse from 'lib/clickhouse';
+import { CLICKHOUSE, PRISMA, runQuery, notImplemented } from 'lib/db';
+
+export function getRetention(
+  ...args: [
+    websiteId: string,
+    filters: {
+      startDate: Date;
+      endDate: Date;
+      timezone?: string;
+    },
+  ]
+) {
+  return runQuery({
+    [PRISMA]: notImplemented,
+    [CLICKHOUSE]: () => clickhouseQuery(...args),
+  });
+}
+
+async function clickhouseQuery(
+  websiteId: string,
+  filters: {
+    startDate: Date;
+    endDate: Date;
+    timezone?: string;
+  },
+): Promise<
+  {
+    date: string;
+    day: number;
+    visitors: number;
+    returnVisitors: number;
+    percentage: number;
+  }[]
+> {
+  const { startDate, endDate, timezone = 'UTC' } = filters;
+  const { getDateQuery, getDayDiffQuery, getCastColumnQuery, rawQuery } = clickhouse;
+  const unit = 'day';
+
+  return rawQuery(
+    `
+    WITH cohort_items AS (
+      select session_id,
+        ${getDateQuery('created_at', unit, timezone)} as cohort_date  
+      from session 
+      where website_id = {websiteId:UUID}
+        and created_at between {startDate:DateTime64} and {endDate:DateTime64}
+    ),
+    user_activities AS (
+      select distinct
+        w.session_id,
+        ${getDayDiffQuery(
+          getDateQuery('created_at', unit, timezone),
+          'c.cohort_date',
+        )} as day_number
+      from website_event w
+      join cohort_items c
+      on w.session_id = c.session_id
+      where website_id = {websiteId:UUID}
+          and created_at between {startDate:DateTime64} and {endDate:DateTime64}
+      ),
+    cohort_size as (
+      select cohort_date,
+        count(*) as visitors
+      from cohort_items
+      group by 1
+      order by 1
+    ),
+    cohort_date as (
+      select
+        c.cohort_date,
+        a.day_number,
+        count(*) as visitors
+      from user_activities a
+      join cohort_items c
+      on a.session_id = c.session_id
+      group by 1, 2
+    )
+    select
+      c.cohort_date as date,
+      c.day_number as day,
+      s.visitors,
+ | export async function getRetention(
+  ...args: [
+    websiteId: string,
+    filters: {
+      startDate: Date;
+      endDate: Date;
+      timezone?: string;
+    },
+  ]
+) {
+  return runQuery({
+    [PRISMA]: () => relationalQuery(...args),
+    [CLICKHOUSE]: () => clickhouseQuery(...args),
+  });
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.24it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.77it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.28it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-52: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.31it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.28it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-52: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.38it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.36it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-52: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.40it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.43it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-52: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.31it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.69it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.51it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-52: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.37it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.30it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.83it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.60it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-52: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.43it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.39it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.97it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.70it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-52: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.46it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.05 ratio, window 3298
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-52: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.18it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.02 ratio, window 1319
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-52: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/52_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 439.4s. Mem: 14.32/79.18 GB. [scbench_repoqa-52]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.26it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.77it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-53: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```typescript
+export async function getInsights(
+  ...args: [websiteId: string, fields: { name: string; type?: string }[], filters: QueryFilters]
+) {
+  return runQuery({
+    [PRISMA]: () => relationalQuery(...args),
+    [CLICKHOUSE]: () => clickhouseQuery(...args),
+  });
+}
+
+async function relationalQuery(
+  websiteId: string,
+  fields: { name: string; type?: string }[],
+  filters: QueryFilters,
+): Promise<
+  {
+    x: string;
+    y: number;
+  }[]
+> {
+  const { parseFilters, rawQuery } = prisma;
+  const { filterQuery, joinSession, params } = await parseFilters(
+    websiteId,
+    {
+      ...filters,
+      eventType: EVENT_TYPE.pageView,
+    },
+    {
+      joinSession: !!fields.find(({ name }) => SESSION_COLUMNS.includes(name)),
+    },
+  );
+
+  return rawQuery(
+    `
+    select 
+      ${parseFields(fields)}
+    from website_event
+      ${joinSession}
+    where website_event.website_id = {{websiteId::uuid}}
+      and website_event.created_at between {{startDate}} and {{endDate}}
+      and website_event.event_type = {{eventType}}
+      ${filterQuery}
+    ${parseGroupBy(fields)}
+    order by 1 desc, 2 desc
+    limit 500
+    `,
+    params,
+  );
+}
+
+async function clickhouseQuery(
+  websiteId: string,
+  fields: { name: string; type?: string }[],
+  filters: QueryFilters,
+): Promise<
+  {
+    x: string;
+    y: number;
+  }[]
+> {
+  const { parseFilters, rawQuery } = clickhouse;
+  const { filterQuery, params } = await parseFilters(websiteId, {
+    ...filters,
+    eventType: EVENT_TYPE.pageView,
+  });
+
+  return rawQuery(
+    `
+    select 
+      ${parseFields(fields)}
+    from website_event
+    where website_id = {websiteId:UUID}
+      and created_at between {startDate:DateTime64} and {endDate:DateTime64}
+      and event_type = {eventType:UInt32}
+      ${filterQuery}
+    ${parseGroupBy(fields)}
+    order by 1 desc, 2 desc
+    limit 500
+    `,
+    params,
+  ).then(a => {
+    return Object.values(a).map(a => {
+      return {
+        ...a | export function getIpAddress(req: NextApiRequestCollect) {
+  const customHeader = String(process.env.CLIENT_IP_HEADER).toLowerCase();
+
+  // Custom header
+  if (customHeader !== 'undefined' && req.headers[customHeader]) {
+    return req.headers[customHeader];
+  }
+  // Cloudflare
+  else if (req.headers['cf-connecting-ip']) {
+    return req.headers['cf-connecting-ip'];
+  }
+
+  return getClientIp(req);
+}
+[QA 1] ```typescript
+export const urlFilter = (data: any[]) => {
+  const map = data.reduce((obj, { x, y }) => {
+    if (x) {
+      if (!obj[x]) {
+        obj[x] = y;
+      } else {
+        obj[x] += y;
+      }
+    }
+
+    return obj;
+  }, {});
+
+  return Object.keys(map).map(key => ({ x: key, y: map[key] }));
+};
+``` | function mergeData(state = [], data = [], time: number) {
+  const ids = state.map(({ id }) => id);
+  return state
+    .concat(data.filter(({ id }) => !ids.includes(id)))
+    .filter(({ timestamp }) => timestamp >= time);
+}
+[QA 2] ```javascript
+export function getDatabaseType(url = process.env.DATABASE_URL) {
+  const type = url && url.split(':')[0];
+
+  if (type === 'postgres') {
+    return POSTGRESQL;
+  }
+
+  return type;
+}
+``` | export function getDatabaseType(url = process.env.DATABASE_URL) {
+  const type = url && url.split(':')[0];
+
+  if (type === 'postgres') {
+    return POSTGRESQL;
+  }
+
+  return type;
+}
+[QA 3] ```typescript
+export function renderNumberLabels(label: string) {
+  return +label > 1000 ? formatLongNumber(+label) : label;
+}
+```
+``` | export function renderNumberLabels(label: string) {
+  return +label > 1000 ? formatLongNumber(+label) : label;
+}
+[QA 4] ```typescript
+export function useDateRange(websiteId?: string): [DateRange, (value: string | DateRange) => void] {
+  const { get } = useApi();
+  const { locale } = useLocale();
+  const websiteConfig = websiteStore(state => state[websiteId]?.dateRange);
+  const defaultConfig = DEFAULT_DATE_RANGE;
+  const globalConfig = appStore(state => state.dateRange);
+  const dateRange = parseDateRange(websiteConfig || globalConfig || defaultConfig, locale);
+
+  const saveDateRange = async (value: DateRange | string) => {
+    if (websiteId) {
+      let dateRange: DateRange | string = value;
+
+      if (typeof value === 'string') {
+        if (value === 'all') {
+          const result: any = await get(`/websites/${websiteId}/daterange`);
+          const { mindate, maxdate } = result;
+
+          const startDate = new Date(mindate);
+          const endDate = new Date(maxdate);
+
+          dateRange = {
+            startDate,
+            endDate,
+            unit: getMinimumUnit(startDate, endDate),
+            value,
+          };
+        } else {
+          dateRange = parseDateRange(value, locale);
+        }
+      }
+
+      setWebsiteDateRange(websiteId, dateRange as DateRange);
+    } else {
+      setItem(DATE_RANGE_CONFIG, value);
+      setDateRange(value);
+    }
+  };
+
+  return [dateRange, saveDateRange];
+}
+``` | export function setWebsiteDateRange(websiteId: string, dateRange: DateRange) {
+  store.setState(
+    produce(state => {
+      if (!state[websiteId]) {
+        state[websiteId] = {};
+      }
+
+      state[websiteId].dateRange = { ...dateRange, modified: Date.now() };
+
+      return state;
+    }),
+  );
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-53: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.30it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.08it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.09s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.28it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-53: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.19it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.35it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-53: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.39it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.43it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-53: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.31it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.69it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.51it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-53: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.37it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.82it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.60it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-53: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.43it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.39it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.98it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.71it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-53: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.46it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.09it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.05 ratio, window 3298
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-53: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.62it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.53it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.17it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.84it/s]
+Chunked prefilling with 0.02 ratio, window 1319
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-53: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/53_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 369.0s. Mem: 14.32/79.18 GB. [scbench_repoqa-53]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.25it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-54: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```typescript
+/**
+ * Default retry configuration for HTTP requests. Retries up to 4 times on connection reset and timeout errors
+ * as well as HTTP 503 errors. Exposed as a function to ensure that every HttpClient gets its own RetryConfig
+ * instance.
+ */
+export function defaultRetryConfig(): RetryConfig {
+  return {
+    maxRetries: 4,
+    statusCodes: [503],
+    ioErrorCodes: ['ECONNRESET', 'ETIMEDOUT'],
+    backOffFactor: 0.5,
+    maxDelayInMillis: 60 * 1000,
+  };
+}
+``` | export function defaultRetryConfig(): RetryConfig {
+  return {
+    maxRetries: 4,
+    statusCodes: [503],
+    ioErrorCodes: ['ECONNRESET', 'ETIMEDOUT'],
+    backOffFactor: 0.5,
+    maxDelayInMillis: 60 * 1000,
+  };
+}
+[QA 1] ```typescript
+/**
+ * Returns a credential created from the provided refresh token that grants
+ * admin access to Firebase services. This credential can be used in the call
+ * to {@link firebase-admin.app#initializeApp}.
+ *
+ * See
+ * {@link https://firebase.google.com/docs/admin/setup#initialize_the_sdk | Initialize the SDK}
+ * for more details.
+ *
+ * @example
+ * ```javascript
+ * // Providing a path to a refresh token JSON file
+ * const refreshToken = require("path/to/refreshToken.json");
+ * initializeApp({
+ *   credential: refreshToken(refreshToken),
+ *   databaseURL: "https://<DATABASE_NAME>.firebaseio.com"
+ * });
+ * ```
+ *
+ * @example
+ * ```javascript
+ * // Providing a refresh token object inline
+ * initializeApp({
+ *   credential: refreshToken({
+ *     clientId: "<CLIENT_ID>",
+ *     clientSecret: "<CLIENT_SECRET>",
+ *     refreshToken: "<REFRESH_TOKEN>",
+ *     type: "refresh_token"
+ *   }),
+ *   databaseURL: "https://<DATABASE_NAME>.firebaseio.com"
+ * });
+ * ```
+ *
+ * @param refreshTokenPathOrObject - The path to a Google
+ *   OAuth2 refresh token JSON file or an object representing a Google OAuth2
+ *   refresh token.
+ * @param httpAgent - Optional {@link https://nodejs.org/api/http.html#http_class_http_agent | HTTP Agent}
+ *   to be used when retrieving access tokens from Google token servers.
+ *
+ * @returns A credential authenticated via the
+ *   provided service account that can be used to initialize an app.
+ */
+export function refreshToken(refreshTokenPathOrObject: string | object, httpAgent?: Agent): Credential {
+  const stringifiedRefreshToken = JSON.stringify(refreshTokenPathOrObject);
+  if (!(stringifiedRefreshToken in globalRefreshTokenCreds)) {
+    globalRefreshTokenCreds[stringifiedRefreshToken] = new RefreshTokenCredential(
+      refreshTokenPathOrObject, httpAgent);
+  }
+  return globalRefreshTokenCreds[stringifiedRefreshToken];
+}
+``` | export function refreshToken(refreshTokenPathOrObject: string | object, httpAgent?: Agent): Credential {
+  const stringifiedRefreshToken = JSON.stringify(refreshTokenPathOrObject);
+  if (!(stringifiedRefreshToken in globalRefreshTokenCreds)) {
+    globalRefreshTokenCreds[stringifiedRefreshToken] = new RefreshTokenCredential(
+      refreshTokenPathOrObject, httpAgent);
+  }
+  return globalRefreshTokenCreds[stringifiedRefreshToken];
+}
+[QA 2] ```typescript
+/**
+ * Decodes general purpose Firebase JWTs.
+ *
+ * @param jwtToken - JWT token to be decoded.
+ * @returns Decoded token containing the header and payload.
+ */
+export function decodeJwt(jwtToken: string): Promise<DecodedToken> {
+  if (!validator.isString(jwtToken)) {
+    return Promise.reject(new JwtError(JwtErrorCode.INVALID_ARGUMENT,
+      'The provided token must be a string.'));
+  }
+
+  const fullDecodedToken: any = jwt.decode(jwtToken, {
+    complete: true,
+  });
+
+  if (!fullDecodedToken) {
+    return Promise.reject(new JwtError(JwtErrorCode.INVALID_ARGUMENT,
+      'Decoding token failed.'));
+  }
+
+  const header = fullDecodedToken?.header;
+  const payload = fullDecodedToken?.payload;
+  return Promise.resolve({ header, payload });
+}
+``` | export function decodeJwt(jwtToken: string): Promise<DecodedToken> {
+  if (!validator.isString(jwtToken)) {
+    return Promise.reject(new JwtError(JwtErrorCode.INVALID_ARGUMENT,
+      'The provided token must be a string.'));
+  }
+
+  const fullDecodedToken: any = jwt.decode(jwtToken, {
+    complete: true,
+  });
+
+  if (!fullDecodedToken) {
+    return Promise.reject(new JwtError(JwtErrorCode.INVALID_ARGUMENT,
+      'Decoding token failed.'));
+  }
+
+  const header = fullDecodedToken?.header;
+  const payload = fullDecodedToken?.payload;
+  return Promise.resolve({ header, payload });
+}
+[QA 3] ```typescript
+/**
+ * Transforms milliseconds to a protobuf Duration type string.
+ * Returns the duration in seconds with up to nine fractional
+ * digits, terminated by 's'. Example: "3 seconds 0 nano seconds as 3s,
+ * 3 seconds 1 nano second as 3.000000001s".
+ *
+ * @param milliseconds - The duration in milliseconds.
+ * @returns The resulting formatted string in seconds with up to nine fractional
+ * digits, terminated by 's'.
+ */
+export function transformMillisecondsToSecondsString(milliseconds: number): string {
+  let duration: string;
+  const seconds = Math.floor(milliseconds / 1000);
+  const nanos = Math.floor((milliseconds - seconds * 1000) * 1000000);
+  if (nanos > 0) {
+    let nanoString = nanos.toString();
+    while (nanoString.length < 9) {
+      nanoString = '0' + nanoString;
+    }
+    duration = `${seconds}.${nanoString}s`;
+  } else {
+    duration = `${seconds}s`;
+  }
+  return duration;
+}
+``` | export function transformMillisecondsToSecondsString(milliseconds: number): string {
+  let duration: string;
+  const seconds = Math.floor(milliseconds / 1000);
+  const nanos = Math.floor((milliseconds - seconds * 1000) * 1000000);
+  if (nanos > 0) {
+    let nanoString = nanos.toString();
+    while (nanoString.length < 9) {
+      nanoString = '0' + nanoString;
+    }
+    duration = `${seconds}.${nanoString}s`;
+  } else {
+    duration = `${seconds}s`;
+  }
+  return duration;
+}
+[QA 4] ```typescript
+/**
+ * Validates that a value is a byte buffer.
+ *
+ * @param value - The value to validate.
+ * @returns Whether the value is byte buffer or not.
+ */
+export function isBuffer(value: any): value is Buffer {
+  return value instanceof Buffer;
+}
+``` | export function isBuffer(value: any): value is Buffer {
+  return value instanceof Buffer;
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.28it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.77it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-54: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.31it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.28it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-54: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.49it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.36it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-54: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.39it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.59it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.43it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-54: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.41it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.20it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.69it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.51it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-54: 65849 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.82it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.60it/s]
