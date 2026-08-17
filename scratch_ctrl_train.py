@@ -212,8 +212,11 @@ def main():
     ap.add_argument("--split_seed", type=int, default=42,
                     help="**与 --seed 分开**：只决定 train/val 的文档划分。\n合在一起的话，跨种子跨度里会同时混进优化方差与划分方差——而只有 2 篇验证\n文档时，划分方差很可能是主导项，跨种子的差就没法归因了。")
     ap.add_argument("--val_frac", type=float, default=0.25)
+    # **choices 从 `CalibScorer.MODES` 派生，不要再手写一份。** 手写的那份漏了后加的
+    # 因子臂（sz/szr/szm/szmr0），12 个训练作业全在 argparse 就被拒，日志里只留一行
+    # usage —— 调度器看不出异常，队列照样排空，等 ckpt 的脚本则永远等下去。
     ap.add_argument("--arch", default="memory",
-                    choices=["memory", "bias", "affine", "scalar", "kv"],
+                    choices=["memory"] + list(CalibScorer.MODES),
                     help="memory = ControlMemory；其余是把 memoryless 的 +4.27 "
                          "拆开的消融（见 attention/calib_scorer.py）。"
                          "affine 只有 224 个参数，若它就够，说明增益是"

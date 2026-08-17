@@ -44,7 +44,22 @@ import torch.nn as nn
 
 
 class CalibScorer(nn.Module):
-    MODES = ("bias", "affine", "scalar", "kv", "k", "v")
+    # 因子消融族（2026-08-17 加）：把 `scalar` 的三个标量输入拆开单独测。
+    # **必须拆**，因为 `scalar ≫ affine` 同时改了两件事——函数类（线性→MLP）和
+    # 输入集（只有 z → z+margin+rs），现在分不清胜因是非线性还是"知道全局阈值在哪"。
+    # 四个变体共用同一个 MLP、同一 hidden、同一 embedding，唯一变量是输入集：
+    #     sz    = MLP([z, e])              只有头内位置（+ 非线性）
+    #     szr   = MLP([z, rs, e])          + 本头尺度／全局尺度
+    #     szm   = MLP([z, margin, e])      + 到全局阈值的距离
+    #     scalar= MLP([z, margin, rs, e])  全部（原样保留）
+    #     szmr0 = MLP([z, margin, rs])     **去掉头身份** —— 若仍有效，说明存在
+    #                                      与"我是哪个头"无关的普适修正律
+    MODES = ("bias", "affine", "scalar", "kv", "k", "v",
+             "sz", "szr", "szm", "szmr0")
+    # 逐 arch 的标量输入清单，delta() 与 __init__ 共用同一张表，避免两处各改各的
+    SCALAR_FEATS = {"sz": ("z",), "szr": ("z", "rs"), "szm": ("z", "mg"),
+                    "scalar": ("z", "mg", "rs"), "szmr0": ("z", "mg", "rs")}
+    NO_EMB = ("szmr0",)
 
     def __init__(self, d_kv: int, n_layers: int, n_heads_kv: int, arch: str = "affine",
                  n_slots: int = 8, d_m: int = 128, mode: str = "memoryless",
@@ -71,7 +86,10 @@ class CalibScorer(nn.Module):
             self.ab = nn.Parameter(torch.zeros(n_layers, n_heads_kv, 2))
         else:
             self.emb = nn.Parameter(torch.randn(n_layers, n_heads_kv, d_emb) * 0.02)
-            d_in = (3 + d_emb) if arch == "scalar" else (d_m + d_emb)
+            if arch in self.SCALAR_FEATS:
+                d_in = len(self.SCALAR_FEATS[arch]) + (0 if arch in self.NO_EMB else d_emb)
+            else:
+                d_in = d_m + d_emb
             self.head = nn.Sequential(nn.Linear(d_in, d_m), nn.GELU(),
                                       nn.Linear(d_m, 1))
             # k / v 单独测：`f(K)≈f(K,V)` ⇒ 学的是"将来是否容易被 query 匹配到"
@@ -143,8 +161,13 @@ class CalibScorer(nn.Module):
             mg = torch.zeros_like(z) if margin is None else margin
             rs = (sig_h / sig_g).log().expand_as(z)
             e = r[:, None, :].expand(z.shape[0], z.shape[1], -1)
-            feats = ([z[..., None], mg[..., None], rs[..., None], e]
-                     if self.arch == "scalar" else [x, e])
+            if self.arch in self.SCALAR_FEATS:
+                avail = {"z": z, "mg": mg, "rs": rs}
+                feats = [avail[k][..., None] for k in self.SCALAR_FEATS[self.arch]]
+                if self.arch not in self.NO_EMB:
+                    feats.append(e)
+            else:
+                feats = [x, e]
             raw = self.head(torch.cat(feats, dim=-1)).squeeze(-1)
         if self.replace:
             return raw                                 # 独立打分器：分数本身，不设界
