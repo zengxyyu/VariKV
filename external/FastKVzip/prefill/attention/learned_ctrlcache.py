@@ -20,6 +20,9 @@
 """
 from typing import Tuple
 
+import json
+import os
+
 import torch
 
 from .kvcache import RetainCache
@@ -123,6 +126,27 @@ class LearnedControlRetainCache(RetainCache):
                 v0, _ = self.threshold(score0, ratio, level)
                 self.flip_frac.append(float((valid ^ v0).float().mean()))
                 self.retain_delta.append(int(valid.sum()) - int(v0.sum()))
+
+        # --- 逐 (chunk, 层, kv头) 真实配额导出（默认关闭，env 开）---------------
+        # 保序重标定 ≡ 逐头配额分配（ICLR_PLAN §四之五）已经证明并在 trace 上验过，
+        # 但 trace 每 (chunk,层,头) 只存 768 个候选，`b_{c,h}` 的**绝对值**不是推理时
+        # 的真实配额。context-quota shuffle 与 kv quota replay 都要真实值，所以在这里
+        # 落盘 —— 这是唯一同时拿得到 `valid`（本臂）与 `v0`（基线）的地方。
+        # **默认路径逐字节不变**：env 未设时下面整块不执行。
+        _qd = os.environ.get("VARIKV_QUOTA_DUMP")
+        if _qd:
+            with torch.no_grad():
+                _v0 = v0 if (self.active and ratio <= self.rho_max) else \
+                    self.threshold(score0, ratio, level)[0]
+                self._qseq = getattr(self, "_qseq", 0) + 1
+                with open(_qd, "a") as _f:
+                    _f.write(json.dumps({
+                        "seq": self._qseq, "lo": int(lo), "hi": int(hi),
+                        "ratio": float(ratio), "level": level,
+                        "thres": float(thres),
+                        "b_arm": valid.sum(-1).flatten().tolist(),    # [L*H]
+                        "b_base": _v0.sum(-1).flatten().tolist(),
+                    }) + "\n")
 
         if self.ctrl is not None:
             self._write(lo, hi, valid)

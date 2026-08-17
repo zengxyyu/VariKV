@@ -19372,3 +19372,402 @@ Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_repoqa-78: 65851 tokens, KV cache 3.8 GB, torch.bfloat16
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.46it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.05 ratio, window 3292
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-78: 65851 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.17it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.84it/s]
+Chunked prefilling with 0.02 ratio, window 1317
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-78: 65851 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/78_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 392.3s. Mem: 14.32/79.18 GB. [scbench_repoqa-78]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.24it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-79: 65851 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```go
+func (q *queryOps) do(r *http.Request, repl *caddy.Replacer) {
+	query := r.URL.Query()
+	for _, renameParam := range q.Rename {
+		key := repl.ReplaceAll(renameParam.Key, "")
+		val := repl.ReplaceAll(renameParam.Val, "")
+		if key == "" || val == "" {
+			continue
+		}
+		query[val] = query[key]
+		delete(query, key)
+	}
+
+	for _, setParam := range q.Set {
+		key := repl.ReplaceAll(setParam.Key, "")
+		if key == "" {
+			continue
+		}
+		val := repl.ReplaceAll(setParam.Val, "")
+		query[key] = []string{val}
+	}
+
+	for _, addParam := range q.Add {
+		key := repl.ReplaceAll(addParam.Key, "")
+		if key == "" {
+			continue
+		}
+		val := repl.ReplaceAll(addParam.Val, "")
+		query[key] = append(query[key], val)
+	}
+
+	for _, replaceParam := range q.Replace {
+		key := repl.ReplaceAll(replaceParam.Key, "")
+		search := repl.ReplaceKnown(replaceParam.Search, "")
+		replace := repl.ReplaceKnown(replaceParam.Replace, "")
+
+		// replace all query keys...
+		if key == "*" {
+			for fieldName, vals := range query {
+				for i := range vals {
+					if replaceParam.re != nil {
+						query[fieldName][i] = replaceParam.re.ReplaceAllString(query[fieldName][i], replace)
+					} else {
+						query[fieldName][i] = strings.ReplaceAll(query[fieldName][i], search, replace)
+					}
+				}
+			}
+			continue
+		}
+
+		for fieldName, vals := range query {
+			for i := range vals {
+				if replaceParam.re != nil {
+					query[fieldName][i] = replaceParam.re.ReplaceAllString(query[fieldName][i], replace)
+				} else {
+					query[fieldName][i] = strings.ReplaceAll(query[fieldName][i], search, replace)
+				}
+			}
+		}
+	}
+
+	for _, deleteParam := range q.Delete {
+		param := repl.ReplaceAll(deleteParam, "")
+		if param == "" {
+			continue
+		}
+		delete(query, param)
+	}
+
+	r.URL.RawQuery = query.Encode()
+}
+``` | func buildQueryString(qs string, repl *caddy.Replacer) string {
+	var sb strings.Builder
+
+	// first component must be key, which is the same
+	// as if we just wrote a value in previous iteration
+	wroteVal := true
+
+	for len(qs) > 0 {
+		// determine the end of this component, which will be at
+		// the next equal sign or ampersand, whichever comes first
+		nextEq, nextAmp := strings.Index(qs, "="), strings.Index(qs, "&")
+		ampIsNext := nextAmp >= 0 && (nextAmp < nextEq || nextEq < 0)
+		end := len(qs) // assume no delimiter remains...
+		if ampIsNext {
+			end = nextAmp // ...unless ampersand is first...
+		} else if nextEq >= 0 && (nextEq < nextAmp || nextAmp < 0) {
+			end = nextEq // ...or unless equal is first.
+		}
+
+		// consume the component and write the result
+		comp := qs[:end]
+		comp, _ = repl.ReplaceFunc(comp, func(name string, val any) (any, error) {
+			if name == "http.request.uri.query" && wroteVal {
+				return val, nil // already escaped
+			}
+			var valStr string
+			switch v := val.(type) {
+			case string:
+				valStr = v
+			case fmt.Stringer:
+				valStr = v.String()
+			case int:
+				valStr = strconv.Itoa(v)
+			default:
+				valStr = fmt.Sprintf("%+v", v)
+			}
+			return url.QueryEscape(valStr), nil
+		})
+		if end < len(qs) {
+			end++ // consume delimiter
+		}
+		qs = qs[end:]
+
+		// if previous iteration wrote a value,
+		// that means we are writing a key
+		if wroteVal {
+			if sb.Len() > 0 && len(comp) > 0 {
+				sb.WriteRune('&')
+			}
+		} else {
+			sb.WriteRune('=')
+		}
+		sb.WriteString(comp)
+
+		// remember for the next iteration that we just wrote a value,
+		// which means the next iteration MUST write a key
+		wroteVal = ampIsNext
+	}
+
+	return sb.String()
+}
+[QA 1] ```go
+func RegisterNetworkHTTP3(originalNetwork, h3Network string) {
+	if _, ok := networkTypesHTTP3[strings.ToLower(originalNetwork)]; ok {
+		panic("network type " + originalNetwork + " is already registered")
+	}
+	networkTypesHTTP3[originalNetwork] = h3Network
+}
+``` | func RegisterNetworkHTTP3(originalNetwork, h3Network string) {
+	if _, ok := networkTypesHTTP3[strings.ToLower(originalNetwork)]; ok {
+		panic("network type " + originalNetwork + " is already registered")
+	}
+	networkTypesHTTP3[originalNetwork] = h3Network
+}
+[QA 2] ```go
+func PrepareRequest(r *http.Request, repl *caddy.Replacer, w http.ResponseWriter, s *Server) *http.Request {
+	// set up the context for the request
+	ctx := context.WithValue(r.Context(), caddy.ReplacerCtxKey, repl)
+	ctx = context.WithValue(ctx, ServerCtxKey, s)
+
+	trusted, clientIP := determineTrustedProxy(r, s)
+	ctx = context.WithValue(ctx, VarsCtxKey, map[string]any{
+		TrustedProxyVarKey: trusted,
+		ClientIPVarKey:     clientIP,
+	})
+
+	ctx = context.WithValue(ctx, routeGroupCtxKey, make(map[string]struct{}))
+
+	var url2 url.URL // avoid letting this escape to the heap
+	ctx = context.WithValue(ctx, OriginalRequestCtxKey, originalRequest(r, &url2))
+
+	ctx = context.WithValue(ctx, ExtraLogFieldsCtxKey, new(ExtraLogFields))
+
+	r = r.WithContext(ctx)
+
+	// once the pointer to the request won't change
+	// anymore, finish setting up the replacer
+	addHTTPVarsToReplacer(repl, r, w)
+
+	return r
+}
+``` | func PrepareRequest(r *http.Request, repl *caddy.Replacer, w http.ResponseWriter, s *Server) *http.Request {
+	// set up the context for the request
+	ctx := context.WithValue(r.Context(), caddy.ReplacerCtxKey, repl)
+	ctx = context.WithValue(ctx, ServerCtxKey, s)
+
+	trusted, clientIP := determineTrustedProxy(r, s)
+	ctx = context.WithValue(ctx, VarsCtxKey, map[string]any{
+		TrustedProxyVarKey: trusted,
+		ClientIPVarKey:     clientIP,
+	})
+
+	ctx = context.WithValue(ctx, routeGroupCtxKey, make(map[string]struct{}))
+
+	var url2 url.URL // avoid letting this escape to the heap
+	ctx = context.WithValue(ctx, OriginalRequestCtxKey, originalRequest(r, &url2))
+
+	ctx = context.WithValue(ctx, ExtraLogFieldsCtxKey, new(ExtraLogFields))
+
+	r = r.WithContext(ctx)
+
+	// once the pointer to the request won't change
+	// anymore, finish setting up the replacer
+	addHTTPVarsToReplacer(repl, r, w)
+
+	return r
+}
+[QA 3] ```go
+func Error(statusCode int, err error) HandlerError {
+	const idLen = 9
+	var he HandlerError
+	if errors.As(err, &he) {
+		if he.ID == "" {
+			he.ID = randString(idLen, true)
+		}
+		if he.Trace == "" {
+			he.Trace = trace()
+		}
+		if he.StatusCode == 0 {
+			he.StatusCode = statusCode
+		}
+		return he
+	}
+	return HandlerError{
+		ID:         randString(idLen, true),
+		StatusCode: statusCode,
+		Err:        err,
+		Trace:      trace(),
+	}
+}
+``` | func Error(statusCode int, err error) HandlerError {
+	const idLen = 9
+	var he HandlerError
+	if errors.As(err, &he) {
+		if he.ID == "" {
+			he.ID = randString(idLen, true)
+		}
+		if he.Trace == "" {
+			he.Trace = trace()
+		}
+		if he.StatusCode == 0 {
+			he.StatusCode = statusCode
+		}
+		return he
+	}
+	return HandlerError{
+		ID:         randString(idLen, true),
+		StatusCode: statusCode,
+		Err:        err,
+		Trace:      trace(),
+	}
+}
+[QA 4] ```go
+func parseReqHdrCaddyfile(h httpcaddyfile.Helper) ([]httpcaddyfile.ConfigValue, error) {
+	h.Next() // consume directive name
+	matcherSet, err := h.ExtractMatcherSet()
+	if err != nil {
+		return nil, err
+	}
+	h.Next() // consume the directive name again (matcher parsing resets)
+
+	configValues := []httpcaddyfile.ConfigValue{}
+
+	if !h.NextArg() {
+		return nil, h.ArgErr()
+	}
+	field := h.Val()
+
+	hdr := Handler{
+		Request: &HeaderOps{},
+	}
+
+	// sometimes it is habitual for users to suffix a field name with a colon,
+	// as if they were writing a curl command or something; see
+	// https://caddy.community/t/v2-reverse-proxy-please-add-cors-example-to-the-docs/7349/19
+	field = strings.TrimSuffix(field, ":")
+
+	var value string
+	var replacement *string
+	if h.NextArg() {
+		value = h.Val()
+	}
+	if h.NextArg() {
+		arg := h.Val()
+		replacement = &arg
+		if h.NextArg() {
+			return nil, h.ArgErr()
+		}
+	}
+
+	if hdr.Request == nil {
+		hdr.Request = new(HeaderOps)
+	}
+	if err := CaddyfileHeaderOp(hdr.Request, field, value, replacement); err != nil {
+		return nil, h.Err(err.Error())
+	}
+
+	configValues = append(configValues, h.NewRoute(matcherSet, hdr)...)
+
+	if h.NextArg() {
+		return nil, h.ArgErr()
+	}
+	return configValues, nil
+}
+``` | func parseReqHdrCaddyfile(h httpcaddyfile.Helper) ([]httpcaddyfile.ConfigValue, error) {
+	h.Next() // consume directive name
+	matcherSet, err := h.ExtractMatcherSet()
+	if err != nil {
+		return nil, err
+	}
+	h.Next() // consume the directive name again (matcher parsing resets)
+
+	configValues := []httpcaddyfile.ConfigValue{}
+
+	if !h.NextArg() {
+		return nil, h.ArgErr()
+	}
+	field := h.Val()
+
+	hdr := Handler{
+		Request: &HeaderOps{},
+	}
+
+	// sometimes it is habitual for users to suffix a field name with a colon,
+	// as if they were writing a curl command or something; see
+	// https://caddy.community/t/v2-reverse-proxy-please-add-cors-example-to-the-docs/7349/19
+	field = strings.TrimSuffix(field, ":")
+
+	var value string
+	var replacement *string
+	if h.NextArg() {
+		value = h.Val()
+	}
+	if h.NextArg() {
+		arg := h.Val()
+		replacement = &arg
+		if h.NextArg() {
+			return nil, h.ArgErr()
+		}
+	}
+
+	if hdr.Request == nil {
+		hdr.Request = new(HeaderOps)
+	}
+	if err := CaddyfileHeaderOp(hdr.Request, field, value, replacement); err != nil {
+		return nil, h.Err(err.Error())
+	}
+
+	configValues = append(configValues, h.NewRoute(matcherSet, hdr)...)
+
+	if h.NextArg() {
+		return nil, h.ArgErr()
+	}
+	return configValues, nil
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.27it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-79: 65851 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.32it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.21it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-79: 65851 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.49it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.36it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-79: 65851 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.40it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.43it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-79: 65851 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.31it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.70it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.52it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-79: 65851 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.82it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.60it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-79: 65851 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.43it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.39it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.98it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.70it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-79: 65851 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.47it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.05 ratio, window 3292
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-79: 65851 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.57it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.19it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.02 ratio, window 1317
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-79: 65851 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/79_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 527.7s. Mem: 14.32/79.18 GB. [scbench_repoqa-79]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]
