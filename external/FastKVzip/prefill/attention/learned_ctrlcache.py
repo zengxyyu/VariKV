@@ -127,6 +127,55 @@ class LearnedControlRetainCache(RetainCache):
                 self.flip_frac.append(float((valid ^ v0).float().mean()))
                 self.retain_delta.append(int(valid.sum()) - int(v0.sum()))
 
+        # --- 静态配额注入：把网络整个换掉，只保留一张逐头配额表（默认关闭）------
+        # 组内测得 `Δb` 有 97% 的方差由一个逐头常数解释（留出验证）。这里检验它够不够：
+        # **丢掉网络、丢掉逐 token 修正、头内退回 `s⁰` 原序**，只按 `b_base + Δb_h`
+        # 取 top-b。由保序重标定≡配额分配的等价定理，这与"某个保序打分器"完全等价。
+        # 注意跨 panel 那张表不迁移（Retr.KV 与 MultiHop 相关 −0.204），所以这只是
+        # **组内**命题的检验，不是一个通用方法。
+        _qi = os.environ.get("VARIKV_QUOTA_INJECT")
+        if _qi:
+            with torch.no_grad():
+                import numpy as _np
+                if not hasattr(self, "_qinj"):
+                    self._qinj = torch.as_tensor(_np.load(_qi), dtype=torch.float32)
+                sc = score0[:, 0]                                  # [L,H,n]
+                L, H, n = sc.shape
+                vb, _ = self.threshold(score0, ratio, level)       # 基线掩码
+                b0 = vb.sum(-1).reshape(-1).float()                # [L*H]
+                tgt = (b0 + self._qinj.to(b0.device)).clamp(0, n)
+                # **总预算必须与基线严格相等**，否则比的就不是同一个压缩率了。
+                # 单轮最大余数法**不够**：`tgt` 先被 clamp 到 [0,n]，clamp 造成的缺口
+                # 可能远大于头数，而每头一轮只能移动 ±1。实测 Δb=±9999 时缺口 18、
+                # 可减头只有 11，一轮补不完，总预算从 179 变成 186。改成迭代配平。
+                Btot = int(b0.sum().item())
+                bt = tgt.round().long().clamp(0, n)
+                diff = Btot - int(bt.sum().item())
+                while diff != 0:
+                    if diff > 0:
+                        room = (bt < n).nonzero().flatten()
+                        if room.numel() == 0:
+                            break
+                        take = min(diff, room.numel())
+                        pick = room[torch.argsort((tgt - bt.float())[room],
+                                                  descending=True)[:take]]
+                        bt[pick] += 1; diff -= take
+                    else:
+                        room = (bt > 0).nonzero().flatten()
+                        if room.numel() == 0:
+                            break
+                        take = min(-diff, room.numel())
+                        pick = room[torch.argsort((tgt - bt.float())[room])[:take]]
+                        bt[pick] -= 1; diff += take
+                # 宁可崩，也不能悄悄改变压缩率 —— 那样比出来的分数是无效的。
+                assert int(bt.sum().item()) == Btot, \
+                    f"配额注入后预算 {int(bt.sum().item())} != 基线 {Btot}"
+                idx = torch.argsort(sc.reshape(L * H, n), dim=-1, descending=True)
+                nv = torch.zeros(L * H, n, dtype=torch.bool, device=sc.device)
+                ar = torch.arange(n, device=sc.device)[None, :]
+                nv.scatter_(1, idx, ar < bt[:, None])
+                valid = nv.reshape(L, H, n)
+
         # --- 逐 (chunk, 层, kv头) 真实配额导出（默认关闭，env 开）---------------
         # 保序重标定 ≡ 逐头配额分配（ICLR_PLAN §四之五）已经证明并在 trace 上验过，
         # 但 trace 每 (chunk,层,头) 只存 768 个候选，`b_{c,h}` 的**绝对值**不是推理时
