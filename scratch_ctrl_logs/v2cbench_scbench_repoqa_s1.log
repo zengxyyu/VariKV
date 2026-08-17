@@ -6731,3 +6731,629 @@ Chunked prefilling with 0.30 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_repoqa-25: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.83it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.60it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-25: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.43it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.39it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.98it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.71it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-25: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.46it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.09it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.05 ratio, window 3290
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-25: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.18it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.02 ratio, window 1316
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-25: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/25_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 211.8s. Mem: 14.32/79.18 GB. [scbench_repoqa-25]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.25it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.77it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+/**
+ * Error Handler.
+ */
+class ErrorHandler {
+public:
+  /**
+   * Convenience typedef for Headers. <br>
+   * See &id:oatpp::web::protocol::http::Headers;
+   */
+  typedef web::protocol::http::Headers Headers;
+public:
+  /**
+   * Virtual destructor since the class is meant to be derived from.
+   * */
+  virtual ~ErrorHandler() = default;
+
+  /**
+   * Implement this method!
+   * @param error - &std::exception;.
+   * @return - std::shared_ptr to &id:oatpp::web::protocol::http::outgoing::Response;.
+   */
+  virtual std::shared_ptr<protocol::http::outgoing::Response> handleError(const std::exception_ptr& exceptionPtr);
+
+  /**
+   * Implement this method!
+   * @param status - &id:oatpp::web::protocol::http::Status;.
+   * @param message - &id:oatpp::String;.
+   * @param Headers - &id:oatpp::web::protocol::http::Headers;
+   * @return - std::shared_ptr to &id:oatpp::web::protocol::http::outgoing::Response;.
+   */
+  [[deprecated]]
+  virtual
+  std::shared_ptr<protocol::http::outgoing::Response>
+  handleError(const protocol::http::Status& status, const oatpp::String& message, const Headers& headers) = 0;
+
+  /**
+   * Convenience method to call `handleError` method with no headers.
+   * @param status - &id:oatpp::web::protocol::http::Status;
+   * @param message - &id:oatpp::String;.
+   * @return - std::shared_ptr to &id:oatpp::web::protocol::http::outgoing::Response;.
+   */
+  [[deprecated]]
+  std::shared_ptr<protocol::http::outgoing::Response> handleError(const protocol::http::Status& status, const oatpp::String& message);
+  
+};
+``` |   DefaultErrorHandler() = default;
+[QA 1] ```cpp
+namespace oatpp { namespace network {
+
+/**
+ * Server calls &id:oatpp::network::ConnectionProvider::get; in the loop and passes obtained Connection
+ * to &id:oatpp::network::ConnectionHandler;.
+ */
+class Server : public base::Countable {
+private:
+
+  static void mainLoop(Server *instance);
+  void conditionalMainLoop();
+
+  bool setStatus(v_int32 expectedStatus, v_int32 newStatus);
+  void setStatus(v_int32 status);
+
+private:
+
+  std::atomic<v_int32> m_status;
+  std::function<bool()> m_condition;
+  std::thread m_thread;
+  std::mutex m_mutex;
+
+  std::shared_ptr<ConnectionProvider> m_connectionProvider;
+  std::shared_ptr<ConnectionHandler> m_connectionHandler;
+
+  bool m_threaded;
+  
+public:
+
+  /**
+   * Constructor.
+   * @param connectionProvider - &id:oatpp::network::ConnectionProvider;.
+   * @param connectionHandler - &id:oatpp::network::ConnectionHandler;.
+   */
+  Server(const std::shared_ptr<ConnectionProvider>& connectionProvider,
+         const std::shared_ptr<ConnectionHandler>& connectionHandler);
+
+  virtual ~Server() override;
+
+ public:
+
+  /**
+   * Status constant.
+   */
+  static const v_int32 STATUS_CREATED;
+
+  /**
+   * Status constant.
+   */
+  static const v_int32 STATUS_STARTING;
+
+  /**
+   * Status constant.
+   */
+  static const v_int32 STATUS_RUNNING;
+
+  /**
+   * Status constant.
+   */
+  static const v_int32 STATUS_STOPPING;
+
+  /**
+   * Status constant.
+   */
+  static const v_int32 STATUS_DONE;
+
+  /**
+   * Create shared Server.
+   * @param connectionProvider - &id:oatpp::network::ConnectionProvider;.
+   * @param connectionHandler - &id:oatpp::network::ConnectionHandler;.
+   * @return - `std::shared_ptr` to Server.
+   */
+  static std::shared_ptr<Server> createShared(const std::shared_ptr<ServerConnectionProvider>& connectionProvider,
+                                              const std::shared_ptr<ConnectionHandler>& connectionHandler){
+    return std::make_shared<Server>(connectionProvider, connectionHandler);
+  }
+
+  /**
+   * Call &id:oatpp::network::ConnectionProvider::getConnection; in the loop and passes obtained Connection
+   * to &id:oatpp::network::ConnectionHandler;.
+   |   ConnectionAcquisitionProxy(const provider::ResourceHandle<data::stream::IOStream>& resource,
+                             const std::shared_ptr<PoolInstance>& pool)
+    : provider::AcquisitionProxy<data::stream::IOStream, ConnectionAcquisitionProxy>(resource, pool)
+  {}
+[QA 2] ```cpp
+void HttpConnectionHandler::handleConnection(const provider::ResourceHandle<data::stream::IOStream>& connection,
+                                             const std::shared_ptr<const ParameterMap>& params)
+{
+  (void)params;
+
+  if (m_continue.load()) {
+
+    connection.object->setOutputStreamIOMode(oatpp::data::stream::IOMode::BLOCKING);
+    connection.object->setInputStreamIOMode(oatpp::data::stream::IOMode::BLOCKING);
+
+    /* Create working thread */
+    std::thread thread(&HttpProcessor::Task::run, std::move(HttpProcessor::Task(m_components, connection, this)));
+
+    /* Get hardware concurrency -1 in order to have 1cpu free of workers. */
+    v_int32 concurrency = oatpp::concurrency::getHardwareConcurrency();
+    if (concurrency > 1) {
+      concurrency -= 1;
+    }
+
+    /* Set thread affinity group CPUs [0..cpu_count - 1]. Leave one cpu free of workers */
+    oatpp::concurrency::setThreadAffinityToCpuRange(thread.native_handle(),
+                                                    0,
+                                                    concurrency - 1 /* -1 because 0-based index */);
+
+    thread.detach();
+  }
+}
+``` |     Task(const Task&) = delete;
+[QA 3] ```cpp
+template<typename RouterEndpoint>
+class HttpRouterTemplate : public oatpp::base::Countable {
+private:
+  /**
+   * Convenience typedef for &id:oatpp::data::share::StringKeyLabel;.
+   */
+  typedef data::share::StringKeyLabel StringKeyLabel;
+public:
+
+  /**
+   * &id:oatpp::web::url::mapping::Router;
+   */
+  typedef web::url::mapping::Router<RouterEndpoint> BranchRouter;
+
+  /**
+   * Http method to &l:HttpRouter::BranchRouter; map.
+   * Meaning that for each http method like ["GET", "POST", ...] there is a separate &l:HttpRouter::BranchRouter;.
+   */
+  typedef std::unordered_map<StringKeyLabel, std::shared_ptr<BranchRouter>> BranchMap;
+protected:
+  BranchMap m_branchMap;
+protected:
+
+  const std::shared_ptr<BranchRouter>& getBranch(const StringKeyLabel& name){
+    auto it = m_branchMap.find(name);
+    if(it == m_branchMap.end()){
+      m_branchMap[name] = BranchRouter::createShared();
+    }
+    return m_branchMap[name];
+  }
+
+public:
+
+  /**
+   * Default Constructor.
+   */
+  HttpRouterTemplate() = default;
+
+  /**
+   * Create shared HttpRouter.
+   * @return - `std::shared_ptr` to HttpRouter.
+   */
+  static std::shared_ptr<HttpRouterTemplate> createShared() {
+    return std::make_shared<HttpRouterTemplate>();
+  }
+
+  /**
+   * Route URL to Endpoint by method, and pathPattern.
+   * @param method - http method like ["GET", "POST", etc.].
+   * @param pathPattern - url path pattern. ex.: `"/path/to/resource/with/{param1}/{param2}"`.
+   * @param endpoint - router endpoint.
+   */
+  void route(const oatpp::String& method, const oatpp::String& pathPattern, const RouterEndpoint& endpoint) {
+    getBranch(method)->route(pathPattern, endpoint);
+  }
+
+  /**
+   * Resolve http method and path to &id:oatpp::web::url::mapping::Router::Route;
+   * @param method - http method like ["GET", "POST", etc.].
+   * @param url - url path. "Path" part of url only.
+   * @return - &id:oatpp::web::url::mapping::Router::Route; |   HttpRouterTemplate() = default;
+[QA 4] ```cpp
+oatpp::async::CoroutineStarterForResult<const provider::ResourceHandle<data::stream::IOStream>&>
+ConnectionMonitor::getAsync() {
+
+  class GetConnectionCoroutine : public async::CoroutineWithResult<GetConnectionCoroutine, const provider::ResourceHandle<data::stream::IOStream>&> {
+  private:
+    std::shared_ptr<Monitor> m_monitor;
+    std::shared_ptr<ConnectionProvider> m_connectionProvider;
+    std::shared_ptr<ConnectionInvalidator> m_invalidator;
+  public:
+
+    GetConnectionCoroutine(const std::shared_ptr<Monitor>& monitor,
+                           const std::shared_ptr<ConnectionProvider>& connectionProvider,
+                           const std::shared_ptr<ConnectionInvalidator>& invalidator)
+      : m_monitor(monitor)
+      , m_connectionProvider(connectionProvider)
+      , m_invalidator(invalidator)
+    {}
+
+    Action act() override {
+      return m_connectionProvider->getAsync().callbackTo(&GetConnectionCoroutine::onConnection);
+    }
+
+    Action onConnection(const provider::ResourceHandle<data::stream::IOStream>& connection) {
+      if(!connection) {
+        return _return(nullptr);
+      }
+      auto proxy = std::make_shared<ConnectionProxy>(m_monitor, connection);
+      m_monitor->addConnection(proxy.get());
+      return _return(provider::ResourceHandle<data::stream::IOStream>(proxy, m_invalidator));
+    }
+
+  };
+
+  return GetConnectionCoroutine::startForResult(m_monitor, m_connectionProvider, m_invalidator);
+
+}
+``` |     GetConnectionCoroutine(const std::shared_ptr<Monitor>& monitor,
+                           const std::shared_ptr<ConnectionProvider>& connectionProvider,
+                           const std::shared_ptr<ConnectionInvalidator>& invalidator)
+      : m_monitor(monitor)
+      , m_connectionProvider(connectionProvider)
+      , m_invalidator(invalidator)
+    {}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.28it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.32it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.21it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.38it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.49it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.36it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.40it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.43it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.31it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.70it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.51it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.82it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.60it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.43it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.40it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.98it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.71it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.50it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.47it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.05 ratio, window 3295
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.18it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.02 ratio, window 1318
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/26_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 630.5s. Mem: 14.32/79.18 GB. [scbench_repoqa-26]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.27it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.77it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+template<class T>
+class Handler : public RequestHandler {
+public:
+  typedef std::shared_ptr<OutgoingResponse> (T::*Method)(const std::shared_ptr<IncomingRequest>&);
+  typedef oatpp::async::CoroutineStarterForResult<const std::shared_ptr<OutgoingResponse>&>
+          (T::*MethodAsync)(const std::shared_ptr<IncomingRequest>&);
+
+private:
+
+  class ErrorHandlingCoroutine : public oatpp::async::CoroutineWithResult<ErrorHandlingCoroutine, const std::shared_ptr<OutgoingResponse>&> {
+  private:
+    Handler* m_handler;
+    std::shared_ptr<IncomingRequest> m_request;
+  public:
+
+    ErrorHandlingCoroutine(Handler* handler, const std::shared_ptr<IncomingRequest>& request)
+      : m_handler(handler)
+      , m_request(request)
+    {}
+
+    async::Action act() override {
+      return (m_handler->m_controller->*m_handler->m_methodAsync)(m_request)
+        .callbackTo(&ErrorHandlingCoroutine::onResponse);
+    }
+
+    async::Action onResponse(const std::shared_ptr<OutgoingResponse>& response) {
+      return this->_return(response);
+    }
+
+    async::Action handleError(async::Error* error) override {
+      auto eptr = std::make_exception_ptr(*error);
+      auto response = m_handler->m_controller->m_errorHandler->handleError(eptr);
+      return this->_return(response);
+    }
+
+  };
+
+private:
+  T* m_controller;
+  Method m_method;
+  MethodAsync m_methodAsync;
+public:
+  Handler(T* controller, Method method, MethodAsync methodAsync)
+    : m_controller(controller)
+    , m_method(method)
+    , m_methodAsync(methodAsync)
+  {}
+public:
+  
+  static std::shared_ptr<Handler> createShared(T* controller, Method method, MethodAsync methodAsync){
+    return std::make_shared<Handler>(controller, method, methodAsync);
+  }
+  
+  std::shared_ptr<OutgoingResponse> handle(const std::shared_ptr<IncomingRequest>& request) override {
+
+    if(m_method == nullptr) {
+      if(m_methodAsync == nullptr) {
+        throw protocol::http::HttpError(Status::CODE_500, "[ApiController]: Error. Handler method is nullptr.");
+      }
+      throw protocol::http::HttpError(Status::CODE_500, "[ApiController]: Error. Non-async call to async endpoint.");
+    }
+
+    try {
+      return (m_controller->* |   ApiController(const std::shared_ptr<oatpp::data::mapping::ObjectMapper>& defaultObjectMapper, const oatpp::String &routerPrefix = nullptr)
+    : m_defaultObjectMapper(defaultObjectMapper)
+    , m_routerPrefix(routerPrefix)
+  {
+
+  }
+[QA 1] ```cpp
+class ConnectionSubmission {
+  friend Interface;
+private:
+  std::shared_ptr<Socket> m_socket;
+  std::mutex m_mutex;
+  std::condition_variable m_condition;
+  std::atomic<bool> m_valid;
+private:
+  void invalidate();
+public:
+
+  /**
+   * Constructor.
+   */
+  ConnectionSubmission(bool valid) : m_valid(valid) {}
+
+  /**
+   * Set socket to be returned in call to &l:Interface::ConnectionSubmission::getSocket ();/&l:Interface::ConnectionSubmission::getSocketNonBlocking ();.
+   * @param socket - &id:oatpp::network::virtual_::Socket;.
+   */
+  void setSocket(const std::shared_ptr<Socket>& socket);
+
+  /**
+   * Block and wait for socket.
+   * @return - `std::shared_ptr` to &id:oatpp::network::virtual_::Socket;.
+   */
+  std::shared_ptr<Socket> getSocket();
+
+  /**
+   * Check if socket already available.
+   * User should repeat call if `(!socket && isPending())`.
+   * @return - `std::shared_ptr` to &id:oatpp::network::virtual_::Socket;.
+   */
+  std::shared_ptr<Socket> getSocketNonBlocking();
+
+  /**
+   * Check if submission is still valid.
+   * @return - `true` if still valid.
+   */
+  bool isValid();
+  
+};
+``` |     ConnectionSubmission(bool valid) : m_valid(valid) {}
+[QA 2] ```cpp
+/**
+ * Abstract Authorization Handler.
+ */
+class AuthorizationHandler {
+public:
+  /**
+   * Convenience typedef for &l:AuthorizationObject;.
+   */
+  typedef oatpp::web::server::handler::AuthorizationObject AuthorizationObject;
+
+  /**
+   * Convenience typedef for &id:oatpp::data::stream::BufferOutputStream;.
+   */
+  typedef oatpp::data::stream::BufferOutputStream BufferOutputStream;
+
+  /**
+   * Convenience typedef for &id:oatpp::web::protocol::http::Headers;.
+   */
+  typedef oatpp::web::protocol::http::Headers Headers;
+private:
+  oatpp::String m_scheme;
+  oatpp::String m_realm;
+public:
+
+  /**
+   * Constructor.
+   * @param scheme - authorization type scheme. &id:oatpp::String;.
+   * @param realm - realm. &id:oatpp::String;.
+   */
+  AuthorizationHandler(const oatpp::String& scheme, const oatpp::String& realm);
+
+  /**
+   * Default virtual destructor.
+   */
+  virtual ~AuthorizationHandler() = default;
+
+  /**
+   * Implement this method! Return nullptr if authorization should be denied.
+   * @param header - `Authorization` header. &id:oatpp::String;.
+   * @return - `std::shared_ptr` to &id:oatpp::web::server::handler::AuthorizationObject;.
+   */
+  virtual std::shared_ptr<AuthorizationObject> handleAuthorization(const oatpp::String& authorizationHeader) = 0;
+
+  /**
+   * Render WWW-Authenicate header value. <br>
+   * Custom Authorization handlers may override this method in order to provide additional information.
+   * @param stream - &id:oatpp::data::stream::BufferOutputStream;.
+   */
+  virtual void renderAuthenticateHeaderValue(BufferOutputStream& stream);
+
+  /**
+   * Add authorization error headers to the headers map. <br>
+   * @param headers - &id:oatpp::web::protocol::http::Headers;.
+   */
+  virtual void addErrorResponseHeaders(Headers& headers);
+
+  /**
+   * Get authorization scheme.
+   * @return
+   */
+  oatpp::String getScheme();
+
+  /**
+   * Get authorization realm.
+   * @return
+   */
+  oatpp::String getRealm();
+
+};
+```
+``` |   AuthorizationObject() = default;
+[QA 3] ```cpp
+template<class CoroutineT, class ControllerT>
+class HandlerCoroutine : public oatpp::async::CoroutineWithResult<CoroutineT, const std::shared_ptr<OutgoingResponse>&> {
+public:
+    
+    HandlerCoroutine(ControllerT* pController, const std::shared_ptr<IncomingRequest>& pRequest)
+      : controller(pController)
+      , request(pRequest)
+    {}
+    
+    ControllerT* const controller;
+    std::shared_ptr<IncomingRequest> request;
+    
+};
+``` |     HandlerCoroutine(ControllerT* pController, const std::shared_ptr<IncomingRequest>& pRequest)
+      : controller(pController)
+      , request(pRequest)
+    {}
+[QA 4] ```cpp
+/**
+ * Pipe Reader. Extends &id:oatpp::data::stream::InputStream;.
+ * Provides read interface for the pipe. Can work in both blocking and nonblocking regime.
+ */
+class Reader : public oatpp::data::stream::InputStream {
+  friend Pipe;
+public:
+  static data::stream::DefaultInitializedContext DEFAULT_CONTEXT;
+private:
+
+  class WaitListListener : public oatpp::async::CoroutineWaitList::Listener {
+  private:
+    Pipe* m_pipe;
+  public:
+
+    WaitListListener(Pipe* pipe)
+      : m_pipe(pipe)
+    {}
+
+    void onNewItem(oatpp::async::CoroutineWaitList& list) override {
+      std::lock_guard<std::mutex> lock(m_pipe->m_mutex);
+      if (m_pipe->m_fifo.availableToRead() > 0 || !m_pipe->m_open) {
+        list.notifyAll();
+      }
+    }
+
+  };
+
+private:
+  Pipe* m_pipe;
+  oatpp::data::stream::IOMode m_ioMode;
+  
+  /*
+   * this one used for testing purposes only
+   */
+  v_io_size m_maxAvailableToRead;
+
+  oatpp::async::CoroutineWaitList m_waitList;
+  WaitListListener m_waitListListener;
+protected:
+    
+  Reader(Pipe* pipe, oatpp::data::stream::IOMode ioMode = oatpp::data::stream::IOMode::BLOCKING)
+    : m_pipe(pipe)
+    , m_ioMode(ioMode)
+    , m_maxAvailableToRead(-1)
+    , m_waitListListener(pipe)
+  {
+    m_waitList.setListener(&m_waitListListener);
+  }
+
+public:
+
+  /**
+   * Limit the available amount of bytes to read from pipe.<br>
+   * This method is used for testing purposes only.<br>
+   * set to -1 in order to ignore this value.<br>
+   * @param maxAvailableToRead - maximum available amount of bytes to read.
+   */
+  void setMaxAvailableToRead(v_io_size maxAvailableToRead);
+
+  /**
+   * Implements &id:oatpp::data::stream::InputStream::read; method.
+   * Read data from pipe.
+   * @param data - buffer to read data to.
+   * @param count - max count of bytes to read.
+   * @param action - async specific action. If action is NOT &id:oatpp::async::Action::TYPE_NONE;, then
+   * |     Reader(Pipe* pipe, oatpp::data::stream::IOMode ioMode = oatpp::data::stream::IOMode::BLOCKING)
+      : m_pipe(pipe)
+      , m_ioMode(ioMode)
+      , m_maxAvailableToRead(-1)
+      , m_waitListListener(pipe)
+    {
+      m_waitList.setListener(&m_waitListListener);
+    }
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.26it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.31it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.28it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.38it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.49it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.36it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.40it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.43it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.31it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.69it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.51it/s]
