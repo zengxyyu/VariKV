@@ -136,7 +136,6 @@ if __name__ == "__main__":
         if _ck.get("mode") is not None and _mode != _ck["mode"]:
             print(f"[CtrlM] ⚠ CLI 用 --ctrlm_mode {_mode} 覆盖了 ckpt 的 "
                   f"{_ck['mode']} —— 只有做对照时才该这样", flush=True)
-        args.tag += f"_ctrlm{_mode[:4]}{_ck.get('slots', args.ctrlm_slots)}"
         model = ModelKVzip(args.model, args.kv_type, args.gate_path_or_name)
         _arch = _ck.get("arch", "memory")
         _ns = _ck.get("slots", args.ctrlm_slots)
@@ -150,6 +149,12 @@ if __name__ == "__main__":
             from attention.calib_scorer import CalibScorer as _CS
             _typed, _cls, _kw = None, _CS, {"arch": _arch}
             _mode = "memoryless"            # CalibScorer 无记忆
+        # **tag 在 arch 分支之后才拼** —— 它必须反映**实际跑的** mode。原来拼在前面，
+        # 于是 CalibScorer 臂的目录名带的是覆盖前的 mode：修 `--ctrlm_mode` 默认值
+        # 之前是 `_ctrlmstat8`（CLI 默认 stateful），之后变成 `_ctrlmmemo8`（跟随
+        # ckpt）—— 同一个方法、同样的行为，目录名却变了，报表脚本会找不到新的那批。
+        args.tag += f"_ctrlm{_mode[:4]}{_ck.get('slots', args.ctrlm_slots)}"
+        if _arch != "memory":
             args.tag += f"_{_arch}"
         _cm = _cls(_ck.get("d_kv", 128), _ck["L"], _ck["H"], n_slots=_ns,
                    d_m=_ck.get("dim", args.ctrlm_dim), mode=_mode, **_kw)

@@ -15,6 +15,18 @@ _P = os.path.join(os.path.dirname(os.path.abspath(__file__)), "external/FastKVzi
 sys.path.insert(0, _P); os.chdir(_P)
 from results.parse import parse_answer, evaluate_answer            # noqa: E402
 _M = contextlib.redirect_stdout(io.StringIO())
+
+
+def _d10_sfx(name, S):
+    """**两种拼法都要认。** tag 里的 `ctrlm{mode[:4]}` 曾用覆盖前的 mode 拼：
+    修 `--ctrlm_mode` 默认值之前跑的四臂是 `ctrlmstat8`，之后跑的因子臂是
+    `ctrlmmemo8`。两批**行为完全相同**（CalibScorer 恒为 memoryless），只是名字
+    不同。写死一种会让新的那批整片显示成"缺数据"。"""
+    for tag in ("memo", "stat"):
+        p = (f"__d10{name}_s{S}_chunk16k_w4096_ctrlm{tag}8_{name}")
+        if os.path.exists(f"results/{DATA}/0_qwen2.5-7b-instruct-1m_fastkvzip{p}"):
+            return p
+    return f"__d10{name}_s{S}_chunk16k_w4096_ctrlmmemo8_{name}"
 DATA = "scbench_kv"
 
 def per_sample(sfx, ratio):
@@ -64,7 +76,7 @@ for RATIO in (0.1, 0.2):
         ds, cell = [], []
         for S in (0, 1, 2):
             sfx = V2[RATIO].get(S) if name.startswith("v2") else \
-                  f"__d10{name}_s{S}_chunk16k_w4096_ctrlmstat8_{name}"
+                  _d10_sfx(name, S)
             A = per_sample(sfx, RATIO) if sfx else {}
             r = delta(A, B) if A else None
             if r is None: cell.append("—"); continue
