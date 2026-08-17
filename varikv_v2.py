@@ -1106,6 +1106,68 @@ def verify_args(a):
     print(f"\nv2 的 {len(ref) - 1} 项参数（除 out）逐项一致。多出的 2 项见 --help。")
 
 
+def verify_backward(a):
+    """**梯度等价性** —— `verify-train` 的已知盲区。
+
+    `verify-train` 在共权重下比了 loss、逐样本 Δacc 和随机数流，全部逐位相同。但那
+    只覆盖**前向**：两边完全可能算出同一个标量 loss，却因为计算图结构不同而给出不同
+    的梯度（例如某个中间量在一边被 detach、或加法顺序不同导致 fp 累积不同）。训练
+    轨迹由梯度决定，不由 loss 决定，所以这一格必须单独验。
+
+    做法：同一篇 trace、同一个 generator 种子、**共权重**，两边各跑一次
+    `run_doc(...).backward()`，然后逐参数比 `.grad`。只比两边都有的参数——原版
+    `ControlMemory` 多出的 8 个死模块在 memoryless 下拿不到梯度（`grad is None`），
+    这本身也是一条要断言的性质。
+    """
+    import glob
+    import scratch_ctrl_train as orig
+    from attention.control_memory import ControlMemory
+
+    files = sorted(glob.glob(os.path.join(ROOT, a.traces, "doc*.pt")))
+    assert files, f"{a.traces} 里没有 doc*.pt"
+    doc = torch.load(files[0], map_location="cpu")
+    L, H = doc["L"], doc["H"]
+    torch.manual_seed(5)
+    cm = ControlMemory(128, L, H, n_slots=8, d_m=128, mode="memoryless",
+                       typed=True, alpha_init=1.0)
+    v2 = V2Scorer(128, L, H, n_slots=8, d_m=128, alpha_init=1.0)
+    v2.load_state_dict(cm.state_dict(), strict=False)   # 共权重
+
+    gA = torch.Generator().manual_seed(777)
+    gB = torch.Generator().manual_seed(777)
+    lA = orig.run_doc(cm, doc, "cpu", 64, gA, train=True, lam_global=1.0,
+                      skip_first_loss=True, shuf_gen=torch.Generator().manual_seed(1),
+                      pair_w="linear", replace=False)[0]
+    lB = run_doc(v2, doc, "cpu", 64, gB, lam_global=1.0, skip_first=True,
+                 pair_w="linear")[0]
+    print(f"loss  原版 {float(lA):.10f}   本文件 {float(lB):.10f}   "
+          f"|Δ| {abs(float(lA)-float(lB)):.2e}")
+    lA.backward(); lB.backward()
+
+    gc = dict(cm.named_parameters()); gv = dict(v2.named_parameters())
+    shared = sorted(set(gc) & set(gv))
+    worst, worst_n, nz = 0.0, None, 0
+    for n_ in shared:
+        a_, b_ = gc[n_].grad, gv[n_].grad
+        assert (a_ is None) == (b_ is None), f"{n_}: 一边有梯度一边没有"
+        if a_ is None:
+            continue
+        nz += 1
+        e = float((a_ - b_).abs().max())
+        if e > worst:
+            worst, worst_n = e, n_
+    print(f"\n共享参数 {len(shared)} 个，其中有梯度 {nz} 个")
+    print(f"  max|grad_orig − grad_v2| = {worst:.3e}   （最大处：{worst_n}）")
+    dead = [n_ for n_ in gc if n_.split(".")[0] in DEAD]
+    bad = [n_ for n_ in dead if gc[n_].grad is not None
+           and float(gc[n_].grad.abs().max()) > 0]
+    print(f"  原版那 8 个死模块共 {len(dead)} 个张量，收到非零梯度的：{len(bad)} 个"
+          f"{'  ✓ 与「memoryless 下它们不参与」一致' if not bad else '  ✗ ' + str(bad[:3])}")
+    assert worst < 1e-9, f"梯度不等价：{worst_n} 处差 {worst:.3e}"
+    assert not bad
+    print("\n梯度等价性验收通过。")
+
+
 def main():
     ap = argparse.ArgumentParser(description="VariKV v2 最小实现")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -1120,6 +1182,10 @@ def main():
     w = sub.add_parser("verify-train", help="训练路径与随机数流的等价性（CPU）")
     w.add_argument("--traces", default="scratch_ctrl_traces_v2")
     w.set_defaults(fn=verify_train)
+
+    bw = sub.add_parser("verify-backward", help="梯度等价性（CPU）—— verify-train 的盲区")
+    bw.add_argument("--traces", default="scratch_ctrl_traces_v2_10")
+    bw.set_defaults(fn=verify_backward)
 
     rr = sub.add_parser("verify-real", help="真 7B 模型上的端到端等价性（需 GPU）")
     rr.add_argument("--ckpt", default="varikv/ctrl_b_a1_s0.pt/memoryless.pt")

@@ -924,3 +924,72 @@ v2 档、896 组真实状态 × 4001 点网格：`scalar` 三个种子 min ds'/d
 `ρ=0.02` 在 Retr.KV / PrefSuf / Math.Find 上恰好 **+0.00**，正是构造性预测值
 （`ratio×clen < window` ⇒ 只留最近的 token，门控分数不参与）。
 SQuAD/GSM8K 非零是因为只有 203/86 token，压根不进驱逐路径。
+
+---
+
+## 2026-08-17 中午 —— 一个 CLI 默认值把整批评测跑成了另一个方法
+
+### 起因
+
+干净版 v2 训练侧与原版**完全重叠**（末 epoch loss 0.6444/0.6447/0.6426 vs
+0.6448/0.6447/0.6422），下游却只有 **+1.40**（Retr.KV @0.1，n=1）而原版 +4.27★。
+我把嫌疑排在随机初始化上。**排错了。**
+
+外部复查指出 `args.py` 的 `--ctrlm_mode` 默认 `"stateful"`，而 `eval_chunk.py` 用
+`args.ctrlm_mode or _ck.get("mode")` —— 非空字符串恒为真，ckpt 存的 mode 永不生效。
+日志一看即实：`v2c_* → mode=stateful`，`ctrl_b_a1_* → mode=memoryless`。
+
+原版逃过是因为它的启动脚本显式传了 `--ctrlm_mode memoryless`；四臂逃过是因为
+`eval_chunk.py:142` 对 `arch != "memory"` 强制改回 memoryless。**只有我写的
+`scratch_master_queue.sh` 什么都没传。**
+
+### 代价实测（同 ckpt 只换 mode，Retr.KV，n=40）
+
+| ratio | memoryless | stateful | 差值 | 逐样本相同 |
+|---|---|---|---|---|
+| 0.1 | **+5.50★** [+2.50,+8.50] | +0.00 [−3.50,+3.50] | **+5.50★** [+2.00,+9.50] | 27/40 |
+| 0.2 | **+25.50★** [+18.50,+32.50] | +18.00★ [+10.50,+25.50] | **+7.50★** [+2.50,+13.00] | 21/40 |
+
+**干净版 v2 修好后 +5.50★，不低于原版的 +4.27 ± 0.19★。** 那个红旗完全是这个 bug。
+
+为什么 stateful 下会崩：`to_compat_ckpt` 把 8 个 writer 模块**填零**（注释写了
+"memoryless 下它们不参与"——假设被陈述但没被强制）。stateful 下 writer 真的执行，
+全零 GRU 给出 `r=z=σ(0)=0.5`、`n=tanh(0)=0` ⇒ `M ← 0.5·M`，11 个 chunk 衰减到
+`2⁻¹¹ ≈ 5e-4`；`dir_decay=0` 使 `D ← 0.5·D + 0.5·mean(x)` 吸进真实数据。
+
+### 我在这条上判断错了两次
+
+1. 只凭机制推理就写"这完全解释了 +1.40 vs +4.27，根本不是初始化方差"——当时**没有
+   任何测量**。
+2. 紧接着看到 **n=6** 的部分结果（两 mode 前 6 个样本逐位相同）就说"不支持我的预测"。
+   n=40 上差异清清楚楚（+5.50★）。
+
+第二次尤其该记：项目早有「Never trust a ★ on partial samples」的规矩，但我只在**正
+结论**上守它，看到部分样本上的"无差异"时却当成了负证据。**部分样本不足以支持任何
+方向的结论。**
+
+### 顺带修好的
+
+- `--ctrlm_mode` 默认改 `None` + `is None` 解析 + 覆盖时告警；`eval_chunk_mrcr.py` 同步。
+- 教师侧加 `--regime {v2,v3,custom}`，从**源头**声明语料，带篇数断言（上游漂移当场停机）；
+  每个 trace 存 `regime` + 原文 sha256，自描述。
+- `scratch_ctrl_teacher.py --help` 一直是崩的（`--n_keep` 的 help 里有字面量 `0.895%`，
+  argparse 会做 `%` 格式化）。既存 bug，转义修掉。
+- `scratch_pool.sh` 的 `eval "CUDA_VISIBLE_DEVICES=$G $j"` —— 作业串是
+  `cd X && env ... python`，而 `VAR=x cmd1 && cmd2` 里赋值**只对 cmd1 生效**，
+  python 拿不到 CVD ⇒ torch 自己挑卡，实测 GPU1/GPU2 各叠 3 个进程、显存 34 GB。
+  改成 `( export CUDA_VISIBLE_DEVICES=$G; eval "$j" )`，并验证语义（旧 `CVD=` 空、
+  新 `CVD=7`）。**这不是调度器的锁失效** —— `gpu_claim` 的两道检查一直是对的。
+
+### verify-backward：补上 verify-train 的盲区
+
+`verify-train` 只比了前向 loss 与随机数流。两边完全可能算出同一个 loss 而梯度不同
+（中间量被 detach、加法顺序不同）。**训练轨迹由梯度决定。** 共权重、同种子、同一篇
+trace 下各跑一次 `backward()`：
+
+    loss  原版 1.8265886307   本文件 1.8265886307   |Δ| = 0.00e+00
+    共享参数 12 个全部有梯度   max|grad_orig − grad_v2| = 5.821e-11（q_read.weight）
+    原版 8 个死模块的 17 个张量，收到非零梯度的：0 个
+
+5.8e-11 是 float32 累加序的量级。而"memoryless 下那 8 个模块不参与"至此是**测出来的**，
+不再是读代码的结论——那正是砍掉它们的前提。

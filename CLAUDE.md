@@ -138,6 +138,60 @@ CUDA_VISIBLE_DEVICES=0 VARIKV_RATIOS=0.3,0.2 ../../../.venv/bin/python -B eval_c
 .venv/bin/python scratch_model_registry.py --md      # regenerate MODELS.md tables
 ```
 
+### 评测的 mode 默认值 bug —— 代价实测 +5.50，且它解释了干净版 v2 的"失败"（2026-08-17）
+
+**这是本轮最重要的一条：一个 CLI 默认值把一整批评测跑成了另一个方法。**
+
+`args.py` 的 `--ctrlm_mode` 曾默认 `"stateful"`，而 `eval_chunk.py` 用
+`args.ctrlm_mode or _ck.get("mode")` 解析 —— **非空字符串恒为真**，所以 ckpt 里存的
+`mode="memoryless"` 永远不生效。日志实证：
+
+    v2c_s0_compat.pt   mode=stateful     ← 干净版 v2，全部 33 个作业
+    ctrl_b_a1_s0       mode=memoryless   ← 原版 v2（它的启动脚本显式传了）
+    d10_scalar_s0      mode=memoryless   ← 四臂（eval_chunk:142 对 arch≠memory 强制改回）
+
+**代价实测**（同一个 ckpt 只换 mode，Retr.KV，n=40，配对 bootstrap）：
+
+| ratio | memoryless | stateful | 差值 | 逐样本相同 |
+|---|---|---|---|---|
+| 0.1 | **+5.50★** [+2.50,+8.50] | +0.00 [−3.50,+3.50] | **+5.50★** [+2.00,+9.50] | 27/40 |
+| 0.2 | **+25.50★** [+18.50,+32.50] | +18.00★ [+10.50,+25.50] | **+7.50★** [+2.50,+13.00] | 21/40 |
+
+**两条结论：**
+
+1. **干净版 v2 没问题。** 修好 mode 后 Retr.KV @0.1 是 **+5.50★**，而原版 v2 是
+   **+4.27 ± 0.19★** —— 不低于原版。此前那个 +1.40 的"红旗"**完全是这个 bug**，
+   与随机初始化无关。
+2. **为什么在 stateful 下会崩**：`varikv_v2.py:to_compat_ckpt` 把 8 个 writer 模块
+   **填零**（注释里写了"memoryless 下它们不参与"——假设被陈述但没被强制）。stateful
+   下 writer 真的执行：全零 GRU 给出 `r=z=σ(0)=0.5`、`n=tanh(0)=0` ⇒ `M ← 0.5·M`，
+   11 个 chunk 后衰减到 `2⁻¹¹`；`dir_decay=0` 使 `D ← 0.5·D + 0.5·mean(x)` 吸进数据。
+
+**已修**：`--ctrlm_mode` 默认改 `None`，解析用 `is None` 判断，CLI 覆盖 ckpt 时打印
+警告；`eval_chunk_mrcr.py` 同步。**所有启动脚本仍应显式传 `--ctrlm_mode memoryless`**
+—— 显式写出来才能在日志里自证，不依赖"默认值这次是对的"。
+
+**我自己在这条上判断错了两次，两次都值得记：** 先是只凭机制推理就断言"完全解释了"
+（没有测量）；接着根据 **n=6** 的部分结果说"不支持我的预测"——而 n=40 上差异清清楚楚。
+项目的规矩「Never trust a ★ on partial samples」**对负结论同样适用**，我只在正结论上守了。
+
+### 干净版 v2 的等价性：六级全过，含梯度（2026-08-17）
+
+`varikv_v2.py` 的 6 个 `verify-*` 子命令，前五个零 GPU：
+
+| 验收 | 结果 |
+|---|---|
+| `verify-args` | 14 项参数逐项对上 v2 ckpt 里存的 `args` |
+| `verify` | 60 次随机微分测试，`max|Δs_orig − Δs_v2| = 0.000e+00` |
+| `verify-cache` | 4 个 ratio 的 `valid` 掩码逐位相同；`scorer=None` 等于原生 `RetainCache` |
+| `verify-train` | loss 与随机数流逐位相同（前向） |
+| **`verify-backward`** | **梯度 max 差 5.8e-11**（float32 累加序量级）；**原版 8 个死模块的 17 个张量全部零梯度** |
+| `verify-real` | 真 7B bf16，`valid` 掩码与生成文本逐位相同 |
+
+`verify-backward` 是补上 `verify-train` 的盲区：两边完全可能算出同一个 loss 而梯度不同
+（某个中间量被 detach、或加法顺序不同）。**训练轨迹由梯度决定不由 loss 决定。**
+它同时把"memoryless 下那 8 个模块不参与"从读代码得出的结论变成了**测出来的**。
+
 ### 机制探针（2026-08-17）：单调性有网格级证书，但 state-aliasing 假说**不成立**
 
 **在给 `+4.27` 讲机制故事之前读这一条。** 三个探针，全部零 GPU。

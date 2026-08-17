@@ -1,0 +1,95 @@
+tag: _fastkvzip__d10szr_s2_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.42it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.62it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.71it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.86it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.76it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/d10_szr_s2.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.4K
+['scbench_kv']
+
+scbench_kv loaded, #data: 100
+set generation length: 96 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~100 samples
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   0%|          | 0/11 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/eval_chunk.py", line 223, in <module>
+    kv = dataset.prefill_context(data_idx, do_score=False)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/data/wrapper.py", line 50, in prefill_context
+    kv = self.model.prefill(
+         ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/model/wrapper.py", line 252, in prefill
+    return self._prefill_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/model/wrapper.py", line 298, in _prefill_impl
+    self.__call__(input_ids, kv, update_cache=True)
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/model/wrapper.py", line 130, in __call__
+    _ = self.model.model(input_ids, past_key_values=kv, *args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/utils/generic.py", line 965, in wrapper
+    output = func(self, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 549, in forward
+    layer_outputs = decoder_layer(
+                    ^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/accelerate/hooks.py", line 175, in new_forward
+    output = module._old_forward(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py", line 262, in forward
+    hidden_states, self_attn_weights = self.self_attn(
+                                       ^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/accelerate/hooks.py", line 175, in new_forward
+    output = module._old_forward(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/attention/attn.py", line 74, in llama_qwen_attn_forward
+    score = past_key_value.gates[self.layer_idx](hidden_states)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/attention/gate.py", line 82, in forward
+    queries = self.q_norm(self.q_proj(hidden_states).view(hidden_shape))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/torch/nn/modules/linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cuda:1! (when checking argument for argument mat1 in method wrapper_CUDA_addmm)
