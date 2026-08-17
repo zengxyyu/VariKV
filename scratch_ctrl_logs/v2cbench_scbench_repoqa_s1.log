@@ -11883,3 +11883,123 @@ Chunked prefilling with 0.05 ratio, window 3282
 # prefill qwen2.5-7b-instruct-1m scbench_repoqa-48: 65641 tokens, KV cache 3.8 GB, torch.bfloat16
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.62it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.19it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.02 ratio, window 1312
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-48: 65641 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/48_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 337.5s. Mem: 14.32/79.18 GB. [scbench_repoqa-48]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.09it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-49: 65641 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```typescript
+import { LLMChain } from "langchain/chains";
+import { ChatOpenAI } from "langchain/llms/openai";
+import { PromptTemplate } from "langchain/prompts";
+
+/**
+ * Loads a StuffQAChain based on the provided parameters. It takes an LLM
+ * instance and StuffQAChainParams as parameters.
+ * @param llm An instance of BaseLanguageModel.
+ * @param params Parameters for creating a StuffQAChain.
+ * @returns A StuffQAChain instance.
+ */
+export function loadQAStuffChain(
+  llm: BaseLanguageModelInterface,
+  params: StuffQAChainParams = {}
+) {
+  const { prompt = QA_PROMPT_SELECTOR.getPrompt(llm), verbose } = params;
+  const llmChain = new LLMChain({ prompt, llm, verbose });
+  const chain = new StuffDocumentsChain({ llmChain, verbose });
+  return chain;
+}
+``` | export function loadQAStuffChain(
+  llm: BaseLanguageModelInterface,
+  params: StuffQAChainParams = {}
+) {
+  const { prompt = QA_PROMPT_SELECTOR.getPrompt(llm), verbose } = params;
+  const llmChain = new LLMChain({ prompt, llm, verbose });
+  const chain = new StuffDocumentsChain({ llmChain, verbose });
+  return chain;
+}
+[QA 1] ```typescript
+function isAgentAction(input: unknown): input is AgentAction {
+  return !Array.isArray(input) && (input as AgentAction)?.tool !== undefined;
+}
+``` | function isAgentAction(input: unknown): input is AgentAction {
+  return !Array.isArray(input) && (input as AgentAction)?.tool !== undefined;
+}
+[QA 2] ```typescript
+function isBaseLanguageModel(llmLike: unknown): llmLike is BaseLanguageModel {
+  return typeof (llmLike as BaseLanguageModelInterface)._llmType === "function";
+}
+``` | function isLLMChain<T>(
+  x: LLMChain | Runnable<OutputFixingParserRetryInput, T>
+): x is LLMChain {
+  return (
+    (x as LLMChain).prompt !== undefined && (x as LLMChain).llm !== undefined
+  );
+}
+[QA 3] ```typescript
+export function formatLogToString(
+  intermediateSteps: AgentStep[],
+  observationPrefix = "Observation: ",
+  llmPrefix = "Thought: "
+): string {
+  const formattedSteps = intermediateSteps.reduce(
+    (thoughts, { action, observation }) =>
+      thoughts +
+      [action.log, `\n${observationPrefix}${observation}`, llmPrefix].join(
+        "\n"
+      ),
+    ""
+  );
+  return formattedSteps;
+}
+``` | export function formatLogToString(
+  intermediateSteps: AgentStep[],
+  observationPrefix = "Observation: ",
+  llmPrefix = "Thought: "
+): string {
+  const formattedSteps = intermediateSteps.reduce(
+    (thoughts, { action, observation }) =>
+      thoughts +
+      [action.log, `\n${observationPrefix}${observation}`, llmPrefix].join(
+        "\n"
+      ),
+    ""
+  );
+  return formattedSteps;
+}
+[QA 4] ```typescript
+export function renderTextDescription(
+  tools: StructuredToolInterface[]
+): string {
+  return tools.map((tool) => `${tool.name}: ${tool.description}`).join("\n");
+}
+``` | export function renderTextDescription(
+  tools: StructuredToolInterface[]
+): string {
+  return tools.map((tool) => `${tool.name}: ${tool.description}`).join("\n");
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-49: 65641 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.31it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.30it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.21it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-49: 65641 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.36it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-49: 65641 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.39it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.59it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.43it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-49: 65641 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.31it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.70it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.52it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-49: 65641 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.37it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.84it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.61it/s]
