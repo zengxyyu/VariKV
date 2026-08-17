@@ -133,6 +133,10 @@ def cell(base, arm):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--md", action="store_true")
+    ap.add_argument("--write", metavar="RESULTS_GRID.md", default=None,
+                    help="把生成的表**写回**该文件，替换首个表头行起的整块表格。"
+                         "先前只能靠人工把 stdout 贴进去 —— 在无人值守的循环里，"
+                         "一个 `| tail -12` 就把输出截断了而毫无提示。")
     a = ap.parse_args()
     ARMS = [("v2", lambda d: "__g8v2_chunk16k_w4096_ctrlmmemo8"),
             ("v2c", "SEEDS"),        # 干净版 v2（varikv_v2.py），3 种子逐个算再平均
@@ -188,6 +192,9 @@ def main():
                     agg[a_][r].append(c[0])
             rows.append((name, full, a_, got, d))
     W = 15
+    _buf = []
+    def print(*a, **k):                    # noqa: A001  仅在本函数内遮蔽
+        _buf.append(" ".join(str(x) for x in a))
     hd = f"| {'panel':<15}| {'full':>5} | {'arm':<8}|" + "".join(
         f" {('ρ=%g' % r):>{W}} |" for r in RAT[1:])
     print(hd)
@@ -223,6 +230,23 @@ def main():
             v = agg[a_][r]
             line += f" {(('%+.2f (%d)' % (np.mean(v), len(v))) if v else '—'):>{W}} |"
         print(line)
+
+    out = "\n".join(_buf)
+    if not a.write:
+        import builtins; builtins.print(out); return
+    # 本脚本在 import 时 chdir 到 prefill/，所以相对路径必须按**脚本所在目录**解析，
+    # 否则会去 prefill/ 下找 RESULTS_GRID.md 并 FileNotFoundError。
+    if not os.path.isabs(a.write):
+        a.write = os.path.join(os.path.dirname(os.path.abspath(__file__)), a.write)
+    doc = open(a.write).read().split("\n")
+    # 表格 = 从首个以 "| panel" 开头的行到文件末尾最后一个 "|" 开头的行
+    first = next(i for i, L in enumerate(doc) if L.startswith("| panel"))
+    last = max(i for i, L in enumerate(doc) if L.startswith("|"))
+    open(a.write, "w").write("\n".join(doc[:first] + out.split("\n")
+                                       + doc[last + 1:]))
+    import builtins
+    builtins.print(f"已写回 {a.write}：替换第 {first+1}–{last+1} 行，"
+                   f"新表 {len(out.splitlines())} 行")
 
 
 if __name__ == "__main__":
