@@ -2,6 +2,7 @@
 """v2 档四臂的下游报表 —— +4.27 到底来自校准还是 KV 内容。
 
 口径（都是项目付过学费的）：
+0. **只有跑满（≥90% 基线样本）的格子进跨种子聚合**，未跑满的标 `~` 只作参考。
 1. 只报**配对 Δ**（对同一批 `__g8base`），逐样本 bootstrap，★ = 95% CI 不含 0。
 2. **逐种子分别报，再报跨种子散布** —— 一次训练不是一次测量（v1 同代码三次重训
    跨度 39 分）。
@@ -58,8 +59,34 @@ def delta(A, B):
     if not c: return None
     return (np.array([A[j] for j in c]) - np.array([B[j] for j in c])) * 100, c
 
-ARMS = [("bias", 225, "纯预算平移"), ("affine", 225, "位置+尺度"),
-        ("scalar", 4482, "分数统计量，不看KV"), ("kv", 53378, "只看KV")]
+# **臂列表从 CalibScorer.MODES 派生，不手抄第二份。** 手抄过一次的代价：
+# scratch_ctrl_train.py 的 --arch choices 漏掉后加的因子臂，12 个训练全在 argparse
+# 被拒、日志只留一行 usage，调度器看不出异常、队列照样排空。
+import torch                                                        # noqa: E402
+from attention.calib_scorer import CalibScorer                      # noqa: E402
+
+_NOTE = {"bias": "纯预算平移", "affine": "位置+尺度",
+         "scalar": "z+mg+rs+头嵌入（全局竞争态齐全）",
+         "kv": "只看KV，看不到 s⁰", "k": "只看K", "v": "只看V",
+         "sz": "只有 z + 头嵌入（无全局态）", "szr": "z+rs（有 σ_g，无 τ）",
+         "szm": "z+mg（τ 与 σ_g 都有）", "szmr0": "z+mg+rs，**无头嵌入**"}
+# 展示顺序按"信息量递增"排，便于读出单调性；集合本身来自 MODES 并断言全覆盖。
+_ORDER = ["bias", "affine", "sz", "szr", "szm", "scalar", "szmr0", "kv"]
+_SKIP = {"k", "v"}                       # 未训练，显式跳过而不是默默漏掉
+assert set(_ORDER) | _SKIP == set(CalibScorer.MODES), \
+    f"MODES 变了但报表没跟上：{set(CalibScorer.MODES) ^ (set(_ORDER) | _SKIP)}"
+
+def _npar(name):
+    """参数量从 ckpt 现读，不写死 —— 写死的数字改架构后会静默说谎。"""
+    for S in (0, 1, 2):
+        f = os.path.join(os.path.dirname(_P), "../..", f"varikv/d10_{name}_s{S}.pt",
+                         "memoryless.pt")
+        if os.path.exists(f):
+            return sum(v.numel() for v in
+                       torch.load(f, map_location="cpu")["state"].values())
+    return 0
+
+ARMS = [(n, _npar(n), _NOTE[n]) for n in _ORDER if _npar(n)]
 V2 = {0.1: {0: "__b2memoryless_chunk16k_w4096_ctrlmmemo8",
             1: "__b2s1me_chunk16k_w4096_ctrlmmemo8",
             2: "__b2s2me_chunk16k_w4096_ctrlmmemo8"},
@@ -81,16 +108,25 @@ for RATIO in (0.1, 0.2):
             r = delta(A, B) if A else None
             if r is None: cell.append("—"); continue
             d, c = r; m, lo, hi = boot(d)
-            ds.append(m); cell.append(f"{m:+.2f}{'★' if (lo>0 or hi<0) else ''}({len(c)})")
+            # **未跑满的格子不进跨种子聚合，并标 `~`。** 项目付过两次学费：
+            # Math.Find 在 38/100 上读 −3.95★，跑满 100 变 −2.33 不显著。这里若不拦，
+            # 一个 n=1 的格子会和 n=84 的平均出 `+12.26 ± 7.74` 这种纯噪声。
+            full = len(c) >= 0.9 * len(B)
+            if full: ds.append(m)
+            cell.append(f"{m:+.2f}{'★' if (lo>0 or hi<0) else ''}"
+                        f"{'' if full else '~'}({len(c)})")
         agg = f"{np.mean(ds):+.2f} ± {np.std(ds):.2f}" if len(ds) > 1 else \
-              (f"{ds[0]:+.2f} (n=1)" if ds else "—")
+              (f"{ds[0]:+.2f} (1种子)" if ds else "—")
         print(f"{name:<10}{npar:>7}  " + "".join(f"{x:>14}" for x in cell)
               + f"{agg:>18}   {note}")
         rows.append((name, ds))
     # 臂间 / 对 v2 的种子级配对
     d = dict(rows)
     print(f"\n  种子级配对（各臂三个种子的 Δ 相减，n=3，只看方向与量级）:")
-    for a, b in (("scalar","bias"),("scalar","affine"),("kv","scalar"),
+    # 因子臂的关键配对 —— 直接对应 ICLR_PLAN §四之五 的预注册四结局判读表
+    for a, b in (("sz","affine"),("szm","sz"),("szr","sz"),
+                 ("scalar","szm"),("szmr0","scalar"),
+                 ("scalar","bias"),("scalar","affine"),("kv","scalar"),
                  ("scalar","v2 (full)"),("kv","v2 (full)")):
         if len(d.get(a,[]))==3 and len(d.get(b,[]))>=1:
             if len(d[b])==3:
