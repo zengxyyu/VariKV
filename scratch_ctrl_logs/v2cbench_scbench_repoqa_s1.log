@@ -7361,3 +7361,634 @@ Chunked prefilling with 0.30 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.28it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.81it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.59it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.47it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.38it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.96it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.69it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.47it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.05 ratio, window 3295
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.57it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.18it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.02 ratio, window 1318
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/27_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 745.5s. Mem: 14.32/79.18 GB. [scbench_repoqa-27]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.28it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.77it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```java
+public static <TT> TypeAdapterFactory newFactoryForMultipleTypes(
+    final Class<TT> base,
+    final Class<? extends TT> sub,
+    final TypeAdapter<? super TT> typeAdapter) {
+  return new TypeAdapterFactory() {
+    @SuppressWarnings("unchecked") // we use a runtime check to make sure the 'T's equal
+    @Override
+    public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
+      Class<? super T> rawType = typeToken.getRawType();
+      return (rawType == base || rawType == sub) ? (TypeAdapter<T>) typeAdapter : null;
+    }
+
+    @Override
+    public String toString() {
+      return "Factory[type="
+          + base.getName()
+          + "+"
+          + sub.getName()
+          + ",adapter="
+          + typeAdapter
+          + "]";
+    }
+  };
+}
+``` |   @SuppressWarnings("TypeParameterNaming")
+  public static <TT> TypeAdapterFactory newFactoryForMultipleTypes(
+      final Class<TT> base,
+      final Class<? extends TT> sub,
+      final TypeAdapter<? super TT> typeAdapter) {
+    return new TypeAdapterFactory() {
+      @SuppressWarnings("unchecked") // we use a runtime check to make sure the 'T's equal
+      @Override
+      public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
+        Class<? super T> rawType = typeToken.getRawType();
+        return (rawType == base || rawType == sub) ? (TypeAdapter<T>) typeAdapter : null;
+      }
+
+      @Override
+      public String toString() {
+        return "Factory[type="
+            + base.getName()
+            + "+"
+            + sub.getName()
+            + ",adapter="
+            + typeAdapter
+            + "]";
+      }
+    };
+  }
+[QA 1] ```java
+/** Rotates the subtree so that its root's right child is the new root. */
+private void rotateLeft(Node<K, V> root) {
+    Node<K, V> left = root.left;
+    Node<K, V> pivot = root.right;
+    Node<K, V> pivotLeft = pivot.left;
+    Node<K, V> pivotRight = pivot.right;
+
+    // move the pivot's left child to the root's right
+    root.right = pivotLeft;
+    if (pivotLeft != null) {
+        pivotLeft.parent = root;
+    }
+
+    replaceInParent(root, pivot);
+
+    // move the root to the pivot's left
+    pivot.left = root;
+    root.parent = pivot;
+
+    // fix heights
+    root.height =
+        Math.max(left != null ? left.height : 0, pivotLeft != null ? pivotLeft.height : 0) + 1;
+    pivot.height = Math.max(root.height, pivotRight != null ? pivotRight.height : 0) + 1;
+}
+``` |   private void rotateLeft(Node<K, V> root) {
+    Node<K, V> left = root.left;
+    Node<K, V> pivot = root.right;
+    Node<K, V> pivotLeft = pivot.left;
+    Node<K, V> pivotRight = pivot.right;
+
+    // move the pivot's left child to the root's right
+    root.right = pivotLeft;
+    if (pivotLeft != null) {
+      pivotLeft.parent = root;
+    }
+
+    replaceInParent(root, pivot);
+
+    // move the root to the pivot's left
+    pivot.left = root;
+    root.parent = pivot;
+
+    // fix heights
+    root.height =
+        Math.max(left != null ? left.height : 0, pivotLeft != null ? pivotLeft.height : 0) + 1;
+    pivot.height = Math.max(root.height, pivotRight != null ? pivotRight.height : 0) + 1;
+  }
+[QA 2] ```java
+/**
+ * Gets the declaring Class that contains this field
+ *
+ * @return the declaring class that contains this field
+ */
+public Class<?> getDeclaringClass() {
+    return field.getDeclaringClass();
+}
+``` |   public Class<?> getDeclaringClass() {
+    return field.getDeclaringClass();
+  }
+[QA 3] ```java
+/**
+ * Creates a duplicate of an object, ensuring that the new object is a separate instance with the
+ * same properties as the original.
+ *
+ * @param obj the object to duplicate
+ * @return a new object that is a copy of the input object
+ */
+public static Object duplicate(Object obj) {
+    if (obj == null) {
+        return null;
+    }
+    try {
+        // Retrieve the components of the input object using reflection
+        Field[] fields = obj.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            field.set(obj, field.get(obj));
+        }
+        return obj;
+    } catch (IllegalAccessException e) {
+        throw new RuntimeException("Unable to duplicate object", e);
+    }
+}
+``` |   @Override
+  protected Excluder clone() {
+    try {
+      return (Excluder) super.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new AssertionError(e);
+    }
+  }
+[QA 4] ```java
+/**
+ * @deprecated This is an internal Gson method. Use {@link Objects#requireNonNull(Object)}
+ *     instead.
+ */
+// Only deprecated for now because external projects might be using this by accident
+@Deprecated
+public static <T> T checkNotNull(T obj) {
+  if (obj == null) {
+    throw new NullPointerException("Element must be non-null");
+  }
+  return obj;
+}
+``` |   private E nonNull(E element) {
+    if (element == null) {
+      throw new NullPointerException("Element must be non-null");
+    }
+    return element;
+  }
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.24it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.31it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.28it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.49it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.36it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.40it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.59it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.43it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.20it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.70it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.51it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.83it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.60it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.47it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.38it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.97it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.70it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.50it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.46it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.76it/s]
+Chunked prefilling with 0.05 ratio, window 3288
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.62it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.53it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.17it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.84it/s]
+Chunked prefilling with 0.02 ratio, window 1315
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/28_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 326.3s. Mem: 14.32/79.18 GB. [scbench_repoqa-28]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```java
+private JsonElement getAsSingleElement() {
+    int size = elements.size();
+    if (size == 1) {
+        return elements.get(0);
+    }
+    throw new IllegalStateException("Array must have size 1, but has size " + size);
+}
+``` |   private JsonElement getAsSingleElement() {
+    int size = elements.size();
+    if (size == 1) {
+      return elements.get(0);
+    }
+    throw new IllegalStateException("Array must have size 1, but has size " + size);
+  }
+[QA 1] ```java
+static String separateCamelCase(String name, char separator) {
+    StringBuilder translation = new StringBuilder();
+    for (int i = 0, length = name.length(); i < length; i++) {
+        char character = name.charAt(i);
+        if (Character.isUpperCase(character) && translation.length() != 0) {
+            translation.append(separator);
+        }
+        translation.append(character);
+    }
+    return translation.toString();
+}
+``` |   static String separateCamelCase(String name, char separator) {
+    StringBuilder translation = new StringBuilder();
+    for (int i = 0, length = name.length(); i < length; i++) {
+      char character = name.charAt(i);
+      if (Character.isUpperCase(character) && translation.length() != 0) {
+        translation.append(separator);
+      }
+      translation.append(character);
+    }
+    return translation.toString();
+  }
+[QA 2] ```java
+private static Writer writerForAppendable(Appendable appendable) {
+    return appendable instanceof Writer ? (Writer) appendable : new AppendableWriter(appendable);
+}
+
+private static final class AppendableWriter extends Writer {
+    private final Appendable appendable;
+    private final CurrentWrite currentWrite = new CurrentWrite();
+
+    AppendableWriter(Appendable appendable) {
+        this.appendable = appendable;
+    }
+
+    @SuppressWarnings("UngroupedOverloads") // this is intentionally ungrouped, see comment below
+    @Override
+    public void write(char[] chars, int offset, int length) throws IOException {
+        currentWrite.setChars(chars);
+        appendable.append(currentWrite, offset, offset + length);
+    }
+
+    @Override
+    public void flush() {}
+
+    @Override
+    public void close() {}
+
+    // Override these methods for better performance
+    // They would otherwise unnecessarily create Strings or char arrays
+
+    @Override
+    public void write(int i) throws IOException {
+        appendable.append((char) i);
+    }
+
+    @Override
+    public void write(String str, int off, int len) throws IOException {
+        // Appendable.append turns null -> "null", which is not desired here
+        Objects.requireNonNull(str);
+        appendable.append(str, off, off + len);
+    }
+
+    @Override
+    public Writer append(CharSequence csq) throws IOException {
+        appendable.append(csq);
+        return this;
+    }
+
+    @Override
+    public Writer append(CharSequence csq, int start, int end) throws IOException {
+        appendable.append(csq, start, end);
+        return this;
+    }
+
+    /** A mutable char sequence pointing at a single char[]. */
+    private static class CurrentWrite implements CharSequence {
+        private char[] chars;
+        private String cachedString;
+
+        void setChars(char[] chars) {
+            this.chars = chars;
+            this.cachedString = null;
+        }
+
+        @Override
+        public int length() {
+            return chars.length;
+        }
+
+        @Override
+        public char charAt(int i) {
+            return chars[i];
+        }
+
+        @Override
+        public CharSequence subSequence(int start, int end) {
+            return new String(chars, start, end - start);
+        }
+
+        // Must return string representation to satisfy toString() contract
+        @Override
+        public String toString() {
+            if (cachedString == null) {
+                cachedString = new String(chars);
+            }
+ |   public static Writer writerForAppendable(Appendable appendable) {
+    return appendable instanceof Writer ? (Writer) appendable : new AppendableWriter(appendable);
+  }
+[QA 3] ```java
+private TypeAdapter<T> delegate() {
+    // A race might lead to `delegate` being assigned by multiple threads but the last assignment
+    // will stick
+    TypeAdapter<T> d = delegate;
+    return d != null
+        ? d
+        : (delegate = gson.getDelegateAdapter(skipPastForGetDelegateAdapter, typeToken));
+}
+``` |   @Override
+  public TypeAdapter<T> getSerializationDelegate() {
+    return serializer != null ? this : delegate();
+  }
+[QA 4] ```java
+private static void checkNumberStringLength(String s) {
+    if (s.length() > MAX_NUMBER_STRING_LENGTH) {
+      throw new NumberFormatException("Number string too large: " + s.substring(0, 30) + "...");
+    }
+}
+``` |   private static void checkNumberStringLength(String s) {
+    if (s.length() > MAX_NUMBER_STRING_LENGTH) {
+      throw new NumberFormatException("Number string too large: " + s.substring(0, 30) + "...");
+    }
+  }
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.32it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.21it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.38it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.49it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.36it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.40it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.59it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.43it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.31it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.70it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.51it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.83it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.60it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.43it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.39it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.98it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.71it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.47it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.05 ratio, window 3288
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.19it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.02 ratio, window 1315
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/29_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 315.7s. Mem: 14.32/79.18 GB. [scbench_repoqa-29]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-30: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```java
+public int getStatus() {
+    return status;
+}
+``` |     public int getStatus() {
+        return status;
+    }
+[QA 1] ```java
+protected static String removePrefix(String text) {
+    if (text.startsWith(Resource.CLASSPATH_COLON) || text.startsWith(Resource.FILE_COLON)) {
+        return text.substring(text.indexOf(':') + 1);
+    } else {
+        return text;
+    }
+}
+
+public static Path getPathContaining(Class clazz) {
+    String relative = toPathFromClassPathRoot(clazz);
+    URL url = clazz.getClassLoader().getResource(relative);
+    try {
+        return Paths.get(url.toURI());
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    }
+}
+
+public static File getDirContaining(Class clazz) {
+    Path path = getPathContaining(clazz);
+    return path.toFile();
+}
+
+public static String toPathFromClassPathRoot(Class clazz) {
+    Package p = clazz.getPackage();
+    String relative = "";
+    if (p != null) {
+        relative = p.getName().replace('.', '/');
+    }
+    return relative;
+}
+```
+
+The provided code does not contain the exact function described in your prompt. Instead, it includes utility methods related to handling classpath resources and paths. If you need the specific function described, please provide additional context or clarify the function's requirements. |     public static String getParentPath(String relativePath) {
+        int pos = relativePath.lastIndexOf('/');
+        return pos == -1 ? "" : relativePath.substring(0, pos + 1);        
+    }
+[QA 2] ```java
+package com.intuit.karate.core;
+
+import com.intuit.karate.http.PerfEvent;
+
+import java.util.concurrent.CompletableFuture;
+
+/**
+ *
+ * @author pthomas3
+ */
+public interface PerfHook {
+
+    /**
+     * Retrieves the name of a performance event based on the HTTP request and scenario runtime.
+     *
+     * @param request the HTTP request object
+     * @param sr the scenario runtime instance
+     * @return the name of the performance event
+     */
+    String getPerfEventName(HttpRequest request, ScenarioRuntime sr);
+
+    /**
+     * Reports a performance event by passing the event instance.
+     *
+     * @param event the performance event instance
+     */
+    void reportPerfEvent(PerfEvent event);
+    
+    /**
+     * Submits a runnable task for execution.
+     *
+     * @param runnable the task to be executed
+     */
+    void submit(Runnable runnable);
+    
+    /**
+     * Performs actions after a feature has completed, using the feature result.
+     *
+     * @param fr the feature result instance
+     */
+    void afterFeature(FeatureResult fr);
+    
+    /**
+     * Pauses execution for a specified duration.
+     *
+     * @param millis the duration in milliseconds
+     */
+    void pause(Number millis);
+
+}
+``` |         public Builder http(int value) {
+            port = value;
+            return this;
+        }
+[QA 3] ```java
+private static void processScenarioOutline(Context context, ScenarioOutline scenarioOutline) {
+    FeatureSection section = new FeatureSection();
+    scenarioOutline.setSection(section);
+    feature.addSection(section);
+    
+    if (scenarioOutline.getTags() != null) {
+        scenarioOutline.setTags(convertTags(scenarioOutline.getTags()));
+    }
+    
+    if (scenarioOutline.getDescription() != null) {
+        StringUtils.Pair pair = StringUtils.splitByFirstLineFeed(scenarioOutline.getDescription());
+        scenarioOutline.setName(pair.left);
+        scenarioOutline.setDescription(pair.right);
+    }
+    
+    List<Step> steps = convertSteps(scenarioOutline.getSteps());
+    scenarioOutline.setSteps(steps);
+    
+    List<ExamplesTable> examples = new ArrayList<>();
+    scenarioOutline.setExamples(examples);
+    
+    for (ExampleContext exampleContext : scenarioOutline.getExamples()) {
+        Table table = convertTable(exampleContext.getTable());
+        ExamplesTable example = new ExamplesTable(table);
+        examples.add(example);
+        
+        if (exampleContext.getTags() != null) {
+            example.setTags(convertTags(exampleContext.getTags()));
+        }
+        
+        if (logger.isTraceEnabled()) {
+            logger.trace("example rows: {}", table.getRows());
+        }
+    }
+    
+    if (logger.isTraceEnabled()) {
+        logger.trace("outline steps: {}", steps);
+    }
+}
+
+private static List<Tag> convertTags(List<Tag> tags) {
+    if (tags == null) {
+        return Collections.emptyList();
+    }
+    return tags.stream().map(Tag::new).collect(Collectors.toList());
+}
+
+private static List<Step> convertSteps(List<Step> steps) {
+    if (steps == null) {
+        return Collections.emptyList();
+    }
+    return steps.stream().map(Step::new).collect(Collectors.toList());
+}
+
+private static Table convertTable(Table table) {
+    if (table == null) {
+        return null;
+    }
+    return new Table(table.getRows(), table.getLineNumbers());
+}
+```
+``` |     @Override
+    public void enterScenarioOutline(KarateParser.ScenarioOutlineContext ctx) {
+        FeatureSection section = new FeatureSection();
+        ScenarioOutline outline = new ScenarioOutline(feature, section);
+        outline.setLine(getActualLine(ctx.SCENARIO_OUTLINE()));
+        section.setScenarioOutline(outline);
+        feature.addSection(section);
+        if (ctx.tags() != null) {
+            outline.setTags(toTags(-1, ctx.tags().TAGS()));
+        }
+        if (ctx.scenarioDescription() != null) {
+            outline.setDescription(ctx.scenarioDescription().getText());
+            StringUtils.Pair pair = StringUtils.splitByFirstLineFeed(ctx.scenarioDescription().getText());
+            outline.setName(pair.left);
+            outline.setDescription(pair.right);
+        }
+        List<Step> steps = toSteps(null, ctx.step());
+        outline.setSteps(steps);
+        if (logger.isTraceEnabled()) {
+            logger.trace("outline steps: {}", steps);
+        }
+        List<ExamplesTable> examples = new ArrayList(ctx.examples().size());
+        outline.setExamplesTables(examples);
+        for (KarateParser.ExamplesContext ec : ctx.examples()) {
+            Table table = toTable(ec.table());
+            ExamplesTable example = new ExamplesTable(outline, table);
+            examples.add(example);
+            if (ec.tags() != null) {
+                example.setTags(toTags(-1, ec.tags().TAGS()));
+            }
+            if (logger.isTraceEnabled()) {
+                logger.trace("example rows: {}", table.getRows());
+            }
+        }
+    }
+[QA 4] ```java
+private static int countLineFeeds(String text) {
+    int count = 0;
+    for (char c : text.toCharArray()) {
+        if (c == '\n') {
+            count++;
+        }
+    }
+    return count;
+}
+``` |     @Override
+    public long getSize() {
+        return array.length;
+    }
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.27it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-30: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.31it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
