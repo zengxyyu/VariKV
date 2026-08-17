@@ -17051,3 +17051,363 @@ Chunked prefilling with 0.20 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_repoqa-70: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.43it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.39it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.98it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.71it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-70: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.46it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.09it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.05 ratio, window 3293
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-70: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.18it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.02 ratio, window 1317
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-70: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/70_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 334.6s. Mem: 14.32/79.18 GB. [scbench_repoqa-70]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.32it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-71: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```rust
+impl<C, I, R, SC> StdState<I, C, R, SC>
+where
+    I: Input,
+    C: Corpus<Input = <Self as UsesInput>::Input>,
+    R: Rand,
+    SC: Corpus<Input = <Self as UsesInput>::Input>,
+{
+    fn generate_initial_internal<G, E, EM, Z>(
+        &mut self,
+        fuzzer: &mut Z,
+        executor: &mut E,
+        generator: &mut G,
+        manager: &mut EM,
+        num: usize,
+        forced: bool,
+    ) -> Result<(), Error>
+    where
+        E: UsesState<State = Self>,
+        EM: EventFirer<State = Self>,
+        G: Generator<<Self as UsesInput>::Input, Self>,
+        Z: Evaluator<E, EM, State = Self>,
+    {
+        let mut added = 0;
+        for _ in 0..num {
+            let input = generator.generate(self)?;
+            if forced {
+                let _: CorpusId = fuzzer.add_input(self, executor, manager, input)?;
+                added += 1;
+            } else {
+                let (res, _) = fuzzer.evaluate_input(self, executor, manager, input)?;
+                if res != ExecuteInputResult::None {
+                    added += 1;
+                }
+            }
+        }
+        manager.fire(
+            self,
+            Event::Log {
+                severity_level: LogSeverity::Debug,
+                message: format!("Loaded {added} over {num} initial testcases"),
+                phantom: PhantomData,
+            },
+        )?;
+        Ok(())
+    }
+
+    /// Generate `num` initial inputs, using the passed-in generator and force the addition to corpus.
+    pub fn generate_initial_inputs_forced<G, E, EM, Z>(
+        &mut self,
+        fuzzer: &mut Z,
+        executor: &mut E,
+        generator: &mut G,
+        manager: &mut EM,
+        num: usize,
+    ) -> Result<(), Error>
+    where
+        E: UsesState<State = Self>,
+        EM: EventFirer<State = Self>,
+        G: Generator<<Self as UsesInput>::Input, Self>,
+        Z: Evaluator<E, EM, State = Self>,
+    {
+        self.generate_initial_internal(fuzzer, executor, generator, manager, num, true)
+    }
+
+    /// Generate `num` initial inputs, using the passed-in generator.
+    pub fn generate_initial_inputs<G, E, |     fn generate_initial_internal<G, E, EM, Z>(
+        &mut self,
+        fuzzer: &mut Z,
+        executor: &mut E,
+        generator: &mut G,
+        manager: &mut EM,
+        num: usize,
+        forced: bool,
+    ) -> Result<(), Error>
+    where
+        E: UsesState<State = Self>,
+        EM: EventFirer<State = Self>,
+        G: Generator<<Self as UsesInput>::Input, Self>,
+        Z: Evaluator<E, EM, State = Self>,
+    {
+        let mut added = 0;
+        for _ in 0..num {
+            let input = generator.generate(self)?;
+            if forced {
+                let _: CorpusId = fuzzer.add_input(self, executor, manager, input)?;
+                added += 1;
+            } else {
+                let (res, _) = fuzzer.evaluate_input(self, executor, manager, input)?;
+                if res!= ExecuteInputResult::None {
+                    added += 1;
+                }
+            }
+        }
+        manager.fire(
+            self,
+            Event::Log {
+                severity_level: LogSeverity::Debug,
+                message: format!("Loaded {added} over {num} initial testcases"),
+                phantom: PhantomData,
+            },
+        )?;
+        Ok(())
+    }
+[QA 1] ```rust
+impl<I, C, R, SC> HasNamedMetadata for StdState<I, C, R, SC> {
+    /// Get all the metadata into an [`hashbrown::HashMap`]
+    #[inline]
+    fn named_metadata_map(&self) -> &NamedSerdeAnyMap {
+        &self.named_metadata
+    }
+
+    /// Get all the metadata into an [`hashbrown::HashMap`] (mutable)
+    #[inline]
+    fn named_metadata_map_mut(&mut self) -> &mut NamedSerdeAnyMap {
+        &mut self.named_metadata
+    }
+}
+``` |     fn named_metadata_map(&self) -> &NamedSerdeAnyMap {
+        &self.named_metadata
+    }
+[QA 2] ```rust
+impl<W: Write + Seek> MessageFileWriter<W> {
+    /// Create a `MessageFileWriter` from the given [`Write`].
+    pub fn from_writer(mut writer: W) -> io::Result<Self> {
+        let writer_start_position = writer.stream_position()?;
+        // write dummy trace length
+        writer.write_all(&0_u64.to_le_bytes())?;
+        Ok(Self {
+            id_counter: 1,
+            writer,
+            writer_start_position,
+            serialization_options: serialization_options(),
+        })
+    }
+
+    fn write_trace_size(&mut self) -> io::Result<()> {
+        // calculate size of trace
+        let end_pos = self.writer.stream_position()?;
+        let trace_header_len = 0_u64.to_le_bytes().len() as u64;
+        assert!(
+            end_pos >= self.writer_start_position + trace_header_len,
+            "our end position can not be before our start position"
+        );
+        let trace_length = end_pos - self.writer_start_position - trace_header_len;
+
+        // write trace size to beginning of trace
+        self.writer
+            .seek(SeekFrom::Start(self.writer_start_position))?;
+        self.writer.write_all(&trace_length.to_le_bytes())?;
+        // rewind to previous position
+        self.writer.seek(SeekFrom::Start(end_pos))?;
+        Ok(())
+    }
+
+    /// Updates the trace header which stores the total length of the trace in bytes.
+    pub fn update_trace_header(&mut self) -> io::Result<()> {
+        self.write_trace_size()?;
+        Ok(())
+    }
+
+    fn make_relative(&self, expr: SymExprRef) -> SymExprRef {
+        SymExprRef::new(self.id_counter - expr.get()).unwrap()
+    }
+
+    /// Writes a message to the stream and returns the [`SymExprRef`] that should be used to refer back to this message.
+    /// May error when the underlying `Write` errors or when there is a serialization error.
+    #[allow(clippy::too_many_lines)]
+    pub fn write_message(&mut self, mut message: SymExpr) -> Result<SymExprRef> {
+        let current_id = self.id_counter;
+        match &mut message {
+            SymExpr::InputByte { .. }
+            | SymExpr::Integer { .. }
+            | SymExpr::Integer128 { .. }
+            | SymExpr::Float { .. }
+            | SymExpr::NullPointer
+            | SymExpr::True
+            | SymExpr::False |     pub fn from_writer(mut writer: W) -> io::Result<Self> {
+        let writer_start_position = writer.stream_position()?;
+        // write dummy trace length
+        writer.write_all(&0_u64.to_le_bytes())?;
+        Ok(Self {
+            id_counter: 1,
+            writer,
+            writer_start_position,
+            serialization_options: serialization_options(),
+        })
+    }
+[QA 3] ```rust
+use alloc::{string::String, vec::Vec};
+use core::time::Duration;
+use std::{
+    fs::{File, OpenOptions},
+    io::Write,
+    path::PathBuf,
+};
+
+use libafl_bolts::{current_time, format_duration_hms, ClientId};
+use serde_json::json;
+
+use crate::monitors::{ClientStats, Monitor, NopMonitor};
+
+/// Wrap a monitor and log the current state of the monitor into a TOML file.
+#[derive(Debug, Clone)]
+pub struct OnDiskTOMLMonitor<M>
+where
+    M: Monitor,
+{
+    base: M,
+    filename: PathBuf,
+    last_update: Duration,
+}
+
+impl<M> Monitor for OnDiskTOMLMonitor<M>
+where
+    M: Monitor,
+{
+    /// The client monitor, mutable
+    fn client_stats_mut(&mut self) -> &mut Vec<ClientStats> {
+        self.base.client_stats_mut()
+    }
+
+    /// The client monitor
+    fn client_stats(&self) -> &[ClientStats] {
+        self.base.client_stats()
+    }
+
+    /// Time this fuzzing run stated
+    fn start_time(&self) -> Duration {
+        self.base.start_time()
+    }
+
+    /// Set creation time
+    fn set_start_time(&mut self, time: Duration) {
+        self.base.set_start_time(time);
+    }
+
+    fn aggregate(&mut self, name: &str) {
+        self.base.aggregate(name);
+    }
+
+    fn display(&mut self, event_msg: &str, sender_id: ClientId) {
+        let cur_time = current_time();
+
+        if (cur_time - self.last_update).as_secs() >= 60 {
+            self.last_update = cur_time;
+
+            let mut file = File::create(&self.filename).expect("Failed to open the TOML file");
+            write!(
+                &mut file,
+                "# This TOML is generated using the OnDiskMonitor component of LibAFL
+
+[global]
+run_time = \"{}\"
+clients = {}
+corpus = {}
+objectives = {}
+executions = {}
+exec_sec = {}
+",
+                format_duration_hms(&(cur_time - self.start_time())),
+                self.client_stats_count(),
+                self.corpus_size(),
+                self.objective_size(),
+                self.total_execs(),
+                self.execs_per_sec()
+            )
+            .expect("Failed to write to the TOML file");
+
+            for (i, client) in self.client_stats_mut().iter_mut().skip |     pub fn nop<P>(filename: P) -> Self
+    where
+        P: Into<PathBuf>,
+    {
+        Self::new(filename, NopMonitor::new())
+    }
+[QA 4] ```rust
+impl<T> MapFeedbackMetadata<T>
+where
+    T: Default + Copy + 'static + Serialize + DeserializeOwned + PartialEq,
+{
+    /// Create new `MapFeedbackMetadata`
+    #[must_use]
+    pub fn new(map_size: usize) -> Self {
+        Self {
+            history_map: vec![T::default(); map_size],
+            num_covered_map_indexes: 0,
+        }
+    }
+
+    /// Create new `MapFeedbackMetadata` using a name and a map.
+    /// The map can be shared.
+    /// `initial_elem_value` is used to calculate `Self.num_covered_map_indexes`
+    #[must_use]
+    pub fn with_history_map(history_map: Vec<T>, initial_elem_value: T) -> Self {
+        let num_covered_map_indexes = history_map
+            .iter()
+            .fold(0, |acc, x| acc + usize::from(*x != initial_elem_value));
+        Self {
+            history_map,
+            num_covered_map_indexes,
+        }
+    }
+
+    /// Reset the map
+    pub fn reset(&mut self) -> Result<(), Error> {
+        let cnt = self.history_map.len();
+        for i in 0..cnt {
+            self.history_map[i] = T::default();
+        }
+        self.num_covered_map_indexes = 0;
+        Ok(())
+    }
+
+    /// Reset the map with any value
+    pub fn reset_with_value(&mut self, value: T) -> Result<(), Error> {
+        let cnt = self.history_map.len();
+        for i in 0..cnt {
+            self.history_map[i] = value;
+        }
+        // assume that resetting the map should indicate no coverage,
+        // regardless of value
+        self.num_covered_map_indexes = 0;
+        Ok(())
+    }
+}
+``` |     pub fn with_history_map(history_map: Vec<T>, initial_elem_value: T) -> Self {
+        let num_covered_map_indexes = history_map
+            .iter()
+            .fold(0, |acc, x| acc + usize::from(*x != initial_elem_value));
+        Self {
+            history_map,
+            num_covered_map_indexes,
+        }
+    }
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-71: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.31it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.28it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-71: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.38it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.49it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.36it/s]
