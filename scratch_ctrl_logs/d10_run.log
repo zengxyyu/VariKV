@@ -1,0 +1,21 @@
+=== 阶段 1：训练（缺哪个补哪个）===
+  待训练 12 个: bias:0 affine:0 scalar:0 kv:0 bias:1 affine:1 scalar:1 kv:1 bias:2 affine:2 scalar:2 kv:2
+16:34  [GPU0] 训练 bias s0
+16:34  [GPU1] 训练 affine s0
+16:35  [GPU2] 训练 scalar s0
+16:35  [GPU3] 训练 kv s0
+16:35  [GPU4] 训练 bias s1
+16:35  [GPU5] 训练 affine s1
+16:36  [GPU6] 训练 scalar s1
+16:36  [GPU7] 训练 kv s1
+16:40  ---- 一轮训练完成 ----
+16:40  [GPU0] 训练 bias s2
+16:40  [GPU1] 训练 affine s2
+16:40  [GPU2] 训练 scalar s2
+16:41  [GPU3] 训练 kv s2
+16:44  ---- 一轮训练完成 ----
+16:44  === 12 个 ckpt 全部 40 epoch / 8-2 划分 ===
+=== 阶段 2：下游评测，先 s0/s1 再 s2 ===
+  待评测 12 个
+16:44  [GPU0] 评测 bias s0
+16:45  [GPU1] 评测 affine s0
