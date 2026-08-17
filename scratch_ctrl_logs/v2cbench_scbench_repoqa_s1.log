@@ -2079,3 +2079,826 @@ Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_repoqa-7: 65861 tokens, KV cache 3.8 GB, torch.bfloat16
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.46it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.05 ratio, window 3293
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-7: 65861 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.53it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.18it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.84it/s]
+Chunked prefilling with 0.02 ratio, window 1317
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-7: 65861 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/7_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 387.1s. Mem: 14.32/79.18 GB. [scbench_repoqa-7]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.30it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-8: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```python
+def _prepare_decoder_attention_mask(input_shape, src_len, dtype):
+    # create causal mask
+    # [bsz, seq_len] -> [bsz, tgt_seq_len, 1, src_seq_len]
+    if isinstance(input_shape[-1], tvm.tir.SizeVar) or input_shape[-1] > 1:
+        bsz, tgt_len = input_shape
+
+        def min_max_triu_te():
+            return te.compute(
+                (tgt_len, tgt_len),
+                lambda i, j: tvm.tir.Select(
+                    j > i, tvm.tir.min_value(dtype), tvm.tir.max_value(dtype)
+                ),
+                name="make_diag_mask_te",
+            )
+
+        mask = nn.emit_te(min_max_triu_te)
+        mask = nn.emit(expand_dims(mask, 1))
+        diag_mask = nn.emit(broadcast_to(mask, (bsz, tgt_len, 1, tgt_len)))
+        if src_len == tgt_len:
+            return diag_mask
+
+        def extend_te(x, tgt_len, src_len):
+            return te.compute(
+                (bsz, tgt_len, 1, src_len),
+                lambda b, i, _, j: te.if_then_else(
+                    j < src_len - tgt_len,
+                    tvm.tir.max_value(dtype),
+                    x[b, i, _, j - (src_len - tgt_len)],
+                ),
+                name="concat_te",
+            )
+
+        return nn.emit_te(extend_te, diag_mask, tgt_len, src_len)
+    else:
+        # Get src_len from input parameters
+        # [bsz, seq_len] -> [bsz, tgt_seq_len, 1, src_seq_len]
+        bsz, tgt_len = input_shape
+        mask = relax.op.full(
+            (bsz, tgt_len, 1, src_len),
+            relax.const(tvm.tir.max_value(dtype).value, dtype),
+            dtype,
+        )
+    return nn.emit(mask)
+``` | def _make_causal_mask(input_ids_shape, dtype, src_len):
+    from tvm.relax.op import broadcast_to
+
+    bsz, tgt_len = input_ids_shape
+
+    def min_max_triu_te():
+        return te.compute(
+            (tgt_len, tgt_len),
+            lambda i, j: tvm.tir.Select(j > i, tvm.tir.min_value(dtype), tvm.tir.max_value(dtype)),
+            name="make_diag_mask_te",
+        )
+
+    mask = nn.emit_te(min_max_triu_te)
+    diag_mask = nn.emit(broadcast_to(mask, (bsz, 1, tgt_len, tgt_len)))
+    if src_len == tgt_len:
+        return diag_mask
+
+    def extend_te(x, tgt_len, src_len):
+        return te.compute(
+            (bsz, 1, tgt_len, src_len),
+            lambda b, _, i, j: te.if_then_else(
+                j < src_len - tgt_len,
+                tvm.tir.max_value(dtype),
+                x[b, _, i, j - (src_len - tgt_len)],
+            ),
+            name="concat_te",
+        )
+
+    return nn.emit_te(extend_te, diag_mask, tgt_len, src_len)
+[QA 1] ```python
+def create_decoding_func(
+    bb: relax.BlockBuilder,
+    param_manager: ParamManager,
+    config: GPTBigCodeConfig,
+    quant_scheme: QuantizationScheme,
+) -> None:
+    func_name = "decode"
+
+    bsz = tvm.tir.IntImm("int64", 1)
+    seq_len = tvm.tir.IntImm("int64", 1)
+    all_seq_len = tvm.tir.SizeVar("m", "int64")
+
+    with bb.function(func_name):
+        model = GPTBigCodeForCausalLM(config)
+        param_manager.register_params(model, func_name, quant_scheme, get_param_quant_kind)
+
+        input_ids = nn.Placeholder((bsz, seq_len), dtype="int32", name="input_ids")
+        all_seq_len_shape = relax.Var("all_seq_len", relax.ShapeStructInfo((all_seq_len,)))
+        past_key_values = relax.Var(
+            "kv_cache",
+            relax.TupleStructInfo([relax.ObjectStructInfo() for _ in range(config.n_layer * 2)]),
+        )
+        with bb.dataflow():
+            logits, key_value_cache = model(
+                input_ids=input_ids,
+                all_seq_len_shape=all_seq_len_shape,
+                past_key_values=past_key_values,
+            )
+            params = [
+                input_ids,
+                all_seq_len_shape,
+                past_key_values,
+            ] + model.parameters()
+            gv = bb.emit_output((logits, relax.Tuple(key_value_cache)))
+        bb.emit_func_output(gv, params)
+
+    mod = bb.get()
+    gv = mod.get_global_var(func_name)
+    bb.update_func(gv, mod[gv].with_attr("num_input", 3))
+``` | def create_decoding_func(
+    bb: relax.BlockBuilder,
+    param_manager: ParamManager,
+    config: ChatGLMConfig,
+    quant_scheme: QuantizationScheme,
+) -> None:
+    func_name = "decode"
+
+    bsz = 1
+    all_seq_len = tvm.tir.SizeVar("m", "int64")
+
+    with bb.function(func_name):
+        model = ChatGLMForCausalLM(config)
+        param_manager.register_params(model, func_name, quant_scheme, get_param_quant_kind)
+
+        input_ids = nn.Placeholder((bsz, 1), dtype="int32", name="input_ids")
+        all_seq_len_shape = relax.Var("all_seq_len", relax.ShapeStructInfo((all_seq_len,)))
+        past_key_values = relax.Var(
+            "kv_cache",
+            relax.TupleStructInfo([relax.ObjectStructInfo() for _ in range(config.num_layers * 2)]),
+        )
+        with bb.dataflow():
+            logits, key_value_cache = model(
+                input_ids=input_ids,
+                all_seq_len_shape=all_seq_len_shape,
+                past_key_values=past_key_values,
+            )
+            params = [
+                input_ids,
+                all_seq_len_shape,
+                past_key_values,
+            ] + model.parameters()
+            gv = bb.emit_output((logits, relax.Tuple(key_value_cache)))
+        bb.emit_func_output(gv, params)
+
+    mod = bb.get()
+    gv = mod.get_global_var(func_name)
+    bb.update_func(gv, mod[gv].with_attr("num_input", 3))
+[QA 2] ```python
+def f_convert_param_bkwd(torch_pname: str, torch_param):
+    target_dtype = (
+        torch_param.dtype if "_proj." not in torch_pname or "scales" in torch_pname else "uint32"
+    )
+
+    # For Llama
+    combined_layers = ["q_proj", "k_proj", "v_proj", "gate_proj", "up_proj"]
+    if any([name in torch_pname for name in combined_layers]):
+        return None
+    return [(torch_pname, torch_param.astype(target_dtype))]
+``` |     def convert_param_bkwd(self, torch_pname: str, torch_param):
+        target_dtype = (
+            self.dtype if "_proj." not in torch_pname or "scales" in torch_pname else "uint32"
+        )
+
+        # For Llama
+        combined_layers = ["q_proj", "k_proj", "v_proj", "gate_proj", "up_proj"]
+        if any([name in torch_pname for name in combined_layers]):
+            return None
+        return [(torch_pname, torch_param.astype(target_dtype))]
+[QA 3] ```python
+def create_encoding_func(
+    bb: relax.BlockBuilder,
+    param_manager: ParamManager,
+    config: GPTBigCodeConfig,
+    quant_scheme: QuantizationScheme,
+) -> None:
+    func_name = "prefill"
+
+    batch_size = tvm.tir.IntImm("int64", 1)
+    seq_len = tvm.tir.SizeVar("n", "int64")
+    all_seq_len = tvm.tir.SizeVar("m", "int64")
+    with bb.function(func_name):
+        model = GPTBigCodeForCausalLM(config)
+        param_manager.register_params(model, func_name, quant_scheme, get_param_quant_kind)
+
+        input_ids = nn.Placeholder((batch_size, seq_len), dtype="int32", name="input_ids")
+        all_seq_len_shape = relax.Var("all_seq_len", relax.ShapeStructInfo((all_seq_len,)))
+        past_key_values = relax.Var(
+            "kv_cache",
+            relax.TupleStructInfo([relax.ObjectStructInfo() for _ in range(config.n_layer * 2)]),
+        )
+
+        with bb.dataflow():
+            logits, key_value_cache = model(
+                input_ids=input_ids,
+                all_seq_len_shape=all_seq_len_shape,
+                past_key_values=past_key_values,
+            )
+            params = [
+                input_ids,
+                all_seq_len_shape,
+                past_key_values,
+            ] + model.parameters()
+
+            gv = bb.emit_output((logits, relax.Tuple(key_value_cache)))
+        bb.emit_func_output(gv, params)
+    mod = bb.get()
+    gv = mod.get_global_var(func_name)
+    bb.update_func(gv, mod[gv].with_attr("num_input", 3))
+``` | def create_embed_func(
+    bb: relax.BlockBuilder,
+    param_manager: ParamManager,
+    config: LlamaConfig,
+    quant_scheme: QuantizationScheme,
+) -> None:
+    func_name = "embed"
+
+    seq_len = tvm.tir.SizeVar("num_tokens_excluding_cache", "int64")
+    with bb.function(func_name):
+        model = LlamaEmbedTokensWrapper(config, tvm.tir.SizeVar("vocab_size", "int64"))
+        param_manager.register_params(model, func_name, quant_scheme, get_param_quant_kind)
+
+        input_ids = nn.Placeholder((1, seq_len), dtype="int32", name="input_ids")
+        with bb.dataflow():
+            inputs_embeds = model(input_ids)
+            params = [input_ids] + model.parameters()
+            gv = bb.emit_output(inputs_embeds)
+        bb.emit_func_output(gv, params)
+
+    mod = bb.get()
+    gv = mod.get_global_var(func_name)
+    bb.update_func(gv, mod[gv].with_attr("num_input", 1))
+[QA 4] ```python
+def get_quantized_params(self, func_name: str) -> List[relax.Var]:
+    quantized_params: List[relax.Var] = []
+
+    bb = relax.BlockBuilder()
+    with bb.function("main", []):
+        self.param2qrange = dict()
+
+        for name in self.param_names:
+            param = self.params[name]
+            param_info = None
+            if func_name in param.param_info_dict:
+                param_info = param.param_info_dict[func_name]
+            else:
+                param_info = relax.TensorStructInfo(
+                    tvm.ir.load_json(tvm.ir.save_json(param.param_info.shape)),
+                    param.param_info.dtype,
+                )
+
+            loaded_tensor_names, loaded_tensor_info = param.quant_spec.get_loaded_tensor_info(
+                name, param_info
+            )
+
+            provided_tensor_vars: List[relax.Var] = [
+                relax.Var(name, sinfo)
+                for name, sinfo in zip(loaded_tensor_names, loaded_tensor_info)
+            ]
+
+            # Get the quantization function of this parameter.
+            f_quantize = param.quant_spec.get_quantize_func(param_info)
+            if f_quantize is None:
+                # If the parameter does not have a quantization function, either it
+                # does not need quantization or it is pre-quantized.
+                self.param2qrange[param] = range(
+                    len(quantized_params),
+                    len(quantized_params) + len(provided_tensor_vars),
+                )
+                quantized_params.extend(provided_tensor_vars)
+            else:
+                # If the parameter has a quantization function, it is not expected
+                # to be pre-quantized.
+                assert len(provided_tensor_vars) == 1, (
+                    "A parameter with quantization function is not expected "
+                    "to be pre-quantized."
+                )
+
+                # Apply the quantization function.
+                quantized_data = bb.normalize(f_quantize(bb, provided_tensor_vars))
+                if isinstance(quantized_data.struct_info, relax.TupleStructInfo):
+                    fields = quantized_data.struct_info.fields
+                    n_tensor = len(fields)
+                    assert n_tensor > 1
+                    # Record the range of quantized tensors of this parameter.
+                    self.param2qrange[param] = range(
+                        len(quantized_params),
+                        len(quantized_params) + n_tensor,
+                    )
+                    # Collect the quantized tensors to return.
+                    quantized_params.extend(
+                        relax.Var(f"{name}.{field.dtype |         def fetch_torch_param(torch_param):
+            if str(torch_param.dtype) == "torch.bfloat16":
+                # Convert to float32 first.
+                return torch_param.detach().cpu().float().numpy()
+            else:
+                return torch_param.detach().cpu().numpy()
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.28it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.77it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.28it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.00s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-8: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.30it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.08it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.09s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.27it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-8: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.38it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.47it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.35it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-8: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.39it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.56it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.42it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-8: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.20it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.67it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-8: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.80it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.59it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-8: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.39it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.96it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.69it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-8: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.47it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.06it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.76it/s]
+Chunked prefilling with 0.05 ratio, window 3311
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-8: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.57it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.16it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.84it/s]
+Chunked prefilling with 0.02 ratio, window 1324
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-8: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/8_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 643.0s. Mem: 14.32/79.18 GB. [scbench_repoqa-8]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.24it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-9: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```python
+def _dequantize(
+    param: Parameter,
+    qparams: List[relax.Var],
+    bb: relax.BlockBuilder,
+    func_name: str,
+) -> relax.Var:
+    """Applying dequantization to the input parameter.
+    This method is called by `transform_module` below, and is not
+    directly invoked outside the class.
+
+    Parameters
+    ----------
+    param : Parameter
+        The parameter whose quantized tensors are to be dequantized.
+
+    qparams : List[relax.Var]
+        The relax.Var of the quantized tensors of all parameters in the model.
+
+    Returns
+    -------
+    The dequantized parameter, in the form of a relax.Var.
+    """
+    # Get the dequantization function of this parameter.
+    f_dequantize = param.quant_spec.get_dequantize_func(
+        param_info=param.param_info_dict[func_name],
+        qparam_info=[qparam.struct_info for qparam in qparams],
+    )
+    if f_dequantize is None:
+        # If the parameter does not have a dequantization function, its "quantized
+        # data" is expected to have only one element.
+        assert len(qparams) == 1, (
+            "A parameter without dequantization function is expected not to have "
+            'more than one "quantized data".'
+        )
+        return qparams[0]
+    else:
+        # Apply the dequantization function.
+        return bb.emit(f_dequantize(bb, qparams))
+``` |     def _dequantize(
+        self,
+        param: Parameter,
+        qparams: List[relax.Var],
+        bb: relax.BlockBuilder,
+        func_name: str,
+    ) -> relax.Var:
+        """Applying dequantization to the input parameter.
+        This method is called by `transform_module` below, and is not
+        directly invoked outside the class.
+
+        Parameters
+        ----------
+        param : Parameter
+            The parameter whose quantized tensors are to be dequantized.
+
+        qparams : List[relax.Var]
+            The relax.Var of the quantized tensors of all parameters in the model.
+
+        Returns
+        -------
+        The dequantized parameter, in the form of a relax.Var.
+        """
+        # Get the dequantization function of this parameter.
+        f_dequantize = param.quant_spec.get_dequantize_func(
+            param_info=param.param_info_dict[func_name],
+            qparam_info=[qparam.struct_info for qparam in qparams],
+        )
+        if f_dequantize is None:
+            # If the parameter does not have a dequantization function, its "quantized
+            # data" is expected to have only one element.
+            assert len(qparams) == 1, (
+                "A parameter without dequantization function is expected not to have "
+                'more than one "quantized data".'
+            )
+            return qparams[0]
+        else:
+            # Apply the dequantization function.
+            return bb.emit(f_dequantize(bb, qparams))
+[QA 1] ```python
+class ModuleList(nn.Module):
+    def __init__(self, modules: List[nn.Module]):
+        self.modules = modules
+
+    def __iter__(self):
+        return iter(self.modules)
+
+    def __getitem__(self, idx):
+        return self.modules[idx]
+
+    def __len__(self):
+        return len(self.modules)
+
+    def forward(self, x: relax.Expr) -> relax.Var:
+        for module in self.modules:
+            x = module(x)
+        return x
+``` |     def __iter__(self):
+        return iter(self.modules)
+[QA 2] ```python
+def rotary_modulate_by_freq(tensor, idx, pos, position_embedding_base):
+    head_dim = tensor.shape[-1]
+    dtype = tensor.dtype
+    n_feat_half = head_dim // 2
+    feat_idx = idx[-1]
+    inv_freq = te.const(1, "float32") / (
+        te.power(
+            te.const(position_embedding_base, "float32"),
+            ((2 * feat_idx) % head_dim).astype("float32") / head_dim.astype("float32"),
+        )
+    )
+    freq = pos * inv_freq
+    left_indices = idx[:-1] + (feat_idx - n_feat_half,)
+    right_indices = idx[:-1] + (feat_idx + n_feat_half,)
+    return te.cos(freq).astype(dtype) * tensor(*idx) + te.sin(freq).astype(dtype) * tvm.tir.Select(
+        feat_idx >= n_feat_half,
+        tensor[(*left_indices,)],
+        -tensor[(*right_indices,)],
+    )
+``` | def rotary_modulate_by_freq(tensor, idx, pos, position_embedding_base):
+    head_dim = tensor.shape[-1]
+    dtype = tensor.dtype
+    n_feat_half = head_dim // 2
+    feat_idx = idx[-1]
+    inv_freq = te.const(1, "float32") / (
+        te.power(
+            te.const(position_embedding_base, "float32"),
+            ((2 * feat_idx) % head_dim).astype("float32") / head_dim.astype("float32"),
+        )
+    )
+    freq = pos * inv_freq
+    left_indices = idx[:-1] + (feat_idx - n_feat_half,)
+    right_indices = idx[:-1] + (feat_idx + n_feat_half,)
+    return te.cos(freq).astype(dtype) * tensor(*idx) + te.sin(freq).astype(dtype) * tvm.tir.Select(
+        feat_idx >= n_feat_half,
+        tensor[(*left_indices,)],
+        -tensor[(*right_indices,)],
+    )
+[QA 3] ```python
+def pattern_check(ctx: relax.transform.PatternCheckContext) -> bool:
+    call = ctx.annotated_expr["w"]
+    if not isinstance(call, relax.Call):
+        return False
+    gv = call.args[0]
+    if not isinstance(gv, relax.GlobalVar):
+        return False
+    return gv.name_hint.startswith("decode") or gv.name_hint.startswith("fused_decode")
+
+
+def check_matmul(ctx: relax.transform.PatternCheckContext) -> bool:
+    call = ctx.annotated_expr["matmul"]
+    if not isinstance(call, relax.Call):
+        return False
+    gv = call.args[0]
+    if not isinstance(gv, relax.GlobalVar):
+        return False
+    return (
+        gv.name_hint.startswith("matmul")
+        or gv.name_hint.startswith("fused_matmul")
+        or gv.name_hint.startswith("NT_matmul")
+        or gv.name_hint.startswith("fused_NT_matmul")
+    )
+
+
+def pattern_check():
+    def f_pattern_check(ctx: relax.transform.PatternCheckContext) -> bool:
+        return check_decoding(ctx) and check_matmul(ctx)
+
+    return f_pattern_check
+``` | def f_default_compute_relax_param(relax_pname: str, torch_params: List[Any]) -> Any:
+    """The defualt `f_compute_relax_param` for ParamManager.
+    See ParamManager for more details.
+    """
+    raise NotImplementedError()
+[QA 4] ```python
+def create_softmax_func(bb: relax.BlockBuilder, config: ChatGLMConfig) -> None:
+    with bb.function("softmax_with_temperature"):
+        logits = nn.Placeholder((1, 1, config.padded_vocab_size), dtype="float32", name="logits")
+        temperature = nn.Placeholder((), dtype="float32", name="temperature")
+        with bb.dataflow():
+            div = bb.emit(relax.op.divide(logits, temperature))
+            softmax = bb.emit(relax.op.nn.softmax(div, axis=-1))
+            gv = bb.emit_output(softmax)
+        bb.emit_func_output(gv, [logits, temperature])
+``` | def create_softmax_func_for_single_seq(bb: relax.BlockBuilder, config: LlamaConfig) -> None:
+    with bb.function("softmax_with_temperature"):
+        logits = nn.Placeholder(
+            (1, 1, tvm.tir.SizeVar("vocab_size", "int64")), dtype="float32", name="logits"
+        )
+        temperature = nn.Placeholder((), dtype="float32", name="temperature")
+        with bb.dataflow():
+            div = bb.emit(relax.op.divide(logits, temperature))
+            softmax = bb.emit(relax.op.nn.softmax(div, axis=-1))
+            gv = bb.emit_output(softmax)
+        bb.emit_func_output(gv, [logits, temperature])
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.32it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-9: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.31it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.27it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-9: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.47it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.35it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-9: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.40it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.56it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.42it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-9: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.20it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.67it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-9: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.81it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.60it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-9: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.43it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.39it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.96it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.70it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-9: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.68it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.46it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.06it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.05 ratio, window 3311
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-9: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.62it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.53it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.15it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.83it/s]
+Chunked prefilling with 0.02 ratio, window 1324
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-9: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/9_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s1_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 403.9s. Mem: 14.32/79.18 GB. [scbench_repoqa-9]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.30it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-10: 65975 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```python
+import asyncio
+from typing import (
+    AsyncGenerator,
+)
+
+from web3.types import (
+    BlockNumber,
+)
+
+def iter_latest_block(
+    w3: "Web3", 
+    to_block: Optional[Union[BlockNumber, LatestBlockParam]] = None
+) -> AsyncGenerator[BlockNumber, None]:
+    """Returns a generator that dispenses the latest block, if
+    any new blocks have been mined since last iteration.
+
+    If there are no new blocks or the latest block is greater than
+    the ``to_block`` None is returned.
+
+    >>> new_blocks = iter_latest_block(w3, 0, 10)
+    >>> next(new_blocks)  # Latest block = 0
+    0
+    >>> next(new_blocks)  # No new blocks
+    >>> next(new_blocks)  # Latest block = 1
+    1
+    >>> next(new_blocks)  # Latest block = 10
+    10
+    >>> next(new_blocks)  # latest block > to block
+    """
+    _last = None
+
+    is_bounded_range = to_block is not None and to_block != "latest"
+
+    while True:
+        latest_block = w3.eth.block_number
+        # type ignored b/c is_bounded_range prevents unsupported comparison
+        if is_bounded_range and latest_block > to_block:  # type: ignore
+            yield None
+        #  No new blocks since last iteration.
+        if _last is not None and _last == latest_block:
+            yield None
+        else:
+            yield latest_block
+        _last = latest_block
+``` | async def async_iter_latest_block(
+    w3: "AsyncWeb3", to_block: Optional[Union[BlockNumber, LatestBlockParam]] = None
+) -> AsyncIterable[BlockNumber]:
+    """Returns a generator that dispenses the latest block, if
+    any new blocks have been mined since last iteration.
+
+    If there are no new blocks or the latest block is greater than
+    the ``to_block`` None is returned.
+
+    >>> new_blocks = iter_latest_block(w3, 0, 10)
+    >>> next(new_blocks)  # Latest block = 0
+    0
+    >>> next(new_blocks)  # No new blocks
+    >>> next(new_blocks)  # Latest block = 1
+    1
+    >>> next(new_blocks)  # Latest block = 10
+    10
+    >>> next(new_blocks)  # latest block > to block
+    """
+    _last = None
+
+    is_bounded_range = to_block is not None and to_block != "latest"
+
+    while True:
+        latest_block = await w3.eth.block_number
+        # type ignored b/c is_bounded_range prevents unsupported comparison
+        if is_bounded_range and latest_block > cast(int, to_block):
+            yield None
+        #  No new blocks since last iteration.
+        if _last is not None and _last == latest_block:
+            yield None
+        else:
+            yield latest_block
+        _last = latest_block
+[QA 1] ```python
+async def send_transaction(self, transaction: TxParams) -> HexBytes:
+    return await self._send_transaction(transaction)
+```
+``` |     async def send_transaction(self, transaction: TxParams) -> HexBytes:
+        return await self._send_transaction(transaction)
+[QA 2] ```python
+def _apply_response_formatters(
+    method: RPCEndpoint,
+    result_formatters: Formatters,
+    error_formatters: Formatters,
+    response: RPCResponse,
+) -> RPCResponse:
+    def _format_response(
+        response_type: Literal["result", "error", "params"],
+        method_response_formatter: Callable[..., Any],
+    ) -> RPCResponse:
+        appropriate_response = response[response_type]
+
+        if response_type == "params":
+            appropriate_response = cast(EthSubscriptionParams, response[response_type])
+            return assoc(
+                response,
+                response_type,
+                assoc(
+                    response["params"],
+                    "result",
+                    method_response_formatter(appropriate_response["result"]),
+                ),
+            )
+        else:
+            return assoc(
+                response, response_type, method_response_formatter(appropriate_response)
+            )
+
+    if response.get("result") is not None and method in result_formatters:
+        return _format_response("result", result_formatters[method])
+    elif (
+        # eth_subscription responses
+        response.get("params") is not None
+        and response["params"].get("result") is not None
+        and method in result_formatters
+    ):
+        return _format_response("params", result_formatters[method])
+    elif "error" in response and method in error_formatters:
+        return _format_response("error", error_formatters[method])
+    else:
+        return response
+``` | def _apply_response_formatters(
+    method: RPCEndpoint,
+    result_formatters: Formatters,
+    error_formatters: Formatters,
+    response: RPCResponse,
+) -> RPCResponse:
+    def _format_response(
+        response_type: Literal["result", "error", "params"],
+        method_response_formatter: Callable[..., Any],
+    ) -> RPCResponse:
+        appropriate_response = response[response_type]
+
+        if response_type == "params":
+            appropriate_response = cast(EthSubscriptionParams, response[response_type])
+            return assoc(
+                response,
+                response_type,
+                assoc(
+                    response["params"],
+                    "result",
+                    method_response_formatter(appropriate_response["result"]),
+                ),
+            )
+        else:
+            return assoc(
+                response, response_type, method_response_formatter(appropriate_response)
+            )
+
+    if response.get("result") is not None and method in result_formatters:
+        return _format_response("result", result_formatters[method])
+    elif (
+        # eth_subscription responses
+        response.get("params") is not None
+        and response["params"].get("result") is not None
+        and method in result_formatters
+    ):
+        return _format_response("params", result_formatters[method])
+    elif "error" in response and method in error_formatters:
+        return _format_response("error", error_formatters[method])
+    else:
+        return response
+[QA 3] ```python
+def _repr_if_not_hashable(value: Any) -> Any:
+    try:
+        value.__hash__()
+    except TypeError:
+        value = cast(str, repr(value))
+    return value
+``` |     def _repr_if_not_hashable(self, value: TKey) -> TKey:
+        try:
+            value.__hash__()
+        except TypeError:
+            value = cast(TKey, repr(value))
+        return value
+[QA 4] ```python
+def retrieve_blocking_method_call_fn(
+    w3: "Web3", module: "Module", method: Method[Callable[..., TReturn]]
+) -> Callable[..., Union[TReturn, LogFilter]]:
+    def caller(*args: Any, **kwargs: Any) -> Union[TReturn, LogFilter]:
+        try:
+            (method_str, params), response_formatters = method.process_params(
+                module, *args, **kwargs
+            )
+        except _UseExistingFilter as err:
+            return LogFilter(eth_module=module, filter_id=err.filter_id)
+
+        (
+            result_formatters,
+            error_formatters,
+            null_result_formatters,
+        ) = response_formatters
+        result = w3.manager.request_blocking(
+            method_str, params, error_formatters, null_result_formatters
+        )
+        return apply_result_formatters(result_formatters, result)
+
+    return caller
+``` |     def codec(self) -> ABICodec:
+        # use codec set on the Web3 instance
+        return self.w3.codec
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.24it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.00s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-10: 65975 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.31it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.08s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.28it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-10: 65975 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.38it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.20it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.36it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-10: 65975 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.39it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.13it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.42it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-10: 65975 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.20it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.68it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-10: 65975 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.29it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.81it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.59it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-10: 65975 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.67it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]

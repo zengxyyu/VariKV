@@ -176,17 +176,18 @@ def main():
                         continue
                     m_ = float(np.mean([x[0] for x in ms]))
                     sig = all(x[1] for x in ms)          # 全部种子都显著才给 ★
-                    got[r] = (m_, sig, len(ms))
+                    sd_ = float(np.std([x[0] for x in ms])) if len(ms) > 1 else None
+                    got[r] = (m_, sig, len(ms), sd_)
                     agg[a_][r].append(m_)
                     continue
                 if not A.get(r):
                     continue
                 c = cell(B[r], A[r])
                 if c:
-                    got[r] = c
+                    got[r] = (c[0], c[1], 1)      # 单 ckpt ⇒ 种子数 1
                     agg[a_][r].append(c[0])
             rows.append((name, full, a_, got, d))
-    W = 13
+    W = 17
     hd = f"| {'panel':<15}| {'full':>5} | {'arm':<8}|" + "".join(
         f" {('ρ=%g' % r):>{W}} |" for r in RAT[1:])
     print(hd)
@@ -201,10 +202,15 @@ def main():
             if r not in got:
                 line += f" {'—':>{W}} |"
             else:
-                m, sig, ns = got[r]
+                m, sig, ns = got[r][0], got[r][1], got[r][2]
+                sd = got[r][3] if len(got[r]) > 3 else None
                 deg = "" if (r >= 1.0 or TOK.get(name_d, 10**9) > 4096 / r) else "°"
-                tail = ("★" if sig else "") + deg + (f"({ns})" if a_ == "v2c" else "")
-                line += f" {('%+.2f' % m) + tail:>{W}} |"
+                # **所有臂都标种子数**：v2/v3/质心那几行全是 n=1（表里 v2 用的是
+                # 单个 ckpt `ctrl_b_a1_s0`；`+4.27 ± 0.19` 的三种子数字只存在于
+                # scbench_kv @0.1 那一格，从没有 11×8 的三种子版本）。只给 v2c 标
+                # 会让人误以为别人是多种子的。
+                body = "%+.2f" % m if sd is None else "%+.2f±%.2f" % (m, sd)
+                line += f" {body + ('★' if sig else '') + deg + f'({ns})':>{W}} |"
         print(line)
     print("|" + "|".join(["-" * 16, "-" * 7, "-" * 9]
                          + ["-" * (W + 2)] * (len(RAT) - 1)) + "|")
