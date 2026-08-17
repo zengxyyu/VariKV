@@ -28,7 +28,27 @@ sys.path.insert(0, _P)
 os.chdir(_P)
 from results.parse import parse_answer, evaluate_answer          # noqa: E402
 
-RAT = [1.0, 0.75, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05]
+RAT = [1.0, 0.75, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05, 0.02]
+# 基线在 0.02 上是另一批（`__b002`），因为 `__g8base` 只跑了 8 个 ratio
+BASE_SFX = {0.02: "__b002_chunk16k_w4096"}
+_LOG = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scratch_ctrl_logs")
+# `ratio×clen < window` ⇒ chunk_ratio 置 0、只留最近的 token、门控分数不参与
+# ⇒ 任何改分数的方法恒为 no-op。这些格标 `°`，Δ 应为 0，非零即实现有问题。
+TOK = {"gsm": 86, "squad": 203, "scbench_many_shot": 26474, "scbench_repoqa": 72499,
+       "scbench_prefix_suffix": 112635, "scbench_summary": 117806,
+       "scbench_choice_eng": 119299, "scbench_qa_eng": 122101,
+       "scbench_vt": 124551, "scbench_mf": 149860, "scbench_kv": 169428}
+
+
+def v2c_done(data, seed):
+    """**完成判定看日志的 `Finished.`，不看条数。** choice_eng 只有 18 条、
+    qa_eng 20、many_shot 54、summary 70、vt 90 —— 按条数过滤会把这些**完整**的
+    panel 当成截断的丢掉（本项目已犯过两次）。"""
+    f = os.path.join(_LOG, f"v2cbench_{data}_s{seed}.log")
+    try:
+        return "Finished." in open(f, errors="ignore").read()[-4000:]
+    except OSError:
+        return False
 PANEL = {"scbench_kv": "Retr.KV", "scbench_prefix_suffix": "Retr.PrefSuf",
          "scbench_repoqa": "Code.RepoQA", "squad": "SQuAD", "gsm": "GSM8K",
          "scbench_qa_eng": "En.QA", "scbench_choice_eng": "En.MultiChoice",
@@ -115,16 +135,22 @@ def main():
     ap.add_argument("--md", action="store_true")
     a = ap.parse_args()
     ARMS = [("v2", lambda d: "__g8v2_chunk16k_w4096_ctrlmmemo8"),
+            ("v2c", "SEEDS"),        # 干净版 v2（varikv_v2.py），3 种子逐个算再平均
             ("v3", lambda d: "__g8v3_chunk16k_w4096_ctrlmmemo8"),
             ("cen16", None), ("cen1024", None)]     # 质心按 ratio 选 tag
     agg = {a_: {r: [] for r in RAT} for a_, _ in ARMS}
     rows = []
     for d, name in PANEL.items():
-        B = {r: per_sample(d, "__g8base_chunk16k_w4096", r) for r in RAT}
+        B = {r: per_sample(d, BASE_SFX.get(r, "__g8base_chunk16k_w4096"), r)
+             for r in RAT}
         full = np.mean(list(B[1.0].values())) * 100 if B[1.0] else float("nan")
         for a_, sfx in ARMS:
+            seeds = None
             try:
-                if sfx is None:                          # 质心：逐 ratio 找 tag
+                if sfx == "SEEDS":                       # 干净版 v2：3 个训练种子
+                    seeds = [S for S in (0, 1, 2) if v2c_done(d, S)]
+                    A = {}
+                elif sfx is None:                        # 质心：逐 ratio 找 tag
                     K = 16 if a_ == "cen16" else 1024
                     A = {}
                     for r in RAT:
@@ -134,16 +160,32 @@ def main():
                 else:
                     A = {r: per_sample(d, sfx(d), r) for r in RAT}
             except Exception:
-                A = {}
+                A, seeds = {}, None
             got = {}
             for r in RAT[1:]:
-                if not A.get(r) or not B.get(r):
+                if not B.get(r):
+                    continue
+                if seeds is not None:                    # 多种子：逐种子算再平均
+                    ms = []
+                    for S in seeds:
+                        c = cell(B[r], per_sample(
+                            d, f"__v2c_s{S}_chunk16k_w4096_ctrlmmemo8", r))
+                        if c:
+                            ms.append(c)
+                    if not ms:
+                        continue
+                    m_ = float(np.mean([x[0] for x in ms]))
+                    sig = all(x[1] for x in ms)          # 全部种子都显著才给 ★
+                    got[r] = (m_, sig, len(ms))
+                    agg[a_][r].append(m_)
+                    continue
+                if not A.get(r):
                     continue
                 c = cell(B[r], A[r])
                 if c:
                     got[r] = c
                     agg[a_][r].append(c[0])
-            rows.append((name, full, a_, got))
+            rows.append((name, full, a_, got, d))
     W = 13
     hd = f"| {'panel':<15}| {'full':>5} | {'arm':<8}|" + "".join(
         f" {('ρ=%g' % r):>{W}} |" for r in RAT[1:])
@@ -151,7 +193,7 @@ def main():
     print("|" + "|".join(["-" * 16, "-" * 7, "-" * 9]
                          + ["-" * (W + 2)] * (len(RAT) - 1)) + "|")
     last = None
-    for name, full, a_, got in rows:
+    for name, full, a_, got, name_d in rows:
         n = name if name != last else ""
         last = name
         line = f"| {n:<15}| {full:>5.1f} | {a_:<8}|"
@@ -159,8 +201,10 @@ def main():
             if r not in got:
                 line += f" {'—':>{W}} |"
             else:
-                m, sig, _ = got[r]
-                line += f" {('%+.2f' % m) + ('★' if sig else ''):>{W}} |"
+                m, sig, ns = got[r]
+                deg = "" if (r >= 1.0 or TOK.get(name_d, 10**9) > 4096 / r) else "°"
+                tail = ("★" if sig else "") + deg + (f"({ns})" if a_ == "v2c" else "")
+                line += f" {('%+.2f' % m) + tail:>{W}} |"
         print(line)
     print("|" + "|".join(["-" * 16, "-" * 7, "-" * 9]
                          + ["-" * (W + 2)] * (len(RAT) - 1)) + "|")

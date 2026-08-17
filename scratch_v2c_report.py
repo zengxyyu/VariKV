@@ -16,6 +16,15 @@ _P = os.path.join(os.path.dirname(os.path.abspath(__file__)), "external/FastKVzi
 sys.path.insert(0, _P); os.chdir(_P)
 from results.parse import parse_answer, evaluate_answer            # noqa: E402
 _M = contextlib.redirect_stdout(io.StringIO())
+_LOG = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scratch_ctrl_logs")
+
+
+def DONE(data, seed):
+    f = os.path.join(_LOG, f"v2cbench_{data}_s{seed}.log")
+    try:
+        return "Finished." in open(f, errors="ignore").read()[-4000:]
+    except OSError:
+        return False
 
 PANEL = {"scbench_kv":"Retr.KV","scbench_prefix_suffix":"Retr.PrefSuf",
          "scbench_repoqa":"Code.RepoQA","squad":"SQuAD","gsm":"GSM8K",
@@ -64,10 +73,13 @@ for d, name in PANEL.items():
     for r in RAT:
         ds = []
         for S in (0,1,2):
-            A = per_sample(d, f"__v2c_s{S}_chunk16k_w4096_ctrlmstat8", r)
+            A = per_sample(d, f"__v2c_s{S}_chunk16k_w4096_ctrlmmemo8", r)
             B = base.get(r) or {}
             c = sorted(set(A) & set(B))
-            if len(c) < 100:            # 只用跑满 100 条的，部分样本上的 ★ 不可信
+            # **完成判定看日志的 `Finished.`，不看条数** —— choice_eng 只有 18 条、
+            # qa_eng 20、many_shot 54、summary 70、vt 90，按 `len(c) >= 100` 过滤会
+            # 把这些**完整**的 panel 当成截断的丢掉（首版就这么丢了 5 个 panel）。
+            if not DONE(d, S):
                 continue
             v = (np.array([A[j] for j in c]) - np.array([B[j] for j in c]))*100
             ds.append(boot(v))
