@@ -40,6 +40,29 @@ TOK = {"gsm": 86, "squad": 203, "scbench_many_shot": 26474, "scbench_repoqa": 72
        "scbench_vt": 124551, "scbench_mf": 149860, "scbench_kv": 169428}
 
 
+def _degenerate(ds, r):
+    """与 runtime 逐行一致地判退化，**不要写死 4096**。
+
+    `model/wrapper.py:281-291` 的真实逻辑分两步：
+
+        if clen < prefill_chunk_size:            # 16000
+            window_size = int(window_ratio*clen) # window_ratio 默认 0.02
+        if chunk_ratio*clen < window_size:
+            chunk_ratio = 0.0                    # ⇒ 退化，分数扰动恒为 no-op
+
+    先前这里写死 `4096/r`，于是把**短上下文** panel 全判成退化 ——
+    `gsm`(86 token) 真实窗口只有 int(0.02*86)=1、`squad`(203) 是 4，
+    在我们用的所有 ratio 上都**不**退化。那个错误标记会让 SQuAD 出现
+    `+4.00★°` 这种自相矛盾的格（`°` 声称应为 0 却有显著正值），
+    看起来像实现 bug，实际是标记本身算错。
+    """
+    clen = TOK.get(ds)
+    if clen is None:
+        return False
+    w = 4096 if clen >= 16000 else int(0.02 * clen)
+    return r * clen < w
+
+
 def v2c_done(data, seed):
     """**完成判定看日志的 `Finished.`，不看条数。** choice_eng 只有 18 条、
     qa_eng 20、many_shot 54、summary 70、vt 90 —— 按条数过滤会把这些**完整**的
@@ -211,7 +234,7 @@ def main():
             else:
                 m, sig, ns = got[r][0], got[r][1], got[r][2]
                 sd = got[r][3] if len(got[r]) > 3 else None
-                deg = "" if (r >= 1.0 or TOK.get(name_d, 10**9) > 4096 / r) else "°"
+                deg = "" if (r >= 1.0 or not _degenerate(name_d, r)) else "°"
                 # **所有臂都标种子数**：v2/v3/质心那几行全是 n=1（表里 v2 用的是
                 # 单个 ckpt `ctrl_b_a1_s0`；`+4.27 ± 0.19` 的三种子数字只存在于
                 # scbench_kv @0.1 那一格，从没有 11×8 的三种子版本）。只给 v2c 标
