@@ -200,6 +200,7 @@ class LearnedControlRetainCache(RetainCache):
             with torch.no_grad():
                 _v0 = v0 if (self.active and ratio <= self.rho_max) else \
                     self.threshold(score0, ratio, level)[0]
+                _sc = score0[:, 0]                       # [L,H,n]，与 _v0 同形
                 self._qseq = getattr(self, "_qseq", 0) + 1
                 with open(_qd, "a") as _f:
                     _f.write(json.dumps({
@@ -208,6 +209,16 @@ class LearnedControlRetainCache(RetainCache):
                         "thres": float(thres),
                         "b_arm": valid.sum(-1).flatten().tolist(),    # [L*H]
                         "b_base": _v0.sum(-1).flatten().tolist(),
+                        # **被驱逐的分数质量** —— 推理时完全可得的无标签信号，
+                        # 是「丢了多少信息」的代理。现有三个候选门控输入（零配额头
+                        # 比例、配额熵、Gini）都只描述**配额分布的形状**，实测对
+                        # 「该不该校准」没有预测力（Spearman +0.393/−0.143/+0.143）；
+                        # 唯一有预测力的 slack 需要任务标签（+0.919），不能当门控。
+                        # 分数可能有负值，所以同时记原始和与 softplus 和，离线再挑。
+                        "s_tot": float(_sc.sum()),
+                        "s_ret": float(_sc[_v0].sum()),
+                        "sp_tot": float(torch.nn.functional.softplus(_sc).sum()),
+                        "sp_ret": float(torch.nn.functional.softplus(_sc[_v0]).sum()),
                     }) + "\n")
 
         if self.ctrl is not None:
