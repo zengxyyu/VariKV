@@ -137,8 +137,23 @@ class LearnedControlRetainCache(RetainCache):
         if _qi:
             with torch.no_grad():
                 import numpy as _np
-                if not hasattr(self, "_qinj"):
-                    self._qinj = torch.as_tensor(_np.load(_qi), dtype=torch.float32)
+                if not hasattr(self, "_qinj_raw"):
+                    self._qinj_raw = torch.as_tensor(_np.load(_qi), dtype=torch.float32)
+                    self._qinj_ci = 0
+                    # 2D 表 [C, 112] = 逐 (chunk 位置, 头)。方差分解显示网络在 panel
+                    # 内部 99.8% 的行为由 (头) + (头 × chunk 位置) 解释，真正依赖文档
+                    # 内容的残差只有 0.1–0.2%，所以位置索引表能近乎完整复现网络。
+                if self._qinj_raw.dim() == 2:
+                    # score0 是 [L,1,H,n]，含全部层 ⇒ 本块**每 chunk 执行一次**，
+                    # 位置计数每次 +1。`lo` 回退表示换了一条新序列，计数归零。
+                    if lo < getattr(self, "_qinj_lo", 1 << 62):
+                        self._qinj_ci = 0
+                    self._qinj_lo = lo
+                    self._qinj = self._qinj_raw[
+                        min(self._qinj_ci, self._qinj_raw.shape[0] - 1)]
+                    self._qinj_ci += 1
+                else:
+                    self._qinj = self._qinj_raw
                 sc = score0[:, 0]                                  # [L,H,n]
                 L, H, n = sc.shape
                 vb, _ = self.threshold(score0, ratio, level)       # 基线掩码
