@@ -180,114 +180,15 @@ class LearnedControlRetainCache(RetainCache):
                 L, H, n = sc.shape
                 vb, _ = self.threshold(score0, ratio, level)       # 基线掩码
                 b0 = vb.sum(-1).reshape(-1).float()                # [L*H]
-                tgt = (b0 + self._qinj.to(b0.device)).clamp(0, n)
                 # **总预算必须与基线严格相等**，否则比的就不是同一个压缩率了。
-                # 单轮最大余数法**不够**：`tgt` 先被 clamp 到 [0,n]，clamp 造成的缺口
-                # 可能远大于头数，而每头一轮只能移动 ±1。实测 Δb=±9999 时缺口 18、
-                # 可减头只有 11，一轮补不完，总预算从 179 变成 186。改成迭代配平。
-                Btot = int(b0.sum().item())
-                # ---- 竞争域受限投影：`within` / `across` 消融 -------------------
-                # **关键更正（2026-08-18）**：`within-only` 与 `across-only`
-                # **不能**表示成固定的 112 维加性表。离线审计（复现本段逻辑，220 个
-                # 真实 chunk）显示，把理论分量当加性表喂进来、再用**全局**最大余数
-                # 配平，会把层内干预偷偷变成跨层干预：
-                #     within 表的逐层总量漂移均值 938.9 槽/层，仅 5.83% 的层无漂移；
-                #     cos(实现within, 实现across) = +0.4509（理论应为 0）。
-                # 原因是 clamp(0,n) 在零配额头上截断（within 表每 chunk 有 36 格被
-                # 截），缺口由配平循环在**全局**范围内补，不受层内约束。
-                # 正确做法是把约束写进投影，而它依赖运行时的 `b0`：
-                #     within : 每层总量 = 基线层总量，层内按表分配（层内配平）
-                #     across : 每层总量 = 基线 + L_l，层内按**基线比例**分配
-                # 两者不要求相加等于 full —— 离散化后可加性本就不成立，这里是
-                # **各自隔离一个通道**，不是做加性分解。
+                # **投影逻辑的唯一实现在 attention/quota_project.py** —— 生产与
+                # `scratch_test_project.py` 共用同一个函数，禁止镜像复制（镜像会让
+                # "生产改了测试没改"或"两边同错"时测试仍然全绿）。非 full 模式的预算
+                # 守恒是构造性的，`project_quota` 内部直接断言，**不做兜底修补** ——
+                # 若投影出 bug 必须让它崩，而不是被通用修补循环悄悄改成另一个干预。
+                from attention.quota_project import project_quota
                 _qm = os.environ.get("VARIKV_QUOTA_MODE", "full")
-                assert _qm in ("full", "within", "across"), _qm
-                nL = L
-
-                def _rebal(bt_, tgt_, tot, hi):
-                    # 把整数向量配平到 sum==tot，按小数余数优先，界 [0,hi]
-                    df = tot - int(bt_.sum().item())
-                    while df != 0:
-                        if df > 0:
-                            rm = (bt_ < hi).nonzero().flatten()
-                            if rm.numel() == 0:
-                                break
-                            tk = min(df, rm.numel())
-                            pk = rm[torch.argsort((tgt_ - bt_.float())[rm],
-                                                  descending=True)[:tk]]
-                            bt_[pk] += 1; df -= tk
-                        else:
-                            rm = (bt_ > 0).nonzero().flatten()
-                            if rm.numel() == 0:
-                                break
-                            tk = min(-df, rm.numel())
-                            pk = rm[torch.argsort((tgt_ - bt_.float())[rm])[:tk]]
-                            bt_[pk] -= 1; df += tk
-                    return bt_
-
-                if _qm != "full":
-                    # **构造性定义（2026-08-18 二次修正）**：两个消融从**表**上就分开，
-                    # 不再共用 full 表让投影去"自动消掉"多余分量。
-                    #     Δ^W_{l,h} = Δ_{l,h} − mean_h Δ_{l,·}   （逐层去均值）
-                    #     Δ^A_l     = Σ_h Δ_{l,h}                （层净变化）
-                    # 为什么必须显式去均值：零配额头上的 clamp(0,n) 打破对称性，
-                    # 层常数分量会**借 clamp 泄漏**进层内再分配。单测（Δ_lh = c_l 在
-                    # within 下必须 no-op）在旧写法上 20/20 失败。实测泄漏只占搬动量
-                    # 1.21%、99.1% 的格逐位相同，所以 `_p02win2` 的既有结果仍可用，
-                    # 但定义现在是构造性的。
-                    b0m = b0.reshape(nL, H)
-                    tbm = self._qinj.to(b0.device).reshape(nL, H)
-                    bt = torch.zeros(nL, H, dtype=torch.long, device=b0.device)
-                    if _qm == "within":
-                        tbw = tbm - tbm.mean(1, keepdim=True)
-                        for _l in range(nL):
-                            base_l = int(b0m[_l].sum().item())
-                            t_l = (b0m[_l] + tbw[_l]).clamp(0, n)
-                            bt[_l] = _rebal(t_l.round().long().clamp(0, n), t_l,
-                                            base_l, n)
-                        bt = bt.reshape(-1)
-                    else:                                   # across，两级整数投影
-                        # 一级：先把 28 个层总量整数化并**严格**配平到 Btot。
-                        # 旧写法在层内 round 后再做 112 维全局配平，会让 ±1 落到
-                        # 任意 (层,头) 上 —— 实测偏离 ≤2 槽/层、4 槽/chunk
-                        # （占预算 0.0013%），量级可忽略但定义不干净，故改掉。
-                        d_l = b0m.sum(1) + tbm.sum(1)
-                        Bl = _rebal(d_l.round().long().clamp(0, H * n), d_l,
-                                    Btot, H * n)
-                        # 二级：层内按**基线比例**分配，逐层严格配平到 B'_l
-                        for _l in range(nL):
-                            base_l = float(b0m[_l].sum())
-                            tot_l = int(Bl[_l].item())
-                            t_l = (b0m[_l] * (tot_l / base_l) if base_l > 0
-                                   else torch.full((H,), tot_l / H,
-                                                   device=b0.device)).clamp(0, n)
-                            bt[_l] = _rebal(t_l.round().long().clamp(0, n), t_l,
-                                            tot_l, n)
-                        bt = bt.reshape(-1)
-                        # **不再做 112 维全局配平** —— 一级已保证 Σ B'_l = Btot，
-                        # 二级逐层严格配平，故总和构造性相等。
-                else:
-                    bt = tgt.round().long().clamp(0, n)
-                diff = Btot - int(bt.sum().item())
-                while diff != 0:
-                    if diff > 0:
-                        room = (bt < n).nonzero().flatten()
-                        if room.numel() == 0:
-                            break
-                        take = min(diff, room.numel())
-                        pick = room[torch.argsort((tgt - bt.float())[room],
-                                                  descending=True)[:take]]
-                        bt[pick] += 1; diff -= take
-                    else:
-                        room = (bt > 0).nonzero().flatten()
-                        if room.numel() == 0:
-                            break
-                        take = min(-diff, room.numel())
-                        pick = room[torch.argsort((tgt - bt.float())[room])[:take]]
-                        bt[pick] -= 1; diff += take
-                # 宁可崩，也不能悄悄改变压缩率 —— 那样比出来的分数是无效的。
-                assert int(bt.sum().item()) == Btot, \
-                    f"配额注入后预算 {int(bt.sum().item())} != 基线 {Btot}"
+                bt = project_quota(b0, self._qinj.to(b0.device), n, _qm, L, H)
                 idx = torch.argsort(sc.reshape(L * H, n), dim=-1, descending=True)
                 nv = torch.zeros(L * H, n, dtype=torch.bool, device=sc.device)
                 ar = torch.arange(n, device=sc.device)[None, :]

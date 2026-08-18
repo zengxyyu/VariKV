@@ -19,49 +19,22 @@ ROOT = os.path.abspath(os.path.dirname(__file__))
 L, H = 28, 4
 
 
-def rebal(bt, tg, tot, hi):
-    df = int(tot - bt.sum())
-    while df != 0:
-        if df > 0:
-            rm = np.flatnonzero(bt < hi)
-            if rm.size == 0:
-                break
-            tk = min(df, rm.size)
-            bt[rm[np.argsort(-(tg - bt)[rm])[:tk]]] += 1
-            df -= tk
-        else:
-            rm = np.flatnonzero(bt > 0)
-            if rm.size == 0:
-                break
-            tk = min(-df, rm.size)
-            bt[rm[np.argsort((tg - bt)[rm])[:tk]]] -= 1
-            df += tk
-    return bt
+sys.path.insert(0, os.path.join(ROOT, "external/FastKVzip/prefill"))
+import torch                                                        # noqa: E402
+from attention.quota_project import project_quota as _pq            # noqa: E402
+from attention.quota_project import rebalance as _rb                # noqa: E402
 
 
 def project(b0, tab, n, mode):
-    """与 learned_ctrlcache.py 的注入逻辑一一对应。"""
-    Btot = int(b0.sum())
-    if mode == "full":
-        t = np.clip(b0 + tab, 0, n)
-        return rebal(np.clip(np.round(t), 0, n).astype(float), t, Btot, n)
-    b0m, tbm = b0.reshape(L, H), tab.reshape(L, H)
-    out = np.zeros((L, H))
-    if mode == "within":
-        tbw = tbm - tbm.mean(1, keepdims=True)          # 显式去均值
-        for l in range(L):
-            t = np.clip(b0m[l] + tbw[l], 0, n)
-            out[l] = rebal(np.clip(np.round(t), 0, n).astype(float), t,
-                           int(b0m[l].sum()), n)
-    else:                                                # across：两级整数投影
-        d = b0m.sum(1) + tbm.sum(1)
-        Bl = rebal(np.clip(np.round(d), 0, H * n).astype(float), d, Btot, H * n)
-        for l in range(L):
-            base = float(b0m[l].sum()); tot = float(Bl[l])
-            t = np.clip(b0m[l] * (tot / base) if base > 0
-                        else np.full(H, tot / H), 0, n)
-            out[l] = rebal(np.clip(np.round(t), 0, n).astype(float), t, tot, n)
-    return out.reshape(-1)
+    """**直接调用生产实现**，不做镜像复制。
+
+    外部复核正确指出：镜像实现会让「生产改了、测试没改」或「两边带同一个错」时
+    测试仍然全绿。本文件因此只负责构造用例与断言不变量，投影逻辑一律走
+    `attention/quota_project.py`，即 `learned_ctrlcache.py` 运行时用的同一个函数。
+    """
+    return _pq(torch.as_tensor(b0, dtype=torch.float32),
+               torch.as_tensor(tab, dtype=torch.float32),
+               int(n), mode, L, H).numpy().astype(float)
 
 
 def cases(f, k):
@@ -132,8 +105,10 @@ def main():
     bad = mx = 0
     for b0, n in C:
         b0m = b0.reshape(L, H); d = b0m.sum(1) + tab.reshape(L, H).sum(1)
-        Bl = rebal(np.clip(np.round(d), 0, H * n).astype(float), d,
-                   int(b0.sum()), H * n)
+        # 期望值同样用**生产实现**算，保证测的是同一个函数
+        Bl = _rb(torch.as_tensor(np.clip(np.round(d), 0, H * n)).long(),
+                 torch.as_tensor(d, dtype=torch.float32),
+                 int(b0.sum()), H * n).numpy().astype(float)
         got = project(b0, tab, n, "across").reshape(L, H).sum(1)
         bad += int((got != Bl).sum()); mx = max(mx, int(np.abs(got - Bl).max()))
     chk("T6 across 逐层总量 = 目标", bad == 0, f"{bad}/{L*len(C)} 层违反，最大偏离 {mx}")
