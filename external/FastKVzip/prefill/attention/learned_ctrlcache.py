@@ -226,30 +226,46 @@ class LearnedControlRetainCache(RetainCache):
                     return bt_
 
                 if _qm != "full":
+                    # **构造性定义（2026-08-18 二次修正）**：两个消融从**表**上就分开，
+                    # 不再共用 full 表让投影去"自动消掉"多余分量。
+                    #     Δ^W_{l,h} = Δ_{l,h} − mean_h Δ_{l,·}   （逐层去均值）
+                    #     Δ^A_l     = Σ_h Δ_{l,h}                （层净变化）
+                    # 为什么必须显式去均值：零配额头上的 clamp(0,n) 打破对称性，
+                    # 层常数分量会**借 clamp 泄漏**进层内再分配。单测（Δ_lh = c_l 在
+                    # within 下必须 no-op）在旧写法上 20/20 失败。实测泄漏只占搬动量
+                    # 1.21%、99.1% 的格逐位相同，所以 `_p02win2` 的既有结果仍可用，
+                    # 但定义现在是构造性的。
                     b0m = b0.reshape(nL, H)
                     tbm = self._qinj.to(b0.device).reshape(nL, H)
                     bt = torch.zeros(nL, H, dtype=torch.long, device=b0.device)
-                    for _l in range(nL):
-                        base_l = int(b0m[_l].sum().item())
-                        if _qm == "within":
-                            # 层总量锁死在基线，层内按表走
-                            t_l = (b0m[_l] + tbm[_l]).clamp(0, n)
+                    if _qm == "within":
+                        tbw = tbm - tbm.mean(1, keepdim=True)
+                        for _l in range(nL):
+                            base_l = int(b0m[_l].sum().item())
+                            t_l = (b0m[_l] + tbw[_l]).clamp(0, n)
                             bt[_l] = _rebal(t_l.round().long().clamp(0, n), t_l,
                                             base_l, n)
-                        else:                       # across
-                            # 层总量 = 基线 + 该层净变化；层内保持基线比例
-                            tot_l = int(round(base_l + float(tbm[_l].sum())))
-                            tot_l = max(0, min(tot_l, H * n))
-                            if base_l > 0:
-                                t_l = b0m[_l] * (tot_l / base_l)
-                            else:
-                                t_l = torch.full((H,), tot_l / H, device=b0.device)
-                            t_l = t_l.clamp(0, n)
+                        bt = bt.reshape(-1)
+                    else:                                   # across，两级整数投影
+                        # 一级：先把 28 个层总量整数化并**严格**配平到 Btot。
+                        # 旧写法在层内 round 后再做 112 维全局配平，会让 ±1 落到
+                        # 任意 (层,头) 上 —— 实测偏离 ≤2 槽/层、4 槽/chunk
+                        # （占预算 0.0013%），量级可忽略但定义不干净，故改掉。
+                        d_l = b0m.sum(1) + tbm.sum(1)
+                        Bl = _rebal(d_l.round().long().clamp(0, H * n), d_l,
+                                    Btot, H * n)
+                        # 二级：层内按**基线比例**分配，逐层严格配平到 B'_l
+                        for _l in range(nL):
+                            base_l = float(b0m[_l].sum())
+                            tot_l = int(Bl[_l].item())
+                            t_l = (b0m[_l] * (tot_l / base_l) if base_l > 0
+                                   else torch.full((H,), tot_l / H,
+                                                   device=b0.device)).clamp(0, n)
                             bt[_l] = _rebal(t_l.round().long().clamp(0, n), t_l,
                                             tot_l, n)
-                    bt = bt.reshape(-1)
-                    # across 各层 round 累积后总和未必等于 Btot，全局补一次
-                    bt = _rebal(bt, tgt, Btot, n)
+                        bt = bt.reshape(-1)
+                        # **不再做 112 维全局配平** —— 一级已保证 Σ B'_l = Btot，
+                        # 二级逐层严格配平，故总和构造性相等。
                 else:
                     bt = tgt.round().long().clamp(0, n)
                 diff = Btot - int(bt.sum().item())
