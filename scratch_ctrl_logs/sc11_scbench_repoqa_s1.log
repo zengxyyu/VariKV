@@ -5100,3 +5100,1522 @@ Chunked prefilling with 0.30 ratio, window 4096
 [effective] clen=65917 window=4096 chunk_ratio=0.146995 degenerate=False
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-18: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65917 window=4096 chunk_ratio=0.040370 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-18: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65917 window=3295 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.19it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3295
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-18: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/18_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 494.5s. Mem: 14.31/79.18 GB. [scbench_repoqa-18]
+
+[effective] clen=65917 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-19: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+#include <nan.h>
+#include <vector>
+#include "custom_importer_bridge.h"
+#include "create_string.h"
+
+SassImportList CustomImporterBridge::post_process_return_value(v8::Local<v8::Value> returned_value) const {
+  SassImportList imports = 0;
+  Nan::HandleScope scope;
+
+  if (returned_value->IsArray()) {
+    v8::Local<v8::Array> array = returned_value.As<v8::Array>();
+
+    imports = sass_make_import_list(array->Length());
+
+    for (size_t i = 0; i < array->Length(); ++i) {
+      v8::Local<v8::Value> value;
+      Nan::MaybeLocal<v8::Value> unchecked = Nan::Get(array, static_cast<uint32_t>(i));
+
+      if (!unchecked.ToLocal(&value) || !value->IsObject()) {
+        imports[i] = sass_make_import_entry(0, 0, 0);
+        sass_import_set_error(imports[i], "returned array must only contain object literals", -1, -1);
+        continue;
+      }
+
+      v8::Local<v8::Object> object = value.As<v8::Object>();
+
+      if (value->IsNativeError()) {
+        char* message = create_string(Nan::Get(object, Nan::New<v8::String>("message").ToLocalChecked()));
+
+        imports[i] = sass_make_import_entry(0, 0, 0);
+
+        sass_import_set_error(imports[i], message, -1, -1);
+        free(message);
+      }
+      else {
+        imports[i] = get_importer_entry(object);
+      }
+    }
+  }
+  else if (returned_value->IsNativeError()) {
+    imports = sass_make_import_list(1);
+    v8::Local<v8::Object> object = returned_value.As<v8::Object>();
+    char* message = create_string(Nan::Get(object, Nan::New<v8::String>("message").ToLocalChecked()));
+
+    imports[0] = sass_make_import_entry(0, 0, 0);
+
+    sass_import_set_error(imports[0], message, -1, -1);
+    free(message);
+  }
+  else if (returned_value->IsObject()) {
+    imports = sass_make_import_list(1);
+    imports[0] = get_importer_entry(returned_value.As<v8::Object>());
+  }
+
+  return imports;
+}
+
+Sass_Import* Custom |     CustomImporterBridge(v8::Local<v8::Function> cb, bool is_sync) : CallbackBridge<SassImportList>(cb, is_sync) {}
+[QA 1] ```cpp
+namespace Sass {
+
+  class EnvResult {
+    public:
+      EnvIter it;
+      bool found;
+    public:
+      EnvResult(EnvIter it, bool found)
+      : it(it), found(found) {}
+  };
+
+}
+``` |       EnvResult(EnvIter it, bool found)
+      : it(it), found(found) {}
+[QA 2] ```cpp
+class Number : public Value, public Units {
+    HASH_PROPERTY(double, value)
+    ADD_PROPERTY(bool, zero)
+    size_t hash_;
+public:
+    Number(ParserState pstate, double val, std::string u = "", bool zero = true);
+
+    Number(const Number* ptr)
+    : Value(ptr),
+      Units(ptr),
+      value_(ptr->value_), zero_(ptr->zero_),
+      hash_(ptr->hash_)
+    { concrete_type(NUMBER); }
+
+    bool zero() { return zero_; }
+    std::string type() const { return "number"; }
+    static std::string type_name() { return "number"; }
+
+    void reduce();
+    void normalize();
+
+    virtual size_t hash()
+    {
+      if (hash_ == 0) {
+        hash_ = std::hash<double>()(value_);
+        for (const auto numerator : numerators)
+          hash_combine(hash_, std::hash<std::string>()(numerator));
+        for (const auto denominator : denominators)
+          hash_combine(hash_, std::hash<std::string>()(denominator));
+      }
+      return hash_;
+    }
+
+    virtual bool operator< (const Number& rhs) const;
+    virtual bool operator== (const Number& rhs) const;
+    virtual bool operator== (const Expression& rhs) const;
+    ATTACH_AST_OPERATIONS(Number)
+    ATTACH_OPERATIONS()
+};
+``` |     Number(const Number* ptr)
+    : Value(ptr),
+      Units(ptr),
+      value_(ptr->value_), zero_(ptr->zero_),
+      hash_(ptr->hash_)
+    { concrete_type(NUMBER); }
+[QA 3] ```cpp
+SassImportList CustomImporterBridge::post_process_return_value(v8::Local<v8::Value> returned_value) const {
+  SassImportList imports = 0;
+  Nan::HandleScope scope;
+
+  if (returned_value->IsArray()) {
+    v8::Local<v8::Array> array = returned_value.As<v8::Array>();
+
+    imports = sass_make_import_list(array->Length());
+
+    for (size_t i = 0; i < array->Length(); ++i) {
+      v8::Local<v8::Value> value;
+      Nan::MaybeLocal<v8::Value> unchecked = Nan::Get(array, static_cast<uint32_t>(i));
+
+      if (!unchecked.ToLocal(&value) || !value->IsObject()) {
+        imports[i] = sass_make_import_entry(0, 0, 0);
+        sass_import_set_error(imports[i], "returned array must only contain object literals", -1, -1);
+        continue;
+      }
+
+      v8::Local<v8::Object> object = value.As<v8::Object>();
+
+      if (value->IsNativeError()) {
+        char* message = create_string(Nan::Get(object, Nan::New<v8::String>("message").ToLocalChecked()));
+
+        imports[i] = sass_make_import_entry(0, 0, 0);
+
+        sass_import_set_error(imports[i], message, -1, -1);
+        free(message);
+      }
+      else {
+        imports[i] = get_importer_entry(object);
+      }
+    }
+  }
+  else if (returned_value->IsNativeError()) {
+    imports = sass_make_import_list(1);
+    v8::Local<v8::Object> object = returned_value.As<v8::Object>();
+    char* message = create_string(Nan::Get(object, Nan::New<v8::String>("message").ToLocalChecked()));
+
+    imports[0] = sass_make_import_entry(0, 0, 0);
+
+    sass_import_set_error(imports[0], message, -1, -1);
+    free(message);
+  }
+  else if (returned_value->IsObject()) {
+    imports = sass_make_import_list(1);
+    imports[0] = get_importer_entry(returned_value.As<v8::Object>());
+  }
+
+  return imports;
+}
+``` | Sass_Import_List sass_importer(const char* cur_path, Sass_Importer_Entry cb, struct Sass_Compiler* comp)
+{
+  void* cookie = sass_importer_get_cookie(cb);
+  struct Sass_Import* previous = sass_compiler_get_last_import(comp);
+  const char* prev_path = sass_import_get_abs_path(previous);
+  CustomImporterBridge& bridge = *(static_cast<CustomImporterBridge*>(cookie));
+
+  std::vector<void*> argv;
+  argv.push_back((void*)cur_path);
+  argv.push_back((void*)prev_path);
+
+  return bridge(argv);
+}
+[QA 4] ```cpp
+class File_Context : public Context {
+public:
+  File_Context(struct Sass_File_Context& ctx)
+  : Context(ctx)
+  { }
+  virtual ~File_Context();
+  virtual Block_Obj parse();
+};
+```
+
+This function initializes a `File_Context` object by inheriting from the `Context` class and passing a structured `Sass_File_Context` object to its constructor. The `File_Context` class provides a method `parse()` to parse the file content. |     File_Context(struct Sass_File_Context& ctx)
+    : Context(ctx)
+    { }
+[effective] clen=65917 window=4096 chunk_ratio=0.733436 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.35it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-19: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65917 window=4096 chunk_ratio=0.466872 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-19: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65917 window=4096 chunk_ratio=0.360247 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-19: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65917 window=4096 chunk_ratio=0.253621 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.76it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-19: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65917 window=4096 chunk_ratio=0.146995 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.90it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-19: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65917 window=4096 chunk_ratio=0.040370 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-19: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65917 window=3295 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.19it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3295
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-19: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/19_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 387.4s. Mem: 14.31/79.18 GB. [scbench_repoqa-19]
+
+[effective] clen=65850 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-20: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+array scatter(
+    const array& a,
+    const std::vector<array>& indices,
+    const array& updates,
+    const std::vector<int>& axes,
+    Scatter::ReduceType mode /*= Scatter::ReduceType::None*/,
+    StreamOrDevice s /*= {}*/) {
+  // Checks that indices, dimensions, and slice_sizes are all valid
+  if (indices.size() > a.ndim()) {
+    std::ostringstream msg;
+    msg << "[scatter] Too many index arrays. Got " << indices.size()
+        << " index arrays for input with " << a.ndim() << " dimensions.";
+    throw std::invalid_argument(msg.str());
+  }
+  for (auto& x : indices) {
+    if (x.dtype() == bool_) {
+      throw("[scatter] Boolean indices not supported.");
+    }
+  }
+
+  std::set dims(axes.begin(), axes.end());
+  if (dims.size() != axes.size()) {
+    throw std::invalid_argument(
+        "[scatter] Repeat axes not allowed in scatter.");
+  }
+  if (!dims.empty() && (*dims.begin() < 0 || *dims.rbegin() >= a.ndim())) {
+    throw std::invalid_argument("[scatter] Axes don't match array dimensions.");
+  }
+  if (indices.size() != axes.size()) {
+    throw std::invalid_argument(
+        "[scatter] Number of index arrays does not match number of axes.");
+  }
+
+  // Broadcast and cast indices if necessary
+  auto inputs = broadcast_arrays(indices);
+
+  std::vector<int> idx_shape;
+  if (!inputs.empty()) {
+    idx_shape = inputs[0].shape();
+  }
+
+  if (updates.ndim() != (a.ndim() + idx_shape.size())) {
+    std::ostringstream msg;
+    msg << "[scatter] Updates with " << updates.ndim()
+        << " dimensions does not match the sum of the array and indices "
+           "dimensions "
+        << a.ndim() + idx_shape.size() << ".";
+    throw std::invalid_argument(msg.str());
+  }
+  for (int i = 0; i < idx_shape.size(); ++i) {
+    if (updates.shape(i) != idx_shape[i]) {
+      std::ostringstream msg;
+      msg << "[scatter] Update shape " << updates.shape()
+          << " is not valid for broadcasted index shape " << idx_shape << ".";
+      throw std::invalid_argument(msg.str());
+    }
+  }
+  for (int i = 0; i < a.ndim | array scatter_add(
+    const array& a,
+    const std::vector<array>& indices,
+    const array& updates,
+    const std::vector<int>& axes,
+    StreamOrDevice s /*= {}*/) {
+  return scatter(a, indices, updates, axes, Scatter::Sum, s);
+}
+[QA 1] ```cpp
+#include <cstdlib>
+#include <sstream>
+
+#include "mlx/allocator.h"
+#include "mlx/scheduler.h"
+
+namespace mlx::core::allocator {
+
+Buffer malloc(size_t size) {
+  auto buffer = allocator().malloc(size, /* allow_swap */ true);
+  if (size && !buffer.ptr()) {
+    std::ostringstream msg;
+    msg << "[malloc] Unable to allocate " << size << " bytes.";
+    throw std::runtime_error(msg.str());
+  }
+  return buffer;
+}
+
+void free(Buffer buffer) {
+  return allocator().free(buffer);
+}
+
+Buffer CommonAllocator::malloc(size_t size, bool) {
+  return Buffer{std::malloc(size)};
+}
+
+void CommonAllocator::free(Buffer buffer) {
+  std::free(buffer.raw_ptr());
+}
+
+Buffer malloc_or_wait(size_t size) {
+  auto buffer = allocator().malloc(size);
+
+  while (size && !buffer.ptr() && scheduler::n_active_tasks() > 0) {
+    scheduler::wait_for_one();
+    buffer = allocator().malloc(size);
+  }
+
+  // Try swapping if needed
+  if (size && !buffer.ptr()) {
+    buffer = allocator().malloc(size, /* allow_swap = */ true);
+  }
+
+  if (size && !buffer.ptr()) {
+    std::ostringstream msg;
+    msg << "[malloc_or_wait] Unable to allocate " << size << " bytes.";
+    throw std::runtime_error(msg.str());
+  }
+
+  return buffer;
+}
+
+} // namespace mlx::core::allocator
+``` | Buffer malloc_or_wait(size_t size) {
+  auto buffer = allocator().malloc(size);
+
+  while (size && !buffer.ptr() && scheduler::n_active_tasks() > 0) {
+    scheduler::wait_for_one();
+    buffer = allocator().malloc(size);
+  }
+
+  // Try swapping if needed
+  if (size && !buffer.ptr()) {
+    buffer = allocator().malloc(size, /* allow_swap = */ true);
+  }
+
+  if (size && !buffer.ptr()) {
+    std::ostringstream msg;
+    msg << "[malloc_or_wait] Unable to allocate " << size << " bytes.";
+    throw std::runtime_error(msg.str());
+  }
+
+  return buffer;
+}
+[QA 2] ```cpp
+template <typename T, typename... U>
+std::uintptr_t get_function_address(const std::function<T(U...)>& fun) {
+  using FunType = T (*)(U...);
+  const FunType* fun_ptr = fun.template target<FunType>();
+  if (fun_ptr == nullptr) {
+    throw std::invalid_argument(
+        "[compile] Cannot compile a non-addressable function.");
+  }
+  return reinterpret_cast<std::uintptr_t>(*fun_ptr);
+}
+``` | std::uintptr_t get_function_address(const std::function<T(U...)>& fun) {
+  using FunType = T (*)(U...);
+  const FunType* fun_ptr = fun.template target<FunType>();
+  if (fun_ptr == nullptr) {
+    throw std::invalid_argument(
+        "[compile] Cannot compile a non-addressable function.");
+  }
+  return reinterpret_cast<std::uintptr_t>(*fun_ptr);
+}
+[QA 3] ```cpp
+array maximum(const array& a, const array& b, StreamOrDevice s /* = {} */) {
+  auto out_type = promote_types(a.dtype(), b.dtype());
+  auto inputs = broadcast_arrays(astype(a, out_type, s), astype(b, out_type, s), s);
+  auto& shape = inputs[0].shape();
+  return array(
+      shape,
+      out_type,
+      std::make_shared<Maximum>(to_stream(s)),
+      std::move(inputs));
+}
+``` | array maximum(const array& a, const array& b, StreamOrDevice s /* = {} */) {
+  auto out_type = promote_types(a.dtype(), b.dtype());
+  auto inputs =
+      broadcast_arrays(astype(a, out_type, s), astype(b, out_type, s), s);
+  auto& shape = inputs[0].shape();
+  return array(
+      shape,
+      out_type,
+      std::make_shared<Maximum>(to_stream(s)),
+      std::move(inputs));
+}
+[QA 4] ```cpp
+namespace mlx::core {
+
+enum class DeviceType {
+  cpu,
+  gpu,
+};
+
+static constexpr DeviceType cpu = DeviceType::cpu;
+static constexpr DeviceType gpu = DeviceType::gpu;
+
+Device Device(DeviceType type, int index = 0) : type(type), index(index) {};
+
+const Device& default_device();
+
+void set_default_device(const Device& d);
+
+bool operator==(const Device& lhs, const Device& rhs);
+bool operator!=(const Device& lhs, const Device& rhs);
+
+} // namespace mlx::core
+``` |   Device(DeviceType type, int index = 0) : type(type), index(index){};
+[effective] clen=65850 window=4096 chunk_ratio=0.733418 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.35it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-20: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.466836 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-20: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.360203 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-20: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.253571 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.77it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-20: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.146938 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.90it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-20: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.040305 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.79it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-20: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=3292 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3292
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-20: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/20_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 392.6s. Mem: 14.31/79.18 GB. [scbench_repoqa-20]
+
+[effective] clen=65850 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+array broadcast_to(
+    const array& a,
+    const std::vector<int>& shape,
+    StreamOrDevice s /* = {} */) {
+  if (a.shape() == shape) {
+    return a;
+  }
+
+  // Make sure the shapes are broadcastable
+  auto bxshape = broadcast_shapes(a.shape(), shape);
+  if (bxshape != shape) {
+    std::ostringstream msg;
+    msg << "Cannot broadcast array of shape " << a.shape() << " into shape "
+        << shape << ".";
+    throw std::invalid_argument(msg.str());
+  }
+  return array(
+      std::move(bxshape),
+      a.dtype(),
+      std::make_shared<Broadcast>(to_stream(s), shape),
+      {a});
+}
+``` | array broadcast_to(
+    const array& a,
+    const std::vector<int>& shape,
+    StreamOrDevice s /* = {} */) {
+  if (a.shape() == shape) {
+    return a;
+  }
+
+  // Make sure the shapes are broadcastable
+  auto bxshape = broadcast_shapes(a.shape(), shape);
+  if (bxshape != shape) {
+    std::ostringstream msg;
+    msg << "Cannot broadcast array of shape " << a.shape() << " into shape "
+        << shape << ".";
+    throw std::invalid_argument(msg.str());
+  }
+  return array(
+      std::move(bxshape),
+      a.dtype(),
+      std::make_shared<Broadcast>(to_stream(s), shape),
+      {a});
+}
+[QA 1] ```cpp
+array number_of_elements(
+    const array& a,
+    std::vector<int> axes,
+    bool inverted,
+    Dtype dtype /* = int32 */,
+    StreamOrDevice s /* = {} */) {
+  for (auto& ax : axes) {
+    int normal_axis = (ax + a.ndim()) % a.ndim();
+    if (normal_axis >= a.ndim() || normal_axis < 0) {
+      std::ostringstream msg;
+      msg << "[number_of_elements] Can't get the shape for axis " << ax
+          << " from an array with " << a.ndim() << " dimensions.";
+      throw std::invalid_argument(msg.str());
+    }
+    ax = normal_axis;
+  }
+
+  return stop_gradient(array(
+      std::vector<int>{},
+      dtype,
+      std::make_shared<NumberOfElements>(
+          to_stream(s), std::move(axes), inverted, dtype),
+      {a}));
+}
+``` | array number_of_elements(
+    const array& a,
+    std::vector<int> axes,
+    bool inverted,
+    Dtype dtype /* = int32 */,
+    StreamOrDevice s /* = {} */) {
+  for (auto& ax : axes) {
+    int normal_axis = (ax + a.ndim()) % a.ndim();
+    if (normal_axis >= a.ndim() || normal_axis < 0) {
+      std::ostringstream msg;
+      msg << "[number_of_elements] Can't get the shape for axis " << ax
+          << " from an array with " << a.ndim() << " dimensions.";
+      throw std::invalid_argument(msg.str());
+    }
+    ax = normal_axis;
+  }
+
+  return stop_gradient(array(
+      std::vector<int>{},
+      dtype,
+      std::make_shared<NumberOfElements>(
+          to_stream(s), std::move(axes), inverted, dtype),
+      {a}));
+}
+[QA 2] ```cpp
+namespace {
+
+std::tuple<array, array, int> vmap_binary_op(
+    const std::vector<array>& inputs,
+    const std::vector<int>& axes,
+    const Stream& stream) {
+  assert(inputs.size() == 2);
+  assert(axes.size() == 2);
+
+  if (axes[0] == -1 && axes[1] == -1) {
+    return {inputs[0], inputs[1], -1};
+  }
+
+  auto a = inputs[0];
+  auto b = inputs[1];
+  int ndim = std::max(a.ndim() + (axes[0] == -1), b.ndim() + (axes[1] == -1));
+
+  auto expand_dims = [stream, ndim](auto in) {
+    auto shape = in.shape();
+    shape.insert(shape.begin(), ndim - shape.size(), 1);
+    return reshape(in, shape, stream);
+  };
+
+  int to_ax = (ndim - a.ndim()) + axes[0];
+  int from_ax = (ndim - b.ndim()) + axes[1];
+  a = expand_dims(a);
+  b = expand_dims(b);
+
+  if (from_ax != to_ax) {
+    std::vector<int> tdims(b.ndim());
+    std::iota(tdims.begin(), tdims.end(), 0);
+    tdims.erase(tdims.begin() + from_ax);
+    tdims.insert(tdims.begin() + to_ax, from_ax);
+    b = transpose(b, tdims, stream);
+  }
+  return {a, b, to_ax};
+}
+
+} // namespace
+``` | std::tuple<array, array, int> vmap_binary_op(
+    const std::vector<array>& inputs,
+    const std::vector<int>& axes,
+    const Stream& stream) {
+  assert(inputs.size() == 2);
+  assert(axes.size() == 2);
+
+  if (axes[0] == -1 && axes[1] == -1) {
+    return {inputs[0], inputs[1], -1};
+  }
+
+  auto a = inputs[0];
+  auto b = inputs[1];
+  int ndim = std::max(a.ndim() + (axes[0] == -1), b.ndim() + (axes[1] == -1));
+
+  auto expand_dims = [stream, ndim](auto in) {
+    auto shape = in.shape();
+    shape.insert(shape.begin(), ndim - shape.size(), 1);
+    return reshape(in, shape, stream);
+  };
+
+  int to_ax = (ndim - a.ndim()) + axes[0];
+  int from_ax = (ndim - b.ndim()) + axes[1];
+  a = expand_dims(a);
+  b = expand_dims(b);
+
+  if (from_ax!= to_ax) {
+    std::vector<int> tdims(b.ndim());
+    std::iota(tdims.begin(), tdims.end(), 0);
+    tdims.erase(tdims.begin() + from_ax);
+    tdims.insert(tdims.begin() + to_ax, from_ax);
+    b = transpose(b, tdims, stream);
+  }
+  return {a, b, to_ax};
+}
+[QA 3] ```cpp
+std::vector<int> broadcast_shapes(
+    const std::vector<int>& s1,
+    const std::vector<int>& s2) {
+  // Use the same broadcasting rules as numpy
+  // https://numpy.org/doc/1.20/user/theory.broadcasting.html
+  // "The size of the trailing axes for both arrays in an operation must
+  // either be the same size or one of them must be one."
+
+  int ndim1 = s1.size();
+  int ndim2 = s2.size();
+  int ndim = std::max(ndim1, ndim2);
+  int diff = std::abs(ndim1 - ndim2);
+  const auto& big = ndim1 > ndim2 ? s1 : s2;
+  const auto& small = ndim1 > ndim2 ? s2 : s1;
+  std::vector<int> out_shape(ndim);
+  for (int i = ndim - 1; i >= diff; --i) {
+    int a = big[i];
+    int b = small[i - diff];
+    if (b == a) {
+      out_shape[i] = a;
+    } else if (a == 1 || b == 1) {
+      // 0 if a or b is 0 otherwise max(a, b)
+      out_shape[i] = a * b;
+    } else {
+      std::ostringstream msg;
+      msg << "Shapes " << s1 << " and " << s2 << " cannot be broadcast.";
+      throw std::invalid_argument(msg.str());
+    }
+  }
+  for (int i = diff - 1; i >= 0; --i) {
+    out_shape[i] = big[i];
+  }
+  return out_shape;
+}
+``` | std::vector<int> broadcast_shapes(
+    const std::vector<int>& s1,
+    const std::vector<int>& s2) {
+  // Use the same broadcasting rules as numpy
+  // https://numpy.org/doc/1.20/user/theory.broadcasting.html
+  // "The size of the trailing axes for both arrays in an operation must
+  // either be the same size or one of them must be one."
+  int ndim1 = s1.size();
+  int ndim2 = s2.size();
+  int ndim = std::max(ndim1, ndim2);
+  int diff = std::abs(ndim1 - ndim2);
+  const auto& big = ndim1 > ndim2 ? s1 : s2;
+  const auto& small = ndim1 > ndim2 ? s2 : s1;
+  std::vector<int> out_shape(ndim);
+  for (int i = ndim - 1; i >= diff; --i) {
+    int a = big[i];
+    int b = small[i - diff];
+    if (b == a) {
+      out_shape[i] = a;
+    } else if (a == 1 || b == 1) {
+      // 0 if a or b is 0 otherwise max(a, b)
+      out_shape[i] = a * b;
+    } else {
+      std::ostringstream msg;
+      msg << "Shapes " << s1 << " and " << s2 << " cannot be broadcast.";
+      throw std::invalid_argument(msg.str());
+    }
+  }
+  for (int i = diff - 1; i >= 0; --i) {
+    out_shape[i] = big[i];
+  }
+  return out_shape;
+}
+[QA 4] ```cpp
+array reshape(
+    const array& a,
+    std::vector<int> shape,
+    StreamOrDevice s /* = {} */) {
+  if (a.shape() == shape) {
+    return a;
+  }
+
+  size_t size = 1;
+  int infer_idx = -1;
+  for (int i = 0; i < shape.size(); ++i) {
+    if (shape[i] == -1) {
+      if (infer_idx >= 0) {
+        throw std::invalid_argument(
+            "[reshape] Reshape can only infer one dimension.");
+      }
+      infer_idx = i;
+    } else {
+      size *= shape[i];
+    }
+  }
+
+  // Infer the shape
+  if (size > 0) {
+    auto q_and_r = std::ldiv(a.size(), size);
+    if (infer_idx >= 0) {
+      shape[infer_idx] = q_and_r.quot;
+      size *= q_and_r.quot;
+    }
+  } else if (infer_idx >= 0) {
+    throw std::invalid_argument(
+        "[reshape] Cannot infer the shape of an empty array");
+  }
+
+  // Check the the reshaping is valid
+  if (a.size() != size) {
+    std::ostringstream msg;
+    msg << "[reshape] Cannot reshape array of size " << a.size()
+        << " into shape " << shape << ".";
+    throw std::invalid_argument(msg.str());
+  }
+  auto p = std::make_shared<Reshape>(to_stream(s), shape);
+  return array(std::move(shape), a.dtype(), std::move(p), {a});
+}
+``` | array reshape(
+    const array& a,
+    std::vector<int> shape,
+    StreamOrDevice s /* = {} */) {
+  if (a.shape() == shape) {
+    return a;
+  }
+
+  size_t size = 1;
+  int infer_idx = -1;
+  for (int i = 0; i < shape.size(); ++i) {
+    if (shape[i] == -1) {
+      if (infer_idx >= 0) {
+        throw std::invalid_argument(
+            "[reshape] Reshape can only infer one dimension.");
+      }
+      infer_idx = i;
+    } else {
+      size *= shape[i];
+    }
+  }
+
+  // Infer the shape
+  if (size > 0) {
+    auto q_and_r = std::ldiv(a.size(), size);
+    if (infer_idx >= 0) {
+      shape[infer_idx] = q_and_r.quot;
+      size *= q_and_r.quot;
+    }
+  } else if (infer_idx >= 0) {
+    throw std::invalid_argument(
+        "[reshape] Cannot infer the shape of an empty array");
+  }
+
+  // Check the the reshaping is valid
+  if (a.size() != size) {
+    std::ostringstream msg;
+    msg << "[reshape] Cannot reshape array of size " << a.size()
+        << " into shape " << shape << ".";
+    throw std::invalid_argument(msg.str());
+  }
+  auto p = std::make_shared<Reshape>(to_stream(s), shape);
+  return array(std::move(shape), a.dtype(), std::move(p), {a});
+}
+[effective] clen=65850 window=4096 chunk_ratio=0.733418 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.466836 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.360203 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.253571 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.77it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.146938 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.90it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.040305 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=3292 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.19it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3292
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/21_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 484.3s. Mem: 14.31/79.18 GB. [scbench_repoqa-21]
+
+[effective] clen=66030 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.24it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+future<size_t> aio_storage_context::submit_work() {
+    auto pr = make_shared_promise<size_t>();
+    auto fut = pr->get_future();
+    auto op_func = [this, pr = std::move(pr)] (size_t pos, size_t len) mutable {
+        return do_with(io_operation(pos, len), [pr = std::move(pr)] (auto&& result) mutable {
+            pr->set_value(result);
+        });
+    };
+    try {
+        _iocb_pool.get_one().set_io_op(std::move(op_func));
+        return fut;
+    } catch (...) {
+        return current_exception_as_future<size_t>();
+    }
+}
+``` |     future<T...> enqueue(opcode type, uint64_t pos, size_t len, Func&& func) noexcept {
+        try {
+            auto pr = make_lw_shared(promise<T...>());
+            auto fut = pr->get_future();
+            auto op_func = [func = std::move(func), pr = std::move(pr)] () mutable {
+                return futurize_invoke(std::move(func)).then_wrapped([pr = std::move(pr)] (future<T...> f) mutable {
+                    f.forward_to(std::move(*pr));
+                });
+            };
+            try {
+                enqueue_op({type, pos, len, std::move(op_func)});
+                return fut;
+            } catch (...) {
+                fut.ignore_ready_future();
+                return current_exception_as_future<T...>();
+            }
+        } catch (...) {
+            return make_exception_future<T...>(std::current_exception());
+        }
+    }
+[QA 1] ```cpp
+future<sstring> read_entire_file_contiguous(std::filesystem::path path) {
+    return with_file_input_stream(path, [] (input_stream<char>& in) {
+        return read_entire_stream_contiguous(in);
+    });
+}
+``` | future<sstring> read_entire_file_contiguous(std::filesystem::path path) {
+    return with_file_input_stream(path, [] (input_stream<char>& in) {
+        return read_entire_stream_contiguous(in);
+    });
+}
+[QA 2] ```cpp
+net::dhcp::dhcp(ipv4 & ip)
+: _impl(std::make_unique<impl>(ip))
+{}
+
+net::dhcp::dhcp(dhcp && v) noexcept = default;
+
+net::dhcp::~dhcp()
+{}
+``` |     impl(ipv4 & stack)
+       : _stack(stack)
+    {
+        _sock = _stack.get_udp().make_channel({0, client_port});
+    }
+[QA 3] ```cpp
+class fd_kernel_completion : public kernel_completion {
+protected:
+    file_desc& _fd;
+    fd_kernel_completion(file_desc& fd) : _fd(fd) {}
+public:
+    file_desc& fd() {
+        return _fd;
+    }
+};
+
+struct hrtimer_aio_completion : public fd_kernel_completion,
+                                public completion_with_iocb {
+private:
+    reactor& _r;
+public:
+    hrtimer_aio_completion(reactor& r, file_desc& fd);
+    virtual void complete_with(ssize_t value) override;
+};
+
+struct task_quota_aio_completion : public fd_kernel_completion,
+                                   public completion_with_iocb {
+    task_quota_aio_completion(file_desc& fd);
+    virtual void complete_with(ssize_t value) override;
+};
+
+struct smp_wakeup_aio_completion : public fd_kernel_completion,
+                                   public completion_with_iocb {
+    smp_wakeup_aio_completion(file_desc& fd);
+    virtual void complete_with(ssize_t value) override;
+};
+```
+
+These classes (`fd_kernel_completion`, `hrtimer_aio_completion`, `task_quota_aio_completion`, and `smp_wakeup_aio_completion`) are designed to manage kernel-level I/O completions for file descriptors within the Seastar framework. They inherit from `kernel_completion` and `completion_with_iocb`, providing specific implementations for handling different types of I/O operations. |     fd_kernel_completion(file_desc& fd) : _fd(fd) {}
+[QA 4] ```cpp
+template <typename T>
+struct work_item_returning : work_item {
+    noncopyable_function<T ()> _func;
+    promise<T> _promise;
+    std::optional<T> _result;
+    work_item_returning(noncopyable_function<T ()> func) : _func(std::move(func)) {}
+    virtual void process() override { _result = this->_func(); }
+    virtual void complete() override { _promise.set_value(std::move(*_result)); }
+    virtual void set_exception(std::exception_ptr eptr) override { _promise.set_exception(eptr); };
+    future<T> get_future() { return _promise.get_future(); }
+};
+``` |         work_item_returning(noncopyable_function<T ()> func) : _func(std::move(func)) {}
+[effective] clen=66030 window=4096 chunk_ratio=0.733466 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.32it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.466933 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.40it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.360319 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.63it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.253706 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.75it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.147092 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.89it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.040479 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.06it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=3301 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.18it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.05 ratio, window 3301
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/22_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 228.3s. Mem: 14.31/79.18 GB. [scbench_repoqa-22]
+
+[effective] clen=66030 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.28it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+static input_stream<char> make_content_stream(http::request* req, input_stream<char>& buf) {
+    // Create an input stream based on the requests body encoding or lack thereof
+    if (seastar::internal::case_insensitive_cmp()(req->get_header("Transfer-Encoding"), "chunked")) {
+        return input_stream<char>(data_source(std::make_unique<internal::chunked_source_impl>(buf, req->chunk_extensions, req->trailing_headers)));
+    } else {
+        return input_stream<char>(data_source(std::make_unique<internal::content_length_source_impl>(buf, req->content_length)));
+    }
+}
+``` | static input_stream<char> make_content_stream(http::request* req, input_stream<char>& buf) {
+    // Create an input stream based on the requests body encoding or lack thereof
+    if (seastar::internal::case_insensitive_cmp()(req->get_header("Transfer-Encoding"), "chunked")) {
+        return input_stream<char>(data_source(std::make_unique<internal::chunked_source_impl>(buf, req->chunk_extensions, req->trailing_headers)));
+    } else {
+        return input_stream<char>(data_source(std::make_unique<internal::content_length_source_impl>(buf, req->content_length)));
+    }
+}
+[QA 1] ```cpp
+future<reply> connection::make_request(request req) {
+    return do_make_request(std::move(req)).then([] (reply_ptr rep) {
+        return make_ready_future<reply>(std::move(*rep));
+    });
+}
+``` |     explicit basic_connection_factory(socket_address addr)
+            : _addr(std::move(addr))
+    {
+    }
+[QA 2] ```cpp
+std::ostream& operator<<(std::ostream& out, log_level level) {
+    return out << log_level_names.at(level);
+}
+``` | static internal::log_buf::inserter_iterator print_no_timestamp(internal::log_buf::inserter_iterator it) {
+    return it;
+}
+[QA 3] ```cpp
+class reactor_backend_selector {
+    std::string _name;
+private:
+    static bool has_enough_aio_nr();
+    explicit reactor_backend_selector(std::string name) : _name(std::move(name)) {}
+public:
+    const std::string& name() const { return _name; }
+    std::unique_ptr<reactor_backend> create(reactor& r);
+    static reactor_backend_selector default_backend();
+    static std::vector<reactor_backend_selector> available();
+    friend std::ostream& operator<<(std::ostream& os, const reactor_backend_selector& rbs) {
+        return os << rbs._name;
+    }
+};
+
+reactor_backend_selector::reactor_backend_selector(std::string name) : _name(std::move(name)) {}
+
+std::unique_ptr<reactor_backend> reactor_backend_selector::create(reactor& r) {
+    if (_name == "epoll") {
+        return std::make_unique<reactor_backend_epoll>(r);
+    } else if (_name == "aio") {
+        return std::make_unique<reactor_backend_aio>(r);
+#ifdef HAVE_OSV
+    } else if (_name == "osv") {
+        return std::make_unique<reactor_backend_osv>();
+#endif
+    }
+    throw std::runtime_error("Unsupported backend: " + _name);
+}
+
+reactor_backend_selector reactor_backend_selector::default_backend() {
+    if (has_enough_aio_nr()) {
+        return reactor_backend_selector("aio");
+    } else {
+        return reactor_backend_selector("epoll");
+    }
+}
+
+std::vector<reactor_backend_selector> reactor_backend_selector::available() {
+    std::vector<reactor_backend_selector> backends;
+    if (has_enough_aio_nr()) {
+        backends.push_back(reactor_backend_selector("aio"));
+    }
+    backends.push_back(reactor_backend_selector("epoll"));
+#ifdef HAVE_OSV
+    backends.push_back(reactor_backend_selector("osv"));
+#endif
+    return backends;
+}
+
+bool reactor_backend_selector::has_enough_aio_nr() {
+    // System check to determine if the system supports enough AIO resources
+    // This is a placeholder for actual implementation
+    return true;
+}
+``` |     explicit reactor_backend_selector(std::string name) : _name(std::move(name)) {}
+[QA 4] ```cpp
+static fs::path
+generate_tmp_name(const fs::path& path_template) {
+    fs::path parent = path_template.parent_path();
+    std::string filename = path_template.filename().native();
+    if (parent.empty()) {
+        parent = ".";
+    }
+    auto pos = filename.find("XX");
+    if (pos == std::string::npos) {
+        parent = path_template;
+        filename = default_tmp_name_template;
+        pos = filename.find("XX");
+        assert(pos != std::string::npos);
+    }
+    auto end = filename.size();
+    static constexpr char charset[] = "0123456789abcdef";
+    static thread_local std::default_random_engine engine(std::random_device{}());
+    static thread_local std::uniform_int_distribution<int> dist(0, sizeof(charset) - 2);
+    while (pos < end && filename[pos] == 'X') {
+        filename[pos++] = charset[dist(engine)];
+    }
+    parent /= filename;
+    return parent;
+}
+``` | static fs::path
+generate_tmp_name(const fs::path& path_template) {
+    fs::path parent = path_template.parent_path();
+    std::string filename = path_template.filename().native();
+    if (parent.empty()) {
+        parent = ".";
+    }
+    auto pos = filename.find("XX");
+    if (pos == std::string::npos) {
+        parent = path_template;
+        filename = default_tmp_name_template;
+        pos = filename.find("XX");
+        assert(pos != std::string::npos);
+    }
+    auto end = filename.size();
+    static constexpr char charset[] = "0123456789abcdef";
+    static thread_local std::default_random_engine engine(std::random_device{}());
+    static thread_local std::uniform_int_distribution<int> dist(0, sizeof(charset) - 2);
+    while (pos < end && filename[pos] == 'X') {
+        filename[pos++] = charset[dist(engine)];
+    }
+    parent /= filename;
+    return parent;
+}
+[effective] clen=66030 window=4096 chunk_ratio=0.733466 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.31it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.466933 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.40it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.360319 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.63it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.47it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.253706 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.75it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.147092 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.53it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.90it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.040479 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.06it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=3301 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.18it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3301
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/23_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 333.4s. Mem: 14.31/79.18 GB. [scbench_repoqa-23]
+
+[effective] clen=65810 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-24: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+inline constexpr __wasi_advice_t fromAdvice(int Advice) noexcept {
+  switch (Advice) {
+  case POSIX_FADV_NORMAL:
+    return __WASI_ADVICE_NORMAL;
+  case POSIX_FADV_SEQUENTIAL:
+    return __WASI_ADVICE_SEQUENTIAL;
+  case POSIX_FADV_RANDOM:
+    return __WASI_ADVICE_RANDOM;
+  case POSIX_FADV_WILLNEED:
+    return __WASI_ADVICE_WILLNEED;
+  case POSIX_FADV_DONTNEED:
+    return __WASI_ADVICE_DONTNEED;
+  case POSIX_FADV_NOREUSE:
+    return __WASI_ADVICE_NOREUSE;
+  default:
+    assumingUnreachable();
+  }
+}
+``` | inline constexpr int toAdvice(__wasi_advice_t Advice) noexcept {
+  switch (Advice) {
+  case __WASI_ADVICE_NORMAL:
+    return POSIX_FADV_NORMAL;
+  case __WASI_ADVICE_SEQUENTIAL:
+    return POSIX_FADV_SEQUENTIAL;
+  case __WASI_ADVICE_RANDOM:
+    return POSIX_FADV_RANDOM;
+  case __WASI_ADVICE_WILLNEED:
+    return POSIX_FADV_WILLNEED;
+  case __WASI_ADVICE_DONTNEED:
+    return POSIX_FADV_DONTNEED;
+  case __WASI_ADVICE_NOREUSE:
+    return POSIX_FADV_NOREUSE;
+  default:
+    assumingUnreachable();
+  }
+}
+[QA 1] ```cpp
+WasiExpect<void> INode::sockAddressAssignHelper(__wasi_address_family_t AddrFamily,
+                                                const Span<const uint8_t> &Address,
+                                                uint16_t Port) {
+  VarAddrT Addr;
+  if (Address.size() == 0) {
+    Addr.emplace<SockEmptyAddr>();
+  } else if (AddrFamily == __WASI_ADDRESS_FAMILY_INET4) {
+    auto &ServerAddr4 = Addr.emplace<sockaddr_in>();
+
+    ServerAddr4.sin_family = AF_INET;
+    ServerAddr4.sin_port = htons(Port);
+    assuming(Address.size() >= sizeof(in_addr));
+    std::memcpy(&ServerAddr4.sin_addr, Address.data(), sizeof(in_addr));
+  } else if (AddrFamily == __WASI_ADDRESS_FAMILY_INET6) {
+    auto &ServerAddr6 = Addr.emplace<sockaddr_in6>();
+
+    ServerAddr6.sin6_family = AF_INET6;
+    ServerAddr6.sin6_port = htons(Port);
+    ServerAddr6.sin6_flowinfo = 0;
+    assuming(Address.size() >= sizeof(in6_addr));
+    std::memcpy(&ServerAddr6.sin6_addr, Address.data(), sizeof(in6_addr));
+  } else if (AddrFamily == __WASI_ADDRESS_FAMILY_AF_UNIX) {
+    auto &ServerAddrUN = Addr.emplace<sockaddr_un>();
+
+    ServerAddrUN.sun_family = AF_UNIX;
+    // The length of sockaddr_un::sun_path is depend on current system
+    // We should always check the size of it.
+    assuming(Address.size() >= sizeof(sockaddr_un::sun_path));
+    std::memcpy(&ServerAddrUN.sun_path, Address.data(),
+                sizeof(sockaddr_un::sun_path));
+  } else {
+    assumingUnreachable();
+  }
+
+  return Addr;
+}
+``` | static VarAddrT sockAddressAssignHelper(__wasi_address_family_t AddrFamily,
+                                        const Span<const uint8_t> &Address,
+                                        uint16_t Port) {
+  VarAddrT Addr;
+  if (Address.size() == 0) {
+    Addr.emplace<SockEmptyAddr>();
+  } else if (AddrFamily == __WASI_ADDRESS_FAMILY_INET4) {
+    auto &ServerAddr4 = Addr.emplace<sockaddr_in>();
+
+    ServerAddr4.sin_family = AF_INET;
+    ServerAddr4.sin_port = htons(Port);
+    assuming(Address.size() >= sizeof(in_addr));
+    std::memcpy(&ServerAddr4.sin_addr, Address.data(), sizeof(in_addr));
+  } else if (AddrFamily == __WASI_ADDRESS_FAMILY_INET6) {
+    auto &ServerAddr6 = Addr.emplace<sockaddr_in6>();
+
+    ServerAddr6.sin6_family = AF_INET6;
+    ServerAddr6.sin6_port = htons(Port);
+    ServerAddr6.sin6_flowinfo = 0;
+    assuming(Address.size() >= sizeof(in6_addr));
+    std::memcpy(&ServerAddr6.sin6_addr, Address.data(), sizeof(in6_addr));
+  } else if (AddrFamily == __WASI_ADDRESS_FAMILY_AF_UNIX) {
+    auto &ServerAddrUN = Addr.emplace<sockaddr_un>();
+
+    ServerAddrUN.sun_family = AF_UNIX;
+    // The length of sockaddr_un::sun_path is depend on cruuent system
+    // We should always check the size of it.
+    assuming(Address.size() >= sizeof(sockaddr_un::sun_path));
+    std::memcpy(&ServerAddrUN.sun_path, Address.data(),
+                sizeof(sockaddr_un::sun_path));
+  } else {
+    assumingUnreachable();
+  }
+
+  return Addr;
+}
+[QA 2] ```cpp
+template <typename Container>
+inline __wasi_size_t calculateBufferSize(const Container &Array) noexcept {
+  std::vector<__wasi_size_t> Lengths(Array.size());
+  std::transform(Array.begin(), Array.end(), Lengths.begin(),
+                 [](const auto &String) -> __wasi_size_t {
+                   return static_cast<__wasi_size_t>(String.size()) +
+                          UINT32_C(1);
+                 });
+  return std::accumulate(Lengths.begin(), Lengths.end(), UINT32_C(0));
+}
+``` | inline __wasi_size_t calculateBufferSize(const Container &Array) noexcept {
+  std::vector<__wasi_size_t> Lengths(Array.size());
+  std::transform(Array.begin(), Array.end(), Lengths.begin(),
+                 [](const auto &String) -> __wasi_size_t {
+                   return static_cast<__wasi_size_t>(String.size()) +
+                          UINT32_C(1);
+                 });
+  return std::accumulate(Lengths.begin(), Lengths.end(), UINT32_C(0));
+}
+[QA 3] ```cpp
+inline constexpr __wasi_errno_t fromErrNo(int ErrNo) noexcept {
+  switch (ErrNo) {
+  case 0:
+    return __WASI_ERRNO_SUCCESS;
+  case E2BIG:
+    return __WASI_ERRNO_2BIG;
+  case EACCES:
+    return __WASI_ERRNO_ACCES;
+  case EADDRINUSE:
+    return __WASI_ERRNO_ADDRINUSE;
+  case EADDRNOTAVAIL:
+    return __WASI_ERRNO_ADDRNOTAVAIL;
+  case EAFNOSUPPORT:
+    return __WASI_ERRNO_AFNOSUPPORT;
+  case EAGAIN:
+    return __WASI_ERRNO_AGAIN;
+  case EALREADY:
+    return __WASI_ERRNO_ALREADY;
+  case EBADF:
+    return __WASI_ERRNO_BADF;
+  case EBADMSG:
+    return __WASI_ERRNO_BADMSG;
+  case EBUSY:
+    return __WASI_ERRNO_BUSY;
+  case ECANCELED:
+    return __WASI_ERRNO_CANCELED;
+  case ECHILD:
+    return __WASI_ERRNO_CHILD;
+  case ECONNABORTED:
+    return __WASI_ERRNO_CONNABORTED;
+  case ECONNREFUSED:
+    return __WASI_ERRNO_CONNREFUSED;
+  case ECONNRESET:
+    return __WASI_ERRNO_CONNRESET;
+  case EDEADLK:
+    return __WASI_ERRNO_DEADLK;
+  case EDESTADDRREQ:
+    return __WASI_ERRNO_DESTADDRREQ;
+  case EDOM:
+    return __WASI_ERRNO_DOM;
+  case EDQUOT:
+    return __WASI_ERRNO_DQUOT;
+  case EEXIST:
+    return __WASI_ERRNO_EXIST;
+  case EFAULT:
+    return __WASI_ERRNO_FAULT;
+  case EFBIG:
+    return __WASI_ERRNO_FBIG;
+  case EHOSTUNREACH:
+    return __WASI_ERRNO_HOSTUNREACH;
+  case EIDRM:
+    return __WASI_ERRNO_IDRM;
+  case EILSEQ:
+    return __WASI_ERRNO_ILSEQ;
+  case EINPROGRESS:
+    return __WASI_ERRNO_INPROGRESS;
+  case EINTR:
+    return __WASI_ERRNO_INTR;
+  case EINVAL:
+    return __WASI_ERRNO_INVAL;
+  case EIO:
+    return __WASI_ERRNO_IO | inline constexpr __wasi_errno_t fromWSAError(int WSAError) noexcept {
+  switch (WSAError) {
+  case WSATRY_AGAIN_:
+    return __WASI_ERRNO_AIAGAIN;
+  case WSAEINVAL_:
+    return __WASI_ERRNO_AIBADFLAG;
+  case WSANO_RECOVERY_:
+    return __WASI_ERRNO_AIFAIL;
+  case WSAEAFNOSUPPORT_:
+    return __WASI_ERRNO_AIFAMILY;
+  case ERROR_NOT_ENOUGH_MEMORY_:
+    return __WASI_ERRNO_AIMEMORY;
+  case WSAHOST_NOT_FOUND_:
+    return __WASI_ERRNO_AINONAME;
+  case WSATYPE_NOT_FOUND_:
+    return __WASI_ERRNO_AISERVICE;
+  case WSAESOCKTNOSUPPORT_:
+    return __WASI_ERRNO_AISOCKTYPE;
+  default:
+    assumingUnreachable();
+  }
+}
+[QA 4] ```cpp
+inline constexpr __wasi_errno_t fromErrNo(int ErrNo) noexcept {
+  switch (ErrNo) {
+  case 0:
+    return __WASI_ERRNO_SUCCESS;
+  case E2BIG:
+    return __WASI_ERRNO_2BIG;
+  case EACCES:
+    return __WASI_ERRNO_ACCES;
+  case EADDRINUSE:
+    return __WASI_ERRNO_ADDRINUSE;
+  case EADDRNOTAVAIL:
+    return __WASI_ERRNO_ADDRNOTAVAIL;
+  case EAFNOSUPPORT:
+    return __WASI_ERRNO_AFNOSUPPORT;
+  case EAGAIN:
+    return __WASI_ERRNO_AGAIN;
+  case EALREADY:
+    return __WASI_ERRNO_ALREADY;
+  case EBADF:
+    return __WASI_ERRNO_BADF;
+  case EBADMSG:
+    return __WASI_ERRNO_BADMSG;
+  case EBUSY:
+    return __WASI_ERRNO_BUSY;
+  case ECANCELED:
+    return __WASI_ERRNO_CANCELED;
+  case ECHILD:
+    return __WASI_ERRNO_CHILD;
+  case ECONNABORTED:
+    return __WASI_ERRNO_CONNABORTED;
+  case ECONNREFUSED:
+    return __WASI_ERRNO_CONNREFUSED;
+  case ECONNRESET:
+    return __WASI_ERRNO_CONNRESET;
+  case EDEADLK:
+    return __WASI_ERRNO_DEADLK;
+  case EDESTADDRREQ:
+    return __WASI_ERRNO_DESTADDRREQ;
+  case EDOM:
+    return __WASI_ERRNO_DOM;
+  case EDQUOT:
+    return __WASI_ERRNO_DQUOT;
+  case EEXIST:
+    return __WASI_ERRNO_EXIST;
+  case EFAULT:
+    return __WASI_ERRNO_FAULT;
+  case EFBIG:
+    return __WASI_ERRNO_FBIG;
+  case EHOSTUNREACH:
+    return __WASI_ERRNO_HOSTUNREACH;
+  case EIDRM:
+    return __WASI_ERRNO_IDRM;
+  case EILSEQ:
+    return __WASI_ERRNO_ILSEQ;
+  case EINPROGRESS:
+    return __WASI_ERRNO_INPROGRESS;
+  case EINTR:
+    return __WASI_ERRNO_INTR;
+  case EINVAL:
+    return __WASI_ERRNO_INVAL;
+  case EIO:
+    return __WASI_ERRNO_IO | inline __wasi_errno_t fromLastError(DWORD_ Code) noexcept {
+  switch (Code) {
+  case ERROR_INVALID_PARAMETER_: // MultiByteToWideChar
+  case ERROR_INVALID_HANDLE_:    // GetFinalPathNameByHandleW
+    return __WASI_ERRNO_INVAL;
+  case ERROR_SHARING_VIOLATION_: // CreateFile2
+  case ERROR_PIPE_BUSY_:         // CreateFile2
+    return __WASI_ERRNO_BUSY;
+  case ERROR_ACCESS_DENIED_: // CreateFile2
+    return __WASI_ERRNO_ACCES;
+  case ERROR_ALREADY_EXISTS_: // CreateFile2
+  case ERROR_FILE_EXISTS_:    // CreateFile2
+    return __WASI_ERRNO_EXIST;
+  case ERROR_FILE_NOT_FOUND_: // CreateFile2
+    return __WASI_ERRNO_NOENT;
+  case ERROR_PRIVILEGE_NOT_HELD_: // CreateSymbolicLinkW
+    return __WASI_ERRNO_PERM;
+
+  case ERROR_IO_PENDING_:             // ReadFileEx
+  case ERROR_HANDLE_EOF_:             // ReadFileEx
+  case ERROR_INSUFFICIENT_BUFFER_:    // MultiByteToWideChar
+  case ERROR_INVALID_FLAGS_:          // MultiByteToWideChar
+  case ERROR_NO_UNICODE_TRANSLATION_: // MultiByteToWideChar
+  default:
+    return __WASI_ERRNO_NOSYS;
+  }
+}
+[effective] clen=65810 window=4096 chunk_ratio=0.733407 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
