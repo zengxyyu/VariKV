@@ -60,6 +60,14 @@ class LearnedControlRetainCache(RetainCache):
 
     @property
     def active(self) -> bool:
+        # `VARIKV_CTRL_OFF=1`：**硬关**学习臂，`score` 保持 `score0` 不变 ⇒ 该次运行
+        # 与不带 ckpt 的原生基线**逐位相同**，但仍保留 dump / 注入能力。
+        # 为什么需要这个开关：跨方法精确移植要求捐赠方的配额是**干净**的，而
+        # `--ctrlm_alpha 0` 走 logit 路径（`_p = 1e-6`）得到的是 alpha ≈ 1e-6·alpha_max
+        # 而**不是精确 0**，`active` 仍为真、Δs 仍非零。逐 chunk 的微扰会改变保留集，
+        # 进而污染**后续** chunk 的 `score0` —— 那正是 dump 要采的量。
+        if os.environ.get("VARIKV_CTRL_OFF"):
+            return False
         return self.ctrl is not None and float(self.ctrl.alpha) != 0.0
 
     def _ensure_state(self):
@@ -155,6 +163,54 @@ class LearnedControlRetainCache(RetainCache):
         # 取 top-b。由保序重标定≡配额分配的等价定理，这与"某个保序打分器"完全等价。
         # 注意跨 panel 那张表不迁移（Retr.KV 与 MultiHop 相关 −0.204），所以这只是
         # **组内**命题的检验，不是一个通用方法。
+        # --- 逐样本逐 chunk 的**绝对配额**注入（跨方法精确移植，默认关闭）---------
+        # 与 `VARIKV_QUOTA_INJECT` 的区别：那个注入的是**增量表**（b⁰ + Δ），
+        # 而且表是跨文档平均的。外部复核正确指出：平均表分不清「本方法排序不好」
+        # 与「没给它这个文档真正的配额」—— 对同一 chunk 位置，不同文档的捐赠方
+        # 配额本就不同，平均后再喂给文档 1，结果差无法归因。
+        #
+        # 精确移植：同一样本先跑捐赠方存下 `b^donor_{sample,chunk,l,h}`，再用本方法
+        # 的排序按**完全相同**的配额重放 ⇒ **配额逐位相同，唯一变量是排序**。
+        #
+        # 对齐是这里最危险的地方（cache 每样本重建，样本号只能靠模块级计数），
+        # 所以 npz 里同时存 `lo`/`hi`，每个 chunk 都断言匹配 —— **宁可崩，也不要
+        # 静默错位**（错位会让实验看起来跑通、结果却是拿别的样本的配额）。
+        _qa = os.environ.get("VARIKV_QUOTA_ABS")
+        if _qa:
+            with torch.no_grad():
+                import numpy as _np
+                g = globals()
+                if not hasattr(self, "_qabs"):
+                    if "_VARIKV_QABS" not in g:
+                        z = _np.load(_qa)
+                        g["_VARIKV_QABS"] = {k: z[k] for k in z.files}
+                        g["_VARIKV_QABS_S"] = -1
+                    g["_VARIKV_QABS_S"] += 1              # 新 cache = 新样本
+                    self._qabs = g["_VARIKV_QABS"]
+                    self._qabs_s = g["_VARIKV_QABS_S"]
+                    self._qabs_c = 0
+                Z, si, ci = self._qabs, self._qabs_s, self._qabs_c
+                assert si < Z["quota"].shape[0], f"样本号 {si} 超出表 {Z['quota'].shape}"
+                assert ci < int(Z["nchunk"][si]), f"chunk 号 {ci} 超出样本 {si}"
+                assert int(Z["lo"][si, ci]) == int(lo) and int(Z["hi"][si, ci]) == int(hi), \
+                    (f"配额表对齐失败：样本 {si} chunk {ci} 期望 "
+                     f"lo/hi=({int(Z['lo'][si,ci])},{int(Z['hi'][si,ci])}) 实得 ({lo},{hi})")
+                self._qabs_c += 1
+                sc = score0[:, 0]
+                L, H, n = sc.shape
+                q = torch.as_tensor(Z["quota"][si, ci], dtype=torch.long,
+                                    device=sc.device)
+                assert q.numel() == L * H, f"配额维度 {q.numel()} != {L*H}"
+                want = int(q.sum().item())
+                q = q.clamp(0, n)
+                assert int(q.sum().item()) == want, \
+                    f"clamp 改变了总预算 {want} -> {int(q.sum().item())}（n={n} 太小）"
+                idx = torch.argsort(sc.reshape(L * H, n), dim=-1, descending=True)
+                nv = torch.zeros(L * H, n, dtype=torch.bool, device=sc.device)
+                nv.scatter_(1, idx,
+                            torch.arange(n, device=sc.device)[None, :] < q[:, None])
+                valid = nv.reshape(L, H, n)
+
         _qi = os.environ.get("VARIKV_QUOTA_INJECT")
         if _qi:
             with torch.no_grad():
