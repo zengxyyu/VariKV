@@ -127,6 +127,28 @@ class LearnedControlRetainCache(RetainCache):
                 self.flip_frac.append(float((valid ^ v0).float().mean()))
                 self.retain_delta.append(int(valid.sum()) - int(v0.sum()))
 
+        # --- 评测时的保序自检（默认关闭，env 开）------------------------------
+        # 「网络的选择 ≡ 它的配额向量」此前只在 fineweb trace 上验过（逆序对
+        # 0/628,320、配额重放 22/22）。**评测分布上没验过** —— scbench 的 z 范围
+        # 可能落到 `scratch_probe_monotone.py` 的网格证书 z∈[−14.65,87.36] 之外。
+        # 这里在真实评测分数上直接比：把本臂的每头配额取出来，按 `s⁰` 原序重放，
+        # 与本臂实际选出的掩码逐位 XOR。0 ⇒ 保序性在评测分布上成立。
+        if os.environ.get("VARIKV_RANK_SELFCHECK") and self.active and ratio < 1:
+            with torch.no_grad():
+                _v0r, _ = self.threshold(score0, ratio, level)
+                _s0 = score0[:, 0]; _L, _H, _n = _s0.shape
+                _q = valid.reshape(_L * _H, _n).sum(-1)
+                _idx = torch.argsort(_s0.reshape(_L * _H, _n), dim=-1, descending=True)
+                _rp = torch.zeros(_L * _H, _n, dtype=torch.bool, device=_s0.device)
+                _rp.scatter_(1, _idx,
+                             torch.arange(_n, device=_s0.device)[None, :] < _q[:, None])
+                _x = int((_rp.reshape(_L, _H, _n) ^ valid).sum())
+                self._rank_xor = getattr(self, "_rank_xor", 0) + _x
+                self._rank_tot = getattr(self, "_rank_tot", 0) + int(valid.numel())
+                print(f"[rank-selfcheck] lo={lo} 配额重放与实际掩码不同 {_x}"
+                      f" / {valid.numel()}  累计 {self._rank_xor}/{self._rank_tot}",
+                      flush=True)
+
         # --- 静态配额注入：把网络整个换掉，只保留一张逐头配额表（默认关闭）------
         # 组内测得 `Δb` 有 97% 的方差由一个逐头常数解释（留出验证）。这里检验它够不够：
         # **丢掉网络、丢掉逐 token 修正、头内退回 `s⁰` 原序**，只按 `b_base + Δb_h`
