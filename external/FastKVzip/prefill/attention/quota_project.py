@@ -26,6 +26,8 @@ target 让投影去"自动消掉"多余分量：
 within / across 不要求相加等于 full：它们是**各自锁死一个约束以隔离一个通道**的
 两个干预，不是加性分解。
 """
+import os
+
 import torch
 
 
@@ -61,13 +63,33 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads):
     函数末尾直接断言而不做兜底修补 —— 若将来投影出 bug，必须让它崩，而不是被
     一个通用修补循环悄悄"修好"同时破坏因果不变量（那正是本项目栽过的坑）。
     """
-    assert mode in ("full", "within", "across"), mode
+    assert mode in ("full", "within", "across", "floor"), mode
     L, H = int(n_layers), int(n_heads)
     assert b0.numel() == L * H and delta.numel() == L * H
     Btot = int(b0.sum().item())
     tgt = (b0 + delta).clamp(0, n)
 
-    if mode == "full":
+    if mode == "floor":
+        # **防饿死对照**：完全不用 `delta` 的方向，只强制 b_g ≥ b_min，
+        # 缺口按 (b⁰ − b_min)⁺ 的比例从富余头等量扣回，总预算不变。
+        # 为什么必须有这个对照：`fastkvzip@pair` 在 ρ=0.2 有 41.3% 的头零配额，
+        # 而 `adakv-layer` 的 `safeguard=0.2` 本身就是一个逐头地板 ——
+        # 若我们的 +25.80 主要只是"别把头饿死"，整套配额校准理论就塌成一个
+        # 已被 Ada-KV 覆盖的启发式。离线预检显示学到的正向配额只有 2.3% 流向
+        # 饿死头（随机应为 41.3%），但**质量不等于效果**，必须真跑。
+        bmin = float(os.environ.get("VARIKV_QUOTA_FLOOR", "0"))
+        bmin = min(bmin, float(n))
+        assert bmin * L * H <= Btot, f"地板 {bmin} × {L*H} 超过总预算 {Btot}"
+        t = torch.maximum(b0, torch.full_like(b0, bmin))
+        excess = float(t.sum() - Btot)                      # ≥ 0
+        if excess > 0:
+            room = (b0 - bmin).clamp(min=0)                 # 可扣回的量
+            tot_room = float(room.sum())
+            assert tot_room >= excess, "富余不足以填地板"
+            t = t - room * (excess / tot_room)
+        t = t.clamp(0, n)
+        bt = rebalance(t.round().long().clamp(0, n), t, Btot, n)
+    elif mode == "full":
         bt = rebalance(tgt.round().long().clamp(0, n), tgt, Btot, n)
     else:
         b0m = b0.reshape(L, H)

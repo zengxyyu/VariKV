@@ -126,6 +126,17 @@ def main():
                         bad += 1
     chk("T7 极端饱和下仍满足全部不变量", bad == 0, f"{bad} 违反")
 
+    # T8 floor：不得有头低于 b_min（除非 n < b_min），且预算守恒
+    bad = 0
+    for bmin in (1, 8, 32, 128):
+        os.environ["VARIKV_QUOTA_FLOOR"] = str(bmin)
+        for b0, n in C:
+            b = project(b0, np.zeros(112), n, "floor")
+            if b.sum() != b0.sum() or b.min() < min(bmin, n) - 1e-9 or b.max() > n:
+                bad += 1
+    os.environ.pop("VARIKV_QUOTA_FLOOR", None)
+    chk("T8 floor 满足 b>=b_min 且预算守恒", bad == 0, f"{bad} 违反")
+
     print(f"\n{'全部通过' if not fails else '失败: ' + ', '.join(fails)}")
     return 1 if fails else 0
 
