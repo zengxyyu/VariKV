@@ -137,6 +137,21 @@ def main():
     os.environ.pop("VARIKV_QUOTA_FLOOR", None)
     chk("T8 floor 满足 b>=b_min 且预算守恒", bad == 0, f"{bad} 违反")
 
+    # T9 地板不可行（Btot < b_min·112）时必须饱和到均匀而非崩溃
+    bad = 0
+    for bmin in (32, 128, 4096):
+        os.environ["VARIKV_QUOTA_FLOOR"] = str(bmin)
+        for tot, n in ((3514, 900), (112, 50), (5, 10)):   # 极小总预算
+            b0 = np.zeros(112); b0[:4] = tot / 4.0         # 全部集中在 4 个头
+            try:
+                b = project(b0, np.zeros(112), n, "floor")
+            except Exception:
+                bad += 1; continue
+            if abs(b.sum() - b0.sum()) > 1e-9 or b.min() < 0 or b.max() > n:
+                bad += 1
+    os.environ.pop("VARIKV_QUOTA_FLOOR", None)
+    chk("T9 地板不可行时饱和而非崩溃", bad == 0, f"{bad} 违反")
+
     print(f"\n{'全部通过' if not fails else '失败: ' + ', '.join(fails)}")
     return 1 if fails else 0
 

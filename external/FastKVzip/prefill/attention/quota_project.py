@@ -79,7 +79,13 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads):
         # 饿死头（随机应为 41.3%），但**质量不等于效果**，必须真跑。
         bmin = float(os.environ.get("VARIKV_QUOTA_FLOOR", "0"))
         bmin = min(bmin, float(n))
-        assert bmin * L * H <= Btot, f"地板 {bmin} × {L*H} 超过总预算 {Btot}"
+        # **地板不可行时饱和到均匀分配，而不是崩。** 文档末尾的短 chunk 总预算可能
+        # 小于 `b_min × 112`（实测 PrefSuf 有 Btot=3514 的 chunk，`b_min=32` 需要
+        # 3584）。此时"每个头至少 b_min"在数学上无解，其**连续极限**就是均匀分配
+        # `Btot/(L·H)`，所以取 `min(b_min, Btot//(L·H))`。
+        # 这不是把断言改宽：断言原本就抓到了真实的不可行，只是原来的处理方式
+        # （直接崩）让整个作业挂掉，而正确的降级是走到该约束的边界。
+        bmin = min(bmin, float(Btot // (L * H)))
         t = torch.maximum(b0, torch.full_like(b0, bmin))
         excess = float(t.sum() - Btot)                      # ≥ 0
         if excess > 0:
