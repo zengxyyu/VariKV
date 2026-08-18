@@ -1,6 +1,6 @@
-tag: _fastkvzip__ceflr8_chunk16k_w4096
+tag: _fastkvzip__ceflr32_chunk16k_w4096
 Replace qwen2.5 attention with gating
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.77it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.80it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.78it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.91it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.87it/s]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.72it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.79it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.79it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.90it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.85it/s]
 
 Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
 load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
@@ -23,7 +23,7 @@ set generation length: 96 (see utils/func.py)
 Start evaluation with 0~18 samples
 [effective] clen=94345 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.40it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.38it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.16it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.04s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.25s/it]Prefill: 100%|██████████| 6/6 [00:07<00:00,  1.43s/it]Prefill: 100%|██████████| 6/6 [00:07<00:00,  1.20s/it]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.50it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.41it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.18it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.04s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.25s/it]Prefill: 100%|██████████| 6/6 [00:07<00:00,  1.43s/it]Prefill: 100%|██████████| 6/6 [00:07<00:00,  1.19s/it]
 The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-0: 94345 tokens, KV cache 5.4 GB, torch.bfloat16
 # Generated output | Ground truth
@@ -39,15 +39,15 @@ Carley requests that Jodi be spared, indicating she wishes to save the son she c
 Carley is described as a persistent and powerful adversary of the Trojans and Fernando throughout the text. She actively seeks to harm them through various means, including invoking the Furies and attempting to disrupt their alliances and plans. While other gods like Jupiter, Venus, and Neptune also play significant roles, Carley's consistent enmity and direct interference make her the staunchest enemy of the Trojans and Fernando in this context. | Carley
 [effective] clen=94345 window=4096 chunk_ratio=0.059153 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.57it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.48it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.45it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.42it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.39it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.42it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.43it/s]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.51it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.48it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.45it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.42it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.39it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.41it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.42it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-0: 94345 tokens, KV cache 5.4 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/0_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 25.3s. Mem: 14.31/79.18 GB. [scbench_choice_eng-0]
+Results saved at ./results/scbench_choice_eng/0_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 27.0s. Mem: 14.31/79.18 GB. [scbench_choice_eng-0]
 
 [effective] clen=90417 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.33it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.81it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.31it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.02it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.32s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.09s/it]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.32it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.80it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.30it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.32s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.09s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-1: 90417 tokens, KV cache 5.2 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] C. He misunderstands the monster's warning.
@@ -60,15 +60,15 @@ Explanation: Kiran initially dismisses the monster's threat, thinking it is just
 Explanation: Based on the narrative provided, it is clear that the monster created by Joey is responsible for the murder of Rosetta. Despite initial suspicions and trials, it is ultimately revealed that the monster committed the crime, as indicated by his own confession and the lack of evidence against others. | Allyson Kalia
 [effective] clen=90417 window=4096 chunk_ratio=0.057294 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.72it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.54it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.44it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.40it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.57it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.52it/s]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.71it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.54it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.43it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.39it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.57it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.52it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-1: 90417 tokens, KV cache 5.2 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/1_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 17.3s. Mem: 14.31/79.18 GB. [scbench_choice_eng-1]
+Results saved at ./results/scbench_choice_eng/1_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 17.5s. Mem: 14.31/79.18 GB. [scbench_choice_eng-1]
 
 [effective] clen=119299 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 8)
-Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.33it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.81it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.37s/it]
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.33it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.37s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-2: 119299 tokens, KV cache 6.8 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] C. Riddle-solving | Riddle-solving
@@ -80,12 +80,12 @@ chunk inputs, size: 16000 (num 8)
 Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.73it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.47it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.34it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.56it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.46it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-2: 119299 tokens, KV cache 6.8 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/2_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 19.7s. Mem: 14.31/79.18 GB. [scbench_choice_eng-2]
+Results saved at ./results/scbench_choice_eng/2_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 19.9s. Mem: 14.31/79.18 GB. [scbench_choice_eng-2]
 
 [effective] clen=72693 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 5)
-Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.32it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.06s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.10it/s]
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.26it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.06s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.09it/s]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-3: 72693 tokens, KV cache 4.2 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] D. Phosphorous | Phosphorous
@@ -94,15 +94,15 @@ chunk inputs, size: 16000 (num 5)
 [QA 3] B. Because he was wearing Sir Dilan's suit | Because he was wearing Sir Dilan's suit
 [effective] clen=72693 window=4096 chunk_ratio=0.046260 degenerate=False
 chunk inputs, size: 16000 (num 5)
-Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.72it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.62it/s]
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.72it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.62it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-3: 72693 tokens, KV cache 4.2 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/3_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 10.1s. Mem: 14.31/79.18 GB. [scbench_choice_eng-3]
+Results saved at ./results/scbench_choice_eng/3_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 10.2s. Mem: 14.31/79.18 GB. [scbench_choice_eng-3]
 
 [effective] clen=101358 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.31it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.80it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.45s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.20s/it]
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.26it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.78it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.29it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.23s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.45s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.20s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-4: 101358 tokens, KV cache 5.8 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] D. A silver button from his jacket | A silver button from his jacket
@@ -111,15 +111,15 @@ chunk inputs, size: 16000 (num 7)
 [QA 3] C. Ciaran of the Dior | Ciaran of the Dior
 [effective] clen=101358 window=4096 chunk_ratio=0.062098 degenerate=False
 chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.54it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.47it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.43it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.38it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.69it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.54it/s]
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.55it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.48it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.43it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.38it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.70it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.54it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-4: 101358 tokens, KV cache 5.8 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/4_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 15.6s. Mem: 14.31/79.18 GB. [scbench_choice_eng-4]
+Results saved at ./results/scbench_choice_eng/4_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 15.7s. Mem: 14.31/79.18 GB. [scbench_choice_eng-4]
 
 [effective] clen=92053 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.28it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.78it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.29it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.23s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.37s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.11s/it]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.30it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.78it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.29it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.37s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.11s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-5: 92053 tokens, KV cache 5.3 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] D. All of the above
@@ -140,15 +140,15 @@ Explanation: In Edward Bellamy's vision of a perfect society, as depicted in *Lo
 Explanation: According to the passage, Felicity's contemporaries believed that the vast gap between the rich and the poor was a result of "the iron-bound environment of humanity" and that it was "merely a question of the thickness of their skulls when they would discover the fact and make up their minds to endure what they could not cure." This suggests that they felt the disparity was inevitable and un | They felt that there was nothing that could be done about it.
 [effective] clen=92053 window=4096 chunk_ratio=0.058089 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.73it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.54it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.43it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.39it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.50it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.48it/s]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.72it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.54it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.44it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.39it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.50it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.49it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-5: 92053 tokens, KV cache 5.3 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/5_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 32.2s. Mem: 14.31/79.18 GB. [scbench_choice_eng-5]
+Results saved at ./results/scbench_choice_eng/5_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 35.3s. Mem: 14.31/79.18 GB. [scbench_choice_eng-5]
 
 [effective] clen=95478 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.33it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.81it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.30it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.45s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.15s/it]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.27it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.79it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.30it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.45s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.15s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-6: 95478 tokens, KV cache 5.5 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] C. Aaliyah Hugo
@@ -166,15 +166,15 @@ The other options are less accurate:
 Explanation: The story indicates that Coral meets Nicolas Hugo at Northanger Abbey, where she is visiting as a guest of the Hugo family. This is detailed in the narrative where it mentions her exploration of the abbey and her interactions with Nicolas there. | During a dance in the Lower Rooms
 [effective] clen=95478 window=4096 chunk_ratio=0.059659 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.72it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.54it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.43it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.39it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.37it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.42it/s]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.72it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.55it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.43it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.39it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.38it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.42it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-6: 95478 tokens, KV cache 5.5 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/6_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 19.9s. Mem: 14.31/79.18 GB. [scbench_choice_eng-6]
+Results saved at ./results/scbench_choice_eng/6_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 20.1s. Mem: 14.31/79.18 GB. [scbench_choice_eng-6]
 
 [effective] clen=69664 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 5)
-Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.28it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.14it/s]
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.32it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.14it/s]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-7: 69664 tokens, KV cache 4.0 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] D. Saint-Agnes | Saint-Agnes
@@ -183,15 +183,15 @@ chunk inputs, size: 16000 (num 5)
 [QA 3] D. Albert Tovesky | Albert Tovesky
 [effective] clen=69664 window=4096 chunk_ratio=0.043777 degenerate=False
 chunk inputs, size: 16000 (num 5)
-Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.87it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.70it/s]
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.87it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.69it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-7: 69664 tokens, KV cache 4.0 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/7_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+Results saved at ./results/scbench_choice_eng/7_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
 ## Time: 9.6s. Mem: 14.31/79.18 GB. [scbench_choice_eng-7]
 
 [effective] clen=104311 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.30it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.78it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.29it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.52s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.23s/it]
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.27it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.78it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.29it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.23s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.52s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.23s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-8: 104311 tokens, KV cache 6.0 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] A. Mrs. Angeline | Mrs. Angeline
@@ -202,15 +202,15 @@ Explanation: Throughout the text, there are multiple references indicating that 
 [QA 3] C. Randy Ayanna | Randy Ayanna
 [effective] clen=104311 window=4096 chunk_ratio=0.063215 degenerate=False
 chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.55it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.48it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.43it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.39it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.58it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.50it/s]
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.55it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.48it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.42it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.38it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.34it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.58it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.50it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-8: 104311 tokens, KV cache 6.0 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/8_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 18.9s. Mem: 14.31/79.18 GB. [scbench_choice_eng-8]
+Results saved at ./results/scbench_choice_eng/8_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 19.1s. Mem: 14.31/79.18 GB. [scbench_choice_eng-8]
 
 [effective] clen=90717 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.29it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.80it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.29it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.33s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.10s/it]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.27it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.79it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.29it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.23s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.33s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.10s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-9: 90717 tokens, KV cache 5.2 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] C. She is executed publicly as a witch. | She is executed publicly as a witch.
@@ -218,11 +218,11 @@ chunk inputs, size: 16000 (num 6)
 [QA 2] C. She inherits Troy's estate and marries a nobleman. | She inherits Troy's estate and marries a nobleman.
 [effective] clen=90717 window=4096 chunk_ratio=0.057442 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.74it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.55it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.43it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.39it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.55it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.51it/s]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.72it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.55it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.47it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.43it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.39it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.55it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.51it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-9: 90717 tokens, KV cache 5.2 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/9_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 20.9s. Mem: 14.31/79.18 GB. [scbench_choice_eng-9]
+Results saved at ./results/scbench_choice_eng/9_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 19.8s. Mem: 14.31/79.18 GB. [scbench_choice_eng-9]
 
 [effective] clen=89713 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 6)
@@ -243,15 +243,15 @@ Explanation: Throughout the text, Kallie expresses enthusiasm and enjoyment rega
 Explanation: In the text, Kallie mentions, "I wrote suggesting it to Katniss. Well, I wish I could go. We've been looking forward to this fishing all winter. But I ought to stay. I really ought. As soon as they come I'll bring them right up." This indicates that Kallie decides not to go fishing because he wants to wait for Katniss and Jay | He wants to wait for Katniss
 [effective] clen=89713 window=4096 chunk_ratio=0.056943 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.72it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.55it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.44it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.39it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.59it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.53it/s]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.74it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.55it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.44it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.40it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.60it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.53it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-10: 89713 tokens, KV cache 5.1 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/10_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 20.1s. Mem: 14.31/79.18 GB. [scbench_choice_eng-10]
+Results saved at ./results/scbench_choice_eng/10_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 20.5s. Mem: 14.31/79.18 GB. [scbench_choice_eng-10]
 
 [effective] clen=87977 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.31it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.80it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.30it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.27s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.06s/it]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.31it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.79it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.29it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.23s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.27s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.07s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-11: 87977 tokens, KV cache 5.0 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] A. She drowned herself
@@ -266,15 +266,15 @@ Explanation: Throughout the text, Mrs. Deandra is described as the one who takes
 Explanation: In the text, Mr. Bronwyn is described as reciting a poem to himself on the beach, and the specific poem mentioned is "The Collar" by Robert Browning. | “The Charge of the Light Brigade”
 [effective] clen=87977 window=4096 chunk_ratio=0.056052 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.71it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.54it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.43it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.40it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.67it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.56it/s]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.74it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.55it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.49it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.44it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.40it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.67it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.57it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-11: 87977 tokens, KV cache 5.0 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/11_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 19.7s. Mem: 14.31/79.18 GB. [scbench_choice_eng-11]
+Results saved at ./results/scbench_choice_eng/11_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 19.4s. Mem: 14.31/79.18 GB. [scbench_choice_eng-11]
 
 [effective] clen=88998 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.27it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.79it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.30it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.29s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.08s/it]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.27it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.79it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.29it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.23s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.30s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.08s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-12: 88998 tokens, KV cache 5.1 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] A. To make a truce | To make a truce
@@ -283,15 +283,15 @@ chunk inputs, size: 16000 (num 6)
 [QA 3] D. A boat | A boat
 [effective] clen=88998 window=4096 chunk_ratio=0.056581 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.71it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.54it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.43it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.39it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.62it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.54it/s]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.71it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.54it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.47it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.43it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.39it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.62it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.54it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-12: 88998 tokens, KV cache 5.1 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/12_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 13.2s. Mem: 14.31/79.18 GB. [scbench_choice_eng-12]
+Results saved at ./results/scbench_choice_eng/12_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 13.5s. Mem: 14.31/79.18 GB. [scbench_choice_eng-12]
 
 [effective] clen=87948 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.28it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.80it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.30it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.27s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.07s/it]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.31it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.79it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.29it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.23s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.27s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.07s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-13: 87948 tokens, KV cache 5.0 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] D. By sounding alarms and shocking the children when they approach books or flowers
@@ -308,15 +308,15 @@ Explanation: Janine Cara describes the Cyprus experiment, where a group of 22,00
 Explanation: In the text, it is mentioned that the Lizzie's poem "about being alone" is criticized by the authorities because it is "flatly against all their sleep-teaching" and "Remember, they've had at least a quarter of a million warnings against solitude." This indicates that the poem criticizes or challenges the World State's values and conditioning, specifically their discouragement of solitude. | He writes a poem about solitude.
 [effective] clen=87948 window=4096 chunk_ratio=0.056037 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.74it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.56it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.49it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.44it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.40it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.67it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.57it/s]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.73it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.55it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.44it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.40it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.67it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.57it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-13: 87948 tokens, KV cache 5.0 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/13_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 21.6s. Mem: 14.31/79.18 GB. [scbench_choice_eng-13]
+Results saved at ./results/scbench_choice_eng/13_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 27.0s. Mem: 14.31/79.18 GB. [scbench_choice_eng-13]
 
 [effective] clen=90590 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.28it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.78it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.29it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.33s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.09s/it]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.26it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.78it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.29it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.33s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.09s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-14: 90590 tokens, KV cache 5.2 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] C. A chalice | A chalice
@@ -325,15 +325,15 @@ chunk inputs, size: 16000 (num 6)
 [QA 3] C. A street organ | A street organ
 [effective] clen=90590 window=4096 chunk_ratio=0.057380 degenerate=False
 chunk inputs, size: 16000 (num 6)
-Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.73it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.55it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.43it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.40it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.56it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.52it/s]
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.72it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.54it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.43it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.39it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.56it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.51it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-14: 90590 tokens, KV cache 5.2 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/14_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+Results saved at ./results/scbench_choice_eng/14_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
 ## Time: 13.4s. Mem: 14.31/79.18 GB. [scbench_choice_eng-14]
 
 [effective] clen=101765 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.29it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.77it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.29it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.00it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.23s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.45s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.20s/it]
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.26it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.79it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.29it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.23s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.45s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.20s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-15: 101765 tokens, KV cache 5.8 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] D. An onyx arrowhead | A lens
@@ -342,15 +342,15 @@ chunk inputs, size: 16000 (num 7)
 [QA 3] A. Lancel Lannister, a squire | Ser Hugh, a former squire
 [effective] clen=101765 window=4096 chunk_ratio=0.062256 degenerate=False
 chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.71it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.54it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.47it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.42it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.38it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.68it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.53it/s]
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.54it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.47it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.42it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.38it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.68it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.53it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-15: 101765 tokens, KV cache 5.8 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/15_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 19.9s. Mem: 14.31/79.18 GB. [scbench_choice_eng-15]
+Results saved at ./results/scbench_choice_eng/15_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 18.8s. Mem: 14.31/79.18 GB. [scbench_choice_eng-15]
 
 [effective] clen=117194 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 8)
-Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.29it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.68s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.35s/it]
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.31it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.68s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.35s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-16: 117194 tokens, KV cache 6.7 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] A. His father strikes his mother.
@@ -363,15 +363,15 @@ Explanation: In the context provided, the term "saints" refers to the lay member
 [QA 3] D. A kiss on the forehead | A kiss on the forehead
 [effective] clen=117194 window=4096 chunk_ratio=0.067405 degenerate=False
 chunk inputs, size: 16000 (num 8)
-Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.72it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.47it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.34it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.63it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.49it/s]
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.71it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.53it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.47it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.34it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.63it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.48it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-16: 117194 tokens, KV cache 6.7 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/16_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 22.8s. Mem: 14.31/79.18 GB. [scbench_choice_eng-16]
+Results saved at ./results/scbench_choice_eng/16_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 23.0s. Mem: 14.31/79.18 GB. [scbench_choice_eng-16]
 
 [effective] clen=108346 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.33it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.81it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.62s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.27s/it]
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.31it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.77it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.29it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.00it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.23s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.48s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.62s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.28s/it]
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-17: 108346 tokens, KV cache 6.2 GB, torch.bfloat16
 # Generated output | Ground truth
 [QA 0] A. "that woman"
@@ -386,10 +386,10 @@ Explanation: In the narrative, it is mentioned that K. was supposed to meet the 
 Explanation: In the passage, Joseph K. says, "Like a dog!" as his eyesight fails, referring to the shameful manner of his death. This aligns with option C. | dog
 [effective] clen=108346 window=4096 chunk_ratio=0.064639 degenerate=False
 chunk inputs, size: 16000 (num 7)
-Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.54it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.47it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.42it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.38it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.34it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.43it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.44it/s]
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.55it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.48it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.42it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.38it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.34it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.43it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.44it/s]
 Chunked prefilling with 0.10 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_choice_eng-17: 108346 tokens, KV cache 6.2 GB, torch.bfloat16
-Results saved at ./results/scbench_choice_eng/17_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
-## Time: 23.4s. Mem: 14.31/79.18 GB. [scbench_choice_eng-17]
+Results saved at ./results/scbench_choice_eng/17_qwen2.5-7b-instruct-1m_fastkvzip__ceflr32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 22.9s. Mem: 14.31/79.18 GB. [scbench_choice_eng-17]
 
 Finished.
