@@ -170,8 +170,17 @@ def main():
                          "先前只能靠人工把 stdout 贴进去 —— 在无人值守的循环里，"
                          "一个 `| tail -12` 就把输出截断了而毫无提示。")
     a = ap.parse_args()
+    # 多种子臂写成 ("SEEDS", tag 模板, 完成判定)；单 ckpt 臂给 lambda；质心给 None。
+    # **`scalar` / `kv` 是原版 v2 代码（`scratch_ctrl_train.py --arch`）训的**，
+    # 不是干净版 v2（`varikv_v2.py` 只重写了记忆架构，没有因子臂）。三者共用同一批
+    # teacher trace `scratch_ctrl_traces_v2_10`（10 篇、8/2 划分），只是 `--arch` 不同。
+    # 它们**只在 scbench_kv 上评过，且只有 ρ∈{0.1,0.2}** —— 其余格显示 `—` 是
+    # **没跑**，不是跑失败。
     ARMS = [("v2", lambda d: "__g8v2_chunk16k_w4096_ctrlmmemo8"),
-            ("v2c", "SEEDS"),        # 干净版 v2（varikv_v2.py），3 种子逐个算再平均
+            ("v2c", ("SEEDS", "__v2c_s{S}_chunk16k_w4096_ctrlmmemo8", v2c_done)),
+            ("scalar", ("SEEDS",
+                        "__d10scalar_s{S}_chunk16k_w4096_ctrlmstat8_scalar", None)),
+            ("kv", ("SEEDS", "__d10kv_s{S}_chunk16k_w4096_ctrlmstat8_kv", None)),
             ("v3", lambda d: "__g8v3_chunk16k_w4096_ctrlmmemo8"),
             ("cen16", None), ("cen1024", None)]     # 质心按 ratio 选 tag
     agg = {a_: {r: [] for r in RAT} for a_, _ in ARMS}
@@ -182,9 +191,22 @@ def main():
         full = np.mean(list(B[1.0].values())) * 100 if B[1.0] else float("nan")
         for a_, sfx in ARMS:
             seeds = None
+            seed_tpl = None
             try:
-                if sfx == "SEEDS":                       # 干净版 v2：3 个训练种子
-                    seeds = [S for S in (0, 1, 2) if v2c_done(d, S)]
+                if isinstance(sfx, tuple) and sfx[0] == "SEEDS":
+                    _tpl, _done = sfx[1], sfx[2]
+                    if _done is not None:
+                        seeds = [S for S in (0, 1, 2) if _done(d, S)]
+                    else:
+                        # 没有专用完成日志时的通用完备性判定：**要求该臂的样本数
+                        # 与本 panel 基线的样本数相等**。比固定阈值稳（choice_eng
+                        # 只有 18 条也算完整），也比只看"有没有目录"稳（能挡住
+                        # 跑到一半的作业）。
+                        _n = len(B.get(0.2) or B.get(1.0) or {})
+                        seeds = [S for S in (0, 1, 2)
+                                 if _n and len(per_sample(
+                                     d, _tpl.format(S=S), 0.2)) == _n]
+                    seed_tpl = _tpl
                     A = {}
                 elif sfx is None:                        # 质心：逐 ratio 找 tag
                     K = 16 if a_ == "cen16" else 1024
@@ -204,8 +226,7 @@ def main():
                 if seeds is not None:                    # 多种子：逐种子算再平均
                     ms = []
                     for S in seeds:
-                        c = cell(B[r], per_sample(
-                            d, f"__v2c_s{S}_chunk16k_w4096_ctrlmmemo8", r))
+                        c = cell(B[r], per_sample(d, seed_tpl.format(S=S), r))
                         if c:
                             ms.append(c)
                     if not ms:
