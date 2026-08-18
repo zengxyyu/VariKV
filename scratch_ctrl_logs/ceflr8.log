@@ -1,0 +1,97 @@
+tag: _fastkvzip__ceflr8_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.77it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.80it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.78it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.91it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.87it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/d10_scalar_s0.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.5K
+['scbench_choice_eng']
+
+scbench_choice_eng loaded, #data: 18
+set generation length: 96 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~18 samples
+[effective] clen=94345 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.40it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.38it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.16it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.04s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.25s/it]Prefill: 100%|██████████| 6/6 [00:07<00:00,  1.43s/it]Prefill: 100%|██████████| 6/6 [00:07<00:00,  1.20s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-0: 94345 tokens, KV cache 5.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] B. Jaelynn
+
+Explanation: In Book I, it is mentioned that the queen of Carthage is Jaelynn, a Tyrian colony established by refugees fleeing from a tyrannical ruler. The text describes her as someone who rules the growing state of Carthage and is beloved by Carley more than her own homeland. | Jaelynn
+[QA 1] B. That Jodi be spared
+
+Carley requests that Jodi be spared, indicating she wishes to save the son she cares for, even as she acknowledges the fated outcome of the Trojan victory. | That Italy inherit the Latins' name and language and not the Trojans'
+[QA 2] A. 12 days | 12 days
+[QA 3] D. Carley
+
+Carley is described as a persistent and powerful adversary of the Trojans and Fernando throughout the text. She actively seeks to harm them through various means, including invoking the Furies and attempting to disrupt their alliances and plans. While other gods like Jupiter, Venus, and Neptune also play significant roles, Carley's consistent enmity and direct interference make her the staunchest enemy of the Trojans and Fernando in this context. | Carley
+[effective] clen=94345 window=4096 chunk_ratio=0.059153 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.57it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.48it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.45it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.42it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.39it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.42it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.43it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-0: 94345 tokens, KV cache 5.4 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/0_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 25.3s. Mem: 14.31/79.18 GB. [scbench_choice_eng-0]
+
+[effective] clen=90417 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.33it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.81it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.31it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.02it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.32s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.09s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-1: 90417 tokens, KV cache 5.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] C. He misunderstands the monster's warning.
+
+Explanation: Kiran initially dismisses the monster's threat, thinking it is just a delusion or a warning that isn't to be taken seriously. He focuses on the happiness of his upcoming marriage and delays taking precautions against the monster's potential attack. This misunderstanding leads him to not protect Raiden effectively on the night of their wedding. | He misunderstands the monster's warning.
+[QA 1] A. By listening to Felix teach Safie his language | By listening to Felix teach Safie his language
+[QA 2] B. Guilt about creating a monster | Lack of desire to marry Raiden
+[QA 3] D. Joey's monster
+
+Explanation: Based on the narrative provided, it is clear that the monster created by Joey is responsible for the murder of Rosetta. Despite initial suspicions and trials, it is ultimately revealed that the monster committed the crime, as indicated by his own confession and the lack of evidence against others. | Allyson Kalia
+[effective] clen=90417 window=4096 chunk_ratio=0.057294 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.72it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.54it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.44it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.40it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.57it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.52it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-1: 90417 tokens, KV cache 5.2 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/1_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 17.3s. Mem: 14.31/79.18 GB. [scbench_choice_eng-1]
+
+[effective] clen=119299 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.33it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.81it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.37s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-2: 119299 tokens, KV cache 6.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] C. Riddle-solving | Riddle-solving
+[QA 1] D. His old home at Hobbiton | His old home at Hobbiton
+[QA 2] C. Eoin and Took | Eoin and Took
+[QA 3] D. Human and bear | Human and bear
+[effective] clen=119299 window=4096 chunk_ratio=0.068001 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.73it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.47it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.34it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.56it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.46it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-2: 119299 tokens, KV cache 6.8 GB, torch.bfloat16
+Results saved at ./results/scbench_choice_eng/2_qwen2.5-7b-instruct-1m_fastkvzip__ceflr8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 19.7s. Mem: 14.31/79.18 GB. [scbench_choice_eng-2]
+
+[effective] clen=72693 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.32it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.06s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.10it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_choice_eng-3: 72693 tokens, KV cache 4.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] D. Phosphorous | Phosphorous
+[QA 1] A. Sir Blossom Horatio | Sir Blossom Horatio
+[QA 2] D. Devonshire | The garbage
+[QA 3] B. Because he was wearing Sir Dilan's suit | Because he was wearing Sir Dilan's suit
+[effective] clen=72693 window=4096 chunk_ratio=0.046260 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.72it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.62it/s]

@@ -4591,3 +4591,79 @@ headroom 为负（压缩胜过满缓存，与 MultiHop 同族），`scalar` 在�
 
 **④ 一个报告口径提醒**：`choice_eng` n=18 ⇒ 一条样本 = 5.56 分。
 那个 +6.94★ 只相当于 1.25 条样本改对，**不要单独引用**。
+
+### 53. **读了 Ada-KV（NeurIPS 2025）—— 逐头最小预算保证是先验技术，"反饿死地板"不是新机制**
+
+阻塞项之一，原文读了（`arxiv.org/abs/2407.11550` + v4 全文）。**它直接落在我们整条
+结论所在的轴上**，必须据此改写新颖性主张。
+
+**Ada-KV 拥有的：**
+
+- 标题即 *Optimizing KV Cache Eviction by **Adaptive Budget Allocation***，
+  自称 **"the first head-wise adaptive budget allocation strategy"**。
+- **分配规则（Algorithm 1）**：把各头的注意力权重拼起来 → 取**全局 top-B** →
+  数每个头被选中几个 → 那就是该头的预算。**这与 `level=pair` 是同一个算子。**
+- **safeguard（Algorithm 2 line 8）**：`B_i = α·B_i + (1−α)·(B/h)`，保证每个头
+  不低于均匀分配的一部分。本仓库 `attention/score.py:133-137` 的实现是等价目的的
+  硬下限版本：
+
+      n_safe = int(int(k_len*ratio) * 0.2)                    # 仅 "adakv" 分支
+      scores.scatter_(-1, topk(scores, n_safe).indices, +inf) # 每头前 n_safe 强制保留
+
+- **Theorem 3.1**：给出驱逐前后注意力输出的 **L1 loss 上界**，并以此推导分配。
+- 增强 SnapKV / Pyramid，Llama-3.1-8B，Ruler 13 个 + LongBench 16 个数据集。
+
+**⇒ 必须改口的一条**：我们的"反饿死地板 `b_min`"**与 Ada-KV 的 safeguard 是同一类
+机制**（保证每头一个最小预算），且该实现**就在本仓库里**，只是挂在 `adakv-layer` 上。
+**不能把地板当作新机制。**
+
+**但这没有抹掉那个测量，它换了个更准确的框架**：我们所有实验跑的是 `level=pair`
+（`_threshold`，**无 safeguard**）。所以那个 +33.60 的正确读法是
+
+> **FastKVzip 的默认 `level=pair` 丢掉了其祖先已发表的 safeguard，
+> 而在 ρ=0.1 的 Retr.KV 上，这一omission 让它损失了 94% 的可恢复 headroom。**
+
+这是关于**基线配置**的经验发现，不是新机制。**必须做的对照**：直接跑
+`-g fastkvzip --level adakv-layer`（即带 safeguard 的先验技术配置）在 Retr.KV
+ρ=0.1/0.2 上的分数。若它已经拿到 +33 量级，则地板一分新颖性也没有；若拿不到，
+差在哪里就是真正需要解释的东西。**已排队**（`/tmp/lvl_sched.sh`）。
+注意该对照**同时**改了两件事（加 safeguard、且把分配限制成逐层均匀），
+是"已发表配置"的对照，不是纯 safeguard 消融。
+
+**Ada-KV 明确**没有**做的（这是我们剩下的地盘）**：
+
+1. **不区分排序与配额。** 全文始终把 Ada-KV 的分配与 Top-k 排序绑在一起，
+   **没有任何跨方法移植实验**（拿 A 的排序配 B 的配额）。我们的移植 2×2 是新的。
+2. 没有"保序重标定 ≡ 逐头配额分配"这类等价陈述，也没有把学习到的分数形变
+   归约成一张整数配额表。
+3. **不讨论饿死**：safeguard 隐式处理，但论文不分析、不可视化零配额头。
+4. 它的理论靶子是**注意力输出保真度的上界**，而我们已测到**保真度与任务效用会背离**
+   （Retr.MultiHop 上更忠实反而更差）。这构成对其优化目标的实证质疑。
+
+**一条重要的边界**：Ada-KV 的分配是**层内跨头**（Algorithm 1 在层内拼接），
+对应本仓库的 `adakv-layer`（84 维层内子空间）；而 `pair` 还跨层（111 维）。
+我们测到**增益全在层内×跨层的交互**（层内 +2.20 不显著、跨层 −7.80★、完整 +25.80★）
+⇒ **Ada-KV 覆盖的那 84 维单独拿不到这个效应。**（限定：该消融做的是把*我们学到的
+增量*投影到层内子空间，不是直接消融 Ada-KV 自身的分配，不能直接等同。）
+
+### 54. 核验：移植 2×2 **没有**被 `level` 混淆
+
+发现两格跑在不同 level 上（`_g8base`/`_xpFKVqExp` 是 `output-pair.json`，
+`_expbase`/`_xpExpqFKV` 是 `output-adakv-layer.json`），这本可以毁掉上一条结论
+——"排序"的差异会与"分配方案"的差异混在一起。逐行读注入代码
+（`learned_ctrlcache.py:206-212`）：
+
+    sc  = score0[:, 0]                            # 本臂自己的基线分数 = 它的排序
+    idx = argsort(sc, descending=True)            # 逐 (层,头) 按自己的分数排
+    nv.scatter_(1, idx, arange(n) < q[:, None])   # 每头恰取前 q_lh 名
+    valid = nv.reshape(L, H, n)                   # **整个覆盖**第 130 行算出的 valid
+
+`valid` 被**完全重写**，第 130 行 `self.threshold(score, ratio, level)` 的结果
+（连同 `adakv-layer` 的 safeguard）**被丢弃**。⇒ `level` 在这两格里是**残留标签**，
+不进入决策。**2×2 干净，上一条结论不变。**
+
+顺带这让饿死否证更锋利：Exp 的配额之所以零饿死，**正是因为 `adakv-layer` 上了
+Ada-KV 的 safeguard**；把这个"教科书式健康"的配额换给 FKV 的排序，分数塌到 2.60。
+而 FKV 那个 41.3% 饿死的配额换给 Expected，拿 44.20。
+**与地板结果不矛盾**：地板只在 FKV 自己的分配上加下限、动 0.47~0.8% 预算，
+移植是整体换掉分配。**小幅下限有益，整体换形状有害** —— 两者都指向"形状"而非"饿死率"。
