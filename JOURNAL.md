@@ -5011,3 +5011,64 @@ argparse 失败是 rc=2 且日志只有 usage，**调度器会把它记成正常
 Expected Attention 的分数**与它的 level 绑定**，引用时必须写明
 "Expected Attention（其规范配置 `adakv-layer`）"，不能简写成方法名 ——
 否则读者会以为那是打分器的差距。
+
+### 68. **读了 DBTrimKV（2605.09649，真实标题 *Make Each Token Count*）—— 它拿走两件我们当作自己的东西，但没拿走分析**
+
+**证据等级说明**：经 WebFetch 读了 arXiv 摘要页与 HTML v1 全文（由模型抽取），
+**我没有亲自读 PDF**。下面的公式与数字按抽取结果记录，**写进论文前必须对 PDF 复核**。
+（CLAUDE.md 早先关于这篇的判断是**基于外部转述**，本条是第一次直接读原文。）
+
+**它拥有的（两条都直击我们的主张）：**
+
+1. **学习到的逐 (层,头) 投影 + 跨层头共享读出，使分数可全局比较、全局竞争预算。**
+
+       g_{ℓ,h}(x) = σ( w_g^T · Proj_{ℓ,h}(x) + b_g )
+
+   `Proj_{ℓ,h}` 是逐 (层,头) 的两层 MLP（隐藏维 512），`(w_g, b_g)` **跨层头绑定**。
+   原文：*"we maintain one global KV budget and retain the entries with the highest
+   predicted utility across all layers, heads, and modalities."*
+   ⇒ **这在结构上就是我们的 `scalar` 臂**（逐 (层,头) 学习形变 + 全局 top-B）。
+   我们那条"因子消融里唯一站得住的是逐头形变的函数类丰富度"，
+   **实际上是在刻画他们的架构**。
+
+2. **"压缩可以胜过满缓存"，而且有定理。** 摘要原文：*"full-cache attention is not
+   always optimal: irrelevant tokens can dilute attention away from useful evidence,
+   so selective, learnable eviction can improve generation rather than merely
+   approximate the full cache."* Proposition 3.1（近似平局的干扰项迫使注意力稀释）
+   + Corollary 3.2（优先保留有用 token 降低稀释）。实测 MMDU 上达到 vanilla 的
+   **114.46%**、MathVision 上 51.97 vs 48.68。
+   ⇒ **`FINDINGS_DENOISING.md` 的核心观察、以及我们 headroom 表里那些负 headroom
+   panel（MultiHop 41.07→46.09、En.QA），现在都是已发表结论，还配了理论。**
+
+**它明确没有做的（全文核实，这是我们剩下的全部）：**
+
+| 我们的 | DBTrimKV |
+|---|---|
+| **保序重标定 ≡ 逐头配额分配**（定理 + 0/18,478,208 位验证） | **无**。抽取原文：*does not separate ranking from allocation as equivalent procedures… No ablation isolates budget equivalence* |
+| **排序 vs 配额的跨方法移植 2×2** | 无 |
+| 把 637,828 参数的网络归约成 **112 个整数** | 无 |
+| 配额空间分解 111 = 84 层内 + 27 跨层 | 无 |
+| **饿死率测量与地板族** | **无**：不报逐头配额分布、不讨论零配额头 |
+
+**一个反过来对我们有利的点**：抽取说他们的全局策略是"global ranking, **not**
+per-head quota assignment"。但**由我们的定理，逐 (层,头) 单调形变 + 全局 top-B
+恰恰就是逐头配额分配** —— 他们在做配额分配而不自知。
+⇒ **我们的分析正是在解释他们的方法在做什么。**
+
+**其他核实到的**：`r_{t,i} = β_i^{t−i}`，且 *"we estimate it only once when the token
+enters the cache"* ⇒ **CLAUDE.md 第 ⑥ 条（不要把新颖性建在"静态 vs 动态"上）
+基于转述写的，现由原文确认无误。**
+**基准无重叠**：他们用 LLaVA-1.5-7B / Qwen3-VL-8B/4B / Qwen3-4B，
+数据是 VQA/video/math（VQAText、MME、GQA、MMStar、MathVision、VideoMME、MMDU、
+AIME24、GSM8K、MATH-500），**与 SCBench + Qwen2.5-7B-1M 完全不撞**。
+
+**⇒ 定位必须改：从"方法"改为"对一类已发表方法的分析"。**
+这个类现在至少有两个成员 —— Ada-KV（结构性的跨头预算分配）与 DBTrimKV
+（学习到的跨层头校准 + 全局竞争）。我们能提供的是**它们都没有的东西**：
+把"学习打分器"归约为"逐头配额分配"，给出等价定理与位级验证，
+用跨方法移植把排序与配额分开测，并指出**112 个整数就够**。
+这是一篇分析/立场论文的骨架，不是方法论文的。
+
+**另一条现在更值钱的**：我们测到 **4,482 参数（乃至 112 个整数）就能追平
+637,828 参数**，而 DBTrimKV 用的是逐 (层,头) 的 512 维两层 MLP。
+**"这类方法的有效自由度远小于其参数量"** 是一条能直接施加于已发表方法的论断。

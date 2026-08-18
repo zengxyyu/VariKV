@@ -1205,3 +1205,744 @@ Chunked prefilling with 0.10 ratio, window 4096
 [effective] clen=106471 window=4096 chunk_ratio=0.011991 degenerate=False
 chunk inputs, size: 16000 (num 7)
 Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.57it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.52it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.49it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.47it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.45it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.64it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.56it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-23: 106471 tokens, KV cache 6.1 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/23_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 137.5s. Mem: 14.31/79.18 GB. [scbench_summary-23]
+
+[effective] clen=115739 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.28it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.79it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.64s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.33s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-24: 115739 tokens, KV cache 6.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper establishes an equivalence between the dynamics of disordered quantum ensembles and a single semi-infinite lattice, allowing the exact dynamics of the ensemble to be computed through straightforward lattice simulations and providing new insights into the loss of coherence in disordered systems. | The key contribution of the paper "Equivalence of dynamics of disordered quantum ensembles and semi-infinite lattices" is establishing an exact mapping between the dynamics of an ensemble of disordered quantum systems and the dynamics of a single particle propagating on a semi-infinite lattice, by performing a unitary change of basis using orthogonal polynomials.
+[QA 1] The paper investigates the quasinormal modes, thermodynamic properties, and shadow of black holes in the Hu-Sawicki model of $f(R)$ gravity, revealing that the black hole's thermodynamics and shadow radius can provide constraints on the model parameters, while exhibiting unique behaviors compared to general relativity. | The key contribution of this paper is deriving novel black hole solutions in the Hu-Sawicki model of f(R) gravity and investigating various properties of these solutions, including quasinormal modes, thermodynamics, shadow radius, and constraining the model parameters using observational data.
+[QA 2] The paper demonstrates that principal component analysis combined with spectral fitting favors the relativistically smeared reflection model over the warm corona model for explaining the soft excess in the narrow-line Seyfert 1 galaxy Ark 564. | The key contribution of this paper is that it uses principal component analysis (PCA) combined with spectroscopy to investigate the origin of the soft X-ray excess in the narrow-line Seyfert 1 galaxy Ark 564. By simulating the principal components from different models like the warm corona and relativistically smeared reflection and comparing them with the observed principal components derived from XMM-Newton data, the authors conclude that the soft excess in Ark 564 favors an origin from relativistically smeared reflection rather than Comptonization in a warm corona.
+[QA 3] The paper introduces a novel four-port single-photon circulator that utilizes spinning optical resonators to achieve non-reciprocal photon transport at multiple frequency points, offering enhanced robustness against backscattering and enabling the establishment of complex quantum optical networks. | The key contribution of this paper is proposing a four-port circulator that can regulate the flow of single photons at multiple frequency points by utilizing two coupled spinning resonators with different angular velocities.
+[QA 4] The paper introduces a novel combined estimator that robustly integrates external control data with trial data, ensuring consistency without relying on exchangeability assumptions, and achieving efficiency comparable to the most efficient component estimator while offering protection against potential bias. | Here is a one-sentence summary of the key contribution of the paper:
+
+The paper proposes novel randomization-aware estimators that allow robust integration of external control data in randomized trials by remaining consistent even when the external control population is not exchangeable with the trial population, while achieving improved efficiency when exchangeability holds.
+[effective] clen=115739 window=4096 chunk_ratio=0.740828 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.75it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.37it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.13it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.05s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.40s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.60s/it]Prefill: 100%|██████████| 8/8 [00:09<00:00,  1.26s/it]Prefill: 100%|██████████| 8/8 [00:09<00:00,  1.20s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-24: 115739 tokens, KV cache 6.6 GB, torch.bfloat16
+[effective] clen=115739 window=4096 chunk_ratio=0.481656 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.75it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.44it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.25it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.10it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.02s/it]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.14s/it]Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.27s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.00s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.01it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-24: 115739 tokens, KV cache 6.6 GB, torch.bfloat16
+[effective] clen=115739 window=4096 chunk_ratio=0.377987 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.75it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.46it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.17it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.06it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.04s/it]Prefill:  88%|████████▊ | 7/8 [00:06<00:01,  1.14s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.11it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.10it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-24: 115739 tokens, KV cache 6.6 GB, torch.bfloat16
+[effective] clen=115739 window=4096 chunk_ratio=0.274318 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.72it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.35it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.24it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.15it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:01,  1.06it/s]Prefill:  88%|████████▊ | 7/8 [00:06<00:01,  1.02s/it]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.25it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.21it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-24: 115739 tokens, KV cache 6.6 GB, torch.bfloat16
+[effective] clen=115739 window=4096 chunk_ratio=0.170649 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.73it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.52it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:03,  1.33it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.26it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.19it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.12it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.44it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.34it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-24: 115739 tokens, KV cache 6.6 GB, torch.bfloat16
+[effective] clen=115739 window=4096 chunk_ratio=0.066980 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.76it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.56it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.48it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.43it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.39it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.35it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.31it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.70it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.52it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-24: 115739 tokens, KV cache 6.6 GB, torch.bfloat16
+[effective] clen=115739 window=4096 chunk_ratio=0.015146 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.74it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.57it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.52it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.49it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.47it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.45it/s]Prefill:  88%|████████▊ | 7/8 [00:04<00:00,  1.43it/s]Prefill: 100%|██████████| 8/8 [00:04<00:00,  1.87it/s]Prefill: 100%|██████████| 8/8 [00:04<00:00,  1.62it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-24: 115739 tokens, KV cache 6.6 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/24_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 145.2s. Mem: 14.31/79.18 GB. [scbench_summary-24]
+
+[effective] clen=105712 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.34it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.82it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.31it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.46s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.55s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.24s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-25: 105712 tokens, KV cache 6.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper presents a machine-learning approach that combines various data sources to accurately extrapolate bicycle volumes across a city, significantly improving upon the limitations of sparse counting station data for urban planning and infrastructure decisions. | The key contribution of this paper is developing a machine learning approach that leverages various publicly available data sources to accurately estimate street-level bicycle volumes across an entire city beyond the limited locations of existing counting stations.
+[QA 1] The paper empirically investigates the capabilities of large language models (LLMs) in understanding DL-Lite ontologies, demonstrating their effectiveness in grasping formal syntax and model-theoretic semantics but highlighting limitations in handling TBox NI transitivity and large-scale ABoxes, providing insights into LLMs' strengths and weaknesses in ontology processing. | Here is a one-sentence summary of the key contribution of the paper:
+
+Through extensive experiments, the authors demonstrate the effectiveness and limitations of large language models in understanding the formal syntax and model-theoretic semantics of concepts, roles, and property characteristics in DL-Lite ontologies, identifying challenges in handling ontologies with large ABoxes and transitivity reasoning.
+[QA 2] The paper investigates a particular Einstein-Maxwell-Dilaton black hole configuration with Lifshitz asymptotics, treating the curvature radius and coupling constants as thermodynamic variables, and finds that this system exhibits van der Waals-like behavior, with a detailed analysis of its stability and critical properties using extended thermodynamics. | The key contribution of this paper is studying the thermodynamic properties and critical behavior of a generalized Einstein-Maxwell-dilaton black hole solution with an anisotropic Lifshitz spacetime from the perspective of extended and quasi-homogeneous thermodynamics.
+[QA 3] The paper clarifies the concept of objective rates in morphodynamics by distinguishing gauge freedoms related to ambient space isometries, surface parameterizations, and frame fields, and demonstrates that the material and Jaumann rates are the only choices invariant under time-dependent isometries while conserving the ambient space metric. | The key contribution of the paper titled "Gauge Freedom and Objective Rates in the Morphodynamics of Fluid Deformable Surfaces: the Jaumann Rate vs. the Material Derivative" is:
+
+The authors clarify the concepts of Eulerian and Lagrangian perspectives, gauge freedoms, and objective rates in the context of fluid deformable surfaces, and argue that the material derivative and Jaumann rate are the only two possible objective rates that also preserve the ambient space metric, with the material derivative being appropriate for velocities and the Jaumann rate for quantities insensitive to angular momentum like nematic order parameters.
+[QA 4] SuperGrad is a differentiable simulator for superconducting quantum processors that enables efficient gradient computation and joint optimization of parameters, facilitating optimal control, design optimization, and experimental data fitting through seamless integration with gradient-based frameworks. | The key contribution of the paper "SuperGrad: a differentiable simulator for superconducting processors" is introducing SuperGrad, a simulator that accelerates the design of superconducting quantum processors by incorporating gradient computation capabilities for both device parameters and control parameters through automatic differentiation.
+[effective] clen=105712 window=4096 chunk_ratio=0.739923 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.36it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.34s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.18s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-25: 105712 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=105712 window=4096 chunk_ratio=0.479846 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.43it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.24it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.02s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.07s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.01it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-25: 105712 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=105712 window=4096 chunk_ratio=0.375815 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.46it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.17it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.06it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.03it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.10it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-25: 105712 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=105712 window=4096 chunk_ratio=0.271784 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.49it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.35it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.16it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.21it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-25: 105712 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=105712 window=4096 chunk_ratio=0.167753 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.53it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.42it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.34it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.19it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.33it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-25: 105712 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=105712 window=4096 chunk_ratio=0.063722 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.56it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.49it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.44it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.39it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.54it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.49it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-25: 105712 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=105712 window=4096 chunk_ratio=0.011707 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.56it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.52it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.49it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.47it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.45it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.67it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.57it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-25: 105712 tokens, KV cache 6.1 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/25_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 136.7s. Mem: 14.31/79.18 GB. [scbench_summary-25]
+
+[effective] clen=103976 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.33it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.81it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.46s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.50s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.22s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-26: 103976 tokens, KV cache 6.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper presents an optimization framework that constrains the Fiedler value to ensure communication performance and collision avoidance in multi-robot systems, enabling efficient and robust trajectory planning with significant computational time improvements while maintaining connectivity and avoiding local minima. | The key contribution of this paper is reformulating the multi-robot communication-aware trajectory planning problem into a more tractable optimization problem by imposing linear constraints on the robot trajectories to ensure communication performance, measured by the Fiedler value, and collision avoidance.
+[QA 1] The paper introduces a structured construction method called Cyclic-Shift BATS (CS-BATS) that reduces batch dependence in batched sparse codes, leading to improved decoding rates and reduced complexity while preserving the desirable properties of random BATS codes. | The key contribution of this paper is proposing a structured construction method called Cyclic-Shift BATS (CS-BATS) code for the Batched Sparse Code, which can achieve better decoding performance and lower implementation complexity compared to the conventional randomly constructed BATS code, especially when the number of input symbols is moderate.
+[QA 2] The key contribution of the paper is demonstrating that the superconducting phase can be strengthened by real space decimation of flat band states, which enhances the superfluid weight through the quantum metric, offering a pathway to achieve higher critical temperatures in flat band systems. | The key contribution of this paper is demonstrating that the superfluid weight, a crucial parameter determining the critical temperature, can be enhanced by decimation (controlled removal) of flat band states in certain regimes, in contrast to the widely used uniform pairing approximation which predicts suppression of superfluid weight upon such decimation.
+[QA 3] The paper presents both an exact solution for the linearized junction array modes of fluxonium in the absence of disorder and a simple approximate solution that accurately estimates these modes over a wide range of circuit parameters, enabling efficient hardware implementation and analysis of superconducting qubit behavior. | The key contribution of the paper "Exact and approximate fluxonium array modes" is that it presents an exact analytical solution for the linearized junction array modes of the superconducting qubit fluxonium in the absence of array disorder, valid for arrays of any length and ground capacitance, for both differential and grounded devices.
+[QA 4] The paper introduces ViANLI, an adversarial natural language inference dataset for Vietnamese that challenges state-of-the-art models by significantly reducing their accuracy, thereby promoting more robust and reliable NLI research for the Vietnamese language. | The key contribution of this paper is the creation of ViANLI (Vietnamese Adversarial Natural Language Inference), a new adversarial benchmark dataset for the Vietnamese natural language inference task. ViANLI contains around 10,000 premise-hypothesis sentence pairs carefully constructed using a human-and-model-in-the-loop approach to challenge current state-of-the-art models, with the best model achieving only 48.4% accuracy on the test set.
+[effective] clen=103976 window=4096 chunk_ratio=0.739748 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.36it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.26s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.15s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-26: 103976 tokens, KV cache 6.0 GB, torch.bfloat16
+[effective] clen=103976 window=4096 chunk_ratio=0.479495 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.44it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.02s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.02s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.04it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-26: 103976 tokens, KV cache 6.0 GB, torch.bfloat16
+[effective] clen=103976 window=4096 chunk_ratio=0.375394 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.46it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.17it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.06it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.09it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.13it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-26: 103976 tokens, KV cache 6.0 GB, torch.bfloat16
+[effective] clen=103976 window=4096 chunk_ratio=0.271294 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.50it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.36it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.25it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.22it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.24it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-26: 103976 tokens, KV cache 6.0 GB, torch.bfloat16
+[effective] clen=103976 window=4096 chunk_ratio=0.167193 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.53it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.42it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.34it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.19it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.38it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.36it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-26: 103976 tokens, KV cache 6.0 GB, torch.bfloat16
+[effective] clen=103976 window=4096 chunk_ratio=0.063092 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.56it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.49it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.44it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.39it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.60it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.51it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-26: 103976 tokens, KV cache 6.0 GB, torch.bfloat16
+[effective] clen=103976 window=4096 chunk_ratio=0.011041 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.56it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.52it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.49it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.47it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.46it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.75it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.60it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-26: 103976 tokens, KV cache 6.0 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/26_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 128.4s. Mem: 14.31/79.18 GB. [scbench_summary-26]
+
+[effective] clen=111403 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.28it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.79it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:09<00:00,  1.70s/it]Prefill: 100%|██████████| 7/7 [00:09<00:00,  1.31s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-27: 111403 tokens, KV cache 6.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper presents detailed observations of a funnel prominence, tracing its formation from chromospheric material transported into a coronal cavity to its disappearance via persistent vertical downflows, and provides insights into the dynamic interaction between prominence materials and magnetic fields. | This paper presents detailed observations of the formation and disappearance of a funnel prominence, showing that chromospheric plasma transported into a coronal cavity and then drained out through vertical downflows can lead to the formation and eventual disappearance of such a prominence.
+[QA 1] The paper introduces Triple Set Prediction (TSP) as a novel task for automatic knowledge graph completion that predicts a set of missing triples given a set of known triples, proposing a graph-partition-based method called GPHT to effectively handle the challenge of predicting from a huge candidate triple space. | The key contribution of this paper is proposing a new task called Triple Set Prediction (TSP) for automatic knowledge graph completion, where the goal is to predict a set of missing triples given only a set of known triples in the knowledge graph, without having any elements of the missing triples provided in advance.
+[QA 2] The paper presents a novel centralized guidance strategy that utilizes convex optimization formulations to achieve delta-V optimal, safe, and collision-free reconfigurations for under-actuated satellite formations, significantly improving upon classical methods through more efficient and effective trajectory optimization. | The key contribution of the paper titled "Delta-V-Optimal Centralized Guidance Strategy For Under-actuated N-Satellite Formations" is the development of convex optimization formulations, specifically a second-order cone programming (SOCP) and a linear programming (LP) formulation, for Delta-V optimal relative orbit reconfigurations of satellite formations where each deputy satellite has a single electric thruster.
+[QA 3] The paper explores the viability of using artificial intelligence, specifically large language models and penalized pixel fitting, to assist in grading handwritten thermodynamics exams, demonstrating improved accuracy and efficiency in decomposing student solutions into individual problem parts while highlighting challenges related to optical character recognition and overfitting noise. | The key contribution of this paper is an exploratory study investigating the viability of using artificial intelligence for assisting in grading handwritten thermodynamics exams. The authors explored different workflows for converting handwritten solutions to machine-readable format and grading them using large language models like GPT-4. They found that the greatest challenge lies in optical character recognition of handwritten content, and the granularity of grading criteria influences the performance, with fine-grained rubrics leading to bookkeeping errors and grading failures. The study concludes that while AI grading can reliably identify exams that meet passing criteria, exams with failing grades still require human validation due to limitations in accuracy and recall.
+[QA 4] The paper presents timing solutions and scintillation studies of five pulsars in the globular cluster M3 using the Five-hundred-meter Aperture Spherical radio Telescope (FAST), revealing new insights into pulsar behavior and the interstellar medium. | The key contribution of this paper is presenting updated and new timing solutions for five pulsars (PSRs M3A, B, D, E and F) in the globular cluster M3 using FAST archival data, as well as conducting scintillation studies of PSRs M3A and B to probe the properties of the interstellar medium along the line of sight.
+[effective] clen=111403 window=4096 chunk_ratio=0.740457 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.37it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.57s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.28s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-27: 111403 tokens, KV cache 6.4 GB, torch.bfloat16
+[effective] clen=111403 window=4096 chunk_ratio=0.480915 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.44it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.02s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.25s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.06s/it]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-27: 111403 tokens, KV cache 6.4 GB, torch.bfloat16
+[effective] clen=111403 window=4096 chunk_ratio=0.377097 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.46it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.17it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.05it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.12s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.03it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-27: 111403 tokens, KV cache 6.4 GB, torch.bfloat16
+[effective] clen=111403 window=4096 chunk_ratio=0.273280 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.50it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.36it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.25it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.00s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.13it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-27: 111403 tokens, KV cache 6.4 GB, torch.bfloat16
+[effective] clen=111403 window=4096 chunk_ratio=0.169463 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.52it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.41it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.33it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.19it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.14it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.25it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-27: 111403 tokens, KV cache 6.4 GB, torch.bfloat16
+[effective] clen=111403 window=4096 chunk_ratio=0.065646 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.55it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.48it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.43it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.39it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.34it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.40it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-27: 111403 tokens, KV cache 6.4 GB, torch.bfloat16
+[effective] clen=111403 window=4096 chunk_ratio=0.013738 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.59it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.52it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.49it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.47it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.45it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.46it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.49it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-27: 111403 tokens, KV cache 6.4 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/27_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 142.9s. Mem: 14.31/79.18 GB. [scbench_summary-27]
+
+[effective] clen=108107 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.30it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.80it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.02it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.46s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.61s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.26s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-28: 108107 tokens, KV cache 6.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper demonstrates that measuring the statistical fluctuations of extreme behaviors in many-particle diffusion provides a novel way to quantify otherwise difficult-to-access microscopic properties of the hidden random environment. | The key contribution of this paper is that it introduces a new statistical measure called the "extreme diffusion coefficient" that quantifies fluctuations in the hidden random environment driving many-particle diffusion processes. By analyzing the statistics of extremes (maximum displacement and minimum first passage time) for many diffusing particles, this coefficient can be measured, providing insight into the fluctuations of the underlying random environment that would otherwise be difficult to probe directly.
+[QA 1] The paper introduces novel algorithms, S-DQN and S-PPO, that significantly enhance the clean rewards, robustness, and robustness guarantees of smoothed deep reinforcement learning agents, outperforming previous methods by large margins across various standard reinforcement learning environments. | The key contribution summarized in one sentence is:
+
+This paper proposes novel S-DQN and S-PPO algorithms that leverage randomized smoothing during training to achieve high clean rewards and significantly improve robustness compared to previous smoothed and robust DRL agents, establishing new state-of-the-art results across Atari and continuous control benchmarks.
+[QA 2] The paper introduces a real-space renormalization group formalism using percolation probability as an order parameter to analytically study the confinement phase diagram in classical two-dimensional $\mathbb{Z}_2$ lattice gauge theories with fluctuating matter, confirming that any non-zero matter density leads to confinement at finite temperature. | The key contribution of this paper is the development of a real-space renormalization group (RG) formalism to analytically study confinement in Z2 lattice gauge theories using percolation probability as a confinement order parameter, where the RG flow constitutes both the percolation probability and the coupling parameters.
+[QA 3] CompassDB introduces a novel Two-tier Perfect Hash Table (TPH) data structure that significantly reduces read/write amplification and compaction costs, enabling a high-throughput and low-latency key-value store with O(1) lookup time complexity. | The key contribution of the paper "CompassDB: Pioneering High-Performance Key-Value Store with Perfect Hash" is developing a novel key-value store called CompassDB that uses a Two-tier Perfect Hash Table (TPH) data structure to significantly reduce read/write amplification and improve read/write performance compared to existing log-structured merge tree based designs like RocksDB and PebblesDB.
+[QA 4] The paper presents comprehensive spectroscopic and dynamic orbital analyses of metal-poor and high proper motion stars, HD 8724 and HD 195633, determining their origins by examining their chemical compositions, kinematics, and orbital dynamics in relation to candidate globular clusters in the Milky Way. | The key contribution of this paper is conducting detailed spectroscopic, kinematic, and dynamical orbital analyses of the metal-poor and high proper motion stars HD 8724 and HD 195633 to determine their likely origin and connection to globular clusters in the Galaxy.
+[effective] clen=108107 window=4096 chunk_ratio=0.740155 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.37it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.43s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.22s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-28: 108107 tokens, KV cache 6.2 GB, torch.bfloat16
+[effective] clen=108107 window=4096 chunk_ratio=0.480310 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.44it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.02s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.01s/it]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-28: 108107 tokens, KV cache 6.2 GB, torch.bfloat16
+[effective] clen=108107 window=4096 chunk_ratio=0.376372 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.46it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.17it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.05it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.03s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.07it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-28: 108107 tokens, KV cache 6.2 GB, torch.bfloat16
+[effective] clen=108107 window=4096 chunk_ratio=0.272434 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.49it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.35it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.09it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.17it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-28: 108107 tokens, KV cache 6.2 GB, torch.bfloat16
+[effective] clen=108107 window=4096 chunk_ratio=0.168496 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.52it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.42it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.33it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.19it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.30it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-28: 108107 tokens, KV cache 6.2 GB, torch.bfloat16
+[effective] clen=108107 window=4096 chunk_ratio=0.064558 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.56it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.49it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.44it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.39it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.45it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.45it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-28: 108107 tokens, KV cache 6.2 GB, torch.bfloat16
+[effective] clen=108107 window=4096 chunk_ratio=0.012589 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.57it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.52it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.49it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.47it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.45it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.58it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.54it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-28: 108107 tokens, KV cache 6.2 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/28_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 146.5s. Mem: 14.31/79.18 GB. [scbench_summary-28]
+
+[effective] clen=102602 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.27it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.79it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.21s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-29: 102602 tokens, KV cache 5.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper demonstrates how data bias introduced through heterogeneous data sources undermines the performance and generalizability of machine learning models predicting crystal compound synthesizability, highlighting the importance of using consistent, balanced datasets to ensure reliable predictions. | The key contribution of the paper is to demonstrate how data bias, arising from using heterogeneous datasets from different sources, can negatively impact the performance and reliability of machine learning models for predicting the synthesizability of crystal compounds, even for advanced models.
+[QA 1] The paper introduces ACCDor, a fully automated framework that outperforms existing methods for detecting inflammatory cells in anterior uveitis patients' AS-OCT images by combining an efficient zero-shot chamber segmentation module with a cell detection module that achieves higher recall and overall performance. | The key contribution of this paper is proposing ACCDor, an automated framework consisting of a zero-shot chamber segmentation module (CSM) and a cell detection module (CDM), to accurately detect inflammatory cells in anterior segment optical coherence tomography (AS-OCT) images of anterior uveitis patients, outperforming state-of-the-art methods.
+[QA 2] The key contribution of the paper is the introduction of Grass, a novel memory-efficient optimization method that leverages structured sparse gradient projections to enable full-parameter training of large language models with significantly reduced memory usage, communication overhead, and computational costs, leading to substantial throughput improvements compared to existing projection-based techniques. | Here is a one sentence summary of the key contribution of the paper:
+
+The paper introduces Grass, a novel memory-efficient optimization method for large language model training that leverages structured sparse gradient projections to significantly reduce memory usage and computational costs while achieving competitive performance to full-rank training.
+[QA 3] The paper introduces and analyzes a synchronous-weighted-median model of opinion dynamics on networks, exploring how the final opinion distribution depends on network structure and initial opinions, and demonstrating that this model offers a more realistic alternative to traditional mean-based opinion update rules. | Here is a one sentence summary of the key contribution of the paper:
+
+The paper introduces a synchronous-update weighted-median opinion dynamics model on networks and studies its limit opinion distributions, deriving and testing the accuracy of a mean-field approximation for the model's opinion density evolution.
+[QA 4] The paper explores the relationship between semantic and syntactic monotonicity in fragments of First-Order Logic (FO) and Linear Temporal Logic (LTL), demonstrating that while monotone formulas can be captured syntactically by positive fragments, certain counter-examples show that not all monotone languages are definable in these restricted syntactic forms. | The key contribution of the paper "Positive and monotone fragments of FO and LTL" is summarized as follows:
+
+The paper lifts several classical equivalences between first-order logic (FO) and linear temporal logic (LTL) to their respective positive fragments, showing that the positive fragments FO+, LTL+, and the unary fragment of LTL preserve some of the robustness of the full logics despite previous negative results.
+[effective] clen=102602 window=4096 chunk_ratio=0.739605 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.37it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.21s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.13s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-29: 102602 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102602 window=4096 chunk_ratio=0.479209 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.44it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.02s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.03it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.06it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-29: 102602 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102602 window=4096 chunk_ratio=0.375051 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.46it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.17it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.06it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.14it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.15it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-29: 102602 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102602 window=4096 chunk_ratio=0.270893 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.49it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.36it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.25it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.27it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.26it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-29: 102602 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102602 window=4096 chunk_ratio=0.166735 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.52it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.42it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.33it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.19it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.44it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-29: 102602 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102602 window=4096 chunk_ratio=0.062577 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.56it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.48it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.44it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.40it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.36it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.66it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.54it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-29: 102602 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102602 window=4096 chunk_ratio=0.010498 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.58it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.52it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.50it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.47it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.46it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.81it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.63it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-29: 102602 tokens, KV cache 5.9 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/29_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 136.3s. Mem: 14.31/79.18 GB. [scbench_summary-29]
+
+[effective] clen=103231 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.32it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.81it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.31it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.02it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.46s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.48s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.21s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-30: 103231 tokens, KV cache 5.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper develops a time-symmetric process matrix formalism that expands the set of causal inequalities, enabling more robust certification of causal non-separability and offering a unified framework for processes with indefinite causal order and time direction. | Here is a one-sentence summary of the key contribution of the paper:
+
+The paper develops a time-symmetric operational framework for studying indefinite causal structures and causal inequalities, demonstrating that this formalism allows for a larger class of causally non-separable processes including those with indefinite time direction.
+[QA 1] The paper analyzes how regulatory capital constraints in a mean field game model exacerbate fire sales and systemic risk in banking systems, leading to potential liquidation cascades, and explores macroprudential policies to mitigate these adverse effects. | The key contribution of the paper "Playing with Fire? A Mean Field Game Analysis of Fire Sales and Systemic Risk under Regulatory Capital Constraints" is:
+
+It studies the impact of regulatory capital constraints on fire sales and financial stability in a large banking system using a mean field game of control (MFGC) model. The authors find that for high enough values of a contagion parameter, a banking system that is not well-capitalized may experience a liquidation cascade or systemic risk event where many banks default simultaneously due to the price-mediated contagion effects arising from capital constraints and fire sales. This lends formal support to the conjecture that risk capital constraints can cause systemic instability.
+[QA 2] The paper introduces a novel Physics-Informed Neural Modeling (PIM) approach that integrates physical constraints with machine learning to develop accurate and data-efficient transient analysis models for power grids interconnected with renewable energy sources, demonstrating its effectiveness in capturing both slow and fast electromagnetic transient dynamics. | The key contribution of the paper "Neuro-Modeling Infused EMT Analytics" is that it presents a systematic approach to developing Physics-Informed Neural Networks (PINNs) for the transient analysis of power grids integrated with renewable energy sources, leveraging the physical knowledge of the system components.
+[QA 3] The paper presents strong evidence that NaYbSe_2 is a gapped triangular quantum spin liquid with a low-energy gap of (2.1 ± 0.1) μeV, supported by neutron scattering, calorimetry, and susceptibility measurements, ruling out a gapless Dirac spin liquid and confirming its stability against perturbations. | The key contribution of this paper is the observation of a low-energy spin gap of around 2.1 μeV and the lack of magnetic ordering in the triangular lattice antiferromagnet NaYbSe₂, providing strong evidence that NaYbSe₂ is in a quantum spin liquid ground state, potentially a gapped Z₂ spin liquid.
+[QA 4] The paper develops a microscopic theoretical framework that integrates fluctuating hydrodynamics and density functional theory to describe both the pathways and dynamics of crystallization, challenging the distinction between classical and non-classical nucleation processes and suggesting that a "classical" description can suffice in many cases. | The key contribution of this paper is proposing a microscopic, molecular-based theoretical framework called Mesoscopic Nucleation Theory (MeNT) that combines classical Density Functional Theory and fluctuating hydrodynamics to describe the nucleation pathways, dynamics, and rates of crystal formation from solution without any a priori assumptions about order parameters or nucleation pathways.
+[effective] clen=103231 window=4096 chunk_ratio=0.739671 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.37it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.23s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.14s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-30: 103231 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=103231 window=4096 chunk_ratio=0.479341 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.43it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.24it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.02s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.00it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.05it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-30: 103231 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=103231 window=4096 chunk_ratio=0.375210 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.45it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.29it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.16it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.05it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.11it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.14it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-30: 103231 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=103231 window=4096 chunk_ratio=0.271078 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.49it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.35it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.25it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-30: 103231 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=103231 window=4096 chunk_ratio=0.166946 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.52it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.42it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.33it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.20it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.42it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.37it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-30: 103231 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=103231 window=4096 chunk_ratio=0.062814 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.56it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.49it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.44it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.40it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.36it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.64it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.53it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-30: 103231 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=103231 window=4096 chunk_ratio=0.010748 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.57it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.52it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.50it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.47it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.46it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.78it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.62it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-30: 103231 tokens, KV cache 5.9 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/30_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 140.0s. Mem: 14.31/79.18 GB. [scbench_summary-30]
+
+[effective] clen=101808 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.32it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.81it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.45s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.19s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-31: 101808 tokens, KV cache 5.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] This paper investigates the effects of Generalized Uncertainty Principle (GUP) corrections and a cloud of strings on the shadows, deflection angles, quasinormal modes, and Hawking radiation of Schwarzschild black holes, revealing distinct impacts of string and GUP parameters on various astrophysical observables and suggesting that astrophysical observations can validate the model. | The key contribution of this paper is investigating various astrophysical observables like shadows, deflection angles, quasinormal modes, and sparsity of Hawking radiation for a Schwarzschild black hole surrounded by a cloud of strings, incorporating quantum corrections from the Generalized Uncertainty Principle.
+[QA 1] The key contribution of the paper is demonstrating a method to entangle Schrödinger's cat states by converting Bell states between Fock and cat state encodings or implementing a fast √(iSWAP) gate operation between cat states in a superconducting Kerr parametric oscillator system. | The key contribution of this paper is demonstrating two methods to entangle Schrödinger's cat states in superconducting Kerr parametric oscillators by bridging the discrete-variable and continuous-variable domains of quantum information processing.
+[QA 2] The paper establishes the geometrical finiteness of automorphism groups of certain algebraic varieties, including K3 surfaces, Enriques surfaces, Coble surfaces, and irreducible symplectic varieties, under the assumption of the Morrison–Kawamata cone conjecture, thereby linking algebraic geometry with geometric group theory. | Here is a one sentence summary of the key contribution of the paper:
+
+The paper establishes the geometrical finiteness for the natural isometric actions of (birational) automorphism groups on the hyperbolic spaces for K3 surfaces, Enriques surfaces, Coble surfaces, and irreducible symplectic varieties, assuming the Morrison–Kawamata cone conjecture.
+[QA 3] The paper introduces a novel 1-to-K contrastive learning method that improves the consistency of cross-lingual cross-modal retrieval by equally aligning all languages with vision simultaneously, addressing issues of intra-modal error propagation and inter-modal optimization bias. | The key contribution of this paper is proposing a simple but effective 1-to-K contrastive learning method to improve the consistency in cross-lingual cross-modal retrieval, by aligning images with texts in multiple languages simultaneously during pre-training.
+[QA 4] The key contribution of YAQQ is a novel tool that employs novelty search to explore and optimize quantum gate sets by evaluating their circuit depth, process fidelity, and relative novelty, enabling the discovery of gate sets that offer efficient and innovative quantum circuit decomposition for both near-term NISQ and long-term fault-tolerant quantum computing architectures. | The key contribution of the paper titled "YAQQ: Yet Another Quantum Quantizer -- Design Space Exploration of Quantum Gate Sets using Novelty Search" is presenting a software tool called YAQQ (Yet Another Quantum Quantizer) that enables the comparison and design space exploration of quantum gate sets for efficiently decomposing unitary transformations representing quantum algorithms.
+[effective] clen=101808 window=4096 chunk_ratio=0.739520 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.37it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.18s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.11s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-31: 101808 tokens, KV cache 5.8 GB, torch.bfloat16
+[effective] clen=101808 window=4096 chunk_ratio=0.479040 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.43it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.02s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.05it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.07it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-31: 101808 tokens, KV cache 5.8 GB, torch.bfloat16
+[effective] clen=101808 window=4096 chunk_ratio=0.374849 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.46it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.17it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.06it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.16it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.16it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-31: 101808 tokens, KV cache 5.8 GB, torch.bfloat16
+[effective] clen=101808 window=4096 chunk_ratio=0.270657 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.49it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.36it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.25it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.07it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.29it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.27it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-31: 101808 tokens, KV cache 5.8 GB, torch.bfloat16
+[effective] clen=101808 window=4096 chunk_ratio=0.166465 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.52it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.42it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.33it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.19it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.46it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-31: 101808 tokens, KV cache 5.8 GB, torch.bfloat16
+[effective] clen=101808 window=4096 chunk_ratio=0.062273 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.55it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.48it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.44it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.39it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.36it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.69it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.54it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-31: 101808 tokens, KV cache 5.8 GB, torch.bfloat16
+[effective] clen=101808 window=4096 chunk_ratio=0.010177 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.57it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.52it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.49it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.47it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.46it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.84it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.64it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-31: 101808 tokens, KV cache 5.8 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/31_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 144.6s. Mem: 14.31/79.18 GB. [scbench_summary-31]
+
+[effective] clen=105952 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.32it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.80it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.31it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.02it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.21s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.46s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.54s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.24s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-32: 105952 tokens, KV cache 6.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper introduces LoGoCAF, a local-to-global cross-modal attention-aware fusion framework for hyperspectral-image and X-modality (e.g., LiDAR, SAR) semantic segmentation that enhances feature extraction, interaction, and fusion to achieve superior performance and generalizability in multimodal data classification tasks. | The key contribution of this paper is proposing a Local-to-Global Cross-modal Attention-aware Fusion (LoGoCAF) framework for hyperspectral image (HSI) and auxiliary data (X-modal) semantic segmentation that jointly considers efficiency, accuracy, and generalizability.
+[QA 1] LLaMIPa introduces an incremental discourse parsing model that simultaneously predicts discourse links and relation labels for new units based on previously inferred discourse structure, significantly outperforming existing parsers on SDRT-style datasets and demonstrating the importance of rich contextual information in capturing complex discourse dynamics. | The key contribution of this paper is presenting LLaMIPa, an incremental discourse parser that leverages the capabilities of large language models to exploit rich discourse context when predicting discourse links and relations, leading to substantial performance gains over previous approaches on multiple corpora.
+[QA 2] The paper introduces Bidirectional-Reachable Hierarchical Policy Optimization (BrHPO), an algorithm that enhances subgoal reachability through mutual response between high- and low-level policies, leading to improved exploration efficiency and robust performance in long-horizon tasks. | The key contribution of the paper "Bidirectional-Reachable Hierarchical Reinforcement Learning with Mutually Responsive Policies" is proposing a mutual response mechanism that enhances bidirectional subgoal reachability by allowing real-time bilateral information sharing and error correction between the high-level and low-level policies in hierarchical reinforcement learning.
+[QA 3] The paper introduces Samsara, a resilient and secure platform for programmable hardware accelerators that employs Byzantine fault-tolerant protocols and hardware rejuvenation to enhance computing reliability while maintaining low latency and security in multi-component systems. | The key contribution of this paper is proposing Samsara, the first secure and resilient platform for programmable hardware accelerators like FPGAs. Samsara employs a lightweight Byzantine fault-tolerant protocol called H-Quorum tailored for low latency agreement on FPGA accelerator outputs. It also supports secure hardware rejuvenation to replace faulty or malicious accelerator tiles with refreshed or diversified versions at negligible overhead.
+[QA 4] The paper demonstrates that increasing the model size in density-functional-theory studies of the CsPbBr₂Cl alloy narrows the distribution of alloy formation energies and enhances the entropy stabilization effect, leading to more reliable thermodynamic predictions at higher temperatures. | The key contribution of this paper is studying the effects of model size on the distribution of alloy formation energies and resulting thermodynamic properties (free energy, internal energy, configurational entropy) in density functional theory calculations for the CsPbBr2Cl mixed halide perovskite alloy.
+[effective] clen=105952 window=4096 chunk_ratio=0.739947 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.36it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.34s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.18s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-32: 105952 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=105952 window=4096 chunk_ratio=0.479893 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.42it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.24it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.03s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.08s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.01it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-32: 105952 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=105952 window=4096 chunk_ratio=0.375872 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.46it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.17it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.06it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.03it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.10it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-32: 105952 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=105952 window=4096 chunk_ratio=0.271850 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.49it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.36it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.16it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.20it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-32: 105952 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=105952 window=4096 chunk_ratio=0.167829 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.52it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.41it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.33it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.19it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.33it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-32: 105952 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=105952 window=4096 chunk_ratio=0.063808 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.56it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.49it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.44it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.40it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.36it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.53it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.49it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-32: 105952 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=105952 window=4096 chunk_ratio=0.011797 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.58it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.52it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.49it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.47it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.46it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.67it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.58it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-32: 105952 tokens, KV cache 6.1 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/32_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 139.8s. Mem: 14.31/79.18 GB. [scbench_summary-32]
+
+[effective] clen=107051 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.33it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.81it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.46s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.58s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.25s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-33: 107051 tokens, KV cache 6.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper extends the symmetry classification scheme from quantum mechanics to classical stochastic processes, revealing a fifteenfold classification based on involutive symmetries that uncovers new dynamical properties and constraints in classical Markov processes. | The key contribution of the paper "Symmetry classes of classical stochastic processes" is that the authors perform a systematic symmetry classification of classical Markov generators, extending the Bernard-LeClair scheme to the classical stochastic setting and identifying up to fifteen allowed symmetry classes.
+[QA 1] The paper demonstrates that observations of white dwarf atmospheres polluted by planetary material can constrain the prevalence of geological and collisional processing in exoplanetary systems, with implications for understanding core-mantle differentiation and planetary formation processes across populations. | The key contribution of this paper is that it presents a method to analyze populations of polluted white dwarfs and use their abundance patterns to distinguish between different scenarios for the evolutionary history and accretion of the polluting planetary material, specifically whether it originated from collisional debris, layer-by-layer accretion from a disrupted body, or accretion of undifferentiated material.
+[QA 2] The paper reports new measurements of the stellar neutron capture cross sections for cerium isotopes, revealing a ≈15% smaller value for the critical ^140Ce cross section compared to previous experimental determinations, which helps resolve discrepancies in globular cluster abundance models. | The key contribution of this paper is the experimental measurement of the stellar neutron capture cross sections of the stable cerium isotopes 136Ce, 138Ce, 140Ce, and 142Ce, which are important for understanding the production of cerium through the s-process nucleosynthesis in stars.
+[QA 3] The paper advances the theoretical understanding of hypernuclei by extending nuclear lattice effective field theory to include Λ hyperons, providing insights into hyperon-nucleon and hyperon-nucleon-nucleon interactions and the third dimension of the nuclear chart. | The key contribution of this paper is extending the ab initio nuclear lattice effective field theory (NLEFT) framework to study hypernuclei in the S = -1 sector by including the lightest hyperon, the Λ, and its interactions with nucleons, thereby enabling investigations into the third dimension of the nuclear chart.
+[QA 4] The paper introduces a novel sequential disentanglement model that conditions static factors on a single sequence element to mitigate information leakage, resulting in a simpler architecture with improved performance on multiple data modalities while requiring fewer hyper-parameters. | The key contribution of this paper is introducing a novel sequential disentanglement model that mitigates information leakage between static and dynamic factors by conditioning the static posterior on a single sample from the sequence and subtracting the static representation from the dynamic factors during training.
+[effective] clen=107051 window=4096 chunk_ratio=0.740054 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.36it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.38s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.20s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-33: 107051 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=107051 window=4096 chunk_ratio=0.480108 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.44it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.02s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.11s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.00s/it]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-33: 107051 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=107051 window=4096 chunk_ratio=0.376129 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.46it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.17it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.06it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.00s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.08it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-33: 107051 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=107051 window=4096 chunk_ratio=0.272151 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.49it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.36it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.12it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.19it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-33: 107051 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=107051 window=4096 chunk_ratio=0.168173 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.52it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.42it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.34it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.19it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.28it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.32it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-33: 107051 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=107051 window=4096 chunk_ratio=0.064194 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.55it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.49it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.43it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.39it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.36it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.49it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.47it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-33: 107051 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=107051 window=4096 chunk_ratio=0.012205 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.58it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.52it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.50it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.47it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.45it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.62it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.56it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-33: 107051 tokens, KV cache 6.1 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/33_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 142.3s. Mem: 14.31/79.18 GB. [scbench_summary-33]
+
+[effective] clen=103969 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.33it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.81it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.31it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.02it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.21s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.46s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.50s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.22s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-34: 103969 tokens, KV cache 6.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper demonstrates that zero- and single-photon catalysis, as well as displacement operations, provide only marginal benefits for improving the maximum transmission distance in continuous variable measurement device-independent quantum key distribution, contradicting previous findings and highlighting the need for alternative approaches. | The key contribution of the paper can be summarized as follows:
+
+The paper re-examines the role of displacement and photon catalysis operations in continuous-variable measurement-device-independent quantum key distribution (CV-MDI-QKD), showing that contrary to many previous proposals, zero- and single-photon catalysis operations by Alice provide only marginal benefits in improving the maximum transmission distance, and displacement offers no advantage for enhancing the performance of CV-MDI-QKD protocols.
+[QA 1] The paper investigates the chaotic properties of asymptotically Lifshitz black holes by comparing three methods—entanglement wedge method, out-of-time-ordered correlators (OTOC), and pole-skipping—and finds that while the entanglement wedge and OTOC methods are equivalent in their results, pole-skipping yields different butterfly velocities unless the critical exponent is unity, highlighting the limitations of pole-skipping for general anisotropic backgrounds. | The key contribution of this paper is a comparative study of three different holographic methods (entanglement wedge, out-of-time-ordered correlators, and pole-skipping) to analyze quantum chaos in asymptotically Lifshitz black holes with arbitrary anisotropy index, as well as an analysis of classical chaos through eikonal phase shift and Lyapunov exponent.
+[QA 2] The paper demonstrates the feasibility and scalability of using Distributed Ledger Technology (DLT) and Central Bank Digital Currency (CBDC) to automate tax collection and enhance tax compliance through VAT split payments, controlled data access, and smart policy implementation. | The key contribution of this paper is demonstrating the feasibility and scalability of a distributed ledger technology (DLT) based Central Bank Digital Currency (CBDC) system called "Smart Money" that enables real-time Value Added Tax (VAT) split payments, oversight, controlled access and smart policy implementation through the use of smart contracts.
+[QA 3] The paper derives a matching condition that relates the weak mixing angle in the Standard Model to a low-energy effective theory with 4-fermion operators, demonstrating that this approach provides a consistent framework for calculating the weak mixing angle across different energy scales, particularly for asymptotically Lifshitz black holes with arbitrary anisotropy. | The key contribution of this paper is proposing a consistent theoretical framework for relating the running weak mixing angle in the Standard Model to its definition in a Low Energy Effective Field Theory below the W-boson mass threshold, by carefully matching the effective neutral current couplings in the two theories through one-loop calculations.
+[QA 4] The key contribution of the paper is the introduction of PharmGPT, a specialized multilingual large language model suite trained on domain-specific biopharmaceutical and chemical data, which demonstrates superior performance on key benchmarks compared to general-purpose models, establishing a new benchmark for domain-specific natural language processing in these fields. | The key contribution of the paper "PharmGPT: Domain-Specific Large Language Models for Bio-Pharmaceutical and Chemistry" is the development of a suite of multilingual large language models (PharmGPT) specifically designed and trained for the biopharmaceutical and chemical domains, demonstrating superior performance compared to existing general-purpose language models on domain-specific tasks and benchmarks.
+[effective] clen=103969 window=4096 chunk_ratio=0.739747 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.37it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.26s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.15s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-34: 103969 tokens, KV cache 6.0 GB, torch.bfloat16
+[effective] clen=103969 window=4096 chunk_ratio=0.479494 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.43it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.02s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.02s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.04it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-34: 103969 tokens, KV cache 6.0 GB, torch.bfloat16
+[effective] clen=103969 window=4096 chunk_ratio=0.375393 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.47it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.17it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.06it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.09it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.13it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-34: 103969 tokens, KV cache 6.0 GB, torch.bfloat16
+[effective] clen=103969 window=4096 chunk_ratio=0.271292 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.50it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.36it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.25it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.22it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.24it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-34: 103969 tokens, KV cache 6.0 GB, torch.bfloat16
+[effective] clen=103969 window=4096 chunk_ratio=0.167190 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.52it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.42it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.33it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.19it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.39it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.36it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-34: 103969 tokens, KV cache 6.0 GB, torch.bfloat16
+[effective] clen=103969 window=4096 chunk_ratio=0.063089 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.55it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.49it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.44it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.40it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.36it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.61it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.51it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-34: 103969 tokens, KV cache 6.0 GB, torch.bfloat16
+[effective] clen=103969 window=4096 chunk_ratio=0.011039 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.58it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.53it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.49it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.47it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.46it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.75it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.61it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-34: 103969 tokens, KV cache 6.0 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/34_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 146.8s. Mem: 14.31/79.18 GB. [scbench_summary-34]
+
+[effective] clen=100156 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.32it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.81it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.46s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.41s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.18s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-35: 100156 tokens, KV cache 5.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The key contribution of the paper is the introduction of Minimal Interaction Edge Tuning (MIET), a novel visual adaptation paradigm that enables efficient fine-tuning of large vision models on edge devices by compressing intermediate features from a pretrained model into minimal interactions, thereby achieving high accuracy with low resource consumption. | The key contribution of this paper is proposing a new visual adaptation paradigm called "Minimal Interaction Edge Tuning (MIET)" that enables edge devices with extremely low computational resources to finetune large vision models without directly accessing the pretrained model. MIET compresses the intermediate features from the pretrained model while preserving essential information for downstream tasks, allowing the entire fine-tuning process to be performed only on the edge device with limited storage, compute, memory, and communication resources, while still achieving high accuracy.
+[QA 1] The paper introduces AI Cards, a novel framework that provides both human- and machine-readable representations of AI systems and their risk management information, aligning with the EU AI Act to enhance transparency, interoperability, and compliance while supporting automated tools and semantic web technologies for documentation and risk management. | The key contribution of the paper is proposing the AI Cards framework - a novel approach for documenting AI systems in a structured way that aligns with the requirements of the European Union's AI Act. AI Cards provide both human-readable and machine-readable representations, encompassing information about the AI system's technical specifications, context of use, risk management, and compliance to promote transparency, interoperability, and automation for tasks related to AI governance and regulatory compliance.
+[QA 2] The paper introduces an innovative iterated local alignment method that resolves misalignments in GPS trajectories to accurately aggregate traffic flows on road segments, enabling the creation of high-resolution traffic flow maps with improved spatial resolution, accuracy, and coverage. | The key contribution of the paper "Using iterated local alignment to aggregate GPS trajectories into a traffic flow map" is developing novel algorithms to compute a high-resolution, accurate, and comprehensive traffic flow map from noisy GPS trajectory data by iteratively aligning nearby road segments to local reference segments, without requiring an external road network graph.
+[QA 3] The paper establishes a dimension formula for certain unions of affine Deligne-Lusztig varieties associated with arbitrary parahoric level structures of split reductive groups under specific genericity hypotheses, interpolating known formulas for hyperspecial and Iwahori levels. | The key contribution of the paper "A dimension formula of closed affine Deligne-Lusztig varieties of parahoric level" is establishing a dimension formula for certain unions of affine Deligne-Lusztig varieties associated to arbitrary parahoric level structures of split reductive groups, under genericity hypotheses on the cocharacter μ and element b.
+[QA 4] The paper demonstrates that for a one-dimensional Hartree-Fock equation with a small and localized initial data and finite measure potential, the solution scatters to linear waves due to a nonlinear cancellation between the direct and exchange terms for plane waves. | The key contribution of this paper is showing that for the 1D Hartree-Fock equation with a small and localized initial data and finite measure potential, there is no long-range scattering due to a nonlinear cancellation between the direct and exchange terms for plane wave solutions, leading instead to scattering to linear waves.
+[effective] clen=100156 window=4096 chunk_ratio=0.739340 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.36it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.12s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.08s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-35: 100156 tokens, KV cache 5.7 GB, torch.bfloat16
+[effective] clen=100156 window=4096 chunk_ratio=0.478680 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.43it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.02s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.10it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.10it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-35: 100156 tokens, KV cache 5.7 GB, torch.bfloat16
+[effective] clen=100156 window=4096 chunk_ratio=0.374416 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.47it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.17it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.06it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.22it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.19it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-35: 100156 tokens, KV cache 5.7 GB, torch.bfloat16
+[effective] clen=100156 window=4096 chunk_ratio=0.270152 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.48it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.36it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.07it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.29it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-35: 100156 tokens, KV cache 5.7 GB, torch.bfloat16
+[effective] clen=100156 window=4096 chunk_ratio=0.165888 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.53it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.42it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.34it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.20it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.54it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.42it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-35: 100156 tokens, KV cache 5.7 GB, torch.bfloat16
+[effective] clen=100156 window=4096 chunk_ratio=0.061624 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.56it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.49it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.44it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.39it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.36it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.76it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.57it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-35: 100156 tokens, KV cache 5.7 GB, torch.bfloat16
+[effective] clen=100156 window=4096 chunk_ratio=0.009492 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.57it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.52it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.50it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.48it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.46it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.92it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.67it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-35: 100156 tokens, KV cache 5.7 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/35_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 131.1s. Mem: 14.31/79.18 GB. [scbench_summary-35]
+
+[effective] clen=98041 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.29it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.80it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.02it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.46s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.36s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.16s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-36: 98041 tokens, KV cache 5.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper introduces an enhanced Runge-Kutta Discontinuous Galerkin method that improves the accuracy and efficiency of simulating ultrasound propagation in transit-time flow meters, enabling more realistic and efficient acoustic wave computations for industrial applications. | The key contribution of this paper is the development of an efficient and accurate Runge-Kutta discontinuous Galerkin (RKDG) method using the Dubiner-Koornwinder spectral basis and a novel algorithm for imposing absorbing and resistive wall boundary conditions for simulating ultrasound wave propagation in transit-time flow meters.
+[QA 1] The paper investigates how initial disturbances evolve in higher time-derivative theories, revealing that these systems exhibit unique soliton behaviors and instabilities, with the number and nature of emergent solitons depending critically on the conservation laws and the presence of singularities in the solutions. | The key contribution of this paper is investigating how an initial localized disturbance evolves and breaks up into solitons in both integrable and non-integrable higher time-derivative theories (HTDT) of the modified Korteweg-de Vries (mKdV) type, using analytical methods based on conserved charges as well as numerical simulations.
+[QA 2] The paper establishes the existence of weak solutions for fractional $p(x,.)$-Laplacian Dirichlet problems with nonhomogeneous boundary conditions by combining the study of fractional Poisson equations, Schauder's fixed point theorem, and fractional Sobolev spaces with variable exponents. | The key contribution of this paper is establishing the existence of weak solutions for a nonhomogeneous fractional p(x,.)-Laplacian Dirichlet problem with nonhomogeneous boundary conditions. The authors prove the existence result by combining the Schauder fixed point theorem with an L^r(.)-estimate for the solution of the associated fractional nonhomogeneous p(x,.)-Poisson equation. The approach involves studying the fractional p(x,.)-Laplacian operator together with a nonzero boundary condition, which requires significant adaptations from previous works dealing with homogeneous boundary data.
+[QA 3] The paper introduces the concept of local linear recovery (LLR) guarantee to theoretically analyze the recovery capabilities of deep neural networks at overparameterization, proving that functions expressible by narrower networks are recoverable from fewer samples than model parameters under this weaker form of recovery. | The key contribution of this paper is introducing the concept of "local linear recovery (LLR) guarantee" for overparameterized deep neural networks. Specifically, the authors prove that all functions expressible by narrower DNNs have an LLR guarantee at overparameterization, meaning these functions can be recovered from a number of training samples smaller than the number of model parameters. The paper derives upper bounds on the optimistic sample sizes (smallest sample sizes ensuring LLR guarantee) for general DNNs and provides exact optimistic sample size estimates for two-layer tanh neural networks. This lays a theoretical foundation for analyzing the recovery capabilities of overparameterized DNNs.
+[QA 4] The paper introduces BayTTA, a novel framework that optimizes test-time augmentation for medical image classification by employing Bayesian Model Averaging to combine model predictions, thereby enhancing predictive accuracy and robustness while accounting for model uncertainty. | The key contribution of the paper is proposing a novel method called BayTTA (Bayesian-based Test-Time Augmentation) that optimizes test-time augmentation (TTA) using Bayesian model averaging (BMA) to improve the accuracy, robustness and quantify uncertainty of deep learning models in medical image classification tasks.
+[effective] clen=98041 window=4096 chunk_ratio=0.739100 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.37it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.05s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.05s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-36: 98041 tokens, KV cache 5.6 GB, torch.bfloat16
+[effective] clen=98041 window=4096 chunk_ratio=0.478200 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.43it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.02s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.17it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.13it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-36: 98041 tokens, KV cache 5.6 GB, torch.bfloat16
+[effective] clen=98041 window=4096 chunk_ratio=0.373840 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.46it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.17it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.06it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.29it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.22it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-36: 98041 tokens, KV cache 5.6 GB, torch.bfloat16
+[effective] clen=98041 window=4096 chunk_ratio=0.269480 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.50it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.36it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.25it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.16it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.07it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.44it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.33it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-36: 98041 tokens, KV cache 5.6 GB, torch.bfloat16
+[effective] clen=98041 window=4096 chunk_ratio=0.165120 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.52it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.41it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.34it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.20it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.62it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.45it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-36: 98041 tokens, KV cache 5.6 GB, torch.bfloat16
+[effective] clen=98041 window=4096 chunk_ratio=0.060760 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.56it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.48it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.44it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.40it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.36it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.85it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.60it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-36: 98041 tokens, KV cache 5.6 GB, torch.bfloat16
+[effective] clen=98041 window=4096 chunk_ratio=0.008580 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.58it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.53it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.50it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.48it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.46it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  2.01it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.70it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-36: 98041 tokens, KV cache 5.6 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/36_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 132.1s. Mem: 14.31/79.18 GB. [scbench_summary-36]
+
+[effective] clen=112759 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.28it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.79it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.56s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.30s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-37: 112759 tokens, KV cache 6.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The key contribution of the paper is demonstrating that spatiotemporal Gaussian process models can achieve significant performance improvements in predictive control for slope-based wavefront sensing by optimally reconstructing and predicting wavefront aberrations, especially under different atmospheric conditions and with limited computational resources. | The key contribution of this paper is studying the limits of predictive control in adaptive optics using spatiotemporal Gaussian process models. The authors propose two GP models, one assuming perfect knowledge of atmospheric turbulence (frozen flow model), and another with only wind speed information. They analyze how these models can minimize various reconstruction errors like temporal error, noise, and aliasing, subject to computational constraints. The models allow deriving optimal predictive reconstruction matrices and quantifying the theoretical performance limits achievable through predictive control under different atmospheric conditions and prior knowledge.
+[QA 1] The paper investigates the theoretical foundations of neural networks with dynamically sparse activations, demonstrating that such networks can provide both computational and statistical advantages over their non-sparse counterparts, leading to more efficient learning algorithms under certain distributional assumptions. | Here is a one sentence summary of the key contribution of the paper:
+
+The paper provides theoretical analyses showing that neural networks exhibiting activation sparsity (where each input activates only a small number of hidden units) can provably lead to computational and statistical advantages over non-sparse networks when learned under natural distributions like the uniform distribution over the Boolean hypercube.
+[QA 2] The paper presents Virgil, a distant galaxy detected by MIRI at $z\sim6.6$ with properties resembling Little Red Dots, highlighting the crucial role of deep MIRI surveys in uncovering AGN-host galaxies that would otherwise be missed. | Here is a one sentence summary of the key contribution of the paper:
+
+The paper presents the discovery and characterization of Virgil, a MIRI extremely red object at redshift 6.6 that shows photometric similarities to the recently discovered population of Little Red Dots but has an extended morphology, highlighting the importance of deep MIRI surveys in unveiling the complex nature of high-redshift galaxies that would otherwise be missed.
+[QA 3] The paper investigates how the dynamics of Schrödinger cat states in nanocavities are influenced by coupling with finite and structured reservoirs, revealing that these environments significantly affect the quantum information flow and can lead to non-Markovian behavior characterized by oscillations in photon counts and entanglement with the reservoir. | The key contribution of this paper is investigating the generation and dynamics of a Schrödinger cat state in a nanocavity system, where an exciton in a quantum dot is coupled to an electromagnetic mode, taking into account the effects of two different types of reservoirs - a finite reservoir and a structured reservoir with Lorentzian spectral density. The authors study how information about the system is redundantly imprinted on the environment fragments in the finite reservoir case, and analyze non-Markovian effects, such as oscillations in the average photon number, idempotency defect, entanglement, and memory effects quantified by a non-Markovianity measure, that emerge due to the structured reservoir.
+[QA 4] The paper demonstrates that halting stellar feedback in a Milky Way-like galaxy leads to a dramatic increase in star formation rate and changes in molecular cloud properties, challenging existing theories that predict star formation primarily based on turbulence regulation. | The key contribution of this paper is conducting a controlled experiment to quantify the impact of stellar feedback on star formation rates and the properties of giant molecular clouds (GMCs) within a simulated Milky Way-like galaxy. By halting stellar feedback in one branch of the simulation, while maintaining it in a control branch, the authors found that the absence of feedback leads to a rapid and dramatic increase (over an order of magnitude) in the star formation rate and efficiency per free-fall time, both globally and within individual GMCs. This surge far exceeds predictions from turbulence-regulated star formation theories, suggesting that stellar feedback plays a crucial role in regulating star formation that cannot be disentangled from turbulence effects on small scales.
+[effective] clen=112759 window=4096 chunk_ratio=0.740576 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.72it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.36it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.13it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.05s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.40s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.60s/it]Prefill: 100%|██████████| 8/8 [00:09<00:00,  1.16s/it]Prefill: 100%|██████████| 8/8 [00:09<00:00,  1.16s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-37: 112759 tokens, KV cache 6.5 GB, torch.bfloat16
+[effective] clen=112759 window=4096 chunk_ratio=0.481153 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.73it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.43it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.25it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.10it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.02s/it]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.14s/it]Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.27s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.08it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.04it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-37: 112759 tokens, KV cache 6.5 GB, torch.bfloat16
+[effective] clen=112759 window=4096 chunk_ratio=0.377383 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.76it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.47it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.17it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.06it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.04s/it]Prefill:  88%|████████▊ | 7/8 [00:06<00:01,  1.14s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.20it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.13it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-37: 112759 tokens, KV cache 6.5 GB, torch.bfloat16
+[effective] clen=112759 window=4096 chunk_ratio=0.273614 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.74it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.36it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.25it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.15it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:01,  1.06it/s]Prefill:  88%|████████▊ | 7/8 [00:06<00:01,  1.02s/it]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.35it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.25it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-37: 112759 tokens, KV cache 6.5 GB, torch.bfloat16
+[effective] clen=112759 window=4096 chunk_ratio=0.169844 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.73it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.51it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.41it/s]Prefill:  50%|█████     | 4/8 [00:02<00:03,  1.33it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.26it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.19it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.13it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.55it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-37: 112759 tokens, KV cache 6.5 GB, torch.bfloat16
+[effective] clen=112759 window=4096 chunk_ratio=0.066075 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.75it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.56it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.48it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.43it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.39it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.35it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.31it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.81it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.55it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-37: 112759 tokens, KV cache 6.5 GB, torch.bfloat16
+[effective] clen=112759 window=4096 chunk_ratio=0.014190 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.73it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.55it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.51it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.49it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.47it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.45it/s]Prefill:  88%|████████▊ | 7/8 [00:04<00:00,  1.44it/s]Prefill: 100%|██████████| 8/8 [00:04<00:00,  1.65it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-37: 112759 tokens, KV cache 6.5 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/37_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 154.4s. Mem: 14.31/79.18 GB. [scbench_summary-37]
+
+[effective] clen=106983 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.35it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.81it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.02it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.46s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.58s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.25s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-38: 106983 tokens, KV cache 6.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper introduces CoDA, a visual analytics suite that enables detailed, quantitative, and interactive morphological analysis of complex dendroidal coral structures, facilitating the study of their ontogenetic development and genetic/environmental influences on growth patterns. | The key contribution of the paper titled "CoDA: Interactive Segmentation and Morphological Analysis of Dendroid Structures Exemplified on Stony Cold-Water Corals" is presenting a visual analytics suite called CoDA that allows for the first time a detailed three-dimensional quantitative assessment and ontogenetic morphological analysis of complex dendroid coral colonies, exemplified on three important framework-forming cold-water coral species.
+[QA 1] VisConductor introduces a modular widget-based tool that enables presenters to control animated data visualizations, annotations, and visual foreshadowing through gesture-based interactions, providing a flexible and engaging way to enhance data storytelling in remote presentations. | The key contribution of the paper "VisConductor: Affect-Varying Widgets for Animated Data Storytelling in Gesture-Aware Augmented Video Presentation" is the design and development of VisConductor, an authoring and presentation tool that allows presenters to control animated data visualizations, annotations, and visual foreshadowing using hand gestures in an augmented video presentation setting, providing a way to communicate affects and engage remote audiences when telling stories with data.
+[QA 2] The paper presents multi-frequency and multi-resolution radio observations showing the emergence of a radio jet in the changing-look active galactic nucleus 1ES 1927+654, nearly two years after an initial optical outburst, providing insights into the interaction between the central black hole and its surrounding environment. | The key contribution of this paper is the detection of a significant radio flare in the changing-look AGN 1ES 1927+654, starting in early 2023, reaching 40-60 times its previous radio luminosity, which is interpreted as evidence for the emergence of a new radio jet or outflow in this source approximately 1800 days after its initial optical/UV changing-look event in late 2017.
+[QA 3] The paper demonstrates that existing AI-based numerical weather prediction systems can effectively downscale low-resolution climate model data to generate high-resolution atmospheric fields, offering a computationally efficient alternative for enhancing climate data resolution and potentially performing bias correction. | The key contribution of the paper "Emerging AI-based weather prediction models as downscaling tools" is that it demonstrates the potential of using existing AI-based numerical weather prediction systems (AI-NWP) to perform global downscaling of low-resolution climate model data to higher resolutions, offering a computationally efficient alternative to traditional downscaling techniques.
+[QA 4] The paper introduces Sim-OPRL, an offline preference-based reinforcement learning algorithm that leverages a learned environment model to elicit preference feedback on simulated rollouts, balancing conservatism and exploration to efficiently learn a robust policy from low-quality offline data. | The key contribution of this paper is proposing an efficient method, called Sim-OPRL, for acquiring preference feedback in a fully offline reinforcement learning setup. The method learns an environment model from offline data and generates simulated trajectories to query preferences from a human, balancing conservative handling of out-of-distribution states with optimistic exploration to learn the optimal policy. Theoretical analysis and empirical evaluation across different environments demonstrate that Sim-OPRL can learn near-optimal policies with fewer preference queries compared to baseline approaches that sample preferences directly from the offline data.
+[effective] clen=106983 window=4096 chunk_ratio=0.740047 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.37it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.04s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.38s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.20s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-38: 106983 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=106983 window=4096 chunk_ratio=0.480095 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.43it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.02s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.11s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.00s/it]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-38: 106983 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=106983 window=4096 chunk_ratio=0.376114 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.47it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.17it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.06it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.00s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.09it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-38: 106983 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=106983 window=4096 chunk_ratio=0.272133 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.76it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.50it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.36it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.25it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.07it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.13it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.19it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-38: 106983 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=106983 window=4096 chunk_ratio=0.168151 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.52it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.41it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.33it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.19it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.28it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.31it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-38: 106983 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=106983 window=4096 chunk_ratio=0.064170 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.54it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.48it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.43it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.39it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.49it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.46it/s]
