@@ -2576,3 +2576,53 @@ slack 0 → 无可修（且伤）；slack 26 → 修回 +18.80；slack 39 → �
 **学到的那条轴正反加起来只跨 4.2 分，随机置换跨 28.4 分。** 对比 MultiHop 上
 γ=−1 是 −33.20（那里方向极其重要）—— 同一个学到的方向，在两个 panel 上的
 "方向重要性"差了一个量级。
+
+### 13:20 SnapKV/Expected Attention 的 0.00 是**我的配置错误**，而错误本身印证了论文命题
+
+用户追问那两个基线的 ratio、样本数与代码正确性，查下来是我排实验时用错了 `--level`。
+
+#### 错在哪
+
+我自己的 `scratch_repro_full.py:METHODS` 表就写着各方法要用不同的 level：
+
+| 方法 | gate | **官方 level** | 我用的 |
+|---|---|---|---|
+| fastkvzip | `fastkvzip` | `pair` | `pair` ✓ |
+| **Expected Attention** | `expect` | **`adakv-layer`** | `pair` ✗ |
+| **SnapKV** | `snap` | **`pair-head`** | `pair` ✗ |
+
+`score.py:threshold()` 按字符串分派：`"head" in level` → `_threshold_head`（**逐头均匀预算**）；
+`"layer" in level` → `_threshold_layer`（逐层均匀，adakv 带 0.2 safeguard）；否则
+→ `_threshold`（**全局阈值**）。
+
+**所以我把 SnapKV 的分数送进了全局阈值。** SnapKV 的分数是逐头注意力导出的、
+**跨头本就没有可比性**，全局比较下预算涌向少数头、其余饿死 ⇒ 归零。
+
+> **讽刺的是：这恰恰是本项目在讲的跨头校准失效，只是以最极端的形式出现。**
+> 但它不是 SnapKV 的合法基线，必须用 `pair-head` 重跑。
+
+顺带更正规模：**不是 100 条，是 `--num 30`**，ratio 只有 0.2 与 0.1
+（日志里的 `num 11` 是 chunk 数不是样本数）。重跑加上 ρ=0.75/0.5 以定位工作区间。
+
+#### 换门控要不要训练：**不要**
+
+SnapKV 与 Expected Attention 都是 training-free 打分器，`load_gate` 直接实例化。
+
+#### 教师训练与门控的关系：**绑定的**
+
+`scratch_ctrl_teacher.py:345` `--gate default="fastkvzip"`、388 行
+`ModelKVzip(a.model,"retain",a.gate)`、441 行 `s0 = torch.stack(self.score,0)[..., lo:hi]`。
+**trace 里的 `s0` 就是 FastKVzip 门控的分数**，而 `z=(s⁰−μ_h)/σ_h`、`mg`、`rs`
+全由它导出。所以：
+
+| | |
+|---|---|
+| **架构** | **门控无关** —— 只吃 `s⁰` 的统计量，不碰 K/V、不碰模型内部 |
+| **权重** | **门控绑定** —— warp 是针对 FastKVzip 的分数分布校准的 |
+
+⇒ **不是"训练一次通用"**。换 scorer 要 `--gate snap` 重新生成 trace 再训练
+（脚本已暴露该参数，是一个标志的事）。这正是"泛化要拆成**诊断半**（不用训练）与
+**方法半**（要训练）"的技术原因。
+
+**教训**：引入任何新 base scorer，**第一步是查它官方要用的 level/配置**，
+`METHODS` 表里早就写着 —— 我等于第三次犯了「已有的权威信息不去读，自己另起一套」。
