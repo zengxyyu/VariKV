@@ -3546,3 +3546,50 @@ KVzip 的重构式打分。**所以这个实验今天就能做，不需要任何
 **仍不采信**：Ada-KV / LKV / DBTrimKV 的具体主张全部来自转述，**三篇原文我都没读**。
 他这次对 LKV 的描述（"learned budgeting 是主要性能来源"）若属实，会直接压缩我们
 「基数分配比序数排序重要」这条的新颖性 —— **正因为它这么关键，更不能靠转述定案**。
+
+### ㉑ 版本对照表（哪个作业跑的是哪版投影代码）
+
+投影器在一天内改了三次，必须记清楚每个作业对应哪版，否则以后无法判断哪些结果可比。
+
+| 提交 | 时间 | 投影版本 | 用它的作业（派发时间） |
+|---|---|---|---|
+| （首版 `VARIKV_QUOTA_MODE`） | ~09:40 | within 喂 full 表 + 层内配平；across 层内 round 后**全局**补 | `_p02win2`（09:52）、`_p02acr2`（10:05） |
+| `5b238c6` | **10:22** | **构造性**：within 显式逐层去均值；across 两级整数投影 | **`_p02win3`（10:34）** |
+| `208ad65` | **11:10** | 抽成唯一实现 `attention/quota_project.py`，非 full 模式禁止兜底配平（行为等价，7 条单测全过） | `_p02acr3` 及之后的幅度扫描 |
+
+**结论**：`_p02win3` 已经是修正版；`_p02acr3` 会用重构版。旧的 `_p02win2`/`_p02acr2`
+与修正版差 1.21% 搬动量、99.1% 的格逐位相同，**作历史保留，正式表不用**。
+
+### ㉒ 跨方法配额移植：前置检查与实验设计（已挂冒烟）
+
+按 §⑲ 的判据把实验落地。本仓库的 `scratch_repro_full.py:METHODS` 给出 gate↔level 对应：
+
+    fastkvzip → gate fastkvzip, level pair          （111 DOF，全局竞争）
+    expected  → gate expect,    level adakv-layer   （84 DOF，层内 4 头竞争）
+    snapkv    → gate snap,      level pair-head     （0 DOF，配额构造性均匀）
+    duoattn   → gate head,      level pair
+
+**完整设计（6 个作业）：**
+
+    (a) expect 基线 @adakv-layer, n=100, ρ=0.2
+    (b) snap   基线 @pair-head,   n=100, ρ=0.2
+    (c) expect 配额导出（--num 20）
+    (d) snap   配额导出（--num 20）
+    (e) fastkvzip 排序 + expect 配额, n=100     ← 移植
+    (f) fastkvzip 排序 + snap 配额,   n=100     ← 移植
+
+**dump 取的是该 gate 自己的配额，不受 ctrlm 干扰**：dump 代码里
+`_v0 = ... self.threshold(score0, ratio, level)[0]`，`score0` 是**未被修正**的 gate 分数，
+所以 `b_base` 就是该方法自己的选择。已核代码。
+
+**(f) 的语义要说清**：`pair-head` 的配额构造性均匀，所以「fastkvzip 排序 + snap 配额」
+= 「fastkvzip 排序 + **均匀**配额」。它测的**不是 SnapKV 的特性**，而是
+**全局竞争产生的非均匀配额相对均匀配额值多少**（固定排序）。这本身是个好对照 ——
+它给出「配额自由度从 0 升到 111 值多少分」的直接读数。
+
+**先跑冒烟**（`_smkexp` / `_smksnap`，各 2 条）：`expect` / `snap` 两个 gate 从未与
+带 dump/inject 的 `LearnedControlRetainCache` 一起跑过，先确认不炸、且 dump 出的
+`b_base` 形状与语义正确（尤其 `snap` 应当逐头相等）。**冒烟不过就不要排后面 6 个。**
+
+启动器另存为 `/tmp/qrun2.sh`（加 gate/level 两参）——**没有改运行中的 `/tmp/qrun.sh`**，
+遵守「绝不编辑有实例正在运行的脚本」这条（今天已因此打挂五个作业）。
