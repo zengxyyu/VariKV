@@ -290,6 +290,15 @@ class ModelKVzip:
                 chunk_ratio = 0.0
             else:
                 chunk_ratio = (chunk_ratio * clen - window_size) / (clen - window_size)
+        # **把生效后的值落盘，报表不要再自己重推一遍 runtime 逻辑。**
+        # 先前 scratch_all_report.py 写死 window=4096，漏掉上面那条对短上下文
+        # `window_size = int(window_ratio*clen)` 的重标定，把 gsm(86)/squad(203)
+        # 每一格都误标成结构性退化。这与「选项列表不要手抄第二份」是同一类错误。
+        # `chunk_ratio == 0` 就是结构性退化的**定义**：旧 token 名额为 0，
+        # 任何分数扰动对最终掩码都是 no-op。
+        print(f"[effective] clen={clen} window={window_size} "
+              f"chunk_ratio={chunk_ratio:.6f} degenerate={chunk_ratio == 0.0}",
+              flush=True)
 
         # prefill
         for input_ids in tqdm(

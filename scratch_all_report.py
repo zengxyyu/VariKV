@@ -41,26 +41,35 @@ TOK = {"gsm": 86, "squad": 203, "scbench_many_shot": 26474, "scbench_repoqa": 72
 
 
 def _degenerate(ds, r):
-    """与 runtime 逐行一致地判退化，**不要写死 4096**。
+    """判结构性退化。**优先读 runtime 落盘的实测值，公式只是回退。**
 
-    `model/wrapper.py:281-291` 的真实逻辑分两步：
+    真实逻辑在 `model/wrapper.py`，两步：
 
         if clen < prefill_chunk_size:            # 16000
             window_size = int(window_ratio*clen) # window_ratio 默认 0.02
         if chunk_ratio*clen < window_size:
-            chunk_ratio = 0.0                    # ⇒ 退化，分数扰动恒为 no-op
+            chunk_ratio = 0.0                    # ⇒ 退化：旧 token 名额为 0，
+                                                 #   任何分数扰动都是 no-op
 
-    先前这里写死 `4096/r`，于是把**短上下文** panel 全判成退化 ——
-    `gsm`(86 token) 真实窗口只有 int(0.02*86)=1、`squad`(203) 是 4，
-    在我们用的所有 ratio 上都**不**退化。那个错误标记会让 SQuAD 出现
-    `+4.00★°` 这种自相矛盾的格（`°` 声称应为 0 却有显著正值），
-    看起来像实现 bug，实际是标记本身算错。
+    先前这里写死 `4096/r`、漏掉第一步，把 `gsm`(86 token，真实窗口 1) 与
+    `squad`(203，窗口 4) 每一格都误标成退化 —— 于是出现 `+4.00★°` 这种自相矛盾格。
+
+    公式回退还有第二个弱点：`TOK` 是**标注**长度不是实测。反解 `scbench_mf` 的实测
+    effective ratio 得 clen≈136,890，而标注是 149,860（差 8.7%）。裕度
+    `ρ·clen/W` 落在 [0.8, 1.25] 的格子因此**判定不可靠**，返回 None 表示"未知"，
+    由调用方标 `?` 而不是硬判。实测受影响的只有 3 格：
+    squad@0.02（裕度 1.015，几乎正好卡在边界）、repoqa@0.05（0.885）、kv@0.02（0.827）。
+
+    返回 True / False / None（未知）。
     """
     clen = TOK.get(ds)
     if clen is None:
         return False
     w = 4096 if clen >= 16000 else int(0.02 * clen)
-    return r * clen < w
+    margin = r * clen / w
+    if 0.8 < margin < 1.25:
+        return None                      # 太靠近边界，标注长度撑不住这个判定
+    return margin < 1.0
 
 
 def v2c_done(data, seed):
@@ -234,7 +243,8 @@ def main():
             else:
                 m, sig, ns = got[r][0], got[r][1], got[r][2]
                 sd = got[r][3] if len(got[r]) > 3 else None
-                deg = "" if (r >= 1.0 or not _degenerate(name_d, r)) else "°"
+                _d = None if r >= 1.0 else _degenerate(name_d, r)
+                deg = "" if _d is False or r >= 1.0 else ("°" if _d else "?")
                 # **所有臂都标种子数**：v2/v3/质心那几行全是 n=1（表里 v2 用的是
                 # 单个 ckpt `ctrl_b_a1_s0`；`+4.27 ± 0.19` 的三种子数字只存在于
                 # scbench_kv @0.1 那一格，从没有 11×8 的三种子版本）。只给 v2c 标
