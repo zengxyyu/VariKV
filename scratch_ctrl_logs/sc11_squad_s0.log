@@ -1,0 +1,1293 @@
+tag: _fastkvzip__sc11_s0_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.76it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.80it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.80it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.89it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.85it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/d10_scalar_s0.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.5K
+['squad']
+datasets failed on squad (Feature type 'List' not found. Available feature types: ['Value', 'ClassLabel', 'Translation', 'TranslationVariableLanguages', 'LargeList', 'Sequence', 'Array2D', 'Array3D', 'Array4D', 'Array5D', 'Audio', 'Image', 'Video', 'Pdf']); falling back to pyarrow
+
+squad loaded, #data: 101
+set generation length: 256 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~100 samples
+[effective] clen=165 window=3 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.21it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.21it/s]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Saint Bernadette Soubirous | Saint Bernadette Soubirous
+[QA 1] A copper statue of Christ with arms upraised with the legend "Venite Ad Me Omnes". | a copper statue of Christ
+[QA 2] The Basilica of the Sacred Heart is next to the Main Building. | the Main Building
+[QA 3] The Grotto at Notre Dame is a Marian place of prayer and reflection, designed as a replica of the grotto at Lourdes, France, where the Virgin Mary is reputedly said to have appeared to Saint Bernadette Soubirous in 1858. | a Marian place of prayer and reflection
+[QA 4] A gold dome with a golden statue of the Virgin Mary. | a golden statue of the Virgin Mary
+[effective] clen=165 window=3 chunk_ratio=0.745370 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  9.80it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  9.78it/s]
+Chunked prefilling with 0.75 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=165 window=3 chunk_ratio=0.490741 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.83it/s]
+Chunked prefilling with 0.50 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=165 window=3 chunk_ratio=0.388889 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.86it/s]
+Chunked prefilling with 0.40 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=165 window=3 chunk_ratio=0.287037 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.79it/s]
+Chunked prefilling with 0.30 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=165 window=3 chunk_ratio=0.185185 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.51it/s]
+Chunked prefilling with 0.20 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=165 window=3 chunk_ratio=0.083333 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.52it/s]
+Chunked prefilling with 0.10 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=165 window=3 chunk_ratio=0.032407 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.88it/s]
+Chunked prefilling with 0.05 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-0: 165 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/0_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 28.3s. Mem: 14.31/79.18 GB. [squad-0]
+
+[effective] clen=276 window=5 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 15.16it/s]
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The Scholastic Magazine of Notre Dame began publishing in September 1876. | September 1876
+[QA 1] Twice a year. | twice
+[QA 2] The Observer | The Observer
+[QA 3] Three newspapers. | three
+[QA 4] 1987 | 1987
+[effective] clen=276 window=5 chunk_ratio=0.745387 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.88it/s]
+Chunked prefilling with 0.75 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=276 window=5 chunk_ratio=0.490775 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.11it/s]
+Chunked prefilling with 0.50 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=276 window=5 chunk_ratio=0.388930 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.74it/s]
+Chunked prefilling with 0.40 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=276 window=5 chunk_ratio=0.287085 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.27it/s]
+Chunked prefilling with 0.30 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=276 window=5 chunk_ratio=0.185240 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.25it/s]
+Chunked prefilling with 0.20 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=276 window=5 chunk_ratio=0.083395 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.25it/s]
+Chunked prefilling with 0.10 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=276 window=5 chunk_ratio=0.032472 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.28it/s]
+Chunked prefilling with 0.05 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-1: 276 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/1_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 11.9s. Mem: 14.31/79.18 GB. [squad-1]
+
+[effective] clen=154 window=3 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 16.60it/s]
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The headquarters of the Congregation of the Holy Cross are in Rome. | Rome
+[QA 1] The primary seminary of the Congregation of the Holy Cross is Moreau Seminary. | Moreau Seminary
+[QA 2] Old College is the oldest building on campus. | Old College
+[QA 3] Retired priests and brothers live at Fatima House at Notre Dame. | Retired priests and brothers
+[QA 4] Frederick Buechner created the Buechner Prize for Preaching. | Buechner Prize for Preaching
+[effective] clen=154 window=3 chunk_ratio=0.745033 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.87it/s]
+Chunked prefilling with 0.75 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=154 window=3 chunk_ratio=0.490066 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.78it/s]
+Chunked prefilling with 0.50 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=154 window=3 chunk_ratio=0.388079 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.72it/s]
+Chunked prefilling with 0.40 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=154 window=3 chunk_ratio=0.286093 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.20it/s]
+Chunked prefilling with 0.30 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=154 window=3 chunk_ratio=0.184106 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.88it/s]
+Chunked prefilling with 0.20 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=154 window=3 chunk_ratio=0.082119 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.06it/s]
+Chunked prefilling with 0.10 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=154 window=3 chunk_ratio=0.031126 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.92it/s]
+Chunked prefilling with 0.05 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-2: 154 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/2_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 22.2s. Mem: 14.31/79.18 GB. [squad-2]
+
+[effective] clen=142 window=2 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 17.53it/s]
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Eight B.S. degrees are offered in the College of Engineering at Notre Dame. | eight
+[QA 1] The College of Engineering at Notre Dame was formed in 1920. | 1920
+[QA 2] The College of Science. | the College of Science
+[QA 3] Based on the information provided, the number of departments specifically housed in the Stinson-Remick Hall of Engineering is not directly stated. Therefore, I cannot determine how many departments are within the Stinson-Remick Hall from the given context. | five
+[QA 4] The College of Science began to offer civil engineering courses beginning in the 1870s at Notre Dame. | the 1870s
+[effective] clen=142 window=2 chunk_ratio=0.746429 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.89it/s]
+Chunked prefilling with 0.75 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=142 window=2 chunk_ratio=0.492857 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.79it/s]
+Chunked prefilling with 0.50 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=142 window=2 chunk_ratio=0.391429 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.73it/s]
+Chunked prefilling with 0.40 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=142 window=2 chunk_ratio=0.290000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.68it/s]
+Chunked prefilling with 0.30 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=142 window=2 chunk_ratio=0.188571 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.69it/s]
+Chunked prefilling with 0.20 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=142 window=2 chunk_ratio=0.087143 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.05it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=142 window=2 chunk_ratio=0.036429 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.23it/s]
+Chunked prefilling with 0.05 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-3: 142 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/3_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 27.8s. Mem: 14.31/79.18 GB. [squad-3]
+
+[effective] clen=130 window=2 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 17.95it/s]
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The Learning Resource Center provides help with time management for new students at Notre Dame. | Learning Resource Center
+[QA 1] Five | five
+[QA 2] The First Year of Studies program was created at Notre Dame in 1962 to assist first-year students. | The First Year of Studies program
+[QA 3] U.S. News & World Report | U.S. News & World Report
+[effective] clen=130 window=2 chunk_ratio=0.746094 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.02it/s]
+Chunked prefilling with 0.75 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=130 window=2 chunk_ratio=0.492188 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.42it/s]
+Chunked prefilling with 0.50 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=130 window=2 chunk_ratio=0.390625 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.98it/s]
+Chunked prefilling with 0.40 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=130 window=2 chunk_ratio=0.289062 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.07it/s]
+Chunked prefilling with 0.30 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=130 window=2 chunk_ratio=0.187500 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.87it/s]
+Chunked prefilling with 0.20 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=130 window=2 chunk_ratio=0.085938 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.82it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=130 window=2 chunk_ratio=0.035156 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.05it/s]
+Chunked prefilling with 0.05 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-4: 130 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/4_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 15.4s. Mem: 14.31/79.18 GB. [squad-4]
+
+[effective] clen=267 window=5 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.25it/s]
+# prefill qwen2.5-7b-instruct-1m squad-5: 267 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 1924 | 1924
+[QA 1] Master of Divinity | Master of Divinity
+[QA 2] The Alliance for Catholic Education program offers a Master of Education degree. | Alliance for Catholic Education
+[QA 3] 1854 | 1854
+[QA 4] The Department of Pre-Professional Studies is the only one to not offer a PhD program. | Department of Pre-Professional Studies
+[effective] clen=267 window=5 chunk_ratio=0.745229 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.89it/s]
+Chunked prefilling with 0.75 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-5: 267 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=267 window=5 chunk_ratio=0.490458 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.26it/s]
+Chunked prefilling with 0.50 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-5: 267 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=267 window=5 chunk_ratio=0.388550 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.89it/s]
+Chunked prefilling with 0.40 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-5: 267 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=267 window=5 chunk_ratio=0.286641 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.90it/s]
+Chunked prefilling with 0.30 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-5: 267 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=267 window=5 chunk_ratio=0.184733 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.88it/s]
+Chunked prefilling with 0.20 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-5: 267 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=267 window=5 chunk_ratio=0.082824 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.40it/s]
+Chunked prefilling with 0.10 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-5: 267 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=267 window=5 chunk_ratio=0.031870 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.18it/s]
+Chunked prefilling with 0.05 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-5: 267 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/5_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 14.7s. Mem: 14.31/79.18 GB. [squad-5]
+
+[effective] clen=123 window=2 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.51it/s]
+# prefill qwen2.5-7b-instruct-1m squad-6: 123 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The Joan B. Kroc Institute for International Peace Studies at the University of Notre Dame studies the reasons for violent conflict. | Joan B. Kroc Institute for International Peace Studies
+[QA 1] President Emeritus | President Emeritus of the University of Notre Dame
+[QA 2] 1986 | 1986
+[QA 3] Joan B. Kroc was married to Ray Kroc. | Ray Kroc
+[QA 4] Ray Kroc owned McDonald's. | McDonald's
+[effective] clen=123 window=2 chunk_ratio=0.745868 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.93it/s]
+Chunked prefilling with 0.75 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-6: 123 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=123 window=2 chunk_ratio=0.491736 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.01it/s]
+Chunked prefilling with 0.50 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-6: 123 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=123 window=2 chunk_ratio=0.390083 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.98it/s]
+Chunked prefilling with 0.40 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-6: 123 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=123 window=2 chunk_ratio=0.288430 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.72it/s]
+Chunked prefilling with 0.30 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-6: 123 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=123 window=2 chunk_ratio=0.186777 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.91it/s]
+Chunked prefilling with 0.20 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-6: 123 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=123 window=2 chunk_ratio=0.085124 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.83it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-6: 123 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=123 window=2 chunk_ratio=0.034298 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.02it/s]
+Chunked prefilling with 0.05 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-6: 123 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/6_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 15.8s. Mem: 14.31/79.18 GB. [squad-6]
+
+[effective] clen=111 window=2 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 16.83it/s]
+# prefill qwen2.5-7b-instruct-1m squad-7: 111 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 14 stories | 14
+[QA 1] Theodore M. Hesburgh Library | Theodore M. Hesburgh Library
+[QA 2] 1963 | 1963
+[QA 3] Millard Sheets | Millard Sheets
+[QA 4] Touchdown Jesus | Touchdown Jesus
+[effective] clen=111 window=2 chunk_ratio=0.745413 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.96it/s]
+Chunked prefilling with 0.75 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-7: 111 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=111 window=2 chunk_ratio=0.490826 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.43it/s]
+Chunked prefilling with 0.50 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-7: 111 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=111 window=2 chunk_ratio=0.388991 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.38it/s]
+Chunked prefilling with 0.40 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-7: 111 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=111 window=2 chunk_ratio=0.287156 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.86it/s]
+Chunked prefilling with 0.30 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-7: 111 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=111 window=2 chunk_ratio=0.185321 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.40it/s]
+Chunked prefilling with 0.20 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-7: 111 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=111 window=2 chunk_ratio=0.083486 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.37it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-7: 111 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=111 window=2 chunk_ratio=0.032569 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.32it/s]
+Chunked prefilling with 0.05 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-7: 111 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/7_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 8.9s. Mem: 14.31/79.18 GB. [squad-7]
+
+[effective] clen=238 window=4 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 16.95it/s]
+# prefill qwen2.5-7b-instruct-1m squad-8: 238 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Notre Dame admitted 3,577 incoming students in fall 2015. | 3,577
+[QA 1] 19.7% | 19.7%
+[QA 2] Notre Dame ranks among the top 10 to 15 in the nation for national research universities in terms of academic profile. | the top 10 to 15 in the nation
+[QA 3] 39.1% | 39.1%
+[QA 4] The average student travels more than 750 miles to study at Notre Dame. | more than 750 miles
+[effective] clen=238 window=4 chunk_ratio=0.745726 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.33it/s]
+Chunked prefilling with 0.75 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-8: 238 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=238 window=4 chunk_ratio=0.491453 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.34it/s]
+Chunked prefilling with 0.50 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-8: 238 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=238 window=4 chunk_ratio=0.389744 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.29it/s]
+Chunked prefilling with 0.40 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-8: 238 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=238 window=4 chunk_ratio=0.288034 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.12it/s]
+Chunked prefilling with 0.30 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-8: 238 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=238 window=4 chunk_ratio=0.186325 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.89it/s]
+Chunked prefilling with 0.20 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-8: 238 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=238 window=4 chunk_ratio=0.084615 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.94it/s]
+Chunked prefilling with 0.10 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-8: 238 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=238 window=4 chunk_ratio=0.033761 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.65it/s]
+Chunked prefilling with 0.05 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-8: 238 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/8_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 21.6s. Mem: 14.31/79.18 GB. [squad-8]
+
+[effective] clen=305 window=6 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 16.96it/s]
+# prefill qwen2.5-7b-instruct-1m squad-9: 305 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Notre Dame ranked 18th overall among "national universities" in the United States in U.S. News & World Report's Best Colleges 2016. | 18th overall
+[QA 1] 8th among Research Universities. | 8th
+[QA 2] 1st | 1st overall
+[QA 3] USA Today | USA Today
+[QA 4] 57.6% | 57.6%
+[effective] clen=305 window=6 chunk_ratio=0.744983 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.91it/s]
+Chunked prefilling with 0.75 ratio, window 6
+# prefill qwen2.5-7b-instruct-1m squad-9: 305 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=305 window=6 chunk_ratio=0.489967 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.14it/s]
+Chunked prefilling with 0.50 ratio, window 6
+# prefill qwen2.5-7b-instruct-1m squad-9: 305 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=305 window=6 chunk_ratio=0.387960 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.73it/s]
+Chunked prefilling with 0.40 ratio, window 6
+# prefill qwen2.5-7b-instruct-1m squad-9: 305 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=305 window=6 chunk_ratio=0.285953 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.67it/s]
+Chunked prefilling with 0.30 ratio, window 6
+# prefill qwen2.5-7b-instruct-1m squad-9: 305 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=305 window=6 chunk_ratio=0.183946 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.48it/s]
+Chunked prefilling with 0.20 ratio, window 6
+# prefill qwen2.5-7b-instruct-1m squad-9: 305 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=305 window=6 chunk_ratio=0.081940 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.22it/s]
+Chunked prefilling with 0.10 ratio, window 6
+# prefill qwen2.5-7b-instruct-1m squad-9: 305 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=305 window=6 chunk_ratio=0.030936 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.94it/s]
+Chunked prefilling with 0.05 ratio, window 6
+# prefill qwen2.5-7b-instruct-1m squad-9: 305 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/9_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 16.1s. Mem: 14.31/79.18 GB. [squad-9]
+
+[effective] clen=216 window=4 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 17.09it/s]
+# prefill qwen2.5-7b-instruct-1m squad-10: 216 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Father Joseph Carrier, C.S.C. | Father Joseph Carrier, C.S.C.
+[QA 1] The lifespan of John Augustine Zahm was 1851–1921. | 1851–1921
+[QA 2] The Science Department | the Science Department
+[QA 3] John Zahm wrote *Evolution and Dogma* in 1896. | Evolution and Dogma
+[QA 4] Father Joseph Carrier held the professorships of Chemistry and Physics at Notre Dame until 1874. | Professor of Chemistry and Physics
+[effective] clen=216 window=4 chunk_ratio=0.745283 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.93it/s]
+Chunked prefilling with 0.75 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-10: 216 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=216 window=4 chunk_ratio=0.490566 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.95it/s]
+Chunked prefilling with 0.50 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-10: 216 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=216 window=4 chunk_ratio=0.388679 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.93it/s]
+Chunked prefilling with 0.40 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-10: 216 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=216 window=4 chunk_ratio=0.286792 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.93it/s]
+Chunked prefilling with 0.30 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-10: 216 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=216 window=4 chunk_ratio=0.184906 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.95it/s]
+Chunked prefilling with 0.20 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-10: 216 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=216 window=4 chunk_ratio=0.083019 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.81it/s]
+Chunked prefilling with 0.10 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-10: 216 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=216 window=4 chunk_ratio=0.032075 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.71it/s]
+Chunked prefilling with 0.05 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-10: 216 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/10_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 25.9s. Mem: 14.31/79.18 GB. [squad-10]
+
+[effective] clen=120 window=2 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.76it/s]
+# prefill qwen2.5-7b-instruct-1m squad-11: 120 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 1882 | 1882
+[QA 1] Professor Jerome Green | Professor Jerome Green
+[QA 2] 1899 | Around 1899
+[QA 3] Father Julius Nieuwland | Father Julius Nieuwland
+[QA 4] An early wind tunnel used to compare lift to drag of aeronautical models. | an early wind tunnel
+[effective] clen=120 window=2 chunk_ratio=0.745763 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.91it/s]
+Chunked prefilling with 0.75 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-11: 120 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=120 window=2 chunk_ratio=0.491525 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.80it/s]
+Chunked prefilling with 0.50 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-11: 120 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=120 window=2 chunk_ratio=0.389831 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.55it/s]
+Chunked prefilling with 0.40 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-11: 120 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=120 window=2 chunk_ratio=0.288136 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.01it/s]
+Chunked prefilling with 0.30 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-11: 120 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=120 window=2 chunk_ratio=0.186441 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.95it/s]
+Chunked prefilling with 0.20 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-11: 120 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=120 window=2 chunk_ratio=0.084746 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.47it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-11: 120 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=120 window=2 chunk_ratio=0.033898 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.62it/s]
+Chunked prefilling with 0.05 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-11: 120 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/11_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 13.0s. Mem: 14.31/79.18 GB. [squad-11]
+
+[effective] clen=255 window=5 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 17.48it/s]
+# prefill qwen2.5-7b-instruct-1m squad-12: 255 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The work on germ-free-life ended up in the creation of the Lobund Institute. | The Lobund Institute
+[QA 1] Lobund became independent in the 1940s. | the 1940s
+[QA 2] 1950 | 1950
+[QA 3] 1958 | 1958
+[QA 4] The study of germ-free-life began at Notre Dame in 1928. | 1928
+[effective] clen=255 window=5 chunk_ratio=0.745000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.32it/s]
+Chunked prefilling with 0.75 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-12: 255 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=255 window=5 chunk_ratio=0.490000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.24it/s]
+Chunked prefilling with 0.50 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-12: 255 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=255 window=5 chunk_ratio=0.388000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.27it/s]
+Chunked prefilling with 0.40 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-12: 255 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=255 window=5 chunk_ratio=0.286000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.14it/s]
+Chunked prefilling with 0.30 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-12: 255 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=255 window=5 chunk_ratio=0.184000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.23it/s]
+Chunked prefilling with 0.20 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-12: 255 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=255 window=5 chunk_ratio=0.082000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.23it/s]
+Chunked prefilling with 0.10 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-12: 255 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=255 window=5 chunk_ratio=0.031000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.92it/s]
+Chunked prefilling with 0.05 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-12: 255 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/12_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 21.2s. Mem: 14.31/79.18 GB. [squad-12]
+
+[effective] clen=128 window=2 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.16it/s]
+# prefill qwen2.5-7b-instruct-1m squad-13: 128 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Gurian created *The Review of Politics* in 1939 at Notre Dame. | The Review of Politics
+[QA 1] The Review of Politics was inspired by German Catholic journals. | German Catholic journals
+[QA 2] Gurian edited the Review of Politics for 44 years. | 44
+[QA 3] The Review of Politics | Review of Politics
+[effective] clen=128 window=2 chunk_ratio=0.746032 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.99it/s]
+Chunked prefilling with 0.75 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-13: 128 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=128 window=2 chunk_ratio=0.492063 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.27it/s]
+Chunked prefilling with 0.50 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-13: 128 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=128 window=2 chunk_ratio=0.390476 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.33it/s]
+Chunked prefilling with 0.40 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-13: 128 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=128 window=2 chunk_ratio=0.288889 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.42it/s]
+Chunked prefilling with 0.30 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-13: 128 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=128 window=2 chunk_ratio=0.187302 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.41it/s]
+Chunked prefilling with 0.20 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-13: 128 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=128 window=2 chunk_ratio=0.085714 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.45it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-13: 128 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=128 window=2 chunk_ratio=0.034921 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.21it/s]
+Chunked prefilling with 0.05 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-13: 128 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/13_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 14.1s. Mem: 14.31/79.18 GB. [squad-13]
+
+[effective] clen=178 window=3 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.60it/s]
+# prefill qwen2.5-7b-instruct-1m squad-14: 178 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] John Jenkins | John Jenkins
+[QA 1] The Kellogg Institute for International Studies is part of the University of Notre Dame. | Notre Dame
+[QA 2] The Kroc Institute at Notre Dame focuses on international peace studies. | International Peace studies
+[QA 3] 2013 | 2013
+[QA 4] The Global Adaptation Index studies the threat of climate change, specifically focusing on how vulnerable countries are to climate change and how prepared they are to adapt. | climate change
+[effective] clen=178 window=3 chunk_ratio=0.745714 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.95it/s]
+Chunked prefilling with 0.75 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-14: 178 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=178 window=3 chunk_ratio=0.491429 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.41it/s]
+Chunked prefilling with 0.50 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-14: 178 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=178 window=3 chunk_ratio=0.389714 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.37it/s]
+Chunked prefilling with 0.40 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-14: 178 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=178 window=3 chunk_ratio=0.288000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.02it/s]
+Chunked prefilling with 0.30 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-14: 178 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=178 window=3 chunk_ratio=0.186286 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.37it/s]
+Chunked prefilling with 0.20 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-14: 178 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=178 window=3 chunk_ratio=0.084571 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.41it/s]
+Chunked prefilling with 0.10 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-14: 178 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=178 window=3 chunk_ratio=0.033714 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.33it/s]
+Chunked prefilling with 0.05 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-14: 178 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/14_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 17.8s. Mem: 14.31/79.18 GB. [squad-14]
+
+[effective] clen=376 window=7 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 16.15it/s]
+# prefill qwen2.5-7b-instruct-1m squad-15: 376 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 8,448 undergraduates were attending Notre Dame in 2014. | 8,448
+[QA 1] Around 21–24% of students at Notre Dame are the children of former Notre Dame students. | 21–24%
+[QA 2] Over 700 teams participate in the Notre Dame Bookstore Basketball tournament. | over 700
+[QA 3] Money is raised at the Bengal Bouts tournament at Notre Dame for the Holy Cross Missions in Bangladesh. | the Holy Cross Missions in Bangladesh
+[QA 4] 12,179 students in total were at Notre Dame in 2014. | 12,179
+[effective] clen=376 window=7 chunk_ratio=0.745257 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.70it/s]
+Chunked prefilling with 0.75 ratio, window 7
+# prefill qwen2.5-7b-instruct-1m squad-15: 376 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=376 window=7 chunk_ratio=0.490515 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.47it/s]
+Chunked prefilling with 0.50 ratio, window 7
+# prefill qwen2.5-7b-instruct-1m squad-15: 376 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=376 window=7 chunk_ratio=0.388618 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.66it/s]
+Chunked prefilling with 0.40 ratio, window 7
+# prefill qwen2.5-7b-instruct-1m squad-15: 376 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=376 window=7 chunk_ratio=0.286721 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.66it/s]
+Chunked prefilling with 0.30 ratio, window 7
+# prefill qwen2.5-7b-instruct-1m squad-15: 376 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=376 window=7 chunk_ratio=0.184824 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.70it/s]
+Chunked prefilling with 0.20 ratio, window 7
+# prefill qwen2.5-7b-instruct-1m squad-15: 376 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=376 window=7 chunk_ratio=0.082927 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.16it/s]
+Chunked prefilling with 0.10 ratio, window 7
+# prefill qwen2.5-7b-instruct-1m squad-15: 376 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=376 window=7 chunk_ratio=0.031978 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.56it/s]
+Chunked prefilling with 0.05 ratio, window 7
+# prefill qwen2.5-7b-instruct-1m squad-15: 376 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/15_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 25.6s. Mem: 14.31/79.18 GB. [squad-15]
+
+[effective] clen=248 window=4 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.29it/s]
+# prefill qwen2.5-7b-instruct-1m squad-16: 248 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] About 80% of undergraduates live on the Notre Dame campus. | 80%
+[QA 1] Four graduate housing complexes. | four
+[QA 2] 15 | 15
+[QA 3] 20% | 20%
+[QA 4] 14 | 14
+[effective] clen=248 window=4 chunk_ratio=0.745902 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.73it/s]
+Chunked prefilling with 0.75 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-16: 248 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=248 window=4 chunk_ratio=0.491803 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.75it/s]
+Chunked prefilling with 0.50 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-16: 248 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=248 window=4 chunk_ratio=0.390164 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.94it/s]
+Chunked prefilling with 0.40 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-16: 248 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=248 window=4 chunk_ratio=0.288525 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.34it/s]
+Chunked prefilling with 0.30 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-16: 248 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=248 window=4 chunk_ratio=0.186885 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.93it/s]
+Chunked prefilling with 0.20 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-16: 248 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=248 window=4 chunk_ratio=0.085246 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.92it/s]
+Chunked prefilling with 0.10 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-16: 248 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=248 window=4 chunk_ratio=0.034426 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.89it/s]
+Chunked prefilling with 0.05 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-16: 248 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/16_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 13.5s. Mem: 14.31/79.18 GB. [squad-16]
+
+[effective] clen=272 window=5 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.13it/s]
+# prefill qwen2.5-7b-instruct-1m squad-17: 272 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Congregatio a Sancta Cruce | Congregatio a Sancta Cruce
+[QA 1] More than 93% of Notre Dame students identify as Christian. | more than 93%
+[QA 2] Over 100 times per week. | over 100 times
+[QA 3] Fifty-seven chapels are on the Notre Dame campus. | Fifty-seven
+[QA 4] Over 80% of the total student body identifies as Catholic. | over 80%
+[effective] clen=272 window=5 chunk_ratio=0.745318 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.86it/s]
+Chunked prefilling with 0.75 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-17: 272 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=272 window=5 chunk_ratio=0.490637 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.31it/s]
+Chunked prefilling with 0.50 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-17: 272 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=272 window=5 chunk_ratio=0.388764 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.86it/s]
+Chunked prefilling with 0.40 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-17: 272 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=272 window=5 chunk_ratio=0.286891 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.52it/s]
+Chunked prefilling with 0.30 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-17: 272 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=272 window=5 chunk_ratio=0.185019 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.87it/s]
+Chunked prefilling with 0.20 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-17: 272 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=272 window=5 chunk_ratio=0.083146 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.90it/s]
+Chunked prefilling with 0.10 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-17: 272 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=272 window=5 chunk_ratio=0.032210 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.01it/s]
+Chunked prefilling with 0.05 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-17: 272 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/17_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 19.6s. Mem: 14.31/79.18 GB. [squad-17]
+
+[effective] clen=210 window=4 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.86it/s]
+# prefill qwen2.5-7b-instruct-1m squad-18: 210 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Washington Hall | Washington Hall
+[QA 1] 1879 | 1879
+[QA 2] The president of Notre Dame in 1879 was the Rev. William Corby. | Rev. William Corby
+[QA 3] The rebuilding of The Main Building at Notre Dame after the fire began on the 17th of May. | 17th of May
+[QA 4] LaFortune Student Center | LaFortune Student Center
+[effective] clen=210 window=4 chunk_ratio=0.745146 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.88it/s]
+Chunked prefilling with 0.75 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-18: 210 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=210 window=4 chunk_ratio=0.490291 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.94it/s]
+Chunked prefilling with 0.50 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-18: 210 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=210 window=4 chunk_ratio=0.388350 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.95it/s]
+Chunked prefilling with 0.40 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-18: 210 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=210 window=4 chunk_ratio=0.286408 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.93it/s]
+Chunked prefilling with 0.30 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-18: 210 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=210 window=4 chunk_ratio=0.184466 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.87it/s]
+Chunked prefilling with 0.20 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-18: 210 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=210 window=4 chunk_ratio=0.082524 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.71it/s]
+Chunked prefilling with 0.10 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-18: 210 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=210 window=4 chunk_ratio=0.031553 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.30it/s]
+Chunked prefilling with 0.05 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-18: 210 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/18_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 17.8s. Mem: 14.31/79.18 GB. [squad-18]
+
+[effective] clen=162 window=3 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.74it/s]
+# prefill qwen2.5-7b-instruct-1m squad-19: 162 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Notre Dame previously emphasized a scholastic and classical education before embracing national standards. | scholastic and classical
+[QA 1] The College of Commerce. | College of Commerce
+[QA 2] Father James Burns | Father James Burns
+[QA 3] The change to national standards at Notre Dame took place over approximately three years, starting in 1919 when Father James Burns became president. | three years
+[QA 4] Harvard Law School | Harvard Law School
+[effective] clen=162 window=3 chunk_ratio=0.745283 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.30it/s]
+Chunked prefilling with 0.75 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-19: 162 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=162 window=3 chunk_ratio=0.490566 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.94it/s]
+Chunked prefilling with 0.50 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-19: 162 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=162 window=3 chunk_ratio=0.388679 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.37it/s]
+Chunked prefilling with 0.40 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-19: 162 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=162 window=3 chunk_ratio=0.286792 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.93it/s]
+Chunked prefilling with 0.30 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-19: 162 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=162 window=3 chunk_ratio=0.184906 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.35it/s]
+Chunked prefilling with 0.20 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-19: 162 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=162 window=3 chunk_ratio=0.083019 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.38it/s]
+Chunked prefilling with 0.10 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-19: 162 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=162 window=3 chunk_ratio=0.032075 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.23it/s]
+Chunked prefilling with 0.05 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-19: 162 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/19_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 16.9s. Mem: 14.31/79.18 GB. [squad-19]
+
+[effective] clen=190 window=3 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 16.81it/s]
+# prefill qwen2.5-7b-instruct-1m squad-20: 190 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Knute Rockne. | Knute Rockne
+[QA 1] 105 wins. | 105
+[QA 2] 1925 | 1925
+[QA 3] 13 years | 13
+[QA 4] Three national championships were won when Knute Rockne coached at Notre Dame. | three
+[effective] clen=190 window=3 chunk_ratio=0.745989 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.39it/s]
+Chunked prefilling with 0.75 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-20: 190 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=190 window=3 chunk_ratio=0.491979 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.97it/s]
+Chunked prefilling with 0.50 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-20: 190 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=190 window=3 chunk_ratio=0.390374 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.05it/s]
+Chunked prefilling with 0.40 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-20: 190 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=190 window=3 chunk_ratio=0.288770 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.33it/s]
+Chunked prefilling with 0.30 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-20: 190 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=190 window=3 chunk_ratio=0.187166 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.34it/s]
+Chunked prefilling with 0.20 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-20: 190 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=190 window=3 chunk_ratio=0.085561 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.38it/s]
+Chunked prefilling with 0.10 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-20: 190 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=190 window=3 chunk_ratio=0.034759 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.19it/s]
+Chunked prefilling with 0.05 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-20: 190 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/20_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 16.5s. Mem: 14.31/79.18 GB. [squad-20]
+
+[effective] clen=327 window=6 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 17.53it/s]
+# prefill qwen2.5-7b-instruct-1m squad-21: 327 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Protestant establishment. | the Protestant establishment
+[QA 1] Notre Dame students had a showdown in 1924 with the Ku Klux Klan. | the Ku Klux Klan
+[QA 2] Fr. Matthew Walsh | Fr. Matthew Walsh
+[QA 3] The Klan intended to have a week-long Klavern in South Bend in March of 1924. | a week-long Klavern
+[QA 4] Notre Dame students and the KKK had their encounter in South Bend. | South Bend
+[effective] clen=327 window=6 chunk_ratio=0.745327 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.83it/s]
+Chunked prefilling with 0.75 ratio, window 6
+# prefill qwen2.5-7b-instruct-1m squad-21: 327 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=327 window=6 chunk_ratio=0.490654 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.41it/s]
+Chunked prefilling with 0.50 ratio, window 6
+# prefill qwen2.5-7b-instruct-1m squad-21: 327 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=327 window=6 chunk_ratio=0.388785 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.83it/s]
+Chunked prefilling with 0.40 ratio, window 6
+# prefill qwen2.5-7b-instruct-1m squad-21: 327 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=327 window=6 chunk_ratio=0.286916 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.19it/s]
+Chunked prefilling with 0.30 ratio, window 6
+# prefill qwen2.5-7b-instruct-1m squad-21: 327 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=327 window=6 chunk_ratio=0.185047 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.16it/s]
+Chunked prefilling with 0.20 ratio, window 6
+# prefill qwen2.5-7b-instruct-1m squad-21: 327 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=327 window=6 chunk_ratio=0.083178 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.14it/s]
+Chunked prefilling with 0.10 ratio, window 6
+# prefill qwen2.5-7b-instruct-1m squad-21: 327 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=327 window=6 chunk_ratio=0.032243 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.01it/s]
+Chunked prefilling with 0.05 ratio, window 6
+# prefill qwen2.5-7b-instruct-1m squad-21: 327 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/21_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 20.3s. Mem: 14.31/79.18 GB. [squad-21]
+
+[effective] clen=177 window=3 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.65it/s]
+# prefill qwen2.5-7b-instruct-1m squad-22: 177 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Holy Cross Father John Francis O'Hara became vice-president of Notre Dame in 1933. | Father John Francis O'Hara
+[QA 1] Holy Cross Father John Francis O'Hara was the president of Notre Dame in 1934. | Father John Francis O'Hara
+[QA 2] Irvin Abell was given the Laetare Medal by Notre Dame. | Laetare Medal
+[QA 3] 1883 | 1883
+[QA 4] Father O'Hara believed that the Notre Dame football team played for the glory of God and of his Blessed Mother. | God
+[effective] clen=177 window=3 chunk_ratio=0.745690 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.90it/s]
+Chunked prefilling with 0.75 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-22: 177 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=177 window=3 chunk_ratio=0.491379 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.97it/s]
+Chunked prefilling with 0.50 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-22: 177 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=177 window=3 chunk_ratio=0.389655 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.51it/s]
+Chunked prefilling with 0.40 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-22: 177 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=177 window=3 chunk_ratio=0.287931 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.86it/s]
+Chunked prefilling with 0.30 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-22: 177 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=177 window=3 chunk_ratio=0.186207 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.95it/s]
+Chunked prefilling with 0.20 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-22: 177 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=177 window=3 chunk_ratio=0.084483 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.84it/s]
+Chunked prefilling with 0.10 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-22: 177 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=177 window=3 chunk_ratio=0.033621 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.40it/s]
+Chunked prefilling with 0.05 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-22: 177 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/22_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 27.0s. Mem: 14.31/79.18 GB. [squad-22]
+
+[effective] clen=217 window=4 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.34it/s]
+# prefill qwen2.5-7b-instruct-1m squad-23: 217 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Undergraduate enrollment increased by more than half. | more than half
+[QA 1] Cavanaugh established the Lobund Institute for Animal Studies at Notre Dame. | Lobund Institute for Animal Studies
+[QA 2] The Hall of Liberal Arts (now O'Shaughnessy Hall). | Hall of Liberal Arts
+[QA 3] Notre Dame had Rev. John J. Cavanaugh, C.S.C. as president in 1947. | Rev. John J. Cavanaugh, C.S.C.
+[QA 4] Cavanaugh also established the Medieval Institute at Notre Dame. | Medieval Institute
+[effective] clen=217 window=4 chunk_ratio=0.745305 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.90it/s]
+Chunked prefilling with 0.75 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-23: 217 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=217 window=4 chunk_ratio=0.490610 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.96it/s]
+Chunked prefilling with 0.50 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-23: 217 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=217 window=4 chunk_ratio=0.388732 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.93it/s]
+Chunked prefilling with 0.40 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-23: 217 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=217 window=4 chunk_ratio=0.286854 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.52it/s]
+Chunked prefilling with 0.30 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-23: 217 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=217 window=4 chunk_ratio=0.184977 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.43it/s]
+Chunked prefilling with 0.20 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-23: 217 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=217 window=4 chunk_ratio=0.083099 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.37it/s]
+Chunked prefilling with 0.10 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-23: 217 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=217 window=4 chunk_ratio=0.032160 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.36it/s]
+Chunked prefilling with 0.05 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-23: 217 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/23_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 20.6s. Mem: 14.31/79.18 GB. [squad-23]
+
+[effective] clen=173 window=3 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.63it/s]
+# prefill qwen2.5-7b-instruct-1m squad-24: 173 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Theodore Hesburgh lived for 98 years, from 1917 to 2015. | 1917–2015
+[QA 1] The operating budget increased by a factor of 18. | 18
+[QA 2] The endowment was $9 million when Theodore Hesburgh became president. | $9 million
+[QA 3] 1952–87 | 1952–87
+[QA 4] 950 | 950
+[effective] clen=173 window=3 chunk_ratio=0.745588 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.71it/s]
+Chunked prefilling with 0.75 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-24: 173 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=173 window=3 chunk_ratio=0.491176 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.81it/s]
+Chunked prefilling with 0.50 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-24: 173 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=173 window=3 chunk_ratio=0.389412 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.97it/s]
+Chunked prefilling with 0.40 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-24: 173 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=173 window=3 chunk_ratio=0.287647 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.41it/s]
+Chunked prefilling with 0.30 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-24: 173 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=173 window=3 chunk_ratio=0.185882 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.40it/s]
+Chunked prefilling with 0.20 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-24: 173 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=173 window=3 chunk_ratio=0.084118 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.84it/s]
+Chunked prefilling with 0.10 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-24: 173 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=173 window=3 chunk_ratio=0.033235 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.33it/s]
+Chunked prefilling with 0.05 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-24: 173 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/24_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 20.3s. Mem: 14.31/79.18 GB. [squad-24]
+
+[effective] clen=289 window=5 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.83it/s]
+# prefill qwen2.5-7b-instruct-1m squad-25: 289 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Hesburgh is credited with transforming Notre Dame into a coeducational institution. | coeducational
+[QA 1] Notre Dame's Dean of Arts and Letters | Dean of Arts and Letters
+[QA 2] Thomas Blantz had the title of Notre Dame's Vice President of Student Affairs. | Vice President of Student Affairs
+[QA 3] 1971 | 1971
+[QA 4] Notre Dame agreed to an exchange program with Saint Mary's College in the 1960s. | Saint Mary's College
+[effective] clen=289 window=5 chunk_ratio=0.745599 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.96it/s]
+Chunked prefilling with 0.75 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-25: 289 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=289 window=5 chunk_ratio=0.491197 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.18it/s]
+Chunked prefilling with 0.50 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-25: 289 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=289 window=5 chunk_ratio=0.389437 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.84it/s]
+Chunked prefilling with 0.40 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-25: 289 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=289 window=5 chunk_ratio=0.287676 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.51it/s]
+Chunked prefilling with 0.30 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-25: 289 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=289 window=5 chunk_ratio=0.185915 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.94it/s]
+Chunked prefilling with 0.20 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-25: 289 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=289 window=5 chunk_ratio=0.084155 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.38it/s]
+Chunked prefilling with 0.10 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-25: 289 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=289 window=5 chunk_ratio=0.033275 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.34it/s]
+Chunked prefilling with 0.05 ratio, window 5
+# prefill qwen2.5-7b-instruct-1m squad-25: 289 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/25_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 17.4s. Mem: 14.31/79.18 GB. [squad-25]
+
+[effective] clen=192 window=3 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.63it/s]
+# prefill qwen2.5-7b-instruct-1m squad-26: 192 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Edward Malloy was president of Notre Dame from 1987 to 2005. | 1987–2005
+[QA 1] The average SAT score at Notre Dame when Edward Malloy became president was 1240. | 1240
+[QA 2] The size of the endowment when Malloy became president of Notre Dame was $350 million. | $350 million
+[QA 3] More than $70 million. | more than $70 million
+[QA 4] The amount of professors at Notre Dame increased by more than 500 under Malloy. | 500
+[effective] clen=192 window=3 chunk_ratio=0.746032 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.87it/s]
+Chunked prefilling with 0.75 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-26: 192 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=192 window=3 chunk_ratio=0.492063 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.13it/s]
+Chunked prefilling with 0.50 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-26: 192 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=192 window=3 chunk_ratio=0.390476 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.37it/s]
+Chunked prefilling with 0.40 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-26: 192 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=192 window=3 chunk_ratio=0.288889 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.29it/s]
+Chunked prefilling with 0.30 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-26: 192 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=192 window=3 chunk_ratio=0.187302 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.34it/s]
+Chunked prefilling with 0.20 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-26: 192 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=192 window=3 chunk_ratio=0.085714 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.32it/s]
+Chunked prefilling with 0.10 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-26: 192 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=192 window=3 chunk_ratio=0.034921 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.47it/s]
+Chunked prefilling with 0.05 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-26: 192 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/26_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 23.6s. Mem: 14.31/79.18 GB. [squad-26]
+
+[effective] clen=141 window=2 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.53it/s]
+# prefill qwen2.5-7b-instruct-1m squad-27: 141 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] John Jenkins became the president of Notre Dame on July 1, 2005. | 2005
+[QA 1] John Jenkins is the 17th president of Notre Dame on the list. | 17th
+[QA 2] Malloy | Malloy
+[QA 3] Compton Family Ice Arena | Compton Family Ice Arena
+[QA 4] $400 million | $400m
+[effective] clen=141 window=2 chunk_ratio=0.746403 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.36it/s]
+Chunked prefilling with 0.75 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-27: 141 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=141 window=2 chunk_ratio=0.492806 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.42it/s]
+Chunked prefilling with 0.50 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-27: 141 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=141 window=2 chunk_ratio=0.391367 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.89it/s]
+Chunked prefilling with 0.40 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-27: 141 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=141 window=2 chunk_ratio=0.289928 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 17.99it/s]
+Chunked prefilling with 0.30 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-27: 141 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=141 window=2 chunk_ratio=0.188489 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.33it/s]
+Chunked prefilling with 0.20 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-27: 141 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=141 window=2 chunk_ratio=0.087050 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.41it/s]
+Chunked prefilling with 0.10 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-27: 141 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=141 window=2 chunk_ratio=0.036331 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.94it/s]
+Chunked prefilling with 0.05 ratio, window 2
+# prefill qwen2.5-7b-instruct-1m squad-27: 141 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/27_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 19.8s. Mem: 14.31/79.18 GB. [squad-27]
+
+[effective] clen=205 window=4 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 20.36it/s]
+# prefill qwen2.5-7b-instruct-1m squad-28: 205 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The Congregation of Holy Cross. | Congregation of Holy Cross
+[QA 1] The Basilica of the Sacred Heart is found on the location of the original church of Father Sorin at Notre Dame. | Basilica of the Sacred Heart
+[QA 2] The Basilica of the Sacred Heart at Notre Dame is made in the French Revival style. | French Revival
+[QA 3] Luigi Gregori | Luigi Gregori
+[QA 4] 1896 | 1896
+[effective] clen=205 window=4 chunk_ratio=0.745025 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.38it/s]
+Chunked prefilling with 0.75 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-28: 205 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=205 window=4 chunk_ratio=0.490050 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.98it/s]
+Chunked prefilling with 0.50 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-28: 205 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=205 window=4 chunk_ratio=0.388060 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.25it/s]
+Chunked prefilling with 0.40 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-28: 205 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=205 window=4 chunk_ratio=0.286070 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.45it/s]
+Chunked prefilling with 0.30 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-28: 205 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=205 window=4 chunk_ratio=0.184080 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.18it/s]
+Chunked prefilling with 0.20 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-28: 205 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=205 window=4 chunk_ratio=0.082090 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.36it/s]
+Chunked prefilling with 0.10 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-28: 205 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=205 window=4 chunk_ratio=0.031095 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.42it/s]
+Chunked prefilling with 0.05 ratio, window 4
+# prefill qwen2.5-7b-instruct-1m squad-28: 205 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/28_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 17.2s. Mem: 14.31/79.18 GB. [squad-28]
+
+[effective] clen=168 window=3 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.26it/s]
+# prefill qwen2.5-7b-instruct-1m squad-29: 168 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Fr. Zahm | Fr. Zahm
+[QA 1] The student union building at Notre Dame got renamed to LaFortune Center in 1950. | 1950
+[QA 2] The LaFortune Center at Notre Dame was named after Joseph LaFortune, an oil executive from Tulsa, Oklahoma. | Joseph LaFortune
+[QA 3] 83,000 square feet | 83,000 square feet
+[QA 4] The annual budget of Notre Dame's LaFortune Center is $1.2 million. | $1.2 million
+[effective] clen=168 window=3 chunk_ratio=0.745455 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.96it/s]
+Chunked prefilling with 0.75 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-29: 168 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=168 window=3 chunk_ratio=0.490909 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.30it/s]
+Chunked prefilling with 0.50 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-29: 168 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=168 window=3 chunk_ratio=0.389091 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.39it/s]
+Chunked prefilling with 0.40 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-29: 168 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=168 window=3 chunk_ratio=0.287273 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.24it/s]
+Chunked prefilling with 0.30 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-29: 168 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=168 window=3 chunk_ratio=0.185455 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.41it/s]
+Chunked prefilling with 0.20 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-29: 168 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=168 window=3 chunk_ratio=0.083636 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.75it/s]
+Chunked prefilling with 0.10 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-29: 168 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=168 window=3 chunk_ratio=0.032727 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.36it/s]
+Chunked prefilling with 0.05 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-29: 168 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/29_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 23.5s. Mem: 14.31/79.18 GB. [squad-29]
+
+[effective] clen=379 window=7 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.80it/s]
+# prefill qwen2.5-7b-instruct-1m squad-30: 379 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 29 | 29
+[QA 1] Theodore Hesburgh Library | Theodore Hesburgh Library
+[QA 2] Almost 4 million books. | almost 4 million
+[QA 3] Duncan Hall | Duncan Hall
+[QA 4] Frank Eck Stadium | Frank Eck Stadium
+[effective] clen=379 window=7 chunk_ratio=0.745296 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.78it/s]
+Chunked prefilling with 0.75 ratio, window 7
+# prefill qwen2.5-7b-instruct-1m squad-30: 379 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=379 window=7 chunk_ratio=0.490591 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.15it/s]
+Chunked prefilling with 0.50 ratio, window 7
+# prefill qwen2.5-7b-instruct-1m squad-30: 379 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=379 window=7 chunk_ratio=0.388710 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.21it/s]
+Chunked prefilling with 0.40 ratio, window 7
+# prefill qwen2.5-7b-instruct-1m squad-30: 379 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=379 window=7 chunk_ratio=0.286828 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.21it/s]
+Chunked prefilling with 0.30 ratio, window 7
+# prefill qwen2.5-7b-instruct-1m squad-30: 379 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=379 window=7 chunk_ratio=0.184946 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.27it/s]
+Chunked prefilling with 0.20 ratio, window 7
+# prefill qwen2.5-7b-instruct-1m squad-30: 379 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=379 window=7 chunk_ratio=0.083065 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.19it/s]
+Chunked prefilling with 0.10 ratio, window 7
+# prefill qwen2.5-7b-instruct-1m squad-30: 379 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=379 window=7 chunk_ratio=0.032124 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.25it/s]
+Chunked prefilling with 0.05 ratio, window 7
+# prefill qwen2.5-7b-instruct-1m squad-30: 379 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/squad/30_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s0_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 9.9s. Mem: 14.31/79.18 GB. [squad-30]
+
+[effective] clen=181 window=3 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.67it/s]
+# prefill qwen2.5-7b-instruct-1m squad-31: 181 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 2008 | 2008
+[QA 1] 40% | 40%
+[QA 2] Notre Dame got a "B" for its sustainability practices from the Sustainable Endowments Institute's College Sustainability Report Card 2010. | Sustainable Endowments Institute
+[QA 3] Gustavo Gutierrez is a faculty member of the Kroc Institute for International Peace Studies. | Kroc Institute for International Peace Studies
+[effective] clen=181 window=3 chunk_ratio=0.745787 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.41it/s]
+Chunked prefilling with 0.75 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-31: 181 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=181 window=3 chunk_ratio=0.491573 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.90it/s]
+Chunked prefilling with 0.50 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-31: 181 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=181 window=3 chunk_ratio=0.389888 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.68it/s]
+Chunked prefilling with 0.40 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-31: 181 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=181 window=3 chunk_ratio=0.288202 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.32it/s]
+Chunked prefilling with 0.30 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-31: 181 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=181 window=3 chunk_ratio=0.186517 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.46it/s]
+Chunked prefilling with 0.20 ratio, window 3
+# prefill qwen2.5-7b-instruct-1m squad-31: 181 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=181 window=3 chunk_ratio=0.084831 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.40it/s]
