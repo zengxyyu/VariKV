@@ -12,6 +12,22 @@ Q=$ROOT/scratch_ctrl_logs/.mq_jobs
 G=${1:?用法: scratch_topup.sh <gpu>}
 IDLE_EXIT=${IDLE_EXIT:-7200}      # 比池子的 900 长得多：这里就是为间歇排队服务的
 
+# **每卡一把锁，不能只查「卡上有没有进程」。** 实测踩过：同卡已有一个 topup
+# worker 正处在两个作业之间的轮询间隙时，卡上确实是空的，于是第二个 topup 也起来了，
+# 两个一起抢队列 ⇒ GPU0 上叠了 2 个作业、53 GB，而另外 4 张卡全空。
+# mkdir 是原子的；锁里记 PID，持有者死了就回收。
+TLOCK=/tmp/varikv_topup/$G
+mkdir -p /tmp/varikv_topup
+if ! mkdir "$TLOCK" 2>/dev/null; then
+    o=$(cat "$TLOCK/pid" 2>/dev/null)
+    if [ -n "$o" ] && kill -0 "$o" 2>/dev/null; then
+        echo "GPU$G 已有 topup worker (pid $o)，退出"; exit 0
+    fi
+    rm -rf "$TLOCK"; mkdir -p "$TLOCK"        # 持有者已死，回收
+fi
+echo $$ > "$TLOCK/pid"
+trap 'rm -rf "$TLOCK"' EXIT
+
 n=$(nvidia-smi -i "$G" --query-compute-apps=pid --format=csv,noheader | wc -l)
 [ "$n" -ne 0 ] && { echo "GPU$G 上已有 $n 个进程，不叠，退出"; exit 0; }
 
