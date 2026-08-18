@@ -15949,3 +15949,389 @@ Chunked prefilling with 0.30 ratio, window 4096
 # prefill qwen2.5-7b-instruct-1m scbench_repoqa-64: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.28it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.68it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.53it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-64: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.41it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.38it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.84it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-64: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.46it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.93it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.70it/s]
+Chunked prefilling with 0.05 ratio, window 3422
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-64: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.53it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.51it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.03it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.02 ratio, window 1369
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-64: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/64_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s2_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 470.1s. Mem: 14.32/79.18 GB. [scbench_repoqa-64]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.26it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.28it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.00s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.02it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.14it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-65: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```rust
+pub(super) fn make_qx_quants(
+    nmax: i32,
+    ntry: usize,
+    x: *const f32,
+) -> f32 {
+    let mut max = 0f32;
+    let mut amax = 0f32;
+    for i in 0..n {
+        let x = *x.add(i);
+        let ax = x.abs();
+        if ax > amax {
+            amax = ax;
+            max = x;
+        }
+    }
+    if amax == 0. {
+        // all zero
+        for i in 0..n {
+            *ls.add(i) = 0;
+        }
+        return 0.;
+    }
+    let mut iscale = -(nmax as f32) / max;
+    if rmse_type == 0 {
+        for i in 0..n {
+            let x = *x.add(i);
+            let l = nearest_int(iscale * x);
+            *ls.add(i) = (nmax + l.clamp(-nmax, nmax - 1)) as i8;
+        }
+        return 1.0 / iscale;
+    }
+    let weight_type = rmse_type % 2;
+    let mut sumlx = 0f32;
+    let mut suml2 = 0f32;
+    for i in 0..n {
+        let x = *x.add(i);
+        let l = nearest_int(iscale * x);
+        let l = l.clamp(-nmax, nmax - 1);
+        *ls.add(i) = (l + nmax) as i8;
+        let w = if weight_type == 1 { x * x } else { 1.0 };
+        let l = l as f32;
+        sumlx += w * x * l;
+        suml2 += w * l * l;
+    }
+    let mut scale = sumlx / suml2;
+    let mut best = scale * sumlx;
+    for _itry in 0..3 {
+        let iscale = 1.0 / scale;
+        let mut slx = 0f32;
+        let mut sl2 = 0f32;
+        let mut changed = false;
+        for i in 0..n {
+            let x = *x.add(i);
+            let l = nearest_int(iscale * x);
+ | pub(super) fn make_qkx1_quants(nmax: i32, ntry: usize, x: &[f32]) -> (f32, f32) {
+    let n = x.len();
+    let mut l = vec![0; n];
+    // Get min/max
+    let min = *x
+        .iter()
+        .take(n)
+        .min_by(|a, b| a.total_cmp(b))
+        .unwrap_or(&x[0]);
+    let max = *x.iter().max_by(|a, b| a.total_cmp(b)).unwrap_or(&x[0]);
+
+    // If min == max, all values are the same => nothing to do here
+    if max == min {
+        return (0.0, 0.0);
+    }
+
+    // Ensure min <= 0.0
+    let mut min = min.min(0.);
+
+    // Compute scale and inverse scale
+    let mut iscale = nmax as f32 / (max - min);
+    let mut scale = 1.0 / iscale;
+
+    for _ in 0..ntry {
+        let mut sumlx = 0.0;
+        let mut suml2 = 0;
+        let mut did_change = false;
+
+        for (i, value) in x.iter().enumerate().take(n) {
+            let li = nearest_int(iscale * (value - min)).clamp(0, nmax);
+            let clamped_li = li as u8;
+            if clamped_li != l[i] {
+                l[i] = clamped_li;
+                did_change = true;
+            }
+            sumlx += (value - min) * li as f32;
+            suml2 += li * li;
+        }
+        scale = sumlx / suml2 as f32;
+
+        let sum: f32 = x
+            .iter()
+            .take(n)
+            .zip(l.iter().take(n))
+            .map(|(xi, &li)| xi - scale * li as f32)
+            .sum();
+
+        min = sum / n as f32;
+        if min > 0.0 {
+            min = 0.0;
+        }
+        iscale = 1.0 / scale;
+        if !did_change {
+            break;
+        }
+    }
+    (scale, -min)
+}
+[QA 1] ```rust
+impl From<&[usize]> for Shape {
+    fn from(dims: &[usize]) -> Self {
+        Self(dims.to_vec())
+    }
+}
+``` |     pub fn from_dims(dims: &[usize]) -> Self {
+        Self(dims.to_vec())
+    }
+[QA 2] ```rust
+fn set_seed(&self, _: u64) -> Result<()> {
+    Err(Error::NotCompiledWithMetalSupport)
+}
+``` |     fn set_seed(&self, _: u64) -> Result<()> {
+        Err(Error::NotCompiledWithMetalSupport)
+    }
+[QA 3] ```rust
+fn conv1d_single_group(&self, kernel: &Self, params: &ParamsConv1D) -> Result<Self> {
+    let storage =
+        self.storage()
+            .conv1d(self.layout(), &kernel.storage(), kernel.layout(), params)?;
+    let op = BackpropOp::new2(self, kernel, |arg, kernel| Op::Conv1D {
+        arg,
+        kernel,
+        padding: params.padding,
+        stride: params.stride,
+        dilation: params.dilation,
+    });
+    let out_dims = params.out_dims();
+    Ok(crate::tensor::from_storage(storage, out_dims, op, false))
+}
+``` |     fn conv2d_single_group(&self, kernel: &Self, params: &ParamsConv2D) -> Result<Self> {
+        let storage =
+            self.storage()
+                .conv2d(self.layout(), &kernel.storage(), kernel.layout(), params)?;
+        let op = BackpropOp::new2(self, kernel, |arg, kernel| Op::Conv2D {
+            arg,
+            kernel,
+            padding: params.padding,
+            stride: params.stride,
+            dilation: params.dilation,
+        });
+        let out_dims = params.out_dims();
+        Ok(crate::tensor::from_storage(storage, out_dims, op, false))
+    }
+[QA 4] ```rust
+fn read_to_vec<T: Clone>(buffer: &Buffer, n: usize) -> Vec<T> {
+    let ptr = buffer.contents() as *const T;
+    assert!(!ptr.is_null());
+    let slice = unsafe { std::slice::from_raw_parts(ptr, n) };
+    slice.to_vec()
+}
+``` | fn read_to_vec<T: Clone>(buffer: &Buffer, n: usize) -> Vec<T> {
+    let ptr = buffer.contents() as *const T;
+    assert!(!ptr.is_null());
+    let slice = unsafe { std::slice::from_raw_parts(ptr, n) };
+    slice.to_vec()
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.23it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.76it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.27it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.01s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.13it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-65: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.29it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.07it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.09s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.16it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.13it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-65: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.19it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.05it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.35it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.29it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-65: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.38it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.12it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.36it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-65: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.41it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.19it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.56it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.44it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-65: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.28it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.68it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.53it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-65: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.47it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.41it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.38it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.84it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-65: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.50it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.46it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.94it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.71it/s]
+Chunked prefilling with 0.05 ratio, window 3422
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-65: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.62it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.52it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.50it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.03it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.02 ratio, window 1369
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-65: 68451 tokens, KV cache 3.9 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/65_qwen2.5-7b-instruct-1m_fastkvzip__v2c_s2_chunk16k_w4096_ctrlmmemo8/output-pair.json
+## Time: 376.1s. Mem: 14.32/79.18 GB. [scbench_repoqa-65]
+
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.23it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.76it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.28it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.01s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.17it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-66: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```rust
+#[inline]
+pub fn one<T>(val: T) -> One<T> {
+    (val,)
+}
+``` | pub(crate) fn one<T>(val: T) -> One<T> {
+    (val,)
+}
+[QA 1] ```rust
+fn finished_logger<E: IsReject>(reply: &Result<(Traced,), E>) {
+    let (status, error) = match reply {
+        Ok((Traced(resp),)) => (resp.status(), None),
+        Err(error) => (error.status(), Some(error)),
+    };
+
+    if status.is_success() {
+        tracing::info!(
+            target: "warp::filters::trace",
+            status = status.as_u16(),
+            "finished processing with success"
+        );
+    } else if status.is_server_error() {
+        tracing::error!(
+            target: "warp::filters::trace",
+            status = status.as_u16(),
+            error = ?error,
+            "unable to process request (internal error)"
+        );
+    } else if status.is_client_error() {
+        tracing::warn!(
+            target: "warp::filters::trace",
+            status = status.as_u16(),
+            error = ?error,
+            "unable to serve request (client error)"
+        );
+    } else {
+        // Either informational or redirect
+        tracing::info!(
+            target: "warp::filters::trace",
+            status = status.as_u16(),
+            error = ?error,
+            "finished processing with status"
+        );
+    }
+}
+``` |     fn convert_reply<R: Reply>(reply: R) -> (Traced,) {
+        (Traced(reply.into_response()),)
+    }
+[QA 2] ```rust
+impl<'a> IntoOrigin for &'a str {
+    fn into_origin(self) -> Origin {
+        let mut parts = self.splitn(2, "://");
+        let scheme = parts.next().expect("missing scheme");
+        let rest = parts.next().expect("missing scheme");
+
+        Origin::try_from_parts(scheme, rest, None).expect("invalid Origin")
+    }
+}
+``` |         fn into_origin(self) -> Origin {
+            let mut parts = self.splitn(2, "://");
+            let scheme = parts.next().expect("missing scheme");
+            let rest = parts.next().expect("missing scheme");
+
+            Origin::try_from_parts(scheme, rest, None).expect("invalid Origin")
+        }
+[QA 3] ```rust
+fn untuple_one<T>(self) -> UntupleOne<Self>
+where
+    Self: Filter<Extract = (T,)> + Sized,
+    T: Tuple,
+{
+    UntupleOne { filter: self }
+}
+``` |     fn untuple_one<T>(self) -> UntupleOne<Self>
+    where
+        Self: Filter<Extract = (T,)> + Sized,
+        T: Tuple,
+    {
+        UntupleOne { filter: self }
+    }
+[QA 4] ```rust
+pub fn log(name: &'static str) -> Log<impl Fn(Info<'_>) + Copy> {
+    let func = move |info: Info<'_>| {
+        // TODO?
+        // - response content length?
+        log::info!(
+            target: name,
+            "{} \"{} {} {:?}\" {} \"{}\" \"{}\" {:?}",
+            OptFmt(info.route.remote_addr()),
+            info.method(),
+            info.path(),
+            info.route.version(),
+            info.status().as_u16(),
+            OptFmt(info.referer()),
+            OptFmt(info.user_agent()),
+            info.elapsed(),
+        );
+    };
+    Log { func }
+}
+``` | pub fn log(name: &'static str) -> Log<impl Fn(Info<'_>) + Copy> {
+    let func = move |info: Info<'_>| {
+        // TODO?
+        // - response content length?
+        log::info!(
+            target: name,
+            "{} \"{} {} {:?}\" {} \"{}\" \"{}\" {:?}",
+            OptFmt(info.route.remote_addr()),
+            info.method(),
+            info.path(),
+            info.route.version(),
+            info.status().as_u16(),
+            OptFmt(info.referer()),
+            OptFmt(info.user_agent()),
+            info.elapsed(),
+        );
+    };
+    Log { func }
+}
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.26it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.28it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.01s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.17it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-66: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.30it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.08it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.09s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.27it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-66: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.19it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.05it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.47it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.34it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-66: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.65it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.39it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.23it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.12it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.42it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-66: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.41it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.19it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.68it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.49it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-66: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.28it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.81it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.59it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-66: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.66it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.47it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.38it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.96it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.69it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-66: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.62it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.50it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.46it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.76it/s]
+Chunked prefilling with 0.05 ratio, window 3290
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-66: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.62it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.53it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.51it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.17it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.83it/s]
