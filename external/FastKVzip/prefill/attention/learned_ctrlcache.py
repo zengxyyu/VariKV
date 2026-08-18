@@ -149,7 +149,72 @@ class LearnedControlRetainCache(RetainCache):
                 # 可能远大于头数，而每头一轮只能移动 ±1。实测 Δb=±9999 时缺口 18、
                 # 可减头只有 11，一轮补不完，总预算从 179 变成 186。改成迭代配平。
                 Btot = int(b0.sum().item())
-                bt = tgt.round().long().clamp(0, n)
+                # ---- 竞争域受限投影：`within` / `across` 消融 -------------------
+                # **关键更正（2026-08-18）**：`within-only` 与 `across-only`
+                # **不能**表示成固定的 112 维加性表。离线审计（复现本段逻辑，220 个
+                # 真实 chunk）显示，把理论分量当加性表喂进来、再用**全局**最大余数
+                # 配平，会把层内干预偷偷变成跨层干预：
+                #     within 表的逐层总量漂移均值 938.9 槽/层，仅 5.83% 的层无漂移；
+                #     cos(实现within, 实现across) = +0.4509（理论应为 0）。
+                # 原因是 clamp(0,n) 在零配额头上截断（within 表每 chunk 有 36 格被
+                # 截），缺口由配平循环在**全局**范围内补，不受层内约束。
+                # 正确做法是把约束写进投影，而它依赖运行时的 `b0`：
+                #     within : 每层总量 = 基线层总量，层内按表分配（层内配平）
+                #     across : 每层总量 = 基线 + L_l，层内按**基线比例**分配
+                # 两者不要求相加等于 full —— 离散化后可加性本就不成立，这里是
+                # **各自隔离一个通道**，不是做加性分解。
+                _qm = os.environ.get("VARIKV_QUOTA_MODE", "full")
+                assert _qm in ("full", "within", "across"), _qm
+                nL = L
+
+                def _rebal(bt_, tgt_, tot, hi):
+                    # 把整数向量配平到 sum==tot，按小数余数优先，界 [0,hi]
+                    df = tot - int(bt_.sum().item())
+                    while df != 0:
+                        if df > 0:
+                            rm = (bt_ < hi).nonzero().flatten()
+                            if rm.numel() == 0:
+                                break
+                            tk = min(df, rm.numel())
+                            pk = rm[torch.argsort((tgt_ - bt_.float())[rm],
+                                                  descending=True)[:tk]]
+                            bt_[pk] += 1; df -= tk
+                        else:
+                            rm = (bt_ > 0).nonzero().flatten()
+                            if rm.numel() == 0:
+                                break
+                            tk = min(-df, rm.numel())
+                            pk = rm[torch.argsort((tgt_ - bt_.float())[rm])[:tk]]
+                            bt_[pk] -= 1; df += tk
+                    return bt_
+
+                if _qm != "full":
+                    b0m = b0.reshape(nL, H)
+                    tbm = self._qinj.to(b0.device).reshape(nL, H)
+                    bt = torch.zeros(nL, H, dtype=torch.long, device=b0.device)
+                    for _l in range(nL):
+                        base_l = int(b0m[_l].sum().item())
+                        if _qm == "within":
+                            # 层总量锁死在基线，层内按表走
+                            t_l = (b0m[_l] + tbm[_l]).clamp(0, n)
+                            bt[_l] = _rebal(t_l.round().long().clamp(0, n), t_l,
+                                            base_l, n)
+                        else:                       # across
+                            # 层总量 = 基线 + 该层净变化；层内保持基线比例
+                            tot_l = int(round(base_l + float(tbm[_l].sum())))
+                            tot_l = max(0, min(tot_l, H * n))
+                            if base_l > 0:
+                                t_l = b0m[_l] * (tot_l / base_l)
+                            else:
+                                t_l = torch.full((H,), tot_l / H, device=b0.device)
+                            t_l = t_l.clamp(0, n)
+                            bt[_l] = _rebal(t_l.round().long().clamp(0, n), t_l,
+                                            tot_l, n)
+                    bt = bt.reshape(-1)
+                    # across 各层 round 累积后总和未必等于 Btot，全局补一次
+                    bt = _rebal(bt, tgt, Btot, n)
+                else:
+                    bt = tgt.round().long().clamp(0, n)
                 diff = Btot - int(bt.sum().item())
                 while diff != 0:
                     if diff > 0:
