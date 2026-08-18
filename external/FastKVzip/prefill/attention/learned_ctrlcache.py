@@ -174,7 +174,20 @@ class LearnedControlRetainCache(RetainCache):
                 nv = torch.zeros(L * H, n, dtype=torch.bool, device=sc.device)
                 ar = torch.arange(n, device=sc.device)[None, :]
                 nv.scatter_(1, idx, ar < bt[:, None])
-                valid = nv.reshape(L, H, n)
+                new_valid = nv.reshape(L, H, n)
+                # **进程内逐位自检**：Δb=0 时注入必须与基线阈值选出**同一批 token**，
+                # 不只是同样的计数。外部复核正确指出「配额相同 ≠ 集合相同」；这里在
+                # 同一进程、同一 score0 上直接比，绕开跨运行的数值不确定性。
+                # 数学上二者应当恒等（|{s>τ}|=b₀ ⇒ 那 b₀ 个就是最大的 b₀ 个；平局只
+                # 出现在 =τ 处、排在其后），真实分数上已离线验过 2464/2464 同集。
+                if os.environ.get("VARIKV_INJECT_SELFCHECK"):
+                    diff = int((new_valid ^ vb).sum())
+                    self._inj_xor = getattr(self, "_inj_xor", 0) + diff
+                    self._inj_tot = getattr(self, "_inj_tot", 0) + int(vb.numel())
+                    print(f"[inject-selfcheck] chunk lo={lo} 掩码逐位不同 {diff}"
+                          f" / {vb.numel()}  累计 {self._inj_xor}/{self._inj_tot}",
+                          flush=True)
+                valid = new_valid
 
         # --- 逐 (chunk, 层, kv头) 真实配额导出（默认关闭，env 开）---------------
         # 保序重标定 ≡ 逐头配额分配（ICLR_PLAN §四之五）已经证明并在 trace 上验过，
