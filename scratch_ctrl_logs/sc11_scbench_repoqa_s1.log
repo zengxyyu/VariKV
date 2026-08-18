@@ -3496,3 +3496,1607 @@ Chunked prefilling with 0.30 ratio, window 4096
 [effective] clen=65692 window=4096 chunk_ratio=0.146802 degenerate=False
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.92it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.68it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-12: 65692 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65692 window=4096 chunk_ratio=0.040152 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-12: 65692 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65692 window=3284 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.87it/s]
+Chunked prefilling with 0.05 ratio, window 3284
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-12: 65692 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/12_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 430.4s. Mem: 14.31/79.18 GB. [scbench_repoqa-12]
+
+[effective] clen=65692 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.09it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-13: 65692 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+class QuotedMessagePatternConverter : public LoggingEventPatternConverter
+{
+	logchar m_quote;
+public:
+	QuotedMessagePatternConverter(logchar quote)
+		: LoggingEventPatternConverter(LOG4CXX_STR("Message"), LOG4CXX_STR("quoted"))
+		, m_quote(quote)
+		{}
+
+	// Duplicate any quote character in the event message
+	void format
+		( const spi::LoggingEventPtr& event
+		, LogString&                  toAppendTo
+		, helpers::Pool&              p
+		) const override
+	{
+		auto& input = event->getRenderedMessage();
+		size_t endIndex, startIndex = 0;
+		while ((endIndex = input.find(m_quote, startIndex)) != input.npos)
+		{
+			toAppendTo.append(input.substr(startIndex, endIndex - startIndex + 1));
+			toAppendTo += m_quote;
+			startIndex = endIndex + 1;
+		}
+		toAppendTo.append(input.substr(startIndex));
+	}
+};
+```
+``` | 		QuotedMessagePatternConverter(logchar quote)
+			: LoggingEventPatternConverter(LOG4CXX_STR("Message"), LOG4CXX_STR("quoted"))
+			, m_quote(quote)
+			{}
+[QA 1] ```cpp
+void AsyncAppender::dispatch()
+{
+    bool isActive = true;
+
+    while (isActive)
+    {
+        Pool p;
+        LoggingEventList events;
+        events.reserve(priv->bufferSize);
+        //
+        //   process events after lock on buffer is released.
+        //
+        {
+            std::unique_lock<std::mutex> lock(priv->bufferMutex);
+            priv->bufferNotEmpty.wait(lock, [this]() -> bool
+                { return priv->dispatchedCount != priv->commitCount || priv->closed; }
+            );
+            isActive = !priv->closed;
+
+            while (events.size() < priv->bufferSize && priv->dispatchedCount != priv->commitCount)
+            {
+                auto index = priv->dispatchedCount % priv->buffer.size();
+                events.push_back(priv->buffer[index]);
+                ++priv->dispatchedCount;
+            }
+            for (auto discardItem : priv->discardMap)
+            {
+                events.push_back(discardItem.second.createEvent(p));
+            }
+
+            priv->discardMap.clear();
+            priv->bufferNotFull.notify_all();
+        }
+
+        for (auto item : events)
+        {
+            try
+            {
+                priv->appenders.appendLoopOnAppenders(item, p);
+            }
+            catch (std::exception& ex)
+            {
+                if (isActive)
+                {
+                    priv->errorHandler->error(LOG4CXX_STR("async dispatcher"), ex, 0, item);
+                    isActive = false;
+                }
+            }
+            catch (...)
+            {
+                if (isActive)
+                {
+                    priv->errorHandler->error(LOG4CXX_STR("async dispatcher"));
+                    isActive = false;
+                }
+            }
+        }
+    }
+}
+``` | 	AsyncAppenderPriv() :
+		AppenderSkeletonPrivate(),
+		buffer(DEFAULT_BUFFER_SIZE),
+		bufferSize(DEFAULT_BUFFER_SIZE),
+		appenders(pool),
+		dispatcher(),
+		locationInfo(false),
+		blocking(true)
+#if LOG4CXX_EVENTS_AT_EXIT
+		, atExitRegistryRaii([this]{atExitActivated();})
+#endif
+		, eventCount(0)
+		, dispatchedCount(0)
+		, commitCount(0)
+	{
+	}
+[QA 2] ```
+/**
+ *   SMTP Session.
+ */
+class SMTPSession
+{
+	public:
+		/**
+		*   Create new instance.
+		*/
+		SMTPSession(const LogString& smtpHost,
+			int smtpPort,
+			const LogString& smtpUsername,
+			const LogString& smtpPassword,
+			Pool& p) : session(0), authctx(0),
+			user(toAscii(smtpUsername, p)),
+			pwd(toAscii(smtpPassword, p))
+		{
+			auth_client_init();
+			session = smtp_create_session();
+
+			if (session == 0)
+			{
+				throw Exception("Could not initialize session.");
+			}
+
+			std::string host(toAscii(smtpHost, p));
+			host.append(1, ':');
+			host.append(p.itoa(smtpPort));
+			smtp_set_server(session, host.c_str());
+
+			authctx = auth_create_context();
+			auth_set_mechanism_flags(authctx, AUTH_PLUGIN_PLAIN, 0);
+			auth_set_interact_cb(authctx, authinteract, (void*) this);
+
+			if (*user || *pwd)
+			{
+				smtp_auth_set_context(session, authctx);
+			}
+		}
+
+		~SMTPSession()
+		{
+			smtp_destroy_session(session);
+			auth_destroy_context(authctx);
+		}
+
+		void send(Pool& p)
+		{
+			int status = smtp_start_session(session);
+
+			if (!status)
+			{
+				size_t bufSize = 128;
+				char* buf = p.pstralloc(bufSize);
+				smtp_strerror(smtp_errno(), buf, bufSize);
+				throw Exception(buf);
+			}
+		}
+
+		operator smtp_session_t()
+		{
+			return session;
+		}
+
+		static char* toAscii(const LogString& str, Pool& p)
+		{
+			char* buf = p.pstralloc(str.length() + 1);
+			char* current = buf;
+
+			for (unsigned int c : str)
+			{
+				if (c > 0x7F)
+				{
+					c = '?';
+				}
+
+				*current++ = c;
+			}
+
+			*current = 0;
+			return buf;
+		}
+
+	private:
+		SMTPSession(SMTPSession&);
+		SMTPSession& operator=(SMTPSession&);
+		smtp_session_t session;
+		auth_context_t authctx;
+		char | 		SMTPSession(const LogString& smtpHost,
+			int smtpPort,
+			const LogString& smtpUsername,
+			const LogString& smtpPassword,
+			Pool& p) : session(0), authctx(0),
+			user(toAscii(smtpUsername, p)),
+			pwd(toAscii(smtpPassword, p))
+		{
+			auth_client_init();
+			session = smtp_create_session();
+
+			if (session == 0)
+			{
+				throw Exception("Could not initialize session.");
+			}
+
+			std::string host(toAscii(smtpHost, p));
+			host.append(1, ':');
+			host.append(p.itoa(smtpPort));
+			smtp_set_server(session, host.c_str());
+
+			authctx = auth_create_context();
+			auth_set_mechanism_flags(authctx, AUTH_PLUGIN_PLAIN, 0);
+			auth_set_interact_cb(authctx, authinteract, (void*) this);
+
+			if (*user || *pwd)
+			{
+				smtp_auth_set_context(session, authctx);
+			}
+		}
+[QA 3] ```
+struct AndFilter::AndFilterPrivate : public FilterPrivate
+{
+    /**
+     * The first filter in the filter chain. Set to <code>null</code> initially.
+     */
+    LOG4CXX_NS::spi::FilterPtr headFilter;
+    
+    /**
+     * The last filter in the filter chain.
+     */
+    LOG4CXX_NS::spi::FilterPtr tailFilter;
+    
+    bool acceptOnMatch;
+};
+
+IMPLEMENT_LOG4CXX_OBJECT(AndFilter)
+
+AndFilter::AndFilter()
+    : Filter( std::make_unique<AndFilterPrivate>() )
+{
+}
+
+AndFilter::~AndFilter() {}
+
+void AndFilter::addFilter(const FilterPtr& filter)
+{
+    if (priv->headFilter == NULL)
+    {
+        priv->headFilter = filter;
+        priv->tailFilter = filter;
+    }
+    else
+    {
+        priv->tailFilter->setNext(filter);
+    }
+}
+
+void AndFilter::setAcceptOnMatch(bool newValue)
+{
+    priv->acceptOnMatch = newValue;
+}
+
+Filter::FilterDecision AndFilter::decide(
+    const spi::LoggingEventPtr& event) const
+{
+    bool accepted = true;
+    FilterPtr f(priv->headFilter);
+
+    while (f != NULL)
+    {
+        accepted = accepted && (Filter::ACCEPT == f->decide(event));
+        f = f->getNext();
+    }
+
+    if (accepted)
+    {
+        if (priv->acceptOnMatch)
+        {
+            return Filter::ACCEPT;
+        }
+
+        return Filter::DENY;
+    }
+
+    return Filter::NEUTRAL;
+}
+``` | 	AndFilterPrivate() : FilterPrivate(),
+		headFilter(),
+		tailFilter(),
+		acceptOnMatch(true) {}
+[QA 4] ```
+#include <log4cxx/logstring.h>
+#include <log4cxx/pattern/datepatternconverter.h>
+#include <log4cxx/spi/loggingevent.h>
+#include <log4cxx/spi/location/locationinfo.h>
+#include <log4cxx/helpers/absolutetimedateformat.h>
+#include <log4cxx/helpers/datetimedateformat.h>
+#include <log4cxx/helpers/iso8601dateformat.h>
+#include <log4cxx/helpers/strftimedateformat.h>
+#include <log4cxx/helpers/stringhelper.h>
+#include <log4cxx/helpers/exception.h>
+#include <log4cxx/helpers/loglog.h>
+#include <log4cxx/helpers/date.h>
+#include <log4cxx/private/patternconverter_priv.h>
+
+using namespace LOG4CXX_NS;
+using namespace LOG4CXX_NS::pattern;
+using namespace LOG4CXX_NS::spi;
+using namespace LOG4CXX_NS::helpers;
+
+struct DatePatternConverter::DatePatternConverterPrivate : public PatternConverterPrivate
+{
+	DatePatternConverterPrivate( const LogString& name, const LogString& style, DateFormatPtr _df ):
+		PatternConverterPrivate(name, style),
+		df(_df) {}
+	/**
+	 * Date format.
+	 */
+	LOG4CXX_NS::helpers::DateFormatPtr df;
+};
+
+#define priv static_cast<DatePatternConverterPrivate*>(m_priv.get())
+
+IMPLEMENT_LOG4CXX_OBJECT(DatePatternConverter)
+
+DatePatternConverter::DatePatternConverter(
+	const std::vector<LogString>& options) :
+	LoggingEventPatternConverter (std::make_unique<DatePatternConverterPrivate>(LOG4CXX_STR("Class Name"),
+			LOG4CXX_STR("class name"), getDateFormat(options)))
+{
+}
+
+DatePatternConverter::~DatePatternConverter() {}
+
+DateFormatPtr DatePatternConverter::getDateFormat(const OptionsList& options)
+{
+	DateFormatPtr df;
+	int maximumCacheValidity = 1000000;
+
+	if (options.size() == 0)
+	{
+		df = std::make_shared<ISO8601DateFormat>();
+	}
+	else
+	{
+		LogString dateFormatStr(options[0]);
+
+		if (dateFormatStr.empty() ||
+			StringHelper::equalsIgnoreCase(dateFormatStr,
+				LOG4CXX_STR("ISO8601"), LOG4CXX_STR("iso8601")))
+		{
+			df = std::make_shared<ISO8601DateFormat>();
+		}
+		else if (StringHelper::equalsIgnoreCase(dateFormatStr,
+				LOG | 	DatePatternConverterPrivate( const LogString& name, const LogString& style, DateFormatPtr _df ):
+		PatternConverterPrivate(name, style),
+		df(_df) {}
+[effective] clen=65692 window=4096 chunk_ratio=0.733376 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.35it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.25it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-13: 65692 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65692 window=4096 chunk_ratio=0.466751 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.55it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-13: 65692 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65692 window=4096 chunk_ratio=0.360101 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.65it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-13: 65692 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65692 window=4096 chunk_ratio=0.253452 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.78it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-13: 65692 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65692 window=4096 chunk_ratio=0.146802 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.92it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.68it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-13: 65692 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65692 window=4096 chunk_ratio=0.040152 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-13: 65692 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65692 window=3284 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3284
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-13: 65692 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/13_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 560.4s. Mem: 14.31/79.18 GB. [scbench_repoqa-13]
+
+[effective] clen=66437 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.30it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-14: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+class ServerException : public Error {
+public:
+    ServerException(std::unique_ptr<Exception> e)
+        : Error(std::string())
+        , exception_(std::move(e))
+    {
+    }
+
+    int GetCode() const {
+        return exception_->code;
+    }
+
+    const Exception& GetException() const {
+        return *exception_;
+    }
+
+    const char* what() const noexcept override {
+        return exception_->display_text.c_str();
+    }
+
+private:
+    std::unique_ptr<Exception> exception_;
+};
+using ServerError = ServerException;
+``` |     ServerException(std::unique_ptr<Exception> e)
+        : Error(std::string())
+        , exception_(std::move(e))
+    {
+    }
+[QA 1] ```cpp
+Socket::Socket(const NetworkAddress& addr, const SocketTimeoutParams& timeout_params)
+    : handle_(SocketConnect(addr, timeout_params))
+{}
+
+Socket::Socket(const NetworkAddress & addr)
+    : handle_(SocketConnect(addr, SocketTimeoutParams{}))
+{}
+
+Socket::Socket(Socket&& other) noexcept
+    : handle_(other.handle_)
+{
+    other.handle_ = INVALID_SOCKET;
+}
+
+Socket& Socket::operator=(Socket&& other) noexcept {
+    if (this != &other) {
+        Close();
+
+        handle_ = other.handle_;
+        other.handle_ = INVALID_SOCKET;
+    }
+
+    return *this;
+}
+
+Socket::~Socket() {
+    Close();
+}
+
+void Socket::Close() {
+    CloseSocket(handle_);
+    handle_ = INVALID_SOCKET;
+}
+
+void Socket::SetTcpKeepAlive(int idle, int intvl, int cnt) noexcept {
+    int val = 1;
+
+#if defined(_unix_)
+    setsockopt(handle_, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof(val));
+#   if defined(_linux_)
+        setsockopt(handle_, IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(idle));
+#   elif defined(_darwin_)
+        setsockopt(handle_, IPPROTO_TCP, TCP_KEEPALIVE, &idle, sizeof(idle));
+#   else
+#       error "platform is not supported"
+#   endif
+    setsockopt(handle_, IPPROTO_TCP, TCP_KEEPINTVL, &intvl, sizeof(intvl));
+    setsockopt(handle_, IPPROTO_TCP, TCP_KEEPCNT, &cnt, sizeof(cnt));
+#else
+    setsockopt(handle_, SOL_SOCKET, SO_KEEPALIVE, (const char*)&val, sizeof(val));
+    std::ignore = idle = intvl = cnt;
+#endif
+}
+
+void Socket::SetTcpNoDelay(bool nodelay) noexcept {
+    int val = nodelay;
+#if defined(_unix_)
+    setsockopt(handle_, IPPROTO_TCP, TCP_NODELAY, &val, sizeof(val));
+#else
+    setsockopt(handle_, IPPROTO_TCP, TCP_NODELAY, (const char*)&val, sizeof(val));
+#endif
+}
+
+std::unique_ptr<InputStream> Socket::makeInputStream() const {
+    return std::make_unique<SocketInput>(handle_);
+}
+
+std::unique_ptr<OutputStream> Socket::makeOutputStream() const {
+    return std::make_unique<SocketOutput>(handle_);
+}
+``` |     Socket(const Socket&) = delete;
+[QA 2] ```cpp
+void ColumnLowCardinality::Append(ColumnRef col) {
+    // Append values from col only if it is either
+    // - exactly same type as `this`: LowCardinality wrapping same dictionary type
+    // - same type as dictionary column
+
+    auto c = col->As<ColumnLowCardinality>();
+    // If not LowCardinality of same dictionary type
+    if (!c || !dictionary_column_->Type()->IsEqual(c->dictionary_column_->Type())) {
+        // If not column of the same type as dictionary type
+        if (!dictionary_column_->Type()->IsEqual(col->GetType())) {
+            return;
+        }
+    }
+
+    for (size_t i = 0; i < col->Size(); ++i) {
+        AppendUnsafe(col->GetItem(i));
+    }
+}
+``` |     inline void AppendMany(const T& container) {
+        for (const auto & item : container) {
+            Append(item);
+        }
+    }
+[QA 3] ```cpp
+ColumnRef CreateColumnByType(const std::string& type_name, CreateColumnByTypeSettings settings) {
+    auto ast = ParseTypeName(type_name);
+    if (ast != nullptr) {
+        return CreateColumnFromAst(*ast, settings);
+    }
+
+    return nullptr;
+}
+``` | ColumnRef CreateColumnByType(const std::string& type_name, CreateColumnByTypeSettings settings) {
+    auto ast = ParseTypeName(type_name);
+    if (ast != nullptr) {
+        return CreateColumnFromAst(*ast, settings);
+    }
+
+    return nullptr;
+}
+[QA 4] ```cpp
+class ColumnArrayT {
+public:
+    class ArrayValueView {
+        const std::shared_ptr<NestedColumnType> typed_nested_data_;
+        const size_t offset_;
+        const size_t size_;
+
+    public:
+        using ValueType = std::decay_t<decltype(std::declval<NestedColumnType>().At(0))>;
+
+        ArrayValueView(std::shared_ptr<NestedColumnType> data, size_t offset = 0, size_t size = std::numeric_limits<size_t>::max())
+            : typed_nested_data_(data)
+            , offset_(offset)
+            , size_(std::min(typed_nested_data_->Size() - offset, size))
+        {}
+
+        inline auto operator[](size_t index) const {
+            return (*typed_nested_data_)[offset_ + index];
+        }
+
+        inline auto At(size_t index) const {
+            if (index >= size_)
+                throw ValidationError("ColumnArray value index out of bounds: "
+                        + std::to_string(index) + ", max is " + std::to_string(size_));
+            return typed_nested_data_->At(offset_ + index);
+        }
+
+        class Iterator {
+            const std::shared_ptr<NestedColumnType> typed_nested_data_;
+            const size_t offset_;
+            const size_t size_;
+            size_t index_;
+        public:
+            Iterator() = default;
+
+            Iterator(std::shared_ptr<NestedColumnType> typed_nested_data, size_t offset, size_t size, size_t index)
+                : typed_nested_data_(typed_nested_data)
+                , offset_(offset)
+                , size_(size)
+                , index_(index)
+            {}
+
+            using ValueType = typename ArrayValueView::ValueType;
+
+            inline auto operator*() const {
+                return typed_nested_data_->At(offset_ + index_);
+            }
+
+            inline Iterator& operator++() {
+                ++index_;
+                return *this;
+            }
+
+            inline bool operator==(const Iterator& other) const {
+                return this->typed_nested_data_ == other.typed_nested_data_
+                        && this->offset_ == other.offset_
+                        && this->size_ == other.size_
+                        && this->index_ == other.index_;
+            }
+
+            inline bool operator!=(const Iterator& other) const {
+                return !(*this == other);
+            }
+        };
+
+        // minimalistic stl-like container interface, hence the lowercase
+        inline Iterator begin() const {
+            return Iterator{typed_nested_data_, offset_, size_, 0};
+        }
+
+        inline Iterator cbegin() const {
+            return Iterator{ |         ArrayValueView(std::shared_ptr<NestedColumnType> data, size_t offset = 0, size_t size = std::numeric_limits<size_t>::max())
+            : typed_nested_data_(data)
+            , offset_(offset)
+            , size_(std::min(typed_nested_data_->Size() - offset, size))
+        {}
+[effective] clen=66437 window=4096 chunk_ratio=0.733574 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.35it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.30it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.23it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-14: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66437 window=4096 chunk_ratio=0.467148 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.39it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-14: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66437 window=4096 chunk_ratio=0.360578 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.61it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.47it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-14: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66437 window=4096 chunk_ratio=0.254008 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.73it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.55it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-14: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66437 window=4096 chunk_ratio=0.147437 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.87it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.66it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-14: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66437 window=4096 chunk_ratio=0.040867 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.04it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-14: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66437 window=3321 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.16it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.05 ratio, window 3321
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-14: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/14_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 381.7s. Mem: 14.31/79.18 GB. [scbench_repoqa-14]
+
+[effective] clen=66437 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-15: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+template <typename TChar, size_t size>
+constexpr inline StringViewImpl<TChar> MakeStringView(const TChar (&str)[size]) {
+    return StringViewImpl<TChar>(str, size - 1);
+}
+``` | constexpr inline StringViewImpl<TChar> MakeStringView(const TChar (&str)[size]) {
+    return StringViewImpl<TChar>(str, size - 1);
+}
+[QA 1] ```cpp
+size_t CalculateCumulativeSize(const std::vector<std::string>& data) {
+    size_t totalSize = 0;
+    for (const auto& element : data) {
+        totalSize += element.size();
+    }
+    return totalSize;
+}
+``` | size_t ComputeTotalSize(const Container & strings, size_t begin = 0, size_t len = -1) {
+    size_t result = 0;
+    if (begin < strings.size()) {
+        len = std::min(len, strings.size() - begin);
+
+        for (size_t i = begin; i < begin + len; ++i)
+            result += strings[i].size();
+    }
+
+    return result;
+}
+[QA 2] ```cpp
+template <typename... T>
+inline void ColumnTupleT<T...>::AppendTuple(std::tuple<T...> value) {
+    static_assert(std::tuple_size_v<std::tuple<T...>> == std::tuple_size_v<TupleOfColumns>);
+    (std::get<i>(typed_columns_)->Append(std::get<i>(value)), ...);
+}
+``` |     inline void AppendTuple([[maybe_unused]] T value) {
+        static_assert(index <= std::tuple_size_v<T>);
+        static_assert(std::tuple_size_v<TupleOfColumns> == std::tuple_size_v<T>);
+        if constexpr (index == 0) {
+            return;
+        } else {
+            std::get<index - 1>(typed_columns_)->Append(std::move(std::get<index - 1>(value)));
+            AppendTuple<T, index - 1>(std::move(value));
+        }
+    }
+[QA 3] ```cpp
+template <typename T>
+void WriteUnaligned(void* buf, const T& value) {
+    memcpy(buf, &value, sizeof(value));
+}
+``` | void WriteUnaligned(void* buf, const T& value) {
+    memcpy(buf, &value, sizeof(value));
+}
+[QA 4] ```cpp
+class SocketFactory {
+public:
+    virtual ~SocketFactory();
+
+    // TODO: move connection-related options to ConnectionOptions structure.
+
+    virtual std::unique_ptr<SocketBase> connect(const ClientOptions& opts, const Endpoint& endpoint) = 0;
+
+    virtual void sleepFor(const std::chrono::milliseconds& duration);
+};
+``` | std::unique_ptr<SocketFactory> GetSocketFactory(const ClientOptions& opts) {
+    (void)opts;
+#if defined(WITH_OPENSSL)
+    if (opts.ssl_options)
+        return std::make_unique<SSLSocketFactory>(opts);
+    else
+#endif
+        return std::make_unique<NonSecureSocketFactory>();
+}
+[effective] clen=66437 window=4096 chunk_ratio=0.733574 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.30it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.23it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-15: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66437 window=4096 chunk_ratio=0.467148 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.51it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.39it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-15: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66437 window=4096 chunk_ratio=0.360578 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.16it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.61it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.47it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-15: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66437 window=4096 chunk_ratio=0.254008 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.73it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.55it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-15: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66437 window=4096 chunk_ratio=0.147437 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.87it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.65it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-15: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66437 window=4096 chunk_ratio=0.040867 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.04it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-15: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66437 window=3321 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.15it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.05 ratio, window 3321
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-15: 66437 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/15_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 173.6s. Mem: 14.31/79.18 GB. [scbench_repoqa-15]
+
+[effective] clen=65970 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.77it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-16: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+std::string gzipCompress(const char *data, const size_t ndata)
+{
+    z_stream strm = {nullptr,
+                     0,
+                     0,
+                     nullptr,
+                     0,
+                     0,
+                     nullptr,
+                     nullptr,
+                     nullptr,
+                     nullptr,
+                     nullptr,
+                     0,
+                     0,
+                     0};
+    if (data && ndata > 0)
+    {
+        if (deflateInit2(&strm,
+                         Z_DEFAULT_COMPRESSION,
+                         Z_DEFLATED,
+                         MAX_WBITS + 16,
+                         8,
+                         Z_DEFAULT_STRATEGY) != Z_OK)
+        {
+            LOG_ERROR << "deflateInit2 error!";
+            return std::string{};
+        }
+        std::string outstr;
+        outstr.resize(compressBound(static_cast<uLong>(ndata)));
+        strm.next_in = (Bytef *)data;
+        strm.avail_in = static_cast<uInt>(ndata);
+        int ret;
+        do
+        {
+            if (strm.total_out >= outstr.size())
+            {
+                outstr.resize(strm.total_out * 2);
+            }
+            assert(outstr.size() >= strm.total_out);
+            strm.avail_out = static_cast<uInt>(outstr.size() - strm.total_out);
+            strm.next_out = (Bytef *)outstr.data() + strm.total_out;
+            ret = deflate(&strm, Z_FINISH); /* no bad return value */
+            if (ret == Z_STREAM_ERROR)
+            {
+                (void)deflateEnd(&strm);
+                return std::string{};
+            }
+        } while (strm.avail_out == 0);
+        assert(strm.avail_in == 0);
+        assert(ret == Z_STREAM_END); /* stream will be complete */
+        outstr.resize(strm.total_out);
+        /* clean up and return */
+        (void)deflateEnd(&strm);
+        return outstr;
+    }
+    return std::string{};
+}
+``` | std::string gzipCompress(const char *data, const size_t ndata)
+{
+    z_stream strm = {nullptr,
+                     0,
+                     0,
+                     nullptr,
+                     0,
+                     0,
+                     nullptr,
+                     nullptr,
+                     nullptr,
+                     nullptr,
+                     nullptr,
+                     0,
+                     0,
+                     0};
+    if (data && ndata > 0)
+    {
+        if (deflateInit2(&strm,
+                         Z_DEFAULT_COMPRESSION,
+                         Z_DEFLATED,
+                         MAX_WBITS + 16,
+                         8,
+                         Z_DEFAULT_STRATEGY) != Z_OK)
+        {
+            LOG_ERROR << "deflateInit2 error!";
+            return std::string{};
+        }
+        std::string outstr;
+        outstr.resize(compressBound(static_cast<uLong>(ndata)));
+        strm.next_in = (Bytef *)data;
+        strm.avail_in = static_cast<uInt>(ndata);
+        int ret;
+        do
+        {
+            if (strm.total_out >= outstr.size())
+            {
+                outstr.resize(strm.total_out * 2);
+            }
+            assert(outstr.size() >= strm.total_out);
+            strm.avail_out = static_cast<uInt>(outstr.size() - strm.total_out);
+            strm.next_out = (Bytef *)outstr.data() + strm.total_out;
+            ret = deflate(&strm, Z_FINISH); /* no bad return value */
+            if (ret == Z_STREAM_ERROR)
+            {
+                (void)deflateEnd(&strm);
+                return std::string{};
+            }
+        } while (strm.avail_out == 0);
+        assert(strm.avail_in == 0);
+        assert(ret == Z_STREAM_END); /* stream will be complete */
+        outstr.resize(strm.total_out);
+        /* clean up and return */
+        (void)deflateEnd(&strm);
+        return outstr;
+    }
+    return std::string{};
+}
+[QA 1] ```cpp
+static std::function<void()> f = [] {
+    LOG_TRACE << "Initialize the main event loop in the main thread";
+};
+``` |     explicit InitBeforeMainFunction(const std::function<void()> &func)
+    {
+        func();
+    }
+[QA 2] ```cpp
+static void doAdvicesChain(
+    const std::vector<std::function<void(const HttpRequestPtr &,
+                                         AdviceCallback &&,
+                                         AdviceChainCallback &&)>> &advices,
+    size_t index,
+    const HttpRequestImplPtr &req,
+    std::shared_ptr<const std::function<void(const HttpResponsePtr &)>>
+        &&callbackPtr)
+{
+    if (index < advices.size())
+    {
+        auto &advice = advices[index];
+        advice(
+            req,
+            [/*copy*/ callbackPtr](const HttpResponsePtr &resp) {
+                (*callbackPtr)(resp);
+            },
+            [index, req, callbackPtr, &advices]() mutable {
+                auto ioLoop = req->getLoop();
+                if (ioLoop && !ioLoop->isInLoopThread())
+                {
+                    ioLoop->queueInLoop([index,
+                                         req,
+                                         callbackPtr = std::move(callbackPtr),
+                                         &advices]() mutable {
+                        doAdvicesChain(advices,
+                                       index + 1,
+                                       req,
+                                       std::move(callbackPtr));
+                    });
+                }
+                else
+                {
+                    doAdvicesChain(advices,
+                                   index + 1,
+                                   req,
+                                   std::move(callbackPtr));
+                }
+            });
+    }
+    else
+    {
+        (*callbackPtr)(nullptr);
+    }
+}
+``` | static void doAdvicesChain(
+    const std::vector<std::function<void(const HttpRequestPtr &,
+                                         AdviceCallback &&,
+                                         AdviceChainCallback &&)>> &advices,
+    size_t index,
+    const HttpRequestImplPtr &req,
+    std::shared_ptr<const std::function<void(const HttpResponsePtr &)>>
+        &&callbackPtr)
+{
+    if (index < advices.size())
+    {
+        auto &advice = advices[index];
+        advice(
+            req,
+            [/*copy*/ callbackPtr](const HttpResponsePtr &resp) {
+                (*callbackPtr)(resp);
+            },
+            [index, req, callbackPtr, &advices]() mutable {
+                auto ioLoop = req->getLoop();
+                if (ioLoop && !ioLoop->isInLoopThread())
+                {
+                    ioLoop->queueInLoop([index,
+                                         req,
+                                         callbackPtr = std::move(callbackPtr),
+                                         &advices]() mutable {
+                        doAdvicesChain(advices,
+                                       index + 1,
+                                       req,
+                                       std::move(callbackPtr));
+                    });
+                }
+                else
+                {
+                    doAdvicesChain(advices,
+                                   index + 1,
+                                   req,
+                                   std::move(callbackPtr));
+                }
+            });
+    }
+    else
+    {
+        (*callbackPtr)(nullptr);
+    }
+}
+[QA 3] ```cpp
+void setPeerCertificate(const trantor::CertificatePtr &cert)
+{
+    peerCertificate_ = cert;
+}
+``` |     void setPeerCertificate(const trantor::CertificatePtr &cert)
+    {
+        peerCertificate_ = cert;
+    }
+[QA 4] ```cpp
+namespace drogon
+{
+class HttpMessageStringViewBody : public HttpMessageBody
+{
+  public:
+    HttpMessageStringViewBody(const char *buf, size_t len) : body_(buf, len)
+    {
+        type_ = BodyType::kStringView;
+    }
+
+    const char *data() const override
+    {
+        return body_.data();
+    }
+
+    char *data() override
+    {
+        return const_cast<char *>(body_.data());
+    }
+
+    size_t length() const override
+    {
+        return body_.length();
+    }
+
+    std::string_view getString() const override
+    {
+        return body_;
+    }
+
+    void append(const char *buf, size_t len) override
+    {
+        body_.append(buf, len);
+    }
+
+  private:
+    std::string_view body_;
+};
+
+}  // namespace drogon
+``` |     HttpMessageStringViewBody(const char *buf, size_t len) : body_(buf, len)
+    {
+        type_ = BodyType::kStringView;
+    }
+[effective] clen=65970 window=4096 chunk_ratio=0.733450 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.32it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-16: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65970 window=4096 chunk_ratio=0.466900 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.70it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.40it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-16: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65970 window=4096 chunk_ratio=0.360281 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.63it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-16: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65970 window=4096 chunk_ratio=0.253661 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.75it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.56it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-16: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65970 window=4096 chunk_ratio=0.147041 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.53it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.90it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-16: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65970 window=4096 chunk_ratio=0.040421 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.06it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-16: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65970 window=3298 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.18it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3298
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-16: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/16_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 309.5s. Mem: 14.31/79.18 GB. [scbench_repoqa-16]
+
+[effective] clen=65970 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-17: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+static inline size_t findTrailingSlashes(string_view url)
+{
+    auto len = url.size();
+    // Must be at least 2 chars and end with a slash
+    if (len < 2 || url.back() != '/')
+        return string::npos;
+
+    size_t a = len - 1;  // We already know the last char is '/',
+                         // we will use pre-decrement to account for this
+    while (--a > 0 && url[a] == '/')
+        ;  // We know the first char is '/', so don't check for 0
+    return a;
+}
+``` | static inline size_t findTrailingSlashes(string_view url)
+{
+    auto len = url.size();
+    // Must be at least 2 chars and end with a slash
+    if (len < 2 || url.back() != '/')
+        return string::npos;
+
+    size_t a = len - 1;  // We already know the last char is '/',
+                         // we will use pre-decrement to account for this
+    while (--a > 0 && url[a] == '/')
+        ;  // We know the first char is '/', so don't check for 0
+    return a;
+}
+[QA 1] ```cpp
+inline std::string_view getFileExtension(const std::string &fileName)
+{
+    auto pos = fileName.rfind('.');
+    if (pos == std::string::npos)
+        return "";
+    return std::string_view(&fileName[pos + 1], fileName.length() - pos - 1);
+}
+``` | inline std::string_view getFileExtension(const std::string &fileName)
+{
+    auto pos = fileName.rfind('.');
+    if (pos == std::string::npos)
+        return "";
+    return std::string_view(&fileName[pos + 1], fileName.length() - pos - 1);
+}
+[QA 2] ```cpp
+static bool getFileStat(const std::string &filePath, FileStat &myStat)
+{
+#if defined(_WIN32) && !defined(__MINGW32__)
+    struct _stati64 fileStat;
+#else   // _WIN32
+    struct stat fileStat;
+#endif  // _WIN32
+    if (stat(utils::toNativePath(filePath).c_str(), &fileStat) == 0 &&
+        S_ISREG(fileStat.st_mode))
+    {
+        LOG_TRACE << "last modify time:" << fileStat.st_mtime;
+#ifdef _WIN32
+        gmtime_s(&myStat.modifiedTime_, &fileStat.st_mtime);
+#else
+        gmtime_r(&fileStat.st_mtime, &myStat.modifiedTime_);
+#endif
+        std::string &timeStr = myStat.modifiedTimeStr_;
+        timeStr.resize(64);
+        size_t len = strftime((char *)timeStr.data(),
+                              timeStr.size(),
+                              "%a, %d %b %Y %H:%M:%S GMT",
+                              &myStat.modifiedTime_);
+        timeStr.resize(len);
+
+        myStat.fileSize_ = fileStat.st_size;
+        return true;
+    }
+
+    return false;
+}
+``` | static bool getFileStat(const std::string &filePath, FileStat &myStat)
+{
+#if defined(_WIN32) && !defined(__MINGW32__)
+    struct _stati64 fileStat;
+#else   // _WIN32
+    struct stat fileStat;
+#endif  // _WIN32
+    if (stat(utils::toNativePath(filePath).c_str(), &fileStat) == 0 &&
+        S_ISREG(fileStat.st_mode))
+    {
+        LOG_TRACE << "last modify time:" << fileStat.st_mtime;
+#ifdef _WIN32
+        gmtime_s(&myStat.modifiedTime_, &fileStat.st_mtime);
+#else
+        gmtime_r(&fileStat.st_mtime, &myStat.modifiedTime_);
+#endif
+        std::string &timeStr = myStat.modifiedTimeStr_;
+        timeStr.resize(64);
+        size_t len = strftime((char *)timeStr.data(),
+                              timeStr.size(),
+                              "%a, %d %b %Y %H:%M:%S GMT",
+                              &myStat.modifiedTime_);
+        timeStr.resize(len);
+
+        myStat.fileSize_ = fileStat.st_size;
+        return true;
+    }
+
+    return false;
+}
+[QA 3] ```cpp
+std::string getVersion()
+{
+    return DROGON_VERSION;
+}
+``` | std::string getVersion()
+{
+    return DROGON_VERSION;
+}
+[QA 4] ```cpp
+std::vector<char> hexToBinaryVector(const char *ptr, size_t length)
+{
+    assert(length % 2 == 0);
+    std::vector<char> ret(length / 2, '\0');
+    for (size_t i = 0; i < ret.size(); ++i)
+    {
+        auto p = i * 2;
+        char c1 = ptr[p];
+        if (c1 >= '0' && c1 <= '9')
+        {
+            c1 -= '0';
+        }
+        else if (c1 >= 'a' && c1 <= 'f')
+        {
+            c1 -= 'a';
+            c1 += 10;
+        }
+        else if (c1 >= 'A' && c1 <= 'F')
+        {
+            c1 -= 'A';
+            c1 += 10;
+        }
+        else
+        {
+            return std::vector<char>();
+        }
+        char c2 = ptr[p + 1];
+        if (c2 >= '0' && c2 <= '9')
+        {
+            c2 -= '0';
+        }
+        else if (c2 >= 'a' && c2 <= 'f')
+        {
+            c2 -= 'a';
+            c2 += 10;
+        }
+        else if (c2 >= 'A' && c2 <= 'F')
+        {
+            c2 -= 'A';
+            c2 += 10;
+        }
+        else
+        {
+            return std::vector<char>();
+        }
+        ret[i] = c1 * 16 + c2;
+    }
+    return ret;
+}
+``` | std::vector<char> hexToBinaryVector(const char *ptr, size_t length)
+{
+    assert(length % 2 == 0);
+    std::vector<char> ret(length / 2, '\0');
+    for (size_t i = 0; i < ret.size(); ++i)
+    {
+        auto p = i * 2;
+        char c1 = ptr[p];
+        if (c1 >= '0' && c1 <= '9')
+        {
+            c1 -= '0';
+        }
+        else if (c1 >= 'a' && c1 <= 'f')
+        {
+            c1 -= 'a';
+            c1 += 10;
+        }
+        else if (c1 >= 'A' && c1 <= 'F')
+        {
+            c1 -= 'A';
+            c1 += 10;
+        }
+        else
+        {
+            return std::vector<char>();
+        }
+        char c2 = ptr[p + 1];
+        if (c2 >= '0' && c2 <= '9')
+        {
+            c2 -= '0';
+        }
+        else if (c2 >= 'a' && c2 <= 'f')
+        {
+            c2 -= 'a';
+            c2 += 10;
+        }
+        else if (c2 >= 'A' && c2 <= 'F')
+        {
+            c2 -= 'A';
+            c2 += 10;
+        }
+        else
+        {
+            return std::vector<char>();
+        }
+        ret[i] = c1 * 16 + c2;
+    }
+    return ret;
+}
+[effective] clen=65970 window=4096 chunk_ratio=0.733450 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.32it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-17: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65970 window=4096 chunk_ratio=0.466900 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-17: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65970 window=4096 chunk_ratio=0.360281 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.63it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-17: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65970 window=4096 chunk_ratio=0.253661 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.75it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.56it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-17: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65970 window=4096 chunk_ratio=0.147041 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.41it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.90it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.66it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-17: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65970 window=4096 chunk_ratio=0.040421 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-17: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65970 window=3298 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.18it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.05 ratio, window 3298
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-17: 65970 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/17_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 285.5s. Mem: 14.31/79.18 GB. [scbench_repoqa-17]
+
+[effective] clen=65917 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.26it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-18: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+template <typename T>
+class Vectorized {
+  std::vector<T> elements_;
+protected:
+  size_t hash_;
+  void reset_hash() { hash_ = 0; }
+  virtual void adjust_after_pushing(T element) { }
+public:
+  Vectorized(size_t s = 0) : elements_(std::vector<T>()), hash_(0)
+  { elements_.reserve(s); }
+  virtual ~Vectorized() = 0;
+  size_t length() const   { return elements_.size(); }
+  bool empty() const      { return elements_.empty(); }
+  void clear()            { return elements_.clear(); }
+  T last() const          { return elements_.back(); }
+  T first() const         { return elements_.front(); }
+  T& operator[](size_t i) { return elements_[i]; }
+  virtual const T& at(size_t i) const { return elements_.at(i); }
+  virtual T& at(size_t i) { return elements_.at(i); }
+  const T& operator[](size_t i) const { return elements_[i]; }
+  virtual void append(T element)
+  {
+    if (element) {
+      reset_hash();
+      elements_.push_back(element);
+      adjust_after_pushing(element);
+    }
+  }
+  virtual void concat(Vectorized* v)
+  {
+    for (size_t i = 0, L = v->length(); i < L; ++i) this->append((*v)[i]);
+  }
+  Vectorized& unshift(T element)
+  {
+    elements_.insert(elements_.begin(), element);
+    return *this;
+  }
+  std::vector<T>& elements() { return elements_; }
+  const std::vector<T>& elements() const { return elements_; }
+  std::vector<T>& elements(std::vector<T>& e) { elements_ = e; return elements_; }
+
+  virtual size_t hash()
+  {
+    if (hash_ == 0) {
+      for (T& el : elements_) {
+        hash_combine(hash_, el->hash());
+      }
+    }
+    return hash_;
+  }
+
+  typename std::vector<T>::iterator end() { return elements_.end(); }
+  typename std::vector<T>::iterator begin() { return elements_.begin(); }
+  typename std::vector<T>::const_iterator end() const { return elements_.end(); }
+  typename std::vector<T>::const_iterator begin() const { return elements_.begin(); }
+  |     Vectorized(size_t s = 0) : elements_(std::vector<T>()), hash_(0)
+    { elements_.reserve(s); }
+[QA 1] ```cpp
+namespace Sass {
+
+  struct Mapping {
+    Position original_position;
+    Position generated_position;
+
+    Mapping(const Position& original_position, const Position& generated_position)
+    : original_position(original_position), generated_position(generated_position) { }
+  };
+
+}
+``` |     Mapping(const Position& original_position, const Position& generated_position)
+    : original_position(original_position), generated_position(generated_position) { }
+[QA 2] ```cpp
+/**
+ * Checks if the main string ends with the specified ending string.
+ *
+ * @param value The main string to check.
+ * @param ending The string to check for at the end of the main string.
+ * @return True if the main string ends with the specified ending string, false otherwise.
+ */
+inline bool ends_with(std::string const & value, std::string const & ending)
+{
+    if (ending.size() > value.size()) return false;
+    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+``` |   inline bool ends_with(std::string const & value, std::string const & ending)
+  {
+    if (ending.size() > value.size()) return false;
+    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+  }
+[QA 3] ```cpp
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include "cencode.h"
+
+namespace base64
+{
+    struct encoder
+    {
+        base64_encodestate _state;
+        int _buffersize;
+
+        encoder(int buffersize_in = BUFFERSIZE)
+        : _buffersize(buffersize_in)
+        {
+            base64_init_encodestate(&_state);
+        }
+
+        int encode(char value_in)
+        {
+            return base64_encode_value(value_in);
+        }
+
+        int encode(const char* code_in, const int length_in, char* plaintext_out)
+        {
+            return base64_encode_block(code_in, length_in, plaintext_out, &_state);
+        }
+
+        int encode_end(char* plaintext_out)
+        {
+            return base64_encode_blockend(plaintext_out, &_state);
+        }
+
+        void encode(std::istream& istream_in, std::ostream& ostream_in)
+        {
+            base64_init_encodestate(&_state);
+            const int N = _buffersize;
+            char* plaintext = new char[N];
+            char* code = new char[2 * N];
+            int plainlength;
+            int codelength;
+
+            do
+            {
+                istream_in.read(plaintext, N);
+                plainlength = static_cast<int>(istream_in.gcount());
+                codelength = encode(plaintext, plainlength, code);
+                ostream_in.write(code, codelength);
+            }
+            while (istream_in.good() && plainlength > 0);
+
+            codelength = encode_end(code);
+            ostream_in.write(code, codelength);
+            base64_init_encodestate(&_state);
+
+            delete[] code;
+            delete[] plaintext;
+        }
+    };
+}
+``` | 		encoder(int buffersize_in = BUFFERSIZE)
+		: _buffersize(buffersize_in)
+		{
+			base64_init_encodestate(&_state);
+		}
+[QA 4] ```cpp
+template <typename T, typename L>
+T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
+  if (this->is_sync) {
+    /*
+     * This is invoked from the main JavaScript thread.
+     * V8 context is available.
+     *
+     * Establish Local<> scope for all functions
+     * from types invoked by pre_process_args() and
+     * post_process_args().
+     */
+    Nan::HandleScope scope;
+    Nan::TryCatch try_catch;
+    std::vector<v8::Local<v8::Value>> argv_v8 = pre_process_args(argv);
+    if (try_catch.HasCaught()) {
+      Nan::FatalException(try_catch);
+    }
+
+    argv_v8.push_back(Nan::New(wrapper));
+
+    return this->post_process_return_value(
+      Nan::Call(*this->callback, argv_v8.size(), &argv_v8[0]).ToLocalChecked()
+    );
+  } else {
+    /*
+     * This is invoked from the worker thread.
+     * No V8 context and functions available.
+     * Just wait for response from asynchronously
+     * scheduled JavaScript code
+     *
+     * XXX Issue #1048: We block here even if the
+     *     event loop stops and the callback
+     *     would never be executed.
+     * XXX Issue #857: By waiting here we occupy
+     *     one of the threads taken from the
+     *     uv threadpool. Might deadlock if
+     *     async I/O executed from JavaScript callbacks.
+     */
+    this->argv = argv;
+
+    uv_mutex_lock(&this->cv_mutex);
+    this->has_returned = false;
+    uv_async_send(this->async);
+    while (!this->has_returned) {
+      uv_cond_wait(&this->condition_variable, &this->cv_mutex);
+    }
+    uv_mutex_unlock(&this->cv_mutex);
+    return this->return_value;
+  }
+}
+``` |     CustomFunctionBridge(v8::Local<v8::Function> cb, bool is_sync) : CallbackBridge<Sass_Value*>(cb, is_sync) {}
+[effective] clen=65917 window=4096 chunk_ratio=0.733436 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.32it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-18: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65917 window=4096 chunk_ratio=0.466872 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-18: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65917 window=4096 chunk_ratio=0.360247 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.63it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-18: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65917 window=4096 chunk_ratio=0.253621 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.76it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-18: 65917 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65917 window=4096 chunk_ratio=0.146995 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
