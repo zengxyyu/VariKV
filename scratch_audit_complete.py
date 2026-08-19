@@ -30,7 +30,10 @@ import os, re, sys, glob, json
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PRE  = os.path.join(ROOT, "external/FastKVzip/prefill")
 LOGD = os.path.join(ROOT, "scratch_ctrl_logs")
-DOC  = os.path.join(ROOT, "RESULTS_ABLATION.md")
+# **两份文档都要扫**：`REVIEW_BRIEF.md` 是唯一对外材料，如果只扫内部记录，
+# 简报里独有的 tag 就没人查。例外表的「说明句仍在」也对两份都成立即可。
+DOCS = [os.path.join(ROOT, "RESULTS_ABLATION.md"),
+        os.path.join(ROOT, "REVIEW_BRIEF.md")]
 
 FULL_N = {
     "scbench_kv": 100, "scbench_prefix_suffix": 100, "scbench_mf": 100,
@@ -49,8 +52,8 @@ EXEMPT = {
     "_qdvt": ("同上", "配额 dump 作业（`_qdvt`/`_qdps`/`_qdkv`）用 `--num 20`"),
     "_psflr32": ("已知不完整，文档已明写并已被 `_psflr32b` 取代",
                  "`_psflr32` 只有 37 个结果目录、无 `Finished.`"),
-    "_kvf02e": ("仍在跑，文档只写「在跑」不引用数字",
-                "`_kvf02e` 在跑"),
+    # `_kvf02e` 曾在此（跑到一半时被引用为「在跑」）。**跑满后主动删掉例外**——
+    # 留着一条永远为真的例外，等于给那个 tag 开了一个再也不会响的警报。
 }
 
 
@@ -85,7 +88,7 @@ def scan(ds):
 
 
 def main():
-    doc = open(DOC).read()
+    doc = "\n".join(open(f).read() for f in DOCS)
     cited = set(re.findall(r"`(_[A-Za-z0-9_.\-]+)`", doc))
 
     fail = 0
@@ -106,7 +109,7 @@ def main():
 
     print("\n== 1. 覆盖情况 ==")
     real = {t for t in cited if any(t in dirmap[ds] for ds in FULL_N)}
-    print(f"   文档里的 `_xxx` 记号 {len(cited)} 个，其中 {len(real)} 个对应真实结果目录")
+    print(f"   两份文档里的 `_xxx` 记号 {len(cited)} 个，其中 {len(real)} 个对应真实结果目录")
 
     print("\n== 2. 目录层：被引用且样本目录数不足满量 ==")
     n2 = 0
