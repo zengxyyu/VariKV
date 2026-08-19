@@ -82,11 +82,14 @@ def _degen_measured(ds):
                 #   有效: cr = (ρ·clen − w)/(clen − w)  ⇒  ρ = (cr·(clen−w) + w)/clen
                 # 退化时 chunk_ratio 归零、window 被改写成 int(ρ·clen) ⇒ ρ = w/clen。
                 r_nom = win / clen if dg else (cr * (clen - win) + win) / clen
-                # 同一名义 ratio 只要**有一个样本**退化就算退化（保守）
+                # **记占比而非布尔**：同一 panel 各样本长度不一，同一名义 ratio 下
+                # 可能只有一部分样本退化（ManyShot@0.2 即如此：标 ° 却有非零 Δ，
+                # 因为非退化的那部分样本仍在真实驱逐）。二值标记会误导。
                 key = round(r_nom, 3)
-                seen[key] = seen.get(key, False) or dg
+                a, b = seen.get(key, (0, 0))
+                seen[key] = (a + (1 if dg else 0), b + 1)
         if seen:
-            out = sorted(seen.items())
+            out = sorted((k, a / b) for k, (a, b) in seen.items())
             break
     _DEGEN_CACHE[ds] = out
     return out
@@ -115,9 +118,13 @@ def _degenerate(ds, r):
     """
     m = _degen_measured(ds)
     if m is not None:
-        for r_nom, flag in m:
+        for r_nom, frac in m:
             if abs(r_nom - r) < 0.004:          # 反解后精度很高，容差收紧到 0.4%
-                return flag
+                if frac >= 0.9:
+                    return True                 # ° 全格退化
+                if frac > 0.02:
+                    return frac                 # ~ 部分退化，返回占比
+                return False
     clen = TOK.get(ds)
     if clen is None:
         return False
@@ -244,8 +251,10 @@ def main():
     # **`scalar` / `kv` 是原版 v2 代码（`scratch_ctrl_train.py --arch`）训的**，
     # 不是干净版 v2（`varikv_v2.py` 只重写了记忆架构，没有因子臂）。三者共用同一批
     # teacher trace `scratch_ctrl_traces_v2_10`（10 篇、8/2 划分），只是 `--arch` 不同。
-    # 它们**只在 scbench_kv 上评过，且只有 ρ∈{0.1,0.2}** —— 其余格显示 `—` 是
-    # **没跑**，不是跑失败。
+    # **覆盖面（2026-08-19 更新）**：`scalar` 现由过夜扫描 `_sc11_s*` 覆盖
+    # **11 panel x 7 ratio x 2 种子**；Retr.KV 的 ρ=0.1 在该批里按计划未跑，
+    # 回退到旧的 `_d10scalar_s*`（三种子）。`kv` 仍只有 Retr.KV 与 PrefSuf@0.2。
+    # 其余格显示 `—` 是**没跑**，不是跑失败。
     ARMS = [("v2", lambda d: "__g8v2_chunk16k_w4096_ctrlmmemo8"),
             ("v2c", ("SEEDS", "__v2c_s{S}_chunk16k_w4096_ctrlmmemo8", v2c_done)),
             # 每条臂可给**多个 tag 模板**，按顺序取第一个有数据的。
@@ -342,7 +351,14 @@ def main():
                 m, sig, ns = got[r][0], got[r][1], got[r][2]
                 sd = got[r][3] if len(got[r]) > 3 else None
                 _d = None if r >= 1.0 else _degenerate(name_d, r)
-                deg = "" if _d is False or r >= 1.0 else ("°" if _d else "?")
+                if _d is False or r >= 1.0:
+                    deg = ""
+                elif _d is True:
+                    deg = "°"                    # 全格结构性退化
+                elif _d is None:
+                    deg = "?"                    # 判不了（标注长度撑不住）
+                else:
+                    deg = "~"                    # **部分**样本退化，占比见脚注
                 # **所有臂都标种子数**：v2/v3/质心那几行全是 n=1（表里 v2 用的是
                 # 单个 ckpt `ctrl_b_a1_s0`；`+4.27 ± 0.19` 的三种子数字只存在于
                 # scbench_kv @0.1 那一格，从没有 11×8 的三种子版本）。只给 v2c 标
