@@ -276,6 +276,12 @@ class LearnedControlRetainCache(RetainCache):
                           f" n_starved={int((b0==0).sum())}/{int(b0.numel())}"
                           f" L1_b0={float((bt.float()-b0).abs().sum()):.0f}"
                           f" Btot={int(b0.sum())}", flush=True)
+                if _qm == "floorcov":
+                    print(f"[floorcov] chunk lo={lo} frac={os.environ.get('VARIKV_COV_FRAC','1.0')}"
+                          f" n_starved={int((b0==0).sum())}/{int(b0.numel())}"
+                          f" n_lifted={int(((bt.float()-b0)>0).sum())}"
+                          f" lift={float((bt.float()-b0).clamp(min=0).sum()):.0f}"
+                          f" Btot={int(b0.sum())}", flush=True)
                 if _qm in ("floorproj", "pathproj", "floorpath"):
                     # **事后可验证性**：不打这一行，我就无法在日志里证明这一臂真的
                     # 按设计跑了（用对了 α、投影真的动了）。地板臂靠 dump 事后判定，

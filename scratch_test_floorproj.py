@@ -282,6 +282,25 @@ def main():
               f"  可达+守恒={ok}  一致={agree}  {'OK' if ok and agree else '**FAIL**'}")
     bad += n8
 
+    print("\n【9】`floorcov` 覆盖率轴：f=1 必须逐位等于同 `b_min` 的地板")
+    # 固定每头抬到 b_min、只改抬多少个头，把「广度」变成自变量。
+    # f=1 的退化点是唯一可逐位检验的锚；抬起头数必须随 f 单调不降；预算守恒。
+    os.environ["VARIKV_QUOTA_FLOOR"] = "1"
+    bf1 = project_quota(b0.clone(), delta, n, "floor", L, H)
+    n9, prev_nl = 0, -1
+    for fr in [0.15, 0.3, 0.5, 1.0]:
+        os.environ["VARIKV_COV_FRAC"] = str(fr)
+        q = project_quota(b0.clone(), delta, n, "floorcov", L, H, sc=sc)
+        nl = int(((q.float() - b0) > 0).sum())
+        ok = (int(q.sum()) == int(b0.sum())) and (nl >= prev_nl)
+        if fr == 1.0:
+            ok &= bool((q == bf1).all())
+        prev_nl = nl; n9 += (not ok)
+        print(f"    f={fr:<5} 抬起头数={nl:2d}  Σq={int(q.sum())}"
+              f"  {'==地板b1 ' if fr == 1.0 else ''}{'OK' if ok else '**FAIL**'}")
+    os.environ["VARIKV_COV_FRAC"] = "1.0"; os.environ["VARIKV_QUOTA_FLOOR"] = "16"
+    bad += n9
+
     print(f"\n{'全部通过' if bad == 0 else f'**{bad} 项 FAIL**'}")
     return 1 if bad else 0
 

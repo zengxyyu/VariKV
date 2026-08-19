@@ -289,7 +289,7 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
     一个通用修补循环悄悄"修好"同时破坏因果不变量（那正是本项目栽过的坑）。
     """
     assert mode in ("full", "within", "across", "floor", "floorproj",
-                    "pathproj", "floorpath", "maxlift"), mode
+                    "pathproj", "floorpath", "maxlift", "floorcov"), mode
     L, H = int(n_layers), int(n_heads)
     assert b0.numel() == L * H and delta.numel() == L * H
     Btot = int(b0.sum().item())
@@ -305,7 +305,7 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
         project_quota._ml_n = getattr(project_quota, "_ml_n", 0) + 1
         return q
 
-    if mode in ("floor", "floorproj", "pathproj", "floorpath"):
+    if mode in ("floor", "floorproj", "pathproj", "floorpath", "floorcov"):
         # **防饿死对照**：完全不用 `delta` 的方向，只强制 b_g ≥ b_min，
         # 缺口按 (b⁰ − b_min)⁺ 的比例从富余头等量扣回，总预算不变。
         # 为什么必须有这个对照：`fastkvzip@pair` 在 ρ=0.2 有 41.3% 的头零配额，
@@ -323,6 +323,27 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
         # （直接崩）让整个作业挂掉，而正确的降级是走到该约束的边界。
         bmin = min(bmin, float(Btot // (L * H)))
         t = torch.maximum(b0, torch.full_like(b0, bmin))
+        if mode == "floorcov":
+            # **覆盖率剂量轴**：固定每头抬到 `b_min`（配 b_min=1 就是每头 +1），
+            # 只改**抬多少个头**。这是把「广度」当自变量的直接实验 ——
+            # `maxlift` 已证明 214 单位堆在 9/60 个头上只值 +5.00，而 60 单位铺满
+            # 60/60 值 +25.80；本模式在两者之间连线。
+            # 选头规则**只用基线分数、不用学到的方向**：按 `s_max` 降序取前 k 个，
+            # 即「离全局阈值最近、最便宜抬」的那些 —— 也正是可达集会选的那批，
+            # 所以 f≈0.155 这一点可与 `maxlift` 的覆盖率直接对照。
+            # f=1 时 `t` 与 floor 完全相同（下面的断言保证），故它是可检验的退化点。
+            assert sc is not None, "floorcov 需要 score 张量"
+            fr = float(os.environ.get("VARIKV_COV_FRAC", "1.0"))
+            below = (b0 < bmin)
+            nb = int(below.sum())
+            k = int(round(fr * nb))
+            if k < nb:
+                smax = sc.reshape(b0.numel(), -1).float().max(dim=-1).values
+                cand = torch.nonzero(below).flatten()
+                pick = cand[torch.argsort(smax[cand], descending=True)[:k]]
+                t = b0.clone()
+                t[pick] = bmin
+            # k == nb 时落回上一行的 `t`，与 floor 逐位相同
         excess = float(t.sum() - Btot)                      # ≥ 0
         if excess > 0:
             room = (b0 - bmin).clamp(min=0)                 # 可扣回的量
