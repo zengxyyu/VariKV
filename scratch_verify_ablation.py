@@ -142,8 +142,8 @@ def main():
         print(f"   {ds.split('_')[-1]:<14}@{R:<5} " + " | ".join(row) + f"   BEST {bb:+.2f}")
     # **不再用 argmax 比值**（撤回 42）：两侧网格密度不等、且三个候选峰互不可分，
     # 取最大值再相除既有选择偏差、方向也不确定。改用**同 `b_min`** 的比值。
-    KVT = {4:"_kvf02e", 8:"_flr8", 32:"_flr32", 128:"_flr128"}
-    PST = {4:"_psf02d", 8:"_psf02c", 32:"_psf02a"}
+    KVT = {4:"_kvf02e", 8:"_flr8", 16:"_kvf02f", 32:"_flr32", 128:"_flr128"}
+    PST = {4:"_psf02d", 8:"_psf02c", 16:"_psflr02h", 32:"_psf02a"}
     bk = read_scores("scbench_kv","_g8base",0.2)
     bp = read_scores("scbench_prefix_suffix","_g8base",0.2)
     rr = []
@@ -159,9 +159,9 @@ def main():
         print(f"   同 b{bm:<4} Retr.KV {mk:+6.2f}  PrefSuf {mp:+5.2f}  比值 {mk/mp:.1f}x")
     if rr:
         lo_r, hi_r = min(r for _,r in rr), max(r for _,r in rr)
-        ok = 6.0 <= lo_r and hi_r <= 10.0; fail += (not ok)
+        ok = 5.0 <= lo_r and hi_r <= 10.0; fail += (not ok)
         print(f"   ⇒ 同 b_min 比值区间 {lo_r:.1f}–{hi_r:.1f}x   "
-              f"{'OK（文件写 6.5–9.2x）' if ok else '**FAIL：文件里的区间需重算**'}")
+              f"{'OK（文件写 5.6–9.2x）' if ok else '**FAIL：文件里的区间需重算**'}")
     # PrefSuf@0.2 的峰必须在 b16（撤回 42 的直接依据）
     print("\n== 8. MultiHop@0.4 三个方向无关对照全部与零不可分 ==")
     B=read_scores("scbench_vt","_g8base",0.4); REV=read_scores("scbench_vt","_vt04gm1",0.4)
