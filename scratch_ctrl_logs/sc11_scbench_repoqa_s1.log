@@ -20336,3 +20336,650 @@ Chunked prefilling with 0.20 ratio, window 4096
 [effective] clen=65974 window=4096 chunk_ratio=0.040425 degenerate=False
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.06it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-81: 65974 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65974 window=3298 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.18it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3298
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-81: 65974 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/81_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 274.6s. Mem: 14.31/79.18 GB. [scbench_repoqa-81]
+
+[effective] clen=65780 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.24it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-82: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```go
+func TestDockerComposeCommandNoFiles(t *testing.T) {
+	composeFiles := []string{}
+	conf, err := NewAppConfig("name", "version", "commit", "date", "buildSource", false, composeFiles, "projectDir")
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+
+	actual := conf.UserConfig.CommandTemplates.DockerCompose
+	expected := "docker-compose"
+	if actual != expected {
+		t.Fatalf("Expected %s but got %s", expected, actual)
+	}
+}
+``` | func TestDockerComposeCommandNoFiles(t *testing.T) {
+	composeFiles := []string{}
+	conf, err := NewAppConfig("name", "version", "commit", "date", "buildSource", false, composeFiles, "projectDir")
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+
+	actual := conf.UserConfig.CommandTemplates.DockerCompose
+	expected := "docker-compose"
+	if actual != expected {
+		t.Fatalf("Expected %s but got %s", expected, actual)
+	}
+}
+[QA 1] ```
+func TestOSCommandRunCommandWithOutput(t *testing.T) {
+	type scenario struct {
+		command string
+		test    func(string, error)
+	}
+
+	scenarios := []scenario{
+		{
+			"echo -n '123'",
+			func(output string, err error) {
+				assert.NoError(t, err)
+				assert.EqualValues(t, "123", output)
+			},
+		},
+		{
+			"rmdir unexisting-folder",
+			func(output string, err error) {
+				assert.Regexp(t, "rmdir.*unexisting-folder.*", err.Error())
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		s.test(NewDummyOSCommand().RunCommandWithOutput(s.command))
+	}
+}
+``` | func TestOSCommandQuote(t *testing.T) {
+	osCommand := NewDummyOSCommand()
+
+	osCommand.Platform.os = "linux"
+
+	actual := osCommand.Quote("hello `test`")
+
+	expected := "\"hello \\`test\\`\""
+
+	assert.EqualValues(t, expected, actual)
+}
+[QA 2] ```go
+// from Dave C's answer at https://stackoverflow.com/questions/20767724/converting-unknown-interface-to-float64-in-golang
+func getFloat(unk interface{}) (float64, error) {
+    floatType := reflect.TypeOf(float64(0))
+    stringType := reflect.TypeOf("")
+
+    switch i := unk.(type) {
+    case float64:
+        return i, nil
+    case float32:
+        return float64(i), nil
+    case int64:
+        return float64(i), nil
+    case int32:
+        return float64(i), nil
+    case int:
+        return float64(i), nil
+    case uint64:
+        return float64(i), nil
+    case uint32:
+        return float64(i), nil
+    case uint:
+        return float64(i), nil
+    case string:
+        return strconv.ParseFloat(i, 64)
+    default:
+        v := reflect.ValueOf(unk)
+        v = reflect.Indirect(v)
+        if v.Type().ConvertibleTo(floatType) {
+            fv := v.Convert(floatType)
+            return fv.Float(), nil
+        } else if v.Type().ConvertibleTo(stringType) {
+            sv := v.Convert(stringType)
+            s := sv.String()
+            return strconv.ParseFloat(s, 64)
+        } else {
+            return math.NaN(), fmt.Errorf("Can't convert %v to float64", v.Type())
+        }
+    }
+}
+``` | func getFloat(unk interface{}) (float64, error) {
+	floatType := reflect.TypeOf(float64(0))
+	stringType := reflect.TypeOf("")
+
+	switch i := unk.(type) {
+	case float64:
+		return i, nil
+	case float32:
+		return float64(i), nil
+	case int64:
+		return float64(i), nil
+	case int32:
+		return float64(i), nil
+	case int:
+		return float64(i), nil
+	case uint64:
+		return float64(i), nil
+	case uint32:
+		return float64(i), nil
+	case uint:
+		return float64(i), nil
+	case string:
+		return strconv.ParseFloat(i, 64)
+	default:
+		v := reflect.ValueOf(unk)
+		v = reflect.Indirect(v)
+		if v.Type().ConvertibleTo(floatType) {
+			fv := v.Convert(floatType)
+			return fv.Float(), nil
+		} else if v.Type().ConvertibleTo(stringType) {
+			sv := v.Convert(stringType)
+			s := sv.String()
+			return strconv.ParseFloat(s, 64)
+		} else {
+			return math.NaN(), fmt.Errorf("Can't convert %v to float64", v.Type())
+		}
+	}
+}
+[QA 3] ```go
+// GetGocuiStyle bitwise OR's a list of attributes obtained via the given keys
+func GetGocuiStyle(keys []string) gocui.Attribute {
+	var attribute gocui.Attribute
+	for _, key := range keys {
+		attribute |= GetGocuiAttribute(key)
+	}
+	return attribute
+}
+``` | func GetGocuiStyle(keys []string) gocui.Attribute {
+	var attribute gocui.Attribute
+	for _, key := range keys {
+		attribute |= GetGocuiAttribute(key)
+	}
+	return attribute
+}
+[QA 4] ```
+func wrappedHandler(f func() error) func(*gocui.Gui, *gocui.View) error {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		return f()
+	}
+}
+``` | func wrappedHandler(f func() error) func(*gocui.Gui, *gocui.View) error {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		return f()
+	}
+}
+[effective] clen=65780 window=4096 chunk_ratio=0.733399 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-82: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65780 window=4096 chunk_ratio=0.466799 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-82: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65780 window=4096 chunk_ratio=0.360158 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-82: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65780 window=4096 chunk_ratio=0.253518 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.76it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-82: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65780 window=4096 chunk_ratio=0.146878 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-82: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65780 window=4096 chunk_ratio=0.040237 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-82: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65780 window=3289 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3289
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-82: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/82_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 255.3s. Mem: 14.31/79.18 GB. [scbench_repoqa-82]
+
+[effective] clen=65780 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.32it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-83: 65780 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```go
+type FilteredList[T comparable] struct {
+	allItems []T
+	// indices of items in the allItems slice that are included in the filtered list
+	indices []int
+
+	mutex sync.RWMutex
+}
+
+func NewFilteredList[T comparable]() *FilteredList[T] {
+	return &FilteredList[T]{}
+}
+
+func (self *FilteredList[T]) SetItems(items []T) {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	self.allItems = items
+	self.indices = make([]int, len(items))
+	for i := range self.indices {
+		self.indices[i] = i
+	}
+}
+
+func (self *FilteredList[T]) Filter(filter func(T, int) bool) {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	self.indices = self.indices[:0]
+	for i, item := range self.allItems {
+		if filter(item, i) {
+			self.indices = append(self.indices, i)
+		}
+	}
+}
+
+func (self *FilteredList[T]) Sort(less func(T, T) bool) {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	if less == nil {
+		return
+	}
+
+	sort.Slice(self.indices, func(i, j int) bool {
+		return less(self.allItems[self.indices[i]], self.allItems[self.indices[j]])
+	})
+}
+
+func (self *FilteredList[T]) Get(index int) T {
+	self.mutex.RLock()
+	defer self.mutex.RUnlock()
+
+	return self.allItems[self.indices[index]]
+}
+
+func (self *FilteredList[T]) TryGet(index int) (T, bool) {
+	self.mutex.RLock()
+	defer self.mutex.RUnlock()
+
+	if index < 0 || index >= len(self.indices) {
+		var zero T
+		return zero, false
+	}
+
+	return self.allItems[self.indices[index]], true
+}
+
+// returns the length of the filtered list
+func (self *FilteredList[T]) Len() int {
+	self.mutex.RLock()
+	defer self.mutex.RUnlock()
+
+	return len(self.indices)
+}
+
+func (self *FilteredList[T]) GetIndex(item T) int {
+	self.mutex.RLock()
+	defer self.mutex.RUnlock()
+
+	for i, index := range self.indices {
+		if self.allItems[index] == item {
+			return i
+		}
+	}
+	return -1
+}
+
+func (self *FilteredList[T]) GetItems() []T {
+	self.mutex.RLock()
+	defer self.mutex.RUnlock()
+
+	result := make([]T, len(self.indices))
+	for i, index := range self.indices {
+		result[i] | func NewFilteredList[T comparable]() *FilteredList[T] {
+	return &FilteredList[T]{}
+}
+[QA 1] ```go
+package app
+
+import (
+	"io"
+	"strings"
+
+	"github.com/jesseduffield/lazydocker/pkg/commands"
+	"github.com/jesseduffield/lazydocker/pkg/config"
+	"github.com/jesseduffield/lazydocker/pkg/gui"
+	"github.com/jesseduffield/lazydocker/pkg/i18n"
+	"github.com/jesseduffield/lazydocker/pkg/log"
+	"github.com/jesseduffield/lazydocker/pkg/utils"
+	"github.com/sirupsen/logrus"
+)
+
+// App struct
+type App struct {
+	closers []io.Closer
+
+	Config        *config.AppConfig
+	Log           *logrus.Entry
+	OSCommand     *commands.OSCommand
+	DockerCommand *commands.DockerCommand
+	Gui           *gui.Gui
+	Tr            *i18n.TranslationSet
+	ErrorChan     chan error
+}
+
+// NewApp bootstrap a new application
+func NewApp(config *config.AppConfig) (*App, error) {
+	app := &App{
+		closers:   []io.Closer{},
+		Config:    config,
+		ErrorChan: make(chan error),
+	}
+	var err error
+	app.Log = log.NewLogger(config, "23432119147a4367abf7c0de2aa99a2d")
+	app.Tr, err = i18n.NewTranslationSetFromConfig(app.Log, config.UserConfig.Gui.Language)
+	if err != nil {
+		return app, err
+	}
+	app.OSCommand = commands.NewOSCommand(app.Log, config)
+
+	// here is the place to make use of the docker-compose.yml file in the current directory
+
+	app.DockerCommand, err = commands.NewDockerCommand(app.Log, app.OSCommand, app.Tr, app.Config, app.ErrorChan)
+	if err != nil {
+		return app, err
+	}
+	app.closers = append(app.closers, app.DockerCommand)
+	app.Gui, err = gui.NewGui(app.Log, app.DockerCommand, app.OSCommand, app.Tr, config, app.ErrorChan)
+	if err != nil {
+		return app, err
+	}
+	return app, nil
+}
+
+func (app *App) Run() error {
+	return app.Gui.Run()
+}
+
+func (app *App) Close() error {
+	return utils.CloseMany(app.closers)
+}
+
+type errorMapping struct {
+	originalError string
+	newError      string
+}
+
+// | func NewApp(config *config.AppConfig) (*App, error) {
+	app := &App{
+		closers:   []io.Closer{},
+		Config:    config,
+		ErrorChan: make(chan error),
+	}
+	var err error
+	app.Log = log.NewLogger(config, "23432119147a4367abf7c0de2aa99a2d")
+	app.Tr, err = i18n.NewTranslationSetFromConfig(app.Log, config.UserConfig.Gui.Language)
+	if err != nil {
+		return app, err
+	}
+	app.OSCommand = commands.NewOSCommand(app.Log, config)
+
+	// here is the place to make use of the docker-compose.yml file in the current directory
+
+	app.DockerCommand, err = commands.NewDockerCommand(app.Log, app.OSCommand, app.Tr, app.Config, app.ErrorChan)
+	if err != nil {
+		return app, err
+	}
+	app.closers = append(app.closers, app.DockerCommand)
+	app.Gui, err = gui.NewGui(app.Log, app.DockerCommand, app.OSCommand, app.Tr, config, app.ErrorChan)
+	if err != nil {
+		return app, err
+	}
+	return app, nil
+}
+[QA 2] ```go
+func NewDockerCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.TranslationSet, config *config.AppConfig, errorChan chan error) (*DockerCommand, error) {
+	tunnelCloser, err := ssh.NewSSHHandler(osCommand).HandleSSHDockerHost()
+	if err != nil {
+		ogLog.Fatal(err)
+	}
+
+	dockerHost, err := determineDockerHost()
+	if err != nil {
+		ogLog.Printf("> could not determine host %v", err)
+	}
+
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithVersion(APIVersion), client.WithHost(dockerHost))
+	if err != nil {
+		ogLog.Fatal(err)
+	}
+
+	dockerCommand := &DockerCommand{
+		Log:                    log,
+		OSCommand:              osCommand,
+		Tr:                     tr,
+		Config:                 config,
+		Client:                 cli,
+		ErrorChan:              errorChan,
+		InDockerComposeProject: true,
+		Closers:                []io.Closer{tunnelCloser},
+	}
+
+	command := utils.ApplyTemplate(
+		config.UserConfig.CommandTemplates.CheckDockerComposeConfig,
+		dockerCommand.NewCommandObject(CommandObject{}),
+	)
+
+	log.Warn(command)
+
+	err = osCommand.RunCommand(
+		utils.ApplyTemplate(
+			config.UserConfig.CommandTemplates.CheckDockerComposeConfig,
+			dockerCommand.NewCommandObject(CommandObject{}),
+		),
+	)
+	if err != nil {
+		dockerCommand.InDockerComposeProject = false
+		log.Warn(err.Error())
+	}
+
+	return dockerCommand, nil
+}
+``` | func NewDockerCommand(log *logrus.Entry, osCommand *OSCommand, tr *i18n.TranslationSet, config *config.AppConfig, errorChan chan error) (*DockerCommand, error) {
+	tunnelCloser, err := ssh.NewSSHHandler(osCommand).HandleSSHDockerHost()
+	if err != nil {
+		ogLog.Fatal(err)
+	}
+
+	dockerHost, err := determineDockerHost()
+	if err != nil {
+		ogLog.Printf("> could not determine host %v", err)
+	}
+
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithVersion(APIVersion), client.WithHost(dockerHost))
+	if err != nil {
+		ogLog.Fatal(err)
+	}
+
+	dockerCommand := &DockerCommand{
+		Log:                    log,
+		OSCommand:              osCommand,
+		Tr:                     tr,
+		Config:                 config,
+		Client:                 cli,
+		ErrorChan:              errorChan,
+		InDockerComposeProject: true,
+		Closers:                []io.Closer{tunnelCloser},
+	}
+
+	command := utils.ApplyTemplate(
+		config.UserConfig.CommandTemplates.CheckDockerComposeConfig,
+		dockerCommand.NewCommandObject(CommandObject{}),
+	)
+
+	log.Warn(command)
+
+	err = osCommand.RunCommand(
+		utils.ApplyTemplate(
+			config.UserConfig.CommandTemplates.CheckDockerComposeConfig,
+			dockerCommand.NewCommandObject(CommandObject{}),
+		),
+	)
+	if err != nil {
+		dockerCommand.InDockerComposeProject = false
+		log.Warn(err.Error())
+	}
+
+	return dockerCommand, nil
+}
+[QA 3] ```go
+// NewDummyDockerCommand creates a new dummy DockerCommand for testing
+func NewDummyDockerCommand() *DockerCommand {
+	return NewDummyDockerCommandWithOSCommand(NewDummyOSCommand())
+}
+
+// NewDummyDockerCommandWithOSCommand creates a new dummy DockerCommand for testing
+func NewDummyDockerCommandWithOSCommand(osCommand *OSCommand) *DockerCommand {
+	newAppConfig := NewDummyAppConfig()
+	return &DockerCommand{
+		Log:       NewDummyLog(),
+		OSCommand: osCommand,
+		Tr:        i18n.NewTranslationSet(NewDummyLog(), newAppConfig.UserConfig.Gui.Language),
+		Config:    newAppConfig,
+	}
+}
+``` | func NewDummyDockerCommandWithOSCommand(osCommand *OSCommand) *DockerCommand {
+	newAppConfig := NewDummyAppConfig()
+	return &DockerCommand{
+		Log:       NewDummyLog(),
+		OSCommand: osCommand,
+		Tr:        i18n.NewTranslationSet(NewDummyLog(), newAppConfig.UserConfig.Gui.Language),
+		Config:    newAppConfig,
+	}
+}
+[QA 4] ```go
+package app
+
+import (
+	"io"
+	"strings"
+
+	"github.com/jesseduffield/lazydocker/pkg/commands"
+	"github.com/jesseduffield/lazydocker/pkg/config"
+	"github.com/jesseduffield/lazydocker/pkg/gui"
+	"github.com/jesseduffield/lazydocker/pkg/i18n"
+	"github.com/jesseduffield/lazydocker/pkg/log"
+	"github.com/jesseduffield/lazydocker/pkg/utils"
+	"github.com/sirupsen/logrus"
+)
+
+// App struct
+type App struct {
+	closers []io.Closer
+
+	Config        *config.AppConfig
+	Log           *logrus.Entry
+	OSCommand     *commands.OSCommand
+	DockerCommand *commands.DockerCommand
+	Gui           *gui.Gui
+	Tr            *i18n.TranslationSet
+	ErrorChan     chan error
+}
+
+// NewApp bootstrap a new application
+func NewApp(config *config.AppConfig) (*App, error) {
+	app := &App{
+		closers:   []io.Closer{},
+		Config:    config,
+		ErrorChan: make(chan error),
+	}
+	var err error
+	app.Log = log.NewLogger(config, "23432119147a4367abf7c0de2aa99a2d")
+	app.Tr, err = i18n.NewTranslationSetFromConfig(app.Log, config.UserConfig.Gui.Language)
+	if err != nil {
+		return app, err
+	}
+	app.OSCommand = commands.NewOSCommand(app.Log, config)
+
+	// here is the place to make use of the docker-compose.yml file in the current directory
+
+	app.DockerCommand, err = commands.NewDockerCommand(app.Log, app.OSCommand, app.Tr, app.Config, app.ErrorChan)
+	if err != nil {
+		return app, err
+	}
+	app.closers = append(app.closers, app.DockerCommand)
+	app.Gui, err = gui.NewGui(app.Log, app.DockerCommand, app.OSCommand, app.Tr, config, app.ErrorChan)
+	if err != nil {
+		return app, err
+	}
+	return app, nil
+}
+
+func (app *App) Run() error {
+	return app.Gui.Run()
+}
+
+func (app *App) Close() error {
+	return utils.CloseMany(app.closers)
+}
+
+type errorMapping struct {
+	originalError string
+	newError      string
+}
+
+// | func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool, composeFiles []string, projectDir string) (*AppConfig, error) {
+	configDir, err := findOrCreateConfigDir(name)
+	if err != nil {
+		return nil, err
+	}
+
+	userConfig, err := loadUserConfigWithDefaults(configDir)
+	if err != nil {
+		return nil, err
+	}
+
+	// Pass compose files as individual -f flags to docker-compose
+	if len(composeFiles) > 0 {
+		userConfig.CommandTemplates.DockerCompose += " -f " + strings.Join(composeFiles, " -f ")
+	}
+
+	appConfig := &AppConfig{
+		Name:        name,
+		Version:     version,
+		Commit:      commit,
+		BuildDate:   date,
+		Debug:       debuggingFlag || os.Getenv("DEBUG") == "TRUE",
+		BuildSource: buildSource,
+		UserConfig:  userConfig,
+		ConfigDir:   configDir,
+		ProjectDir:  projectDir,
+	}
+
+	return appConfig, nil
+}
+[effective] clen=65780 window=4096 chunk_ratio=0.733399 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
