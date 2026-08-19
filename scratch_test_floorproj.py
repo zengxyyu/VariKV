@@ -252,6 +252,36 @@ def main():
     os.environ["VARIKV_PROJ_LAMBDA"] = "1.0"
     bad += n7
 
+    print("\n【8】`maxlift`：`Q_box` 内**最大化饿死头抬升**的那个点")
+    # 它补完集合级结论的后半句（那 2.25% 值多少分）。必须验三条 + 一条对拍：
+    #   ① 可达（独立 slack）；② 预算守恒；③ 抬升 > 0；
+    #   ④ **与 scratch_probe_projdir 的闭式上界一致**（同一个公式两处实现，必须对上）。
+    from attention.quota_project import max_lift_quota                # noqa: E402
+    n8 = 0
+    for al, lbl in [(0.999, "宽界"), (0.02, "紧界")]:
+        q, lift = max_lift_quota(b0, sc, int(bf.sum()), alpha=al)
+        S = (b0 == 0)
+        # 闭式上界（独立重算，不复用函数内部量）
+        X = sc.reshape(len(b0), -1).float()
+        a_ = al * X.std(-1).clamp_min(1e-6)
+        ss_ = torch.sort(X, dim=-1).values
+        B_ = int(bf.sum()); nt = X.shape[1]
+        best = -1
+        for tau in np.linspace(float((X - a_[:, None]).min()), float((X + a_[:, None]).max()), 4000):
+            qmx = np.array([(X[g].numpy() > tau - float(a_[g])).sum() for g in range(len(b0))])
+            qmn = np.array([(X[g].numpy() > tau + float(a_[g])).sum() for g in range(len(b0))])
+            if qmn.sum() > B_ or qmx.sum() < B_:
+                continue
+            best = max(best, min(qmx[S.numpy()].sum(), B_ - qmn[~S.numpy()].sum()))
+        # **不要求 lift > 0**：界紧到抬不动任何饿死头时 lift=0 是**正确答案**，
+        # 而那恰恰是我们关心的那一侧。真正的不变量是可达、守恒、与独立闭式一致。
+        ok = (int(q.sum()) == B_) and (indep_slack(q, sc, al) > 0) and (lift >= 0)
+        agree = abs(lift - (best - int(b0[S].sum()))) <= max(2, 0.05 * max(best, 1))
+        n8 += (not (ok and agree))
+        print(f"    {lbl} α={al:<6} 抬升={lift:6.0f}  闭式上界={best - int(b0[S].sum()):6.0f}"
+              f"  可达+守恒={ok}  一致={agree}  {'OK' if ok and agree else '**FAIL**'}")
+    bad += n8
+
     print(f"\n{'全部通过' if bad == 0 else f'**{bad} 项 FAIL**'}")
     return 1 if bad else 0
 

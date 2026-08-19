@@ -180,6 +180,98 @@ def reachable_project(tgt, sc, Btot, alpha, n_tau=2048, certify=True):
     return best, best_d
 
 
+def max_lift_quota(b0, sc, Btot, alpha, n_tau=2048, certify=True):
+    """`Q_box` 内**最大化饿死头总抬升**的那个配额点，闭式 + 网格取 τ*。
+
+    为什么值得单独跑：`scratch_probe_projdir.py` 已经算出「整个 `Q_box` 里最多只能
+    把饿死头抬起地板意图的 2.25%」。那是个**关于集合的量**，但它只说了「能抬多少」，
+    没说「这点抬升值多少分」。本函数构造出**那个最大抬升点**，交给评测回答后半句。
+
+    与 `floorproj` 的区别很关键：`floorproj` 找的是**离地板目标 L1 最近**的可达点，
+    实测它与地板位移**余弦仅 0.046**（是另一个干预），分数为零也解释不了什么。
+    本函数直接**最大化地板所关心的那个量**，所以它是「可达集能做到的最好的
+    抬饿死头」的真实上界点。
+
+    构造（给定 τ，箱子是 `q_min(τ) ≤ q ≤ q_max(τ)`，S = 零配额头）：
+        Σ_S q 的最大值 = min( Σ_S q_max,  B − Σ_{S^c} q_min )
+    取到它时 S 尽量高、S^c 尽量低；**剩余预算按「尽量靠近 b⁰」还给 S^c**，
+    这样这个点的语义是「在可达范围内尽力抬饿死头，其余尽量不动」。
+    再对可行 τ 取使总抬升最大的那个（R(τ) 是两反向单调函数的 min ⇒ 单峰）。
+    """
+    G = b0.numel()
+    X = sc.reshape(G, -1).float()
+    a = float(alpha) * X.std(dim=-1).clamp_min(1e-6)
+    ss, _ = torch.sort(X, dim=-1)
+    n_tok = ss.shape[1]
+    S = (b0 == 0)
+    if not bool(S.any()):
+        return None, 0.0
+    hi_pool = (X + a[:, None]).reshape(-1); lo_pool = (X - a[:, None]).reshape(-1)
+    N = hi_pool.numel()
+    tau_hi = float(torch.topk(hi_pool, min(max(int(Btot), 1), N), largest=True).values[-1])
+    tau_lo = float(torch.topk(lo_pool, min(int(Btot) + 1, N), largest=True).values[-1])
+    if not (tau_lo < tau_hi):
+        raise RuntimeError(f"可行 τ 区间为空 tau_lo={tau_lo} tau_hi={tau_hi}")
+    taus = torch.linspace(tau_lo, tau_hi, n_tau + 2, device=X.device, dtype=X.dtype)[:-1]
+    qmax = n_tok - torch.searchsorted(ss, (taus[:, None] - a[None, :]).T.contiguous(),
+                                      right=True).T
+    qmin = n_tok - torch.searchsorted(ss, (taus[:, None] + a[None, :]).T.contiguous(),
+                                      right=True).T
+    feas = (qmin.sum(1) <= Btot) & (qmax.sum(1) >= Btot)
+    if not bool(feas.any()):
+        raise RuntimeError("闭式区间内无可行 τ")
+    capS = qmax[:, S].sum(1)
+    budg = Btot - qmin[:, ~S].sum(1)
+    R = torch.minimum(capS, budg)
+    R = torch.where(feas, R, torch.full_like(R, -(1 << 30)))
+    ti = int(torch.argmax(R))
+    qmn, qmx = qmin[ti], qmax[ti]
+    q = torch.empty_like(b0, dtype=torch.long)
+    # S 尽量高，但总量不超过 min(Σ_S qmax, B − Σ_{S^c} qmin)
+    tgtS = int(min(int(qmx[S].sum()), Btot - int(qmn[~S].sum())))
+    qS = qmx[S].clone(); over = int(qS.sum()) - tgtS
+    if over > 0:                       # 从 S 里按「离 qmin 余量大」的先削
+        room = (qS - qmn[S])
+        order = torch.argsort(room, descending=True).tolist()
+        for j in order:
+            if over == 0:
+                break
+            t = min(over, int(room[j]))
+            qS[j] -= t; over -= t
+        if over != 0:
+            raise RuntimeError("S 侧削减未能配平")
+    q[S] = qS
+    # S^c 尽量靠近 b⁰，再用剩余预算配平
+    qC = torch.minimum(torch.maximum(b0[~S].long(), qmn[~S]), qmx[~S])
+    need = Btot - int(q[S].sum()) - int(qC.sum())
+    if need != 0:
+        room = (qmx[~S] - qC) if need > 0 else (qC - qmn[~S])
+        order = torch.argsort(room, descending=True).tolist()
+        for j in order:
+            if need == 0:
+                break
+            t = min(abs(need), int(room[j]))
+            qC[j] += t if need > 0 else -t
+            need -= t if need > 0 else -t
+        if need != 0:
+            raise RuntimeError("S^c 侧配平失败")
+    q[~S] = qC
+    # 上面两处 `RuntimeError` 是**真正的 bug 探测器**，不是兜底：由可行性
+    # `Σq_min ≤ B ≤ Σq_max` 可证两侧总能配平 ——
+    #   S 侧：tgtS ≥ Σ_S q_min（因 B ≥ Σq_min），所以削减到得了；
+    #   S^c 下界：B − tgtS ≥ Σ_{S^c} q_min（tgtS 两种取值分别验证）；
+    #   S^c 上界：B − tgtS ≤ Σ_{S^c} q_max（因 B ≤ Σq_max 且 q_min ≤ q_max）。
+    # 所以一旦抛错，就是实现错了，必须让作业崩掉而不是产出一个别的干预。
+    lift = float((q[S] - b0[S].long()).clamp(min=0).sum())
+    if certify:
+        sl = slack_of(q, ss, a)
+        if not (sl > 0):
+            raise RuntimeError(f"maxlift 结果未通过可达性复核 slack={sl}")
+        if int(q.sum()) != int(Btot):
+            raise RuntimeError(f"预算不守恒 {int(q.sum())} != {Btot}")
+    return q, lift
+
+
 def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None):
     """b0, delta: [L*H] float tensor；返回 [L*H] long tensor。
 
@@ -188,11 +280,21 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
     一个通用修补循环悄悄"修好"同时破坏因果不变量（那正是本项目栽过的坑）。
     """
     assert mode in ("full", "within", "across", "floor", "floorproj",
-                    "pathproj", "floorpath"), mode
+                    "pathproj", "floorpath", "maxlift"), mode
     L, H = int(n_layers), int(n_heads)
     assert b0.numel() == L * H and delta.numel() == L * H
     Btot = int(b0.sum().item())
     tgt = (b0 + delta).clamp(0, n)
+
+    if mode == "maxlift":
+        # **可达集内最大抬升点**：补完集合级结论的后半句（那 2.25% 值多少分）。
+        assert sc is not None and alpha_eff is not None, "maxlift 需要 sc 与 alpha_eff"
+        q, lift = max_lift_quota(b0, sc, Btot, alpha_eff)
+        if q is None:
+            raise RuntimeError("maxlift：本 chunk 没有零配额头")
+        project_quota._ml_lift = getattr(project_quota, "_ml_lift", 0.0) + lift
+        project_quota._ml_n = getattr(project_quota, "_ml_n", 0) + 1
+        return q
 
     if mode in ("floor", "floorproj", "pathproj", "floorpath"):
         # **防饿死对照**：完全不用 `delta` 的方向，只强制 b_g ≥ b_min，
