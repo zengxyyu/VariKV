@@ -274,6 +274,13 @@ def main():
         B = {r: per_sample(d, BASE_SFX.get(r, "__g8base_chunk16k_w4096"), r)
              for r in RAT}
         full = np.mean(list(B[1.0].values())) * 100 if B[1.0] else float("nan")
+        # **基线绝对分单独占一行。** 表里其余格全是「与**同 ratio** 基线的配对差」，
+        # 只给 `full` 一列时读者无法算出 headroom、也还原不出臂的绝对分 ——
+        # 而基线在某些 ratio 上**高过满缓存**（Retr.KV@0.5 = 71.60 > 68.20），
+        # 那里 Δ 为负**不等于**掉到满缓存以下。把基线摆出来，这类误读才不可能发生。
+        rows.append((name, full, "base",
+                     {r: (np.mean(list(B[r].values())) * 100, False, len(B[r]))
+                      for r in RAT[1:] if B.get(r)}, d))
         for a_, sfx in ARMS:
             seeds = None
             seed_tpl = None
@@ -349,6 +356,9 @@ def main():
                 line += f" {'—':>{W}} |"
             else:
                 m, sig, ns = got[r][0], got[r][1], got[r][2]
+                if a_ == "base":                 # 绝对分，不是 Δ
+                    line += f" {m:>{W}.2f} |"
+                    continue
                 sd = got[r][3] if len(got[r]) > 3 else None
                 _d = None if r >= 1.0 else _degenerate(name_d, r)
                 if _d is False or r >= 1.0:
