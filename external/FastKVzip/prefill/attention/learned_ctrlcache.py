@@ -256,7 +256,24 @@ class LearnedControlRetainCache(RetainCache):
                 # `sc` 只有 floorproj 用得到（把地板目标投影回可达集，见
                 # quota_project.reachable_project 的 docstring）；其余模式忽略它，
                 # 默认路径逐字节不变。
-                bt = project_quota(b0, self._qinj.to(b0.device), n, _qm, L, H, sc=sc)
+                # `alpha_eff` **构造性**取自 controller 与 gain，不走环境变量抄第二份：
+                # 真实修正是 `g · α_ckpt · σ_h · tanh(·)`，所以 box 的界就是
+                # `|g| · α_ckpt · σ_h`。σ_h 的口径在 reachable_project 里与
+                # calib_scorer.delta 逐字对齐（float() 后 std(-1) 再 clamp_min(1e-6)）。
+                _ge = abs(float(os.environ.get("VARIKV_CTRL_GAIN", "1.0")))
+                _ae = _ge * float(self.ctrl.alpha) if self.ctrl is not None else None
+                bt = project_quota(b0, self._qinj.to(b0.device), n, _qm, L, H,
+                                   sc=sc, alpha_eff=_ae)
+                if _qm in ("floorproj", "pathproj"):
+                    # **事后可验证性**：不打这一行，我就无法在日志里证明这一臂真的
+                    # 按设计跑了（用对了 α、投影真的动了）。地板臂靠 dump 事后判定，
+                    # 这里靠这行。L1=0 全程出现即说明地板本就可达、投影是恒等的。
+                    from attention.quota_project import project_quota as _pq
+                    print(f"[{_qm}] chunk lo={lo} alpha_eff={_ae:.6f}"
+                          f" lam={os.environ.get('VARIKV_PROJ_LAMBDA','1.0')}"
+                          f" L1_cum={getattr(_pq,'_proj_l1',0.0):.0f}"
+                          f" n={getattr(_pq,'_proj_n',0)}"
+                          f" Btot={int(b0.sum())}", flush=True)
                 idx = torch.argsort(sc.reshape(L * H, n), dim=-1, descending=True)
                 nv = torch.zeros(L * H, n, dtype=torch.bool, device=sc.device)
                 ar = torch.arange(n, device=sc.device)[None, :]

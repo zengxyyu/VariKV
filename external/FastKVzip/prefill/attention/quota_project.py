@@ -56,49 +56,100 @@ def rebalance(bt, tgt, total, hi):
     return bt
 
 
-def reachable_project(tgt, sc, b0, Btot, alpha=1.0, n_tau=1024):
-    """把目标配额 `tgt` 投影到**当前参数化真正能表示的**配额集合上。
+def _boundary_pair(ss_asc, q):
+    """→ (s_{(q)}, s_{(q+1)})，降序名次。`ss_asc` 升序、形状 [G, n]，`q` 形状 [G]。
 
-    为什么需要这个函数（这是本项目最容易被误读的一步）：
-    `scratch_probe_reach.py` 证明了地板目标配额在 74/74 个 chunk 上都**不可表示**
-    —— 但那只说明「**那一个**配额取不到」，**不等于**「地板拿到的 +33.60 取不到」。
-    完全可能存在另一个**可达**配额，效用与地板相当。要把「表示能力不足」从
-    「关于某个点」升级成「关于收益」，必须把地板目标投影回可达集，再真跑一遍。
-    这个函数就是那个投影；下游分数由评测给出。
+    约定与 `scratch_test_reach.py` 逐字一致：`q=0` 时 `s_{(0)} = +inf`（上界约束
+    vacuous），`q=n` 时 `s_{(n+1)} = −inf`（下界约束 vacuous）。
+    """
+    G, n = ss_asc.shape
+    ar = torch.arange(G, device=ss_asc.device)
+    inf = torch.full((G,), float("inf"), device=ss_asc.device, dtype=ss_asc.dtype)
+    i_q = (n - q).clamp(0, n - 1)
+    s_q = torch.where(q >= 1, ss_asc[ar, i_q], inf)
+    i_q1 = (n - q - 1).clamp(0, n - 1)
+    s_q1 = torch.where(q < n, ss_asc[ar, i_q1], -inf)
+    return s_q, s_q1
 
-    可达集的刻画（与 slack 判据同一套代数，`scratch_test_reach.py` 有 11 个单测）：
-    修正满足 `|Δs_{h,i}| ≤ a_h`（`a_h = α·σ_h`）时，存在公共阈值 `τ′` 使头 `h`
-    恰留 `q_h` 个，当且仅当
 
-        q_min_h(τ′) ≤ q_h ≤ q_max_h(τ′),
-        q_max_h(τ) = #{i : s_{h,i} > τ − a_h},   q_min_h(τ) = #{i : s_{h,i} > τ + a_h}
+def slack_of(q, ss_asc, a):
+    """规范不变的可达性判据：>0 ⟺ 存在公共阈值 τ′ 使 `q` 在 `|Δs| ≤ a` 下可实现。"""
+    s_q, s_q1 = _boundary_pair(ss_asc, q)
+    return float((s_q + a).min() - (s_q1 - a).max())
 
-    于是可达集 = ∪_{τ} { q : q_min(τ) ≤ q ≤ q_max(τ), Σq = B }。对每个候选 `τ` 把
-    `tgt` clamp 进箱子再配平到 `B`，取 L1 距离最小的那个 τ。**注意这给的是投影，
-    不是「最优可达配额」** —— 后者需要效用模型，而效用正是我们要测的东西。
+
+def reachable_project(tgt, sc, Btot, alpha, n_tau=2048, certify=True):
+    """把目标配额投影到**放宽的有界分数可达集** `Q_box` 上。
+
+    **命名很重要，此前的 docstring 写错了。** 三个集合的严格关系是
+
+        Q_real  ⊆  Q_box  ⊆  Q_F = { b ∈ Z_{≥0}^{G} : Σb = B, 0 ≤ b_g ≤ n }
+
+    `Q_real` 是真实网络 `Δs_{h,i} = g·α·σ_h·tanh(f_θ(x,h,i))` 能实现的配额集；
+    `Q_box` 只要求 `|Δs_{h,i}| ≤ a_h`，**允许每个 token 独立任取** —— 比真实网络强。
+    本函数投影到 `Q_box`。所以「投影后收益塌掉」是关于 `Q_box` 的陈述，
+    对 `Q_real` 只能作为**必要条件**方向使用；反之若收益保住，也**不能**直接说
+    真实网络学得到（`Q_real` 更小）。
+
+    动机：`q_floor ∉ Q_box`（74/74 chunk）**推不出**「地板那 +33.60 取不到」——
+    可达集是 G−1 维里的一大块，地板目标只是其中一点。本函数找一个**近旁**的
+    可达点，下游分数由评测给出。
+
+    可达集的刻画：`|Δs_{h,i}| ≤ a_h` 时，公共阈值 `τ` 下头 `h` 的配额范围是
+
+        q_min_h(τ) = #{i : s_{h,i} > τ + a_h}   ≤  q_h  ≤  q_max_h(τ) = #{i : s_{h,i} > τ − a_h}
+
+    **可行 τ 的集合恰是一个区间**，而且端点有闭式：`Σq_max` 与 `Σq_min` 都是
+    τ 的非增阶梯函数，于是
+
+        τ 可行 ⟺ Σq_min(τ) ≤ B ≤ Σq_max(τ)
+               ⟺ τ ∈ [ 第(B+1)大的 {s−a},  第B大的 {s+a} )
+
+    并且总有 `τ_lo ≤ τ_hi`（因为 `s−a ≤ s+a` 逐元素成立）⇒ **可达集永不为空**。
+    先闭式定位这个区间、再在**区间内**采样，取代了原先在整个分数范围上撒 1024 个
+    均匀点的做法 —— 那种做法可能整个错过一个很窄的可行区间，进而走到「找不到解」
+    的分支。旧代码在那个分支上**静默退回地板配额**，也就是把本实验悄悄换成它要
+    对比的另一臂；这类静默回退是本项目反复栽跟头的同一个模式，现在改为直接抛错。
+
+    **返回的不是严格 L1 最近点。** 区间内按 clamp 距离（真 L1 的下界）排序后只对
+    前若干个 τ 做整数配平，所以正确叫法是**「可行 τ 区间内的近似最近 box-可达投影」**。
+    要严格最近需要分支定界。`certify=True` 时用 `slack_of` 独立复核返回值确实可达。
     """
     G = tgt.numel()
-    ss, _ = torch.sort(sc.reshape(G, -1), dim=-1)            # 升序，便于 searchsorted
+    # **与 calib_scorer.delta 逐字对齐**：那边是 `f0 = score0[:,0].float()`，
+    # `sig_h = f0.std(-1)`，随后在 delta() 里 `.clamp_min(1e-6)`。差一个 float()
+    # 或差一个 clamp，这个理论关键实验建模的就不是真实控制器的界。
+    X = sc.reshape(G, -1).float()
+    a = float(alpha) * X.std(dim=-1).clamp_min(1e-6)
+    ss, _ = torch.sort(X, dim=-1)                       # 升序
     n_tok = ss.shape[1]
-    a = (alpha * sc.reshape(G, -1).std(dim=-1)).clamp(min=0)
-    lo = float((ss[:, 0] - a).min()); hi = float((ss[:, -1] + a).max())
-    taus = torch.linspace(lo, hi, n_tau, device=ss.device, dtype=ss.dtype)
 
-    # **两段式，纯粹是为了速度**：τ 扫描全向量化算出每个 τ 的箱子与一个
-    # L1 下界（只 clamp、不配平），再只对下界最小的少数几个 τ 做代价高的整数配平。
-    # 下界成立是因为配平只会把 q 推离 tgt，不会拉近 ⇒ 真 L1 ≥ clamp 后的 L1。
-    X = taus[:, None]                                        # [T,1]
-    qmax = n_tok - torch.searchsorted(ss, (X - a[None, :]).T.contiguous(),
-                                      right=True).T          # [T,G]
-    qmin = n_tok - torch.searchsorted(ss, (X + a[None, :]).T.contiguous(),
+    # ---- 闭式定位可行 τ 区间 -------------------------------------------------
+    hi_pool = (X + a[:, None]).reshape(-1)
+    lo_pool = (X - a[:, None]).reshape(-1)
+    N = hi_pool.numel()
+    kB = min(max(int(Btot), 1), N)
+    tau_hi = float(torch.topk(hi_pool, kB, largest=True).values[-1])      # τ < tau_hi
+    kB1 = min(int(Btot) + 1, N)
+    tau_lo = float(torch.topk(lo_pool, kB1, largest=True).values[-1])     # τ ≥ tau_lo
+    if not (tau_lo < tau_hi):
+        # 数学上不该发生（s−a ≤ s+a ⇒ τ_lo ≤ τ_hi）。发生就是实现有 bug，必须炸。
+        raise RuntimeError(f"可行 τ 区间为空：tau_lo={tau_lo} tau_hi={tau_hi} B={Btot}")
+    taus = torch.linspace(tau_lo, tau_hi, n_tau + 2,
+                          device=X.device, dtype=X.dtype)[:-1]            # 半开，去掉右端
+
+    # ---- 区间内扫描：先算 clamp 距离（真 L1 的下界），只对最好的几个做整数配平 ----
+    qmax = n_tok - torch.searchsorted(ss, (taus[:, None] - a[None, :]).T.contiguous(),
+                                      right=True).T
+    qmin = n_tok - torch.searchsorted(ss, (taus[:, None] + a[None, :]).T.contiguous(),
                                       right=True).T
     feas = (qmin.sum(1) <= Btot) & (qmax.sum(1) >= Btot)
     if not bool(feas.any()):
-        return None, None
+        raise RuntimeError("闭式区间内竟无可行 τ —— 端点推导或 searchsorted 语义有误")
     qc = torch.minimum(torch.maximum(tgt[None, :], qmin), qmax)
     lb = (qc - tgt[None, :]).abs().sum(1).float()
     lb = torch.where(feas, lb, torch.full_like(lb, float("inf")))
-    cand = torch.argsort(lb)[:8].tolist()
+    cand = torch.argsort(lb)[:16].tolist()
 
     best, best_d = None, None
     for ti in cand:
@@ -108,36 +159,41 @@ def reachable_project(tgt, sc, b0, Btot, alpha=1.0, n_tau=1024):
         d = Btot - int(q.sum())
         if d != 0:
             room = (qmax[ti] - q) if d > 0 else (q - qmin[ti])
-            # 优先动「clamp 把它推离 tgt 最多」的那些头，使配平尽量不再加大 L1
             order = torch.argsort((tgt - q).float(), descending=(d > 0)).tolist()
-            for g in order:
+            for g_ in order:
                 if d == 0:
                     break
-                t = min(abs(d), int(room[g]))
-                q[g] += t if d > 0 else -t
+                t = min(abs(d), int(room[g_]))
+                q[g_] += t if d > 0 else -t
                 d -= t if d > 0 else -t
         if d != 0:
             continue
         dist = float((q - tgt).abs().sum())
         if best_d is None or dist < best_d:
             best_d, best = dist, q.clone()
+    if best is None:
+        raise RuntimeError("可行 τ 存在但整数配平全部失败 —— rebalance 逻辑有误")
+    if certify:
+        sl = slack_of(best, ss, a)
+        if not (sl > 0):
+            raise RuntimeError(f"投影结果未通过独立可达性复核：slack={sl}")
     return best, best_d
 
 
-def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None):
+def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None):
     """b0, delta: [L*H] float tensor；返回 [L*H] long tensor。
 
     `mode` ∈ {full, within, across}。非 full 模式下预算守恒是**构造性**的，
     函数末尾直接断言而不做兜底修补 —— 若将来投影出 bug，必须让它崩，而不是被
     一个通用修补循环悄悄"修好"同时破坏因果不变量（那正是本项目栽过的坑）。
     """
-    assert mode in ("full", "within", "across", "floor", "floorproj"), mode
+    assert mode in ("full", "within", "across", "floor", "floorproj", "pathproj"), mode
     L, H = int(n_layers), int(n_heads)
     assert b0.numel() == L * H and delta.numel() == L * H
     Btot = int(b0.sum().item())
     tgt = (b0 + delta).clamp(0, n)
 
-    if mode in ("floor", "floorproj"):
+    if mode in ("floor", "floorproj", "pathproj"):
         # **防饿死对照**：完全不用 `delta` 的方向，只强制 b_g ≥ b_min，
         # 缺口按 (b⁰ − b_min)⁺ 的比例从富余头等量扣回，总预算不变。
         # 为什么必须有这个对照：`fastkvzip@pair` 在 ρ=0.2 有 41.3% 的头零配额，
@@ -163,19 +219,30 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None):
             t = t - room * (excess / tot_room)
         t = t.clamp(0, n)
         bt = rebalance(t.round().long().clamp(0, n), t, Btot, n)
-        if mode == "floorproj":
-            # 把地板目标投影回**当前参数化可达**的配额集。若某个 chunk 上地板本来就
-            # 可达，投影是恒等的（单测里验过）；不可行时退回地板本身并计数，
-            # 因为静默退回会把「投影没起作用」伪装成「投影没有代价」。
+        if mode == "pathproj":
+            # **可达效用探针（便宜的一档）**：沿 baseline → floor 方向取 λ 处的目标，
+            # 再投影回 `Q_box`。目的见 reachable_project 的 docstring —— `floorproj`
+            # （λ=1）只回答「地板那一点附近」，而我们真正想估的是
+            #     max_{q ∈ Q_box} J(q)
+            # 扫 λ 得到这个上确界在**一条一维路径上**的下界。λ=0 退化为基线配额
+            # （本就可达，投影是恒等），λ=1 退化为 floorproj。
+            lam = float(os.environ.get("VARIKV_PROJ_LAMBDA", "1.0"))
+            tp = (1.0 - lam) * b0 + lam * bt.float()
+            bt = rebalance(tp.round().long().clamp(0, n), tp, Btot, n)
+
+        if mode in ("floorproj", "pathproj"):
+            # 把地板目标投影到**放宽的有界分数可达集** `Q_box`（注意不是 `Q_real`，
+            # 见 reachable_project 的 docstring）。**没有回退分支**：投影失败必须
+            # 让作业崩掉，而不是悄悄退回地板配额 —— 那等于把这个判决实验换成它
+            # 正要对比的另一臂。
             assert sc is not None, "floorproj 需要 score 张量"
-            al = float(os.environ.get("VARIKV_PROJ_ALPHA", "1.0"))
-            q, d = reachable_project(bt, sc, b0, Btot, alpha=al)
-            if q is None:
-                project_quota._proj_fail = getattr(project_quota, "_proj_fail", 0) + 1
-            else:
-                project_quota._proj_l1 = getattr(project_quota, "_proj_l1", 0.0) + d
-                project_quota._proj_n = getattr(project_quota, "_proj_n", 0) + 1
-                bt = q
+            assert alpha_eff is not None, (
+                "floorproj 的界必须从 controller/ckpt 构造性取得，不能手抄第二份")
+            q, d = reachable_project(bt, sc, Btot, alpha=alpha_eff)
+            project_quota._proj_l1 = getattr(project_quota, "_proj_l1", 0.0) + d
+            project_quota._proj_n = getattr(project_quota, "_proj_n", 0) + 1
+            project_quota._proj_alpha = alpha_eff
+            bt = q
     elif mode == "full":
         bt = rebalance(tgt.round().long().clamp(0, n), tgt, Btot, n)
     else:

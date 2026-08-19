@@ -111,6 +111,20 @@ def main():
     real = {t for t in cited if any(t in dirmap[ds] for ds in FULL_N)}
     print(f"   两份文档里的 `_xxx` 记号 {len(cited)} 个，其中 {len(real)} 个对应真实结果目录")
 
+    # 在跑的作业当然不足满量。可以被**提及**，但不能被**引用数字** —— 这条要机械化：
+    # 允许的条件是「日志里没有 `Finished.`」**且**「文档里对它的每一次提及所在的行
+    # 都带在跑标记」。只要哪天我在一行里写下它的分数而忘了标记，这里就会变红。
+    INFLIGHT_MARKS = ("在跑", "已排", "排队", "队列", "尚未完成")
+    doclines = doc.split("\n")
+
+    def inflight_ok(tag):
+        lg = os.path.join(LOGD, tag.lstrip("_") + ".log")
+        fin = os.path.exists(lg) and b"Finished." in open(lg, "rb").read()
+        if fin:
+            return False, fin                      # 已完成却不足满量 ⇒ 不能用这条豁免
+        hits = [l for l in doclines if "`" + tag + "`" in l]
+        return bool(hits) and all(any(m in l for m in INFLIGHT_MARKS) for l in hits), fin
+
     print("\n== 2. 目录层：被引用且样本目录数不足满量 ==")
     n2 = 0
     for tag in sorted(real):
@@ -121,10 +135,14 @@ def main():
             if n == full:
                 continue
             ex = tag in valid_exempt
-            n2 += (not ex)
-            lg = os.path.join(LOGD, tag.lstrip("_") + ".log")
-            fin = os.path.exists(lg) and b"Finished." in open(lg, "rb").read()
-            mark = "（已声明例外）" if ex else "**违规**"
+            ifl, fin = (False, None) if ex else inflight_ok(tag)
+            ok = ex or ifl
+            n2 += (not ok)
+            if fin is None:
+                lg = os.path.join(LOGD, tag.lstrip("_") + ".log")
+                fin = os.path.exists(lg) and b"Finished." in open(lg, "rb").read()
+            mark = ("（已声明例外）" if ex else
+                    "（在跑，且文档每处提及都带标记）" if ifl else "**违规**")
             print(f"   {tag:<18} {ds:<24} n={n:<4}/{full}  Finished={fin}  {mark}")
     fail += n2
     if n2 == 0:
@@ -133,7 +151,7 @@ def main():
     print("\n== 3. ratio 键层：被引用的 tag，其每个 ratio 的样本数 ==")
     n3 = 0
     for tag in sorted(real):
-        if tag in valid_exempt:
+        if tag in valid_exempt or inflight_ok(tag)[0]:
             continue
         for ds in FULL_N:
             rr = ratmap[ds].get(tag)

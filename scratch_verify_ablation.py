@@ -140,12 +140,28 @@ def main():
             row.append(f"b{bm} {m:+.2f}{'*' if lo>0 or hi<0 else ''}")
         best[(ds,R)]=bb
         print(f"   {ds.split('_')[-1]:<14}@{R:<5} " + " | ".join(row) + f"   BEST {bb:+.2f}")
-    # 倍数：Retr.KV@0.2 最佳 / PrefSuf@0.2 最佳
-    if best.get(("scbench_kv",0.2),-99)>0 and best.get(("scbench_prefix_suffix",0.2),-99)>0:
-        ratio = best[("scbench_kv",0.2)]/best[("scbench_prefix_suffix",0.2)]
-        ok = 5.0 <= ratio <= 6.2; fail += (not ok)
-        print(f"   倍数 = {best[('scbench_kv',0.2)]:.2f}/{best[('scbench_prefix_suffix',0.2)]:.2f}"
-              f" = {ratio:.1f}x   {'OK（文件写 5.6x，下界）' if ok else '**FAIL：文件里的 5.6x 需重算**'}")
+    # **不再用 argmax 比值**（撤回 42）：两侧网格密度不等、且三个候选峰互不可分，
+    # 取最大值再相除既有选择偏差、方向也不确定。改用**同 `b_min`** 的比值。
+    KVT = {4:"_kvf02e", 8:"_flr8", 32:"_flr32", 128:"_flr128"}
+    PST = {4:"_psf02d", 8:"_psf02c", 32:"_psf02a"}
+    bk = read_scores("scbench_kv","_g8base",0.2)
+    bp = read_scores("scbench_prefix_suffix","_g8base",0.2)
+    rr = []
+    for bm in sorted(set(KVT) & set(PST)):
+        A = read_scores("scbench_kv", KVT[bm], 0.2)
+        Bx = read_scores("scbench_prefix_suffix", PST[bm], 0.2)
+        if len(A)!=len(bk) or len(Bx)!=len(bp):
+            print(f"   b{bm}: 样本不全，跳过"); continue
+        mk = paired(A,bk)[0]; mp = paired(Bx,bp)[0]
+        if mp <= 0:
+            print(f"   b{bm}: PrefSuf {mp:+.2f} ≤ 0，比值无定义"); continue
+        rr.append((bm, mk/mp))
+        print(f"   同 b{bm:<4} Retr.KV {mk:+6.2f}  PrefSuf {mp:+5.2f}  比值 {mk/mp:.1f}x")
+    if rr:
+        lo_r, hi_r = min(r for _,r in rr), max(r for _,r in rr)
+        ok = 6.0 <= lo_r and hi_r <= 10.0; fail += (not ok)
+        print(f"   ⇒ 同 b_min 比值区间 {lo_r:.1f}–{hi_r:.1f}x   "
+              f"{'OK（文件写 6.5–9.2x）' if ok else '**FAIL：文件里的区间需重算**'}")
     # PrefSuf@0.2 的峰必须在 b16（撤回 42 的直接依据）
     print("\n== 8. MultiHop@0.4 三个方向无关对照全部与零不可分 ==")
     B=read_scores("scbench_vt","_g8base",0.4); REV=read_scores("scbench_vt","_vt04gm1",0.4)
