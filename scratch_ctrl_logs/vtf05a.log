@@ -1,0 +1,26 @@
+tag: _fastkvzip__vtf05a_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.78it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.86it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.87it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.98it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.93it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/d10_scalar_s0.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.5K
+['scbench_vt']
+
+scbench_vt loaded, #data: 90
+set generation length: 96 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~90 samples
+[effective] clen=124534 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.48it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.41it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.16it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.05s/it]
