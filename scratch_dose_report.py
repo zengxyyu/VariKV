@@ -33,10 +33,16 @@ FULL_N = {"scbench_kv": 100, "scbench_prefix_suffix": 100, "scbench_vt": 90}
 
 # (ds, ratio, {λ: tag})。λ=1 用同格的**地板 b8** 作为终点（floorpath λ=1 与它等价，
 # 已在单测第 7 组逐位验过），不另跑一遍。
+# `REQUIRED` = **预注册的 λ 集合**。判定必须在这一整套上做，缺一个就只报数据、
+# 不下判词。否则会出现：先用子集判一次「A 单调」，λ=0.1 到了变成「不判定」，
+# 于是我挑先前那个——这正是预注册要防的标准漂移，而本项目今天已经在
+# 「峰位」与「argmax」上栽过两次。
 CELLS = [
     ("scbench_kv", 0.1, {0.1: "_kvfl010", 0.25: "_kvfl025", 0.5: "_kvfl05",
-                         0.75: "_kvfl075", 1.0: "_flr01a"}),
-    ("scbench_kv", 0.2, {0.25: "_kv2fl025", 0.5: "_kv2fl05", 1.0: "_flr8"}),
+                         0.75: "_kvfl075", 1.0: "_flr01a"},
+     {0.1, 0.25, 0.5, 0.75, 1.0}),
+    ("scbench_kv", 0.2, {0.25: "_kv2fl025", 0.5: "_kv2fl05", 1.0: "_flr8"},
+     {0.25, 0.5, 1.0}),
 ]
 
 
@@ -46,7 +52,7 @@ def done(tag):
 
 
 def main():
-    for ds, r, lam_tag in CELLS:
+    for ds, r, lam_tag, required in CELLS:
         full = FULL_N[ds]
         base = read_scores(ds, "_g8base", r)
         assert len(base) == full, f"基线未跑满 {len(base)}/{full}"
@@ -66,6 +72,13 @@ def main():
                   f"{'*' if lo > 0 or hi < 0 else ''}   ({tag})")
         for lam, tag, why in miss:
             print(f"  λ={lam:<5} {'—':>7}   {tag} {why}")
+        have = {p[0] for p in pts}
+        lack = sorted(required - have)
+        if lack:
+            print(f"  ⇒ **不判定（只报数据）**：预注册的 λ 集合还缺 {lack}。"
+                  f"\n     **不允许先在子集上判一次** —— 那样 λ 补齐后若判词改变，"
+                  f"我就会挑先前那个。")
+            continue
         if len(pts) < 3 or pts[-1][0] != 1.0:
             print("  ⇒ **不判定**：点不足或缺 λ=1 终点")
             continue

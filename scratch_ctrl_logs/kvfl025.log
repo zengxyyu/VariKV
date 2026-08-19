@@ -2907,4 +2907,21 @@ chunk inputs, size: 16000 (num 11)
 [QA 4] The value associated with the key "e76faff5-5cf3-462f-8c5a-b58568411e53" is "8e9a92c9-2ad6-4802-8453-72cdbf7fce31". | 8e9a92c9-2ad6-4802-8453-72cdbf7fce31
 [effective] clen=169158 window=4096 chunk_ratio=0.077667 degenerate=False
 chunk inputs, size: 16000 (num 11)
-Prefill:   0%|          | 0/11 [00:00<?, ?it/s]
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][floorpath] chunk lo=28 alpha_eff=0.999000 lam=0.25 L1_cum=0 L1_b0=294 n=0 Btot=103304
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.73it/s][floorpath] chunk lo=11904 alpha_eff=0.999000 lam=0.25 L1_cum=0 L1_b0=314 n=0 Btot=139177
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.54it/s][floorpath] chunk lo=27904 alpha_eff=0.999000 lam=0.25 L1_cum=0 L1_b0=312 n=0 Btot=139177
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.46it/s][floorpath] chunk lo=43904 alpha_eff=0.999000 lam=0.25 L1_cum=0 L1_b0=310 n=0 Btot=139177
+Prefill:  36%|███▋      | 4/11 [00:02<00:04,  1.40it/s][floorpath] chunk lo=59904 alpha_eff=0.999000 lam=0.25 L1_cum=0 L1_b0=312 n=0 Btot=139177
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.36it/s][floorpath] chunk lo=75904 alpha_eff=0.999000 lam=0.25 L1_cum=0 L1_b0=312 n=0 Btot=139177
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.31it/s][floorpath] chunk lo=91904 alpha_eff=0.999000 lam=0.25 L1_cum=0 L1_b0=310 n=0 Btot=139177
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.27it/s][floorpath] chunk lo=107904 alpha_eff=0.999000 lam=0.25 L1_cum=0 L1_b0=312 n=0 Btot=139177
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.23it/s][floorpath] chunk lo=123904 alpha_eff=0.999000 lam=0.25 L1_cum=0 L1_b0=312 n=0 Btot=139177
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.20it/s][floorpath] chunk lo=139904 alpha_eff=0.999000 lam=0.25 L1_cum=0 L1_b0=306 n=0 Btot=139177
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.16it/s][floorpath] chunk lo=155904 alpha_eff=0.999000 lam=0.25 L1_cum=0 L1_b0=312 n=0 Btot=79904
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.32it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-99: 169158 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/99_qwen2.5-7b-instruct-1m_fastkvzip__kvfl025_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 58.8s. Mem: 14.31/79.18 GB. [scbench_kv-99]
+
+Finished.
