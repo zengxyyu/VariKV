@@ -124,6 +124,15 @@ class LearnedControlRetainCache(RetainCache):
             if getattr(self.ctrl, "replace", False):
                 score = delta.to(score0.dtype)         # 独立打分器：完全不用 s⁰
             elif self.active and ratio <= self.rho_max:
+                # **`VARIKV_CTRL_GAIN`：在学到的修正上乘一个实数增益 g。**
+                # 需要它是因为「把注入表取负」**不是**干净的方向反号 ——
+                # `project_quota` 含 clamp/round/rebalance，实测
+                # `Π(b⁰−Δ)−b⁰` 与 `−[Π(b⁰+Δ)−b⁰]` 的不对称度中位 1.12、
+                # 负向搬动量只有正向的 57%。在 `Δs` 上乘 g 则是**精确**的：
+                # g=0 退回纯基线、g=1 原样、g=−1 严格反向。
+                _g = float(os.environ.get("VARIKV_CTRL_GAIN", "1.0"))
+                if _g != 1.0:
+                    delta = delta * _g
                 score = score0 + delta.to(score0.dtype)
                 self.delta_std.append(float(delta.std()))
 
