@@ -97,6 +97,26 @@ def main():
         print(f"   {ds.split('_')[-1]:<14}@{R:<5} " + "  ".join(o))
     print(f"   ⇒ 干净格 {nclean}/{len(FL)}（文件已更正为 5 格中 4 格干净、PrefSuf@0.5 擦边）")
 
+
+    print("\n== 5. 满缓存分数（headroom 的分母）与文档一致？ ==")
+    FULL={"scbench_kv":68.20,"scbench_prefix_suffix":50.00,"scbench_vt":41.07}
+    for ds,want in FULL.items():
+        O=read_scores(ds,"_g8base",1.0)
+        got=np.mean(list(O.values()))*100
+        ok=abs(got-want)<0.05; fail+= (not ok)
+        print(f"   {ds:<24}{want:>8.2f}{got:>8.2f}   {'OK' if ok else '**FAIL**'}")
+
+    print("\n== 6. headroom 分层：高 headroom 格的 argmax 是否恒为 g=+1 ==")
+    HI=[(0,68.20),(1,68.20),(7,50.00),(3,50.00),(8,41.07)]   # 对应 CELLS 的下标
+    nhi=0
+    for i,full in HI:
+        b,p,n = DAT[i]
+        a=[0.0,(p-b).mean(),(n-b).mean()]
+        hd=full-b.mean(); am=int(np.argmax(a)); nhi += (am==1)
+        print(f"   CELLS[{i}] headroom {hd:+6.2f}  argmax={['g=0','g=+1','g=-1'][am]}")
+    ok = nhi==len(HI); fail += (not ok)
+    print(f"   {nhi}/{len(HI)} 为 g=+1   {'OK（增量为零是必然的）' if ok else '**FAIL：§零之三 的命题需重查**'}")
+
     print(f"\n{'全部通过' if fail==0 else f'**{fail} 项 FAIL**'}")
     return 1 if fail else 0
 
