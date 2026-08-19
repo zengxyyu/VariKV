@@ -54,9 +54,12 @@ def brute_shift(S, a, q, grid=2001):
             n = len(sh)
             c_lo = (tau - sh[qh-1]) if qh >= 1 else -INF   # c 必须 >
             c_hi = (tau - sh[qh])   if qh < n    else  INF # c 必须 ≤
-            # 与 [−a, a] 求交
+            # 与 [−a, a] 求交。**必须严格 R > L** —— 合法集是半开区间 (c_lo, c_hi]，
+            # R == L 时它是空的（c 必须**严格**大于 c_lo）。此处原先写了一个
+            # `np.isclose(R, L)` 的宽容分支，那正好把平局这唯一区分两族的情形判成可达，
+            # 于是「两族可达集相同」的随机检验永远通不到反例。见文件头的平局条件。
             L = max(c_lo, -ah); R = min(c_hi, ah)
-            if not (R > L or (np.isclose(R, L) and R <= ah and R >= -ah)):
+            if not (R > L):
                 ok = False; break
         if ok: return True
     return False
@@ -72,6 +75,14 @@ CASES = [
     ("⑥ 平局但界>0 可绕开",   [[0.5,0.5,0.1]],       [0.3],      [1],   True),
     ("⑦ 两头竞争、恰好卡住",  [[0.0,-0.1],[0.5,0.4]],[0.05,0.05],[2,0], False),
     ("⑧ 同一对分数、界够大即可达",[[0.0,-1.0],[1.0,0.9]], [1.10,1.10],[2,0], True),
+    # 以下三条是外部复核（2026-08-19）指出的缺口，补齐后才敢把判据写进定理
+    # ⑨ 异质界必须成对测：同一组分数、同一目标配额，只有大界头的界在变。
+    #   我第一版把它写成 [2,0] 配 q=n / q=0，两个约束各自 vacuous，根本没卡住 ——
+    #   判据与暴力仍然一致，错的是我的期望值（今天第二次）。
+    ("⑨a 异质界：大界头不够补", [[1.0,0.0],[5.0,4.0]], [0.01,3.0], [2,0], False),
+    ("⑨b 异质界：大界头够补",   [[1.0,0.0],[5.0,4.0]], [0.01,5.5], [2,0], True),
+    ("⑩ 多头 q=0 与 q=n 并存",[[0.3,0.2],[9.0,8.0]], [0.05,0.05],[0,2], True),
+    ("⑪ 严格 > 语义：τ′ 恰好落在分数上", [[1.0,0.0]], [0.0], [1], True),
 ]
 
 def main():
@@ -84,7 +95,13 @@ def main():
         bad += (not ok)
         print(f"{nm:<26}{sl:>+10.4f}{str(pred):>7}{str(bf):>7}{str(exp):>7}  "
               f"{'OK' if ok else '**FAIL**'}")
-    print("\n【推论检验】有界平移与有界逐 token 的可达集是否相同（配额只取决于边界对）")
+    # ---- 推论：两族可达集何时相同 --------------------------------------------
+    # 正确的陈述带条件：**在边界严格分离（无平局）时**相同；有平局时
+    # box 严格更大 —— box 可以 ±ε 把并列的两个分数拆开，单个 c_h 不能。
+    # 所以下面分两个总体测，而且必须**双向**都测到：
+    #   (a) 连续分数（平局概率为 0）⇒ 期望 100% 一致；
+    #   (b) 刻意注入平局 ⇒ 期望出现 box=True 而 shift=False，且**从不反向**。
+    print("\n【推论检验 a】边界严格分离时，有界平移与有界逐 token 可达集相同")
     same = 0
     rng = np.random.default_rng(0)
     for t in range(300):
@@ -94,9 +111,28 @@ def main():
             sh = np.sort(rng.normal(size=n))[::-1].copy()
             S.append(sh); a.append(float(abs(rng.normal())*0.3)); q.append(int(rng.integers(0,n+1)))
         same += int(brute(S,a,q) == brute_shift(S,a,q))
-    print(f"  300 个随机例子中两族判定一致：**{same}/300**"
+    print(f"  300 个连续随机例子两族判定一致：**{same}/300**"
           f"   {'✓ 与推导一致' if same==300 else '✗ 推导有误，需重查'}")
     bad += (same != 300)
+
+    print("\n【推论检验 b】刻意注入平局 ⇒ box ⊋ shift，且**从不反向**")
+    box_only = shift_only = both = 0
+    rng = np.random.default_rng(1)
+    for t in range(300):
+        H = int(rng.integers(1,3)); S=[]; a=[]; q=[]
+        for _ in range(H):
+            n = int(rng.integers(3,6))
+            sh = np.sort(rng.normal(size=n))[::-1].copy()
+            j = int(rng.integers(0, n-1))
+            sh[j+1] = sh[j]                      # 注入一处平局
+            S.append(sh); a.append(float(abs(rng.normal())*0.4)); q.append(j+1)
+        B, T = brute(S,a,q), brute_shift(S,a,q)
+        box_only += int(B and not T); shift_only += int(T and not B); both += int(B and T)
+    ok = shift_only == 0 and box_only > 0
+    bad += (not ok)
+    print(f"  box 可达而 shift 不可达：**{box_only}**   两者皆可达：{both}   "
+          f"shift 可达而 box 不可达：**{shift_only}**（必须为 0）  {'OK' if ok else '**FAIL**'}")
+    print("  ⇒ 平局下两族**不**等价；等价性定理必须写「边界严格分离」这个前提。")
     print(f"\n{'全部通过' if bad==0 else f'**{bad} 项 FAIL**'}")
     return 1 if bad else 0
 

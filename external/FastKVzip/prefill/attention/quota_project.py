@@ -56,20 +56,88 @@ def rebalance(bt, tgt, total, hi):
     return bt
 
 
-def project_quota(b0, delta, n, mode, n_layers, n_heads):
+def reachable_project(tgt, sc, b0, Btot, alpha=1.0, n_tau=1024):
+    """把目标配额 `tgt` 投影到**当前参数化真正能表示的**配额集合上。
+
+    为什么需要这个函数（这是本项目最容易被误读的一步）：
+    `scratch_probe_reach.py` 证明了地板目标配额在 74/74 个 chunk 上都**不可表示**
+    —— 但那只说明「**那一个**配额取不到」，**不等于**「地板拿到的 +33.60 取不到」。
+    完全可能存在另一个**可达**配额，效用与地板相当。要把「表示能力不足」从
+    「关于某个点」升级成「关于收益」，必须把地板目标投影回可达集，再真跑一遍。
+    这个函数就是那个投影；下游分数由评测给出。
+
+    可达集的刻画（与 slack 判据同一套代数，`scratch_test_reach.py` 有 11 个单测）：
+    修正满足 `|Δs_{h,i}| ≤ a_h`（`a_h = α·σ_h`）时，存在公共阈值 `τ′` 使头 `h`
+    恰留 `q_h` 个，当且仅当
+
+        q_min_h(τ′) ≤ q_h ≤ q_max_h(τ′),
+        q_max_h(τ) = #{i : s_{h,i} > τ − a_h},   q_min_h(τ) = #{i : s_{h,i} > τ + a_h}
+
+    于是可达集 = ∪_{τ} { q : q_min(τ) ≤ q ≤ q_max(τ), Σq = B }。对每个候选 `τ` 把
+    `tgt` clamp 进箱子再配平到 `B`，取 L1 距离最小的那个 τ。**注意这给的是投影，
+    不是「最优可达配额」** —— 后者需要效用模型，而效用正是我们要测的东西。
+    """
+    G = tgt.numel()
+    ss, _ = torch.sort(sc.reshape(G, -1), dim=-1)            # 升序，便于 searchsorted
+    n_tok = ss.shape[1]
+    a = (alpha * sc.reshape(G, -1).std(dim=-1)).clamp(min=0)
+    lo = float((ss[:, 0] - a).min()); hi = float((ss[:, -1] + a).max())
+    taus = torch.linspace(lo, hi, n_tau, device=ss.device, dtype=ss.dtype)
+
+    # **两段式，纯粹是为了速度**：τ 扫描全向量化算出每个 τ 的箱子与一个
+    # L1 下界（只 clamp、不配平），再只对下界最小的少数几个 τ 做代价高的整数配平。
+    # 下界成立是因为配平只会把 q 推离 tgt，不会拉近 ⇒ 真 L1 ≥ clamp 后的 L1。
+    X = taus[:, None]                                        # [T,1]
+    qmax = n_tok - torch.searchsorted(ss, (X - a[None, :]).T.contiguous(),
+                                      right=True).T          # [T,G]
+    qmin = n_tok - torch.searchsorted(ss, (X + a[None, :]).T.contiguous(),
+                                      right=True).T
+    feas = (qmin.sum(1) <= Btot) & (qmax.sum(1) >= Btot)
+    if not bool(feas.any()):
+        return None, None
+    qc = torch.minimum(torch.maximum(tgt[None, :], qmin), qmax)
+    lb = (qc - tgt[None, :]).abs().sum(1).float()
+    lb = torch.where(feas, lb, torch.full_like(lb, float("inf")))
+    cand = torch.argsort(lb)[:8].tolist()
+
+    best, best_d = None, None
+    for ti in cand:
+        if not bool(feas[ti]):
+            continue
+        q = qc[ti].clone()
+        d = Btot - int(q.sum())
+        if d != 0:
+            room = (qmax[ti] - q) if d > 0 else (q - qmin[ti])
+            # 优先动「clamp 把它推离 tgt 最多」的那些头，使配平尽量不再加大 L1
+            order = torch.argsort((tgt - q).float(), descending=(d > 0)).tolist()
+            for g in order:
+                if d == 0:
+                    break
+                t = min(abs(d), int(room[g]))
+                q[g] += t if d > 0 else -t
+                d -= t if d > 0 else -t
+        if d != 0:
+            continue
+        dist = float((q - tgt).abs().sum())
+        if best_d is None or dist < best_d:
+            best_d, best = dist, q.clone()
+    return best, best_d
+
+
+def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None):
     """b0, delta: [L*H] float tensor；返回 [L*H] long tensor。
 
     `mode` ∈ {full, within, across}。非 full 模式下预算守恒是**构造性**的，
     函数末尾直接断言而不做兜底修补 —— 若将来投影出 bug，必须让它崩，而不是被
     一个通用修补循环悄悄"修好"同时破坏因果不变量（那正是本项目栽过的坑）。
     """
-    assert mode in ("full", "within", "across", "floor"), mode
+    assert mode in ("full", "within", "across", "floor", "floorproj"), mode
     L, H = int(n_layers), int(n_heads)
     assert b0.numel() == L * H and delta.numel() == L * H
     Btot = int(b0.sum().item())
     tgt = (b0 + delta).clamp(0, n)
 
-    if mode == "floor":
+    if mode in ("floor", "floorproj"):
         # **防饿死对照**：完全不用 `delta` 的方向，只强制 b_g ≥ b_min，
         # 缺口按 (b⁰ − b_min)⁺ 的比例从富余头等量扣回，总预算不变。
         # 为什么必须有这个对照：`fastkvzip@pair` 在 ρ=0.2 有 41.3% 的头零配额，
@@ -95,6 +163,19 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads):
             t = t - room * (excess / tot_room)
         t = t.clamp(0, n)
         bt = rebalance(t.round().long().clamp(0, n), t, Btot, n)
+        if mode == "floorproj":
+            # 把地板目标投影回**当前参数化可达**的配额集。若某个 chunk 上地板本来就
+            # 可达，投影是恒等的（单测里验过）；不可行时退回地板本身并计数，
+            # 因为静默退回会把「投影没起作用」伪装成「投影没有代价」。
+            assert sc is not None, "floorproj 需要 score 张量"
+            al = float(os.environ.get("VARIKV_PROJ_ALPHA", "1.0"))
+            q, d = reachable_project(bt, sc, b0, Btot, alpha=al)
+            if q is None:
+                project_quota._proj_fail = getattr(project_quota, "_proj_fail", 0) + 1
+            else:
+                project_quota._proj_l1 = getattr(project_quota, "_proj_l1", 0.0) + d
+                project_quota._proj_n = getattr(project_quota, "_proj_n", 0) + 1
+                bt = q
     elif mode == "full":
         bt = rebalance(tgt.round().long().clamp(0, n), tgt, Btot, n)
     else:

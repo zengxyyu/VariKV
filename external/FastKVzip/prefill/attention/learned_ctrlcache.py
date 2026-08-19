@@ -253,7 +253,10 @@ class LearnedControlRetainCache(RetainCache):
                 # 若投影出 bug 必须让它崩，而不是被通用修补循环悄悄改成另一个干预。
                 from attention.quota_project import project_quota
                 _qm = os.environ.get("VARIKV_QUOTA_MODE", "full")
-                bt = project_quota(b0, self._qinj.to(b0.device), n, _qm, L, H)
+                # `sc` 只有 floorproj 用得到（把地板目标投影回可达集，见
+                # quota_project.reachable_project 的 docstring）；其余模式忽略它，
+                # 默认路径逐字节不变。
+                bt = project_quota(b0, self._qinj.to(b0.device), n, _qm, L, H, sc=sc)
                 idx = torch.argsort(sc.reshape(L * H, n), dim=-1, descending=True)
                 nv = torch.zeros(L * H, n, dtype=torch.bool, device=sc.device)
                 ar = torch.arange(n, device=sc.device)[None, :]
