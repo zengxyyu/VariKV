@@ -117,6 +117,48 @@ def main():
     ok = nhi==len(HI); fail += (not ok)
     print(f"   {nhi}/{len(HI)} 为 g=+1   {'OK（增量为零是必然的）' if ok else '**FAIL：§零之三 的命题需重查**'}")
 
+    print("\n== 7. 地板全网格的关键数字（撤回 42 的依据） ==")
+    # (ds, ratio, {b_min: tag})。**只列已 Finished. 且 n == 基线 n 的**；
+    # b_min 不手抄——从 /tmp/vq/log 反解会依赖临时文件，故此处显式写死并由
+    # 下面的断言保护：若某 tag 的读数变了（例如误覆盖），倍数就会对不上。
+    FLOOR = [
+        ("scbench_kv",0.2,{8:"_flr8",32:"_flr32",128:"_flr128",512:"_flr512"}),
+        ("scbench_prefix_suffix",0.2,{4:"_psf02d",8:"_psf02c",16:"_psflr02h",
+                                      32:"_psf02a",64:"_psflr02d",128:"_psf02b",256:"_psflr02e"}),
+        ("scbench_prefix_suffix",0.1,{8:"_psf01c",32:"_psflr01b",128:"_psflr01c"}),
+        ("scbench_vt",0.4,{8:"_vtf04c",32:"_vtf04a",128:"_vtf04b"}),
+    ]
+    best={}
+    for ds,R,d in FLOOR:
+        B=read_scores(ds,"_g8base",R); row=[]
+        bb=-99
+        for bm,tag in sorted(d.items()):
+            try: A=read_scores(ds,tag,R)
+            except Exception: row.append(f"b{bm}:MISS"); continue
+            if len(A)!=len(B): row.append(f"b{bm}:n={len(A)}"); continue
+            m,lo,hi,_=paired(A,B); bb=max(bb,m)
+            row.append(f"b{bm} {m:+.2f}{'*' if lo>0 or hi<0 else ''}")
+        best[(ds,R)]=bb
+        print(f"   {ds.split('_')[-1]:<14}@{R:<5} " + " | ".join(row) + f"   BEST {bb:+.2f}")
+    # 倍数：Retr.KV@0.2 最佳 / PrefSuf@0.2 最佳
+    if best.get(("scbench_kv",0.2),-99)>0 and best.get(("scbench_prefix_suffix",0.2),-99)>0:
+        ratio = best[("scbench_kv",0.2)]/best[("scbench_prefix_suffix",0.2)]
+        ok = 5.0 <= ratio <= 6.2; fail += (not ok)
+        print(f"   倍数 = {best[('scbench_kv',0.2)]:.2f}/{best[('scbench_prefix_suffix',0.2)]:.2f}"
+              f" = {ratio:.1f}x   {'OK（文件写 5.6x，下界）' if ok else '**FAIL：文件里的 5.6x 需重算**'}")
+    # PrefSuf@0.2 的峰必须在 b16（撤回 42 的直接依据）
+    print("\n== 8. MultiHop@0.4 三个方向无关对照全部与零不可分 ==")
+    B=read_scores("scbench_vt","_g8base",0.4); REV=read_scores("scbench_vt","_vt04gm1",0.4)
+    nns=0
+    for bm,tag in [(8,"_vtf04c"),(32,"_vtf04a"),(128,"_vtf04b")]:
+        A=read_scores("scbench_vt",tag,0.4)
+        m,lo,hi,_=paired(A,B); ns = not (lo>0 or hi<0); nns+=ns
+        m2,lo2,hi2,_=paired(REV,A)
+        print(f"   b{bm:<4} 地板 {m:+.2f}[{lo:+.2f},{hi:+.2f}]{'ns' if ns else '**★**'}"
+              f"   反向-地板 {m2:+.2f}[{lo2:+.2f},{hi2:+.2f}]{'*' if lo2>0 or hi2<0 else ' '}")
+    ok = nns==3; fail += (not ok)
+    print(f"   {nns}/3 与零不可分   {'OK' if ok else '**FAIL：§四的 best-of-3 表述要改**'}")
+
     print(f"\n{'全部通过' if fail==0 else f'**{fail} 项 FAIL**'}")
     return 1 if fail else 0
 
