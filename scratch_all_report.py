@@ -17,6 +17,7 @@ import argparse
 import contextlib
 import io
 import json
+import re
 import os
 import sys
 
@@ -40,6 +41,56 @@ TOK = {"gsm": 86, "squad": 203, "scbench_many_shot": 26474, "scbench_repoqa": 72
        "scbench_vt": 124551, "scbench_mf": 149860, "scbench_kv": 169428}
 
 
+
+_DEGEN_CACHE = {}
+
+
+def _degen_measured(ds):
+    """从评测日志读 runtime **实测**的退化标记，胜过用标注长度套公式。
+
+    `model/wrapper.py` 每个样本打一行
+    `[effective] clen=.. window=.. chunk_ratio=.. degenerate=..`。
+    退化时 `chunk_ratio` 归零、`window` 被改写成 `int(ratio*clen)`，
+    所以**名义 ratio 可由 `window/clen` 反解**；非退化时 window 保持 4096，
+    名义 ratio 由 `chunk_ratio` 近似（两者在非退化格上都不影响判定）。
+
+    这样做的理由：公式回退用的是 `TOK` 里的**标注**长度，实测可差 8.7%，
+    于是 repoqa@0.05 这类格落进 [0.8,1.25] 的"判不了"带只能标 `?`。
+    而日志里写着确切答案。返回 [(名义 ratio, 是否退化)] 或 None。
+    """
+    if ds in _DEGEN_CACHE:
+        return _DEGEN_CACHE[ds]
+    out = None
+    for cand in (f"scratch_ctrl_logs/sc11_{ds}_s0.log",
+                 f"scratch_ctrl_logs/sc11_{ds}_s1.log"):
+        f = os.path.join(os.path.dirname(os.path.abspath(__file__)), cand)
+        if not os.path.exists(f):
+            continue
+        seen = {}
+        pat = re.compile(r"clen=(\d+) window=(\d+) chunk_ratio=([0-9.]+) "
+                         r"degenerate=(True|False)")
+        with open(f, errors="ignore") as fh:
+            for line in fh:
+                mm = pat.search(line)
+                if not mm:
+                    continue
+                clen, win, cr, dg = (int(mm.group(1)), int(mm.group(2)),
+                                     float(mm.group(3)), mm.group(4) == "True")
+                # **名义 ratio 的反解**：非退化时 `chunk_ratio` 是窗口重标定后的
+                # **有效**值（ρ=0.1 在 repoqa 上记成 0.0401），直接拿它当名义 ratio
+                # 会让 0.04 这个键在容差内抢先匹配 0.05，把退化格误判成正常。
+                #   有效: cr = (ρ·clen − w)/(clen − w)  ⇒  ρ = (cr·(clen−w) + w)/clen
+                # 退化时 chunk_ratio 归零、window 被改写成 int(ρ·clen) ⇒ ρ = w/clen。
+                r_nom = win / clen if dg else (cr * (clen - win) + win) / clen
+                # 同一名义 ratio 只要**有一个样本**退化就算退化（保守）
+                key = round(r_nom, 3)
+                seen[key] = seen.get(key, False) or dg
+        if seen:
+            out = sorted(seen.items())
+            break
+    _DEGEN_CACHE[ds] = out
+    return out
+
 def _degenerate(ds, r):
     """判结构性退化。**优先读 runtime 落盘的实测值，公式只是回退。**
 
@@ -62,6 +113,11 @@ def _degenerate(ds, r):
 
     返回 True / False / None（未知）。
     """
+    m = _degen_measured(ds)
+    if m is not None:
+        for r_nom, flag in m:
+            if abs(r_nom - r) < 0.004:          # 反解后精度很高，容差收紧到 0.4%
+                return flag
     clen = TOK.get(ds)
     if clen is None:
         return False
