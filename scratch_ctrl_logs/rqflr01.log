@@ -1346,3 +1346,1036 @@ def request_stats_csv() -> Response:
 [effective] clen=65911 window=4096 chunk_ratio=0.040364 degenerate=False
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.06it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-5: 65911 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/5_qwen2.5-7b-instruct-1m_fastkvzip__rqflr01_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 52.3s. Mem: 14.31/79.18 GB. [scbench_repoqa-5]
+
+[effective] clen=65861 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.28it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-6: 65861 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```python
+def select(
+    src: Union[Tensor, List[Any], TensorFrame],
+    index_or_mask: Tensor,
+    dim: int,
+) -> Union[Tensor, List[Any]]:
+    r"""Selects the input tensor or input list according to a given index or
+    mask vector.
+
+    Args:
+        src (torch.Tensor or list): The input tensor or list.
+        index_or_mask (torch.Tensor): The index or mask vector.
+        dim (int): The dimension along which to select.
+    """
+    if isinstance(src, Tensor):
+        if index_or_mask.dtype == torch.bool:
+            return mask_select(src, dim, index_or_mask)
+        return src.index_select(dim, index_or_mask)
+
+    if isinstance(src, (tuple, list)):
+        if dim != 0:
+            raise ValueError("Cannot select along dimension other than 0")
+        if index_or_mask.dtype == torch.bool:
+            return [src[i] for i, m in enumerate(index_or_mask) if m]
+        return [src[i] for i in index_or_mask]
+
+    if isinstance(src, TensorFrame):
+        assert dim == 0
+        if index_or_mask.dtype == torch.bool:
+            return mask_select(src, dim, index_or_mask)
+        return src[index_or_mask]
+
+    raise ValueError(f"Encountered invalid input type (got '{type(src)}')")
+``` | def select(
+    src: Union[Tensor, List[Any], TensorFrame],
+    index_or_mask: Tensor,
+    dim: int,
+) -> Union[Tensor, List[Any]]:
+    r"""Selects the input tensor or input list according to a given index or
+    mask vector.
+
+    Args:
+        src (torch.Tensor or list): The input tensor or list.
+        index_or_mask (torch.Tensor): The index or mask vector.
+        dim (int): The dimension along which to select.
+    """
+    if isinstance(src, Tensor):
+        if index_or_mask.dtype == torch.bool:
+            return mask_select(src, dim, index_or_mask)
+        return src.index_select(dim, index_or_mask)
+
+    if isinstance(src, (tuple, list)):
+        if dim != 0:
+            raise ValueError("Cannot select along dimension other than 0")
+        if index_or_mask.dtype == torch.bool:
+            return [src[i] for i, m in enumerate(index_or_mask) if m]
+        return [src[i] for i in index_or_mask]
+
+    if isinstance(src, TensorFrame):
+        assert dim == 0
+        if index_or_mask.dtype == torch.bool:
+            return mask_select(src, dim, index_or_mask)
+        return src[index_or_mask]
+
+    raise ValueError(f"Encountered invalid input type (got '{type(src)}')")
+[QA 1] ```python
+import functools
+import typing
+from enum import Enum
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    get_args,
+    overload,
+)
+
+import torch
+from torch import Tensor
+
+import torch_geometric.typing
+from torch_geometric import is_compiling
+from torch_geometric.typing import SparseTensor
+
+HANDLED_FUNCTIONS: Dict[Callable, Callable] = {}
+
+if torch_geometric.typing.WITH_PT20:
+    SUPPORTED_DTYPES: Set[torch.dtype] = {
+        torch.int32,
+        torch.int64,
+    }
+elif not typing.TYPE_CHECKING:  # pragma: no cover
+    SUPPORTED_DTYPES: Set[torch.dtype] = {
+        torch.int64,
+    }
+
+ReduceType = Literal['sum', 'mean', 'amin', 'amax', 'add', 'min', 'max']
+PYG_REDUCE: Dict[ReduceType, ReduceType] = {
+    'add': 'sum',
+    'amin': 'min',
+    'amax': 'max'
+}
+TORCH_REDUCE: Dict[ReduceType, ReduceType] = {
+    'add': 'sum',
+    'min': 'amin',
+    'max': 'amax'
+}
+
+class SortOrder(Enum):
+    ROW = 'row'
+    COL = 'col'
+
+class CatMetadata(NamedTuple):
+    nnz: List[int]
+    sparse_size: List[Tuple[Optional[int], Optional[int]]]
+    sort_order: List[Optional[SortOrder]]
+    is_undirected: List[bool]
+
+def implements(torch_function: Callable) -> Callable:
+    r"""Registers a :pytorch:`PyTorch` function override."""
+    @functools.wraps(torch_function)
+    def decorator(my_function: Callable) -> Callable:
+        HANDLED_FUNCTIONS[torch_function] = my_function
+        return my_function
+
+    return decorator
+```
+```python
+``` | def implements(torch_function: Callable) -> Callable:
+    r"""Registers a :pytorch:`PyTorch` function override."""
+    @functools.wraps(torch_function)
+    def decorator(my_function: Callable) -> Callable:
+        HANDLED_FUNCTIONS[torch_function] = my_function
+        return my_function
+
+    return decorator
+[QA 2] ```python
+def assert_valid_dtype(tensor: Tensor) -> None:
+    if tensor.dtype not in SUPPORTED_DTYPES:
+        raise ValueError(f"'EdgeIndex' holds an unsupported data type "
+                         f"(got '{tensor.dtype}', but expected one of "
+                         f"{SUPPORTED_DTYPES})")
+``` | def assert_valid_dtype(tensor: Tensor) -> None:
+    if tensor.dtype not in SUPPORTED_DTYPES:
+        raise ValueError(f"'EdgeIndex' holds an unsupported data type "
+                         f"(got '{tensor.dtype}', but expected one of "
+                         f"{SUPPORTED_DTYPES})")
+[QA 3] ```python
+def __tensor_flatten__(self) -> Tuple[List[str], Tuple[Any, ...]]:
+    if not torch_geometric.typing.WITH_PT22:  # pragma: no cover
+        raise RuntimeError("'torch.compile' with 'EdgeIndex' only "
+                           "supported from PyTorch 2.2 onwards")
+    assert self._data is not None
+    # TODO Add `_T_index`.
+    attrs = ['_data', '_indptr', '_T_perm', '_T_indptr']
+    return attrs, ()
+``` |     def __tensor_flatten__(self) -> Tuple[List[str], Tuple[Any, ...]]:
+        if not torch_geometric.typing.WITH_PT22:  # pragma: no cover
+            raise RuntimeError("'torch.compile' with 'EdgeIndex' only "
+                               "supported from PyTorch 2.2 onwards")
+        assert self._data is not None
+        # TODO Add `_T_index`.
+        attrs = ['_data', '_indptr', '_T_perm', '_T_indptr']
+        return attrs, ()
+[QA 4] ```python
+def structured_negative_sampling(
+    edge_index: Tensor,
+    num_nodes: Optional[int] = None,
+    contains_neg_self_loops: bool = True,
+) -> Tuple[Tensor, Tensor, Tensor]:
+    r"""Samples a negative edge :obj:`(i,k)` for every positive edge
+    :obj:`(i,j)` in the graph given by :attr:`edge_index`, and returns it as a
+    tuple of the form :obj:`(i,j,k)`.
+
+    Args:
+        edge_index (LongTensor): The edge indices.
+        num_nodes (int, optional): The number of nodes, *i.e.*
+            :obj:`max_val + 1` of :attr:`edge_index`. (default: :obj:`None`)
+        contains_neg_self_loops (bool, optional): If set to
+            :obj:`False`, sampled negative edges will not contain self loops.
+            (default: :obj:`True`)
+
+    :rtype: (LongTensor, LongTensor, LongTensor)
+
+    Example:
+        >>> edge_index = torch.as_tensor([[0, 0, 1, 2],
+        ...                               [0, 1, 2, 3]])
+        >>> structured_negative_sampling(edge_index)
+        (tensor([0, 0, 1, 2]), tensor([0, 1, 2, 3]), tensor([2, 3, 0, 2]))
+
+    """
+    num_nodes = maybe_num_nodes(edge_index, num_nodes)
+
+    row, col = edge_index.cpu()
+    pos_idx = row * num_nodes + col
+    if not contains_neg_self_loops:
+        loop_idx = torch.arange(num_nodes) * (num_nodes + 1)
+        pos_idx = torch.cat([pos_idx, loop_idx], dim=0)
+
+    rand = torch.randint(num_nodes, (row.size(0), ), dtype=torch.long)
+    neg_idx = row * num_nodes + rand
+
+    mask = torch.from_numpy(np.isin(neg_idx, pos_idx)).to(torch.bool)
+    rest = mask.nonzero(as_tuple=False).view(-1)
+    while rest.numel() > 0:  # pragma: no cover
+        tmp = torch.randint(num_nodes, (rest.size(0), ), dtype=torch.long)
+        rand[rest] = tmp
+        neg_idx = row[rest] * num_nodes + tmp
+
+        mask = torch.from_numpy(np.isin(neg | def structured_negative_sampling(
+    edge_index: Tensor,
+    num_nodes: Optional[int] = None,
+    contains_neg_self_loops: bool = True,
+) -> Tuple[Tensor, Tensor, Tensor]:
+    r"""Samples a negative edge :obj:`(i,k)` for every positive edge
+    :obj:`(i,j)` in the graph given by :attr:`edge_index`, and returns it as a
+    tuple of the form :obj:`(i,j,k)`.
+
+    Args:
+        edge_index (LongTensor): The edge indices.
+        num_nodes (int, optional): The number of nodes, *i.e.*
+            :obj:`max_val + 1` of :attr:`edge_index`. (default: :obj:`None`)
+        contains_neg_self_loops (bool, optional): If set to
+            :obj:`False`, sampled negative edges will not contain self loops.
+            (default: :obj:`True`)
+
+    :rtype: (LongTensor, LongTensor, LongTensor)
+
+    Example:
+        >>> edge_index = torch.as_tensor([[0, 0, 1, 2],
+        ...                               [0, 1, 2, 3]])
+        >>> structured_negative_sampling(edge_index)
+        (tensor([0, 0, 1, 2]), tensor([0, 1, 2, 3]), tensor([2, 3, 0, 2]))
+
+    """
+    num_nodes = maybe_num_nodes(edge_index, num_nodes)
+
+    row, col = edge_index.cpu()
+    pos_idx = row * num_nodes + col
+    if not contains_neg_self_loops:
+        loop_idx = torch.arange(num_nodes) * (num_nodes + 1)
+        pos_idx = torch.cat([pos_idx, loop_idx], dim=0)
+
+    rand = torch.randint(num_nodes, (row.size(0), ), dtype=torch.long)
+    neg_idx = row * num_nodes + rand
+
+    mask = torch.from_numpy(np.isin(neg_idx, pos_idx)).to(torch.bool)
+    rest = mask.nonzero(as_tuple=False).view(-1)
+    while rest.numel() > 0:  # pragma: no cover
+        tmp = torch.randint(num_nodes, (rest.size(0), ), dtype=torch.long)
+        rand[rest] = tmp
+        neg_idx = row[rest] * num_nodes + tmp
+
+        mask = torch.from_numpy(np.isin(neg_idx, pos_idx)).to(torch.bool)
+        rest = rest[mask]
+
+    return edge_index[0], edge_index[1], rand.to(edge_index.device)
+[effective] clen=65861 window=4096 chunk_ratio=0.040316 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.79it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-6: 65861 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/6_qwen2.5-7b-instruct-1m_fastkvzip__rqflr01_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 85.3s. Mem: 14.31/79.18 GB. [scbench_repoqa-6]
+
+[effective] clen=65861 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.27it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-7: 65861 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```python
+def uniform(size: int, value: Any):
+    if isinstance(value, Tensor):
+        bound = 1.0 / math.sqrt(size)
+        value.data.uniform_(-bound, bound)
+    else:
+        for v in value.parameters() if hasattr(value, 'parameters') else []:
+            uniform(size, v)
+        for v in value.buffers() if hasattr(value, 'buffers') else []:
+            uniform(size, v)
+``` | def uniform(size: int, value: Any):
+    if isinstance(value, Tensor):
+        bound = 1.0 / math.sqrt(size)
+        value.data.uniform_(-bound, bound)
+    else:
+        for v in value.parameters() if hasattr(value, 'parameters') else []:
+            uniform(size, v)
+        for v in value.buffers() if hasattr(value, 'buffers') else []:
+            uniform(size, v)
+[QA 1] ```python
+def postprocess_sub_(
+    input: EdgeIndex,
+    other: Union[int, Tensor],
+    out: Tensor,
+    alpha: int = 1,
+) -> Union[EdgeIndex, Tensor]:
+
+    if out.dtype not in SUPPORTED_DTYPES:
+        return out
+    if out.dim() != 2 or out.size(0) != 2:
+        return out
+
+    output: EdgeIndex = out.as_subclass(EdgeIndex)
+
+    if isinstance(other, int):
+        size = maybe_sub(input._sparse_size, other, alpha)
+        assert len(size) == 2
+        output._sparse_size = size
+        output._sort_order = input._sort_order
+        output._is_undirected = input.is_undirected
+        output._T_perm = input._T_perm
+
+    elif isinstance(other, Tensor) and other.numel() <= 1:
+        size = maybe_sub(input._sparse_size, int(other), alpha)
+        assert len(size) == 2
+        output._sparse_size = size
+        output._sort_order = input._sort_order
+        output._is_undirected = input.is_undirected
+        output._T_perm = input._T_perm
+
+    elif isinstance(other, Tensor) and other.size() == (2, 1):
+        size = maybe_sub(input._sparse_size, other.view(-1).tolist(), alpha)
+        assert len(size) == 2
+        output._sparse_size = size
+        output._sort_order = input._sort_order
+        output._is_undirected = input.is_undirected
+        output._T_perm = input._T_perm
+        if torch.equal(other[0], other[1]):
+            output._is_undirected = input.is_undirected
+
+    return output
+``` | def postprocess_sub_(
+    input: EdgeIndex,
+    other: Union[int, Tensor],
+    out: Tensor,
+    alpha: int = 1,
+) -> Union[EdgeIndex, Tensor]:
+
+    if out.dtype not in SUPPORTED_DTYPES:
+        return out
+    if out.dim() != 2 or out.size(0) != 2:
+        return out
+
+    output: EdgeIndex = out.as_subclass(EdgeIndex)
+
+    if isinstance(other, int):
+        size = maybe_sub(input._sparse_size, other, alpha)
+        assert len(size) == 2
+        output._sparse_size = size
+        output._sort_order = input._sort_order
+        output._is_undirected = input.is_undirected
+        output._T_perm = input._T_perm
+
+    elif isinstance(other, Tensor) and other.numel() <= 1:
+        size = maybe_sub(input._sparse_size, int(other), alpha)
+        assert len(size) == 2
+        output._sparse_size = size
+        output._sort_order = input._sort_order
+        output._is_undirected = input.is_undirected
+        output._T_perm = input._T_perm
+
+    elif isinstance(other, Tensor) and other.size() == (2, 1):
+        size = maybe_sub(input._sparse_size, other.view(-1).tolist(), alpha)
+        assert len(size) == 2
+        output._sparse_size = size
+        output._sort_order = input._sort_order
+        output._T_perm = input._T_perm
+        if torch.equal(other[0], other[1]):
+            output._is_undirected = input.is_undirected
+
+    return output
+[QA 2] ```python
+def is_sparse(src: Any) -> bool:
+    r"""Returns :obj:`True` if the input :obj:`src` is of type
+    :class:`torch.sparse.Tensor` (in any sparse layout) or of type
+    :class:`torch_sparse.SparseTensor`.
+
+    Args:
+        src (Any): The input object to be checked.
+    """
+    return is_torch_sparse_tensor(src) or isinstance(src, SparseTensor)
+``` | def is_torch_sparse_tensor(src: Any) -> bool:
+    r"""Returns :obj:`True` if the input :obj:`src` is a
+    :class:`torch.sparse.Tensor` (in any sparse layout).
+
+    Args:
+        src (Any): The input object to be checked.
+    """
+    if isinstance(src, Tensor):
+        if src.layout == torch.sparse_coo:
+            return True
+        if src.layout == torch.sparse_csr:
+            return True
+        if (torch_geometric.typing.WITH_PT112
+                and src.layout == torch.sparse_csc):
+            return True
+    return False
+[QA 3] ```python
+@property
+def learning_rate(self):
+    return self.softplus(self._lr)
+``` |     def learning_rate(self):
+        return self.softplus(self._lr)
+[QA 4] ```python
+import torch
+from torch import Tensor
+
+from torch_geometric.experimental import disable_dynamic_shapes
+from torch_geometric.utils import scatter, segment, to_dense_batch
+
+
+class Aggregation(torch.nn.Module):
+    r"""An abstract base class for implementing custom aggregations.
+
+    Aggregation can be either performed via an :obj:`index` vector, which
+    defines the mapping from input elements to their location in the output:
+
+    |
+
+    .. image:: https://raw.githubusercontent.com/rusty1s/pytorch_scatter/
+            master/docs/source/_figures/add.svg?sanitize=true
+        :align: center
+        :width: 400px
+
+    |
+
+    Notably, :obj:`index` does not have to be sorted (for most aggregation
+    operators):
+
+    .. code-block::
+
+       # Feature matrix holding 10 elements with 64 features each:
+       x = torch.randn(10, 64)
+
+       # Assign each element to one of three sets:
+       index = torch.tensor([0, 0, 1, 0, 2, 0, 2, 1, 0, 2])
+
+       output = aggr(x, index)  #  Output shape: [3, 64]
+
+    Alternatively, aggregation can be achieved via a "compressed" index vector
+    called :obj:`ptr`. Here, elements within the same set need to be grouped
+    together in the input, and :obj:`ptr` defines their boundaries:
+
+    .. code-block::
+
+       # Feature matrix holding 10 elements with 64 features each:
+       x = torch.randn(10, 64)
+
+       # Define the boundary indices for three sets:
+       ptr = torch.tensor([0, 4, 7, 10])
+
+       output = aggr(x, ptr=ptr)  #  Output shape: [4, 64]
+
+    Note that at least one of :obj:`index` or :obj:`ptr` must be defined.
+
+    Shapes:
+        - **input:**
+          node features :math:`(*, |\mathcal{V}|, F_{in})` or edge features
+          :math:`(*, |\mathcal{E}|, F_{in})`,
+          index vector :math:`(|\mathcal{V}|)` or :math:`(|\mathcal{E}|)`,
+        - **output:** graph features :math:`(*, |\ |     def to_dense_batch(
+        self,
+        x: Tensor,
+        index: Optional[Tensor] = None,
+        ptr: Optional[Tensor] = None,
+        dim_size: Optional[int] = None,
+        dim: int = -2,
+        fill_value: float = 0.0,
+        max_num_elements: Optional[int] = None,
+    ) -> Tuple[Tensor, Tensor]:
+
+        # TODO Currently, `to_dense_batch` can only operate on `index`:
+        self.assert_index_present(index)
+        self.assert_sorted_index(index)
+        self.assert_two_dimensional_input(x, dim)
+
+        return to_dense_batch(
+            x,
+            index,
+            batch_size=dim_size,
+            fill_value=fill_value,
+            max_num_nodes=max_num_elements,
+        )
+[effective] clen=65861 window=4096 chunk_ratio=0.040316 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-7: 65861 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/7_qwen2.5-7b-instruct-1m_fastkvzip__rqflr01_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 83.9s. Mem: 14.31/79.18 GB. [scbench_repoqa-7]
+
+[effective] clen=66237 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.32it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-8: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```python
+def _prepare_decoder_attention_mask(input_shape, src_len, dtype):
+    # create causal mask
+    # [bsz, seq_len] -> [bsz, tgt_seq_len, 1, src_seq_len]
+    if isinstance(input_shape[-1], tvm.tir.SizeVar) or input_shape[-1] > 1:
+        bsz, tgt_len = input_shape
+
+        def min_max_triu_te():
+            return te.compute(
+                (tgt_len, tgt_len),
+                lambda i, j: tvm.tir.Select(
+                    j > i, tvm.tir.min_value(dtype), tvm.tir.max_value(dtype)
+                ),
+                name="make_diag_mask_te",
+            )
+
+        mask = nn.emit_te(min_max_triu_te)
+        mask = nn.emit(expand_dims(mask, 1))
+        diag_mask = nn.emit(broadcast_to(mask, (bsz, tgt_len, 1, tgt_len)))
+        if src_len == tgt_len:
+            return diag_mask
+
+        def extend_te(x, tgt_len, src_len):
+            return te.compute(
+                (bsz, tgt_len, 1, src_len),
+                lambda b, i, _, j: te.if_then_else(
+                    j < src_len - tgt_len,
+                    tvm.tir.max_value(dtype),
+                    x[b, i, _, j - (src_len - tgt_len)],
+                ),
+                name="concat_te",
+            )
+
+        return nn.emit_te(extend_te, diag_mask, tgt_len, src_len)
+    else:
+        # Get src_len from input parameters
+        # [bsz, seq_len] -> [bsz, tgt_seq_len, 1, src_seq_len]
+        bsz, tgt_len = input_shape
+        mask = relax.op.full(
+            (bsz, tgt_len, 1, src_len),
+            relax.const(tvm.tir.max_value(dtype).value, dtype),
+            dtype,
+        )
+    return nn.emit(mask)
+``` | def _make_causal_mask(input_ids_shape, dtype, src_len):
+    from tvm.relax.op import broadcast_to
+
+    bsz, tgt_len = input_ids_shape
+
+    def min_max_triu_te():
+        return te.compute(
+            (tgt_len, tgt_len),
+            lambda i, j: tvm.tir.Select(j > i, tvm.tir.min_value(dtype), tvm.tir.max_value(dtype)),
+            name="make_diag_mask_te",
+        )
+
+    mask = nn.emit_te(min_max_triu_te)
+    diag_mask = nn.emit(broadcast_to(mask, (bsz, 1, tgt_len, tgt_len)))
+    if src_len == tgt_len:
+        return diag_mask
+
+    def extend_te(x, tgt_len, src_len):
+        return te.compute(
+            (bsz, 1, tgt_len, src_len),
+            lambda b, _, i, j: te.if_then_else(
+                j < src_len - tgt_len,
+                tvm.tir.max_value(dtype),
+                x[b, _, i, j - (src_len - tgt_len)],
+            ),
+            name="concat_te",
+        )
+
+    return nn.emit_te(extend_te, diag_mask, tgt_len, src_len)
+[QA 1] ```python
+def create_decoding_func(
+    bb: relax.BlockBuilder,
+    param_manager: ParamManager,
+    config: GPTBigCodeConfig,
+    quant_scheme: QuantizationScheme,
+) -> None:
+    func_name = "decode"
+
+    bsz = tvm.tir.IntImm("int64", 1)
+    seq_len = tvm.tir.IntImm("int64", 1)
+    all_seq_len = tvm.tir.SizeVar("m", "int64")
+
+    with bb.function(func_name):
+        model = GPTBigCodeForCausalLM(config)
+        param_manager.register_params(model, func_name, quant_scheme, get_param_quant_kind)
+
+        input_ids = nn.Placeholder((bsz, seq_len), dtype="int32", name="input_ids")
+        all_seq_len_shape = relax.Var("all_seq_len", relax.ShapeStructInfo((all_seq_len,)))
+        past_key_values = relax.Var(
+            "kv_cache",
+            relax.TupleStructInfo([relax.ObjectStructInfo() for _ in range(config.n_layer * 2)]),
+        )
+        with bb.dataflow():
+            logits, key_value_cache = model(
+                input_ids=input_ids,
+                all_seq_len_shape=all_seq_len_shape,
+                past_key_values=past_key_values,
+            )
+            params = [
+                input_ids,
+                all_seq_len_shape,
+                past_key_values,
+            ] + model.parameters()
+            gv = bb.emit_output((logits, relax.Tuple(key_value_cache)))
+        bb.emit_func_output(gv, params)
+
+    mod = bb.get()
+    gv = mod.get_global_var(func_name)
+    bb.update_func(gv, mod[gv].with_attr("num_input", 3))
+``` | def create_decoding_func(
+    bb: relax.BlockBuilder,
+    param_manager: ParamManager,
+    config: ChatGLMConfig,
+    quant_scheme: QuantizationScheme,
+) -> None:
+    func_name = "decode"
+
+    bsz = 1
+    all_seq_len = tvm.tir.SizeVar("m", "int64")
+
+    with bb.function(func_name):
+        model = ChatGLMForCausalLM(config)
+        param_manager.register_params(model, func_name, quant_scheme, get_param_quant_kind)
+
+        input_ids = nn.Placeholder((bsz, 1), dtype="int32", name="input_ids")
+        all_seq_len_shape = relax.Var("all_seq_len", relax.ShapeStructInfo((all_seq_len,)))
+        past_key_values = relax.Var(
+            "kv_cache",
+            relax.TupleStructInfo([relax.ObjectStructInfo() for _ in range(config.num_layers * 2)]),
+        )
+        with bb.dataflow():
+            logits, key_value_cache = model(
+                input_ids=input_ids,
+                all_seq_len_shape=all_seq_len_shape,
+                past_key_values=past_key_values,
+            )
+            params = [
+                input_ids,
+                all_seq_len_shape,
+                past_key_values,
+            ] + model.parameters()
+            gv = bb.emit_output((logits, relax.Tuple(key_value_cache)))
+        bb.emit_func_output(gv, params)
+
+    mod = bb.get()
+    gv = mod.get_global_var(func_name)
+    bb.update_func(gv, mod[gv].with_attr("num_input", 3))
+[QA 2] ```python
+def f_convert_param_bkwd(torch_pname: str, torch_param):
+    target_dtype = (
+        torch_param.dtype if "_proj." not in torch_pname or "scales" in torch_pname else "uint32"
+    )
+
+    # For Llama
+    combined_layers = ["q_proj", "k_proj", "v_proj", "gate_proj", "up_proj"]
+    if any([name in torch_pname for name in combined_layers]):
+        return None
+    return [(torch_pname, torch_param.astype(target_dtype))]
+``` |     def convert_param_bkwd(self, torch_pname: str, torch_param):
+        target_dtype = (
+            self.dtype if "_proj." not in torch_pname or "scales" in torch_pname else "uint32"
+        )
+
+        # For Llama
+        combined_layers = ["q_proj", "k_proj", "v_proj", "gate_proj", "up_proj"]
+        if any([name in torch_pname for name in combined_layers]):
+            return None
+        return [(torch_pname, torch_param.astype(target_dtype))]
+[QA 3] ```python
+def create_encoding_func(
+    bb: relax.BlockBuilder,
+    param_manager: ParamManager,
+    config: GPTBigCodeConfig,
+    quant_scheme: QuantizationScheme,
+) -> None:
+    func_name = "prefill"
+
+    batch_size = tvm.tir.IntImm("int64", 1)
+    seq_len = tvm.tir.SizeVar("n", "int64")
+    all_seq_len = tvm.tir.SizeVar("m", "int64")
+    with bb.function(func_name):
+        model = GPTBigCodeForCausalLM(config)
+        param_manager.register_params(model, func_name, quant_scheme, get_param_quant_kind)
+
+        input_ids = nn.Placeholder((batch_size, seq_len), dtype="int32", name="input_ids")
+        all_seq_len_shape = relax.Var("all_seq_len", relax.ShapeStructInfo((all_seq_len,)))
+        past_key_values = relax.Var(
+            "kv_cache",
+            relax.TupleStructInfo([relax.ObjectStructInfo() for _ in range(config.n_layer * 2)]),
+        )
+
+        with bb.dataflow():
+            logits, key_value_cache = model(
+                input_ids=input_ids,
+                all_seq_len_shape=all_seq_len_shape,
+                past_key_values=past_key_values,
+            )
+            params = [
+                input_ids,
+                all_seq_len_shape,
+                past_key_values,
+            ] + model.parameters()
+
+            gv = bb.emit_output((logits, relax.Tuple(key_value_cache)))
+        bb.emit_func_output(gv, params)
+    mod = bb.get()
+    gv = mod.get_global_var(func_name)
+    bb.update_func(gv, mod[gv].with_attr("num_input", 3))
+``` | def create_embed_func(
+    bb: relax.BlockBuilder,
+    param_manager: ParamManager,
+    config: LlamaConfig,
+    quant_scheme: QuantizationScheme,
+) -> None:
+    func_name = "embed"
+
+    seq_len = tvm.tir.SizeVar("num_tokens_excluding_cache", "int64")
+    with bb.function(func_name):
+        model = LlamaEmbedTokensWrapper(config, tvm.tir.SizeVar("vocab_size", "int64"))
+        param_manager.register_params(model, func_name, quant_scheme, get_param_quant_kind)
+
+        input_ids = nn.Placeholder((1, seq_len), dtype="int32", name="input_ids")
+        with bb.dataflow():
+            inputs_embeds = model(input_ids)
+            params = [input_ids] + model.parameters()
+            gv = bb.emit_output(inputs_embeds)
+        bb.emit_func_output(gv, params)
+
+    mod = bb.get()
+    gv = mod.get_global_var(func_name)
+    bb.update_func(gv, mod[gv].with_attr("num_input", 1))
+[QA 4] ```python
+def get_quantized_params(self, func_name: str) -> List[relax.Var]:
+    quantized_params: List[relax.Var] = []
+
+    bb = relax.BlockBuilder()
+    with bb.function("main", []):
+        self.param2qrange = dict()
+
+        for name in self.param_names:
+            param = self.params[name]
+            param_info = None
+            if func_name in param.param_info_dict:
+                param_info = param.param_info_dict[func_name]
+            else:
+                param_info = relax.TensorStructInfo(
+                    tvm.ir.load_json(tvm.ir.save_json(param.param_info.shape)),
+                    param.param_info.dtype,
+                )
+
+            loaded_tensor_names, loaded_tensor_info = param.quant_spec.get_loaded_tensor_info(
+                name, param_info
+            )
+
+            provided_tensor_vars: List[relax.Var] = [
+                relax.Var(name, sinfo)
+                for name, sinfo in zip(loaded_tensor_names, loaded_tensor_info)
+            ]
+
+            # Get the quantization function of this parameter.
+            f_quantize = param.quant_spec.get_quantize_func(param_info)
+            if f_quantize is None:
+                # If the parameter does not have a quantization function, either it
+                # does not need quantization or it is pre-quantized.
+                self.param2qrange[param] = range(
+                    len(quantized_params),
+                    len(quantized_params) + len(provided_tensor_vars),
+                )
+                quantized_params.extend(provided_tensor_vars)
+            else:
+                # If the parameter has a quantization function, it is not expected
+                # to be pre-quantized.
+                assert len(provided_tensor_vars) == 1, (
+                    "A parameter with quantization function is not expected "
+                    "to be pre-quantized."
+                )
+
+                # Apply the quantization function.
+                quantized_data = bb.normalize(f_quantize(bb, provided_tensor_vars))
+                if isinstance(quantized_data.struct_info, relax.TupleStructInfo):
+                    fields = quantized_data.struct_info.fields
+                    n_tensor = len(fields)
+                    assert n_tensor > 1
+                    # Record the range of quantized tensors of this parameter.
+                    self.param2qrange[param] = range(
+                        len(quantized_params),
+                        len(quantized_params) + n_tensor,
+                    )
+                    # Collect the quantized tensors to return.
+                    quantized_params.extend(
+                        relax.Var(f"{name}.{field.dtype |         def fetch_torch_param(torch_param):
+            if str(torch_param.dtype) == "torch.bfloat16":
+                # Convert to float32 first.
+                return torch_param.detach().cpu().float().numpy()
+            else:
+                return torch_param.detach().cpu().numpy()
+[effective] clen=66237 window=4096 chunk_ratio=0.040677 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.05it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-8: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/8_qwen2.5-7b-instruct-1m_fastkvzip__rqflr01_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 106.6s. Mem: 14.31/79.18 GB. [scbench_repoqa-8]
+
+[effective] clen=66237 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-9: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```python
+def _dequantize(
+    param: Parameter,
+    qparams: List[relax.Var],
+    bb: relax.BlockBuilder,
+    func_name: str,
+) -> relax.Var:
+    """Applying dequantization to the input parameter.
+    This method is called by `transform_module` below, and is not
+    directly invoked outside the class.
+
+    Parameters
+    ----------
+    param : Parameter
+        The parameter whose quantized tensors are to be dequantized.
+
+    qparams : List[relax.Var]
+        The relax.Var of the quantized tensors of all parameters in the model.
+
+    Returns
+    -------
+    The dequantized parameter, in the form of a relax.Var.
+    """
+    # Get the dequantization function of this parameter.
+    f_dequantize = param.quant_spec.get_dequantize_func(
+        param_info=param.param_info_dict[func_name],
+        qparam_info=[qparam.struct_info for qparam in qparams],
+    )
+    if f_dequantize is None:
+        # If the parameter does not have a dequantization function, its "quantized
+        # data" is expected to have only one element.
+        assert len(qparams) == 1, (
+            "A parameter without dequantization function is expected not to have "
+            'more than one "quantized data".'
+        )
+        return qparams[0]
+    else:
+        # Apply the dequantization function.
+        return bb.emit(f_dequantize(bb, qparams))
+``` |     def _dequantize(
+        self,
+        param: Parameter,
+        qparams: List[relax.Var],
+        bb: relax.BlockBuilder,
+        func_name: str,
+    ) -> relax.Var:
+        """Applying dequantization to the input parameter.
+        This method is called by `transform_module` below, and is not
+        directly invoked outside the class.
+
+        Parameters
+        ----------
+        param : Parameter
+            The parameter whose quantized tensors are to be dequantized.
+
+        qparams : List[relax.Var]
+            The relax.Var of the quantized tensors of all parameters in the model.
+
+        Returns
+        -------
+        The dequantized parameter, in the form of a relax.Var.
+        """
+        # Get the dequantization function of this parameter.
+        f_dequantize = param.quant_spec.get_dequantize_func(
+            param_info=param.param_info_dict[func_name],
+            qparam_info=[qparam.struct_info for qparam in qparams],
+        )
+        if f_dequantize is None:
+            # If the parameter does not have a dequantization function, its "quantized
+            # data" is expected to have only one element.
+            assert len(qparams) == 1, (
+                "A parameter without dequantization function is expected not to have "
+                'more than one "quantized data".'
+            )
+            return qparams[0]
+        else:
+            # Apply the dequantization function.
+            return bb.emit(f_dequantize(bb, qparams))
+[QA 1] ```python
+class ModuleList(nn.Module):
+    def __init__(self, modules: List[nn.Module]):
+        self.modules = modules
+
+    def __iter__(self):
+        return iter(self.modules)
+
+    def __getitem__(self, idx):
+        return self.modules[idx]
+
+    def __len__(self):
+        return len(self.modules)
+
+    def forward(self, x: relax.Expr) -> relax.Var:
+        for module in self.modules:
+            x = module(x)
+        return x
+``` |     def __iter__(self):
+        return iter(self.modules)
+[QA 2] ```python
+def rotary_modulate_by_freq(tensor, idx, pos, position_embedding_base):
+    head_dim = tensor.shape[-1]
+    dtype = tensor.dtype
+    n_feat_half = head_dim // 2
+    feat_idx = idx[-1]
+    inv_freq = te.const(1, "float32") / (
+        te.power(
+            te.const(position_embedding_base, "float32"),
+            ((2 * feat_idx) % head_dim).astype("float32") / head_dim.astype("float32"),
+        )
+    )
+    freq = pos * inv_freq
+    left_indices = idx[:-1] + (feat_idx - n_feat_half,)
+    right_indices = idx[:-1] + (feat_idx + n_feat_half,)
+    return te.cos(freq).astype(dtype) * tensor(*idx) + te.sin(freq).astype(dtype) * tvm.tir.Select(
+        feat_idx >= n_feat_half,
+        tensor[(*left_indices,)],
+        -tensor[(*right_indices,)],
+    )
+``` | def rotary_modulate_by_freq(tensor, idx, pos, position_embedding_base):
+    head_dim = tensor.shape[-1]
+    dtype = tensor.dtype
+    n_feat_half = head_dim // 2
+    feat_idx = idx[-1]
+    inv_freq = te.const(1, "float32") / (
+        te.power(
+            te.const(position_embedding_base, "float32"),
+            ((2 * feat_idx) % head_dim).astype("float32") / head_dim.astype("float32"),
+        )
+    )
+    freq = pos * inv_freq
+    left_indices = idx[:-1] + (feat_idx - n_feat_half,)
+    right_indices = idx[:-1] + (feat_idx + n_feat_half,)
+    return te.cos(freq).astype(dtype) * tensor(*idx) + te.sin(freq).astype(dtype) * tvm.tir.Select(
+        feat_idx >= n_feat_half,
+        tensor[(*left_indices,)],
+        -tensor[(*right_indices,)],
+    )
+[QA 3] ```python
+def pattern_check(ctx: relax.transform.PatternCheckContext) -> bool:
+    call = ctx.annotated_expr["w"]
+    if not isinstance(call, relax.Call):
+        return False
+    gv = call.args[0]
+    if not isinstance(gv, relax.GlobalVar):
+        return False
+    return gv.name_hint.startswith("decode") or gv.name_hint.startswith("fused_decode")
+
+
+def check_matmul(ctx: relax.transform.PatternCheckContext) -> bool:
+    call = ctx.annotated_expr["matmul"]
+    if not isinstance(call, relax.Call):
+        return False
+    gv = call.args[0]
+    if not isinstance(gv, relax.GlobalVar):
+        return False
+    return (
+        gv.name_hint.startswith("matmul")
+        or gv.name_hint.startswith("fused_matmul")
+        or gv.name_hint.startswith("NT_matmul")
+        or gv.name_hint.startswith("fused_NT_matmul")
+    )
+
+
+def pattern_check():
+    def f_pattern_check(ctx: relax.transform.PatternCheckContext) -> bool:
+        return check_decoding(ctx) and check_matmul(ctx)
+
+    return f_pattern_check
+``` | def f_default_compute_relax_param(relax_pname: str, torch_params: List[Any]) -> Any:
+    """The defualt `f_compute_relax_param` for ParamManager.
+    See ParamManager for more details.
+    """
+    raise NotImplementedError()
+[QA 4] ```python
+def create_softmax_func(bb: relax.BlockBuilder, config: ChatGLMConfig) -> None:
+    with bb.function("softmax_with_temperature"):
+        logits = nn.Placeholder((1, 1, config.padded_vocab_size), dtype="float32", name="logits")
+        temperature = nn.Placeholder((), dtype="float32", name="temperature")
+        with bb.dataflow():
+            div = bb.emit(relax.op.divide(logits, temperature))
+            softmax = bb.emit(relax.op.nn.softmax(div, axis=-1))
+            gv = bb.emit_output(softmax)
+        bb.emit_func_output(gv, [logits, temperature])
+``` | def create_softmax_func_for_single_seq(bb: relax.BlockBuilder, config: LlamaConfig) -> None:
+    with bb.function("softmax_with_temperature"):
+        logits = nn.Placeholder(
+            (1, 1, tvm.tir.SizeVar("vocab_size", "int64")), dtype="float32", name="logits"
+        )
+        temperature = nn.Placeholder((), dtype="float32", name="temperature")
+        with bb.dataflow():
+            div = bb.emit(relax.op.divide(logits, temperature))
+            softmax = bb.emit(relax.op.nn.softmax(div, axis=-1))
+            gv = bb.emit_output(softmax)
+        bb.emit_func_output(gv, [logits, temperature])
+[effective] clen=66237 window=4096 chunk_ratio=0.040677 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.05it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-9: 66237 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/9_qwen2.5-7b-instruct-1m_fastkvzip__rqflr01_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 64.3s. Mem: 14.31/79.18 GB. [scbench_repoqa-9]
+
+[effective] clen=65975 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.30it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
