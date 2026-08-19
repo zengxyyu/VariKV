@@ -19000,3 +19000,169 @@ Chunked prefilling with 0.30 ratio, window 4096
 [effective] clen=66148 window=4096 chunk_ratio=0.147193 degenerate=False
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.89it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.66it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-76: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66148 window=4096 chunk_ratio=0.040592 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.05it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-76: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66148 window=3307 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.57it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.16it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.05 ratio, window 3307
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-76: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/76_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 345.6s. Mem: 14.31/79.18 GB. [scbench_repoqa-76]
+
+[effective] clen=66148 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.27it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-77: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```go
+func ValidateProxyConfigurerForServer(c v1.ProxyConfigurer, s *v1.ServerConfig) error {
+	base := c.GetBaseConfig()
+	if err := validateProxyBaseConfigForServer(base); err != nil {
+		return err
+	}
+
+	switch v := c.(type) {
+	case *v1.TCPProxyConfig:
+		return validateTCPProxyConfigForServer(v, s)
+	case *v1.UDPProxyConfig:
+		return validateUDPProxyConfigForServer(v, s)
+	case *v1.TCPMuxProxyConfig:
+		return validateTCPMuxProxyConfigForServer(v, s)
+	case *v1.HTTPProxyConfig:
+		return validateHTTPProxyConfigForServer(v, s)
+	case *v1.HTTPSProxyConfig:
+		return validateHTTPSProxyConfigForServer(v, s)
+	case *v1.STCPProxyConfig:
+		return validateSTCPProxyConfigForServer(v, s)
+	case *v1.XTCPProxyConfig:
+		return validateXTCPProxyConfigForServer(v, s)
+	case *v1.SUDPProxyConfig:
+		return validateSUDPProxyConfigForServer(v, s)
+	default:
+		return errors.New("unknown proxy config type")
+	}
+}
+``` | func validateTCPMuxProxyConfigForServer(c *v1.TCPMuxProxyConfig, s *v1.ServerConfig) error {
+	if c.Multiplexer == string(v1.TCPMultiplexerHTTPConnect) &&
+		s.TCPMuxHTTPConnectPort == 0 {
+		return fmt.Errorf("tcpmux with multiplexer httpconnect not supported because this feature is not enabled in server")
+	}
+
+	return validateDomainConfigForServer(&c.DomainConfig, s)
+}
+[QA 1] ```go
+func WordSepNormalizeFunc(f *pflag.FlagSet, name string) pflag.NormalizedName {
+	if strings.Contains(name, "_") {
+		return pflag.NormalizedName(strings.ReplaceAll(name, "_", "-"))
+	}
+	return pflag.NormalizedName(name)
+}
+``` | func WordSepNormalizeFunc(f *pflag.FlagSet, name string) pflag.NormalizedName {
+	if strings.Contains(name, "_") {
+		return pflag.NormalizedName(strings.ReplaceAll(name, "_", "-"))
+	}
+	return pflag.NormalizedName(name)
+}
+[QA 2] ```go
+func preUnmarshalFromIni(cfg ProxyConf, prefix string, name string, section *ini.Section) error {
+	err := section.MapTo(cfg)
+	if err != nil {
+		return err
+	}
+
+	err = cfg.GetBaseConfig().decorate(prefix, name, section)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+``` | func preUnmarshalFromIni(cfg ProxyConf, prefix string, name string, section *ini.Section) error {
+	err := section.MapTo(cfg)
+	if err != nil {
+		return err
+	}
+
+	err = cfg.GetBaseConfig().decorate(prefix, name, section)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+[QA 3] ```go
+func (c *ClientCommonConfig) Complete() {
+	c.ServerAddr = util.EmptyOr(c.ServerAddr, "0.0.0.0")
+	c.ServerPort = util.EmptyOr(c.ServerPort, 7000)
+	c.LoginFailExit = util.EmptyOr(c.LoginFailExit, lo.ToPtr(true))
+	c.NatHoleSTUNServer = util.EmptyOr(c.NatHoleSTUNServer, "stun.easyvoip.com:3478")
+
+	c.Auth.Complete()
+	c.Log.Complete()
+	c.Transport.Complete()
+	c.WebServer.Complete()
+
+	c.UDPPacketSize = util.EmptyOr(c.UDPPacketSize, 1500)
+}
+``` | func TestClientConfigComplete(t *testing.T) {
+	require := require.New(t)
+	c := &ClientConfig{}
+	c.Complete()
+
+	require.EqualValues("token", c.Auth.Method)
+	require.Equal(true, lo.FromPtr(c.Transport.TCPMux))
+	require.Equal(true, lo.FromPtr(c.LoginFailExit))
+	require.Equal(true, lo.FromPtr(c.Transport.TLS.Enable))
+	require.Equal(true, lo.FromPtr(c.Transport.TLS.DisableCustomTLSFirstByte))
+	require.NotEmpty(c.NatHoleSTUNServer)
+}
+[QA 4] ```go
+package client
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+
+	"github.com/fatedier/frp/client"
+	httppkg "github.com/fatedier/frp/pkg/util/http"
+)
+
+type Client struct {
+	address  string
+	authUser string
+	authPwd  string
+}
+
+func New(host string, port int) *Client {
+	return &Client{
+		address: net.JoinHostPort(host, strconv.Itoa(port)),
+	}
+}
+
+func (c *Client) SetAuth(user, pwd string) {
+	c.authUser = user
+	c.authPwd = pwd
+}
+``` | func NewContext(ctx context.Context, xl *Logger) context.Context {
+	return context.WithValue(ctx, xlogKey, xl)
+}
+[effective] clen=66148 window=4096 chunk_ratio=0.733498 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.32it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-77: 66148 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66148 window=4096 chunk_ratio=0.466995 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.40it/s]
