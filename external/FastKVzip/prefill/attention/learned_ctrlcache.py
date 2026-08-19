@@ -264,6 +264,18 @@ class LearnedControlRetainCache(RetainCache):
                 _ae = _ge * float(self.ctrl.alpha) if self.ctrl is not None else None
                 bt = project_quota(b0, self._qinj.to(b0.device), n, _qm, L, H,
                                    sc=sc, alpha_eff=_ae)
+                if _qm == "maxlift":
+                    # **这一行是 maxlift 唯一的运行时证据，缺了它这个实验读不了。**
+                    # `certify` 只保证结果可达且预算守恒；它**不能**区分
+                    # 「最大抬升就是很小」与「本 chunk 根本没有零配额头、于是什么也没做」。
+                    # 这两种情形对 ≈0 的分数给出完全相反的解释 —— 正是静默替换的模式。
+                    from attention.quota_project import project_quota as _pq
+                    print(f"[maxlift] chunk lo={lo} alpha_eff={_ae:.6f}"
+                          f" lift_cum={getattr(_pq,'_ml_lift',0.0):.0f}"
+                          f" n={getattr(_pq,'_ml_n',0)}"
+                          f" n_starved={int((b0==0).sum())}/{int(b0.numel())}"
+                          f" L1_b0={float((bt.float()-b0).abs().sum()):.0f}"
+                          f" Btot={int(b0.sum())}", flush=True)
                 if _qm in ("floorproj", "pathproj", "floorpath"):
                     # **事后可验证性**：不打这一行，我就无法在日志里证明这一臂真的
                     # 按设计跑了（用对了 α、投影真的动了）。地板臂靠 dump 事后判定，
