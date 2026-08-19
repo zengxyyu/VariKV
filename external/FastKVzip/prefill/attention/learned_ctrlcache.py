@@ -269,9 +269,14 @@ class LearnedControlRetainCache(RetainCache):
                     # 按设计跑了（用对了 α、投影真的动了）。地板臂靠 dump 事后判定，
                     # 这里靠这行。L1=0 全程出现即说明地板本就可达、投影是恒等的。
                     from attention.quota_project import project_quota as _pq
+                    # 两个 L1 缺一不可：`L1_floor` 说投影走了多远，
+                    # `L1_b0` 说它**走到哪去了**。只看前者会把「投影落回基线」
+                    # 与「投影落到另一个等距点」混为一谈 —— 而这两者对
+                    # 「地板收益还剩多少」的预测完全相反。
                     print(f"[{_qm}] chunk lo={lo} alpha_eff={_ae:.6f}"
                           f" lam={os.environ.get('VARIKV_PROJ_LAMBDA','1.0')}"
                           f" L1_cum={getattr(_pq,'_proj_l1',0.0):.0f}"
+                          f" L1_b0={float((bt.float()-b0).abs().sum()):.0f}"
                           f" n={getattr(_pq,'_proj_n',0)}"
                           f" Btot={int(b0.sum())}", flush=True)
                 idx = torch.argsort(sc.reshape(L * H, n), dim=-1, descending=True)
