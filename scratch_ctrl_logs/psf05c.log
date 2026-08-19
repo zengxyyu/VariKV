@@ -246,4 +246,102 @@ chunk inputs, size: 16000 (num 8)
 [QA 4] lP^QiEqUEfEGT_OZEqPFBhBXD | lP^QiEqUEfEGT_OZEqPFBhBXD
 [effective] clen=112254 window=4096 chunk_ratio=0.481065 degenerate=False
 chunk inputs, size: 16000 (num 8)
-Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.74it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.43it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.24it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.09it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.03s/it]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.15s/it]
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.74it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.43it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.24it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.09it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.03s/it]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.15s/it]Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.28s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.09it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.04it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-10: 112254 tokens, KV cache 6.4 GB, torch.bfloat16
+Results saved at ./results/scbench_prefix_suffix/10_qwen2.5-7b-instruct-1m_fastkvzip__psf05c_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 26.1s. Mem: 14.31/79.18 GB. [scbench_prefix_suffix-10]
+
+[effective] clen=112392 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.32it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.46s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.55s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.30s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-11: 112392 tokens, KV cache 6.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] myZpeUsBwH-MrLqFluSdMfEoG | myZpeUsBwH-MrLqFluSdMfEoG
+[QA 1] The word in the dictionary that has both the prefix "gzmRI" and the suffix "PTj+H" is:
+
+`gzmRI+ZhfacsbjPTj+H` | gzmRI+ZhfUALI_EjIwXkPTj+H
+[QA 2] The word in the dictionary that has both the prefix "ZJCrf" and the suffix "SxUqr" is:
+
+**ZJCrfSxUqr** | ZJCrfoi+wNKvBKerPnvOSxUqr
+[QA 3] The word in the dictionary that has both the prefix "Y_QiG" and the suffix "lsktX" is:
+
+**Y_QiGlsktX** | Y_QiGmP-GvEFFdXhR_^llsktX
+[QA 4] The word in the dictionary that has both the prefix "jiYaN" and the suffix "AHNQX" is 'jiYaNQAHNQX'. | jiYaNMqQ-EmfyjhVlx_wAHNQX
+[effective] clen=112392 window=4096 chunk_ratio=0.481089 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.73it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.43it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.24it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.09it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.03s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.15s/it]Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.28s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.09it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.04it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-11: 112392 tokens, KV cache 6.4 GB, torch.bfloat16
+Results saved at ./results/scbench_prefix_suffix/11_qwen2.5-7b-instruct-1m_fastkvzip__psf05c_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 28.9s. Mem: 14.31/79.18 GB. [scbench_prefix_suffix-11]
+
+[effective] clen=112595 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.30it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.46s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.56s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.30s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-12: 112595 tokens, KV cache 6.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The word in the dictionary that has both the prefix "ILgyE" and the suffix "ULARd" is "ILgyEsrqWmkkGgCxaHPrULARd". | ILgyEsrqWmkkGgCxaHPrULARd
+[QA 1] The word in the dictionary that has both the prefix "C-osq" and the suffix "wPbdq" is `C-osqqkwPbdq`. | C-osqqkoqS+RkQdTcH_twPbdq
+[QA 2] The word in the dictionary that has both the prefix "Rp^sr" and the suffix "_ZNGS" is `Rp^srywkxfy_wwjDErUJ_ZNGS`. | Rp^srywkxfy_wwjDErUJ_ZNGS
+[QA 3] The word in the dictionary that has both the prefix "ZuGlM" and the suffix "RW-JY" is:
+
+**ZuGlM+kulEqTReaLGAlzRW-JY** | ZuGlM+kulEqTReaLGAlzRW-JY
+[QA 4] The word in the dictionary that has both the prefix "vmfbj" and the suffix "zXiBv" is `vmfbjrzXiBv`. | vmfbjhAdHADTqKPPMt^rzXiBv
+[effective] clen=112595 window=4096 chunk_ratio=0.481124 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.71it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.42it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.24it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.09it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.03s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.15s/it]Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.28s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.08it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.04it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-12: 112595 tokens, KV cache 6.5 GB, torch.bfloat16
+Results saved at ./results/scbench_prefix_suffix/12_qwen2.5-7b-instruct-1m_fastkvzip__psf05c_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 35.6s. Mem: 14.31/79.18 GB. [scbench_prefix_suffix-12]
+
+[effective] clen=112313 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.29it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.54s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.30s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-13: 112313 tokens, KV cache 6.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The word in the dictionary that has both the prefix "axB^Y" and the suffix "iyJgB" is `axB^YwyrlHGcG`. | axB^YwyrlRlmCMnRNLFhiyJgB
+[QA 1] The word in the dictionary that has both the prefix "KlumX" and the suffix "vyJoB" is `KlumzVyJoB`. | KlumXXOjjAeUuYBbCHwrvyJoB
+[QA 2] The word in the dictionary that has both the prefix "NZFZJ" and the suffix "HuSel" is:
+
+**"NZFZJKhe__mDbxlIDzXhpfBzhC"** | NZFZJXDYRLQdpFurJBmfHuSel
+[QA 3] The word in the dictionary that has both the prefix "gWLqM" and the suffix "YkFqj" is:
+
+`gWLqMkFqj` | gWLqMkbxq^qgNzbUXvOIYkFqj
+[QA 4] The word in the dictionary that has both the prefix "HIKyr" and the suffix "AJGaR" is:
+
+**HIKyrGaR** | HIKyrckXPwyedmsFJCJGAJGaR
+[effective] clen=112313 window=4096 chunk_ratio=0.481075 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.75it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.43it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.24it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.09it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.03s/it]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.15s/it]Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.28s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.09it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.04it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-13: 112313 tokens, KV cache 6.4 GB, torch.bfloat16
+Results saved at ./results/scbench_prefix_suffix/13_qwen2.5-7b-instruct-1m_fastkvzip__psf05c_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 28.9s. Mem: 14.31/79.18 GB. [scbench_prefix_suffix-13]
+
+[effective] clen=112316 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.31it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.46s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.54s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.29s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-14: 112316 tokens, KV cache 6.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The word in the dictionary that has both the prefix "OK-SG" and the suffix "_MPRn" is:
+
+`OZ-SGqMPRn` | OK-SGquwb_^cVWR^wFKz_MPRn
+[QA 1] RjCIWC_SAkZVbdRbFS+phkqbs | RjCIWC_SAkZVbdRbFS+phkqbs
+[QA 2] The word in the dictionary that has both the prefix "tUUqy" and the suffix "XwGBO" is:
+
+`tUUqyFFraTLI-hWUURf^XwGBO` | tUUqyFFraTLI-hWUURf^XwGBO
+[QA 3] The word in the dictionary that has both the prefix "IFFtm" and the suffix "RTElk" is `IFFtmxVgMSD`. | IFFtmxV-uVEeQfcXNuHTRTElk
+[QA 4] The word in the dictionary that has both the prefix `+qHdq` and the suffix `dIHgI` is `+qHdqdIHgI`. | +qHdqrtjvcbi_PUR_biudIHgI
+[effective] clen=112316 window=4096 chunk_ratio=0.481076 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.72it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.42it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.24it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.09it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.03s/it]Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.15s/it]Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.28s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.09it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.04it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-14: 112316 tokens, KV cache 6.4 GB, torch.bfloat16
+Results saved at ./results/scbench_prefix_suffix/14_qwen2.5-7b-instruct-1m_fastkvzip__psf05c_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 30.2s. Mem: 14.31/79.18 GB. [scbench_prefix_suffix-14]
+
+[effective] clen=112212 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.30it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.55s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.30s/it]
