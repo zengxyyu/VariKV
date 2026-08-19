@@ -217,6 +217,54 @@ def main():
     else:
         print(f"  ⇒ **集合级**：最多实现 {mf*100:.1f}%，部分可用。")
 
+    # ---- 第三问：**广度**。这是比「总抬升量」更贴近地板机制的量 -------------
+    # 地板 b1 只要每个饿死头 +1（60 单位 / 10 万预算）就给 +25.80★（72.5% headroom），
+    # 说明起作用的可能是**有多少饿死头拿到了非零配额**，而不是总共抬了多少。
+    # 给定 τ，饿死头 h 能拿到 ≥1 当且仅当 q_max_h(τ) ≥ 1；每个只花 1 个预算，
+    # 所以只要 `Σ_S 1{q_max≥1} + Σ_{S^c} q_min ≤ B` 就买得起。对可行 τ 取最大。
+    print("\n【可达集最多能覆盖多少个饿死头】（广度，闭式）")
+    brows = []
+    for f in sorted(glob.glob(f"{ROOT}/scratch_ctrl_traces_v2_10/doc*.pt")):
+        d = torch.load(f, map_location="cpu")
+        for ch in d["chunks"]:
+            t = float(ch["thres"])
+            sc = torch.cat([pl["s0"][:, :pl["n_near"]].float() for pl in ch["layers"]], 0)
+            sg = torch.cat([pl["sig_h"].float().reshape(-1) for pl in ch["layers"]])
+            G, npt = sc.shape; s0f = sc.reshape(-1); B = int((s0f > t).sum())
+            if B < G or B >= len(s0f) - G:
+                continue
+            vb = torch.zeros(len(s0f), dtype=torch.bool)
+            vb[torch.topk(s0f, B).indices] = True
+            b0 = vb.reshape(G, npt).sum(-1); S = (b0 == 0)
+            if not bool(S.any()):
+                continue
+            X = sc.float(); a_ = alpha * sg.clamp_min(1e-6); ss = torch.sort(X, dim=-1).values
+            hp = (X + a_[:, None]).reshape(-1); lp = (X - a_[:, None]).reshape(-1); N = hp.numel()
+            t_hi = float(torch.topk(hp, min(B, N), largest=True).values[-1])
+            t_lo = float(torch.topk(lp, min(B + 1, N), largest=True).values[-1])
+            if not (t_lo < t_hi):
+                continue
+            taus = torch.linspace(t_lo, t_hi, 2048)
+            qmx = npt - torch.searchsorted(ss, (taus[:, None] - a_[None, :]).T.contiguous(),
+                                           right=True).T
+            qmn = npt - torch.searchsorted(ss, (taus[:, None] + a_[None, :]).T.contiguous(),
+                                           right=True).T
+            feas = (qmn.sum(1) <= B) & (qmx.sum(1) >= B)
+            can = (qmx[:, S] >= 1).sum(1)
+            ok = feas & ((can + qmn[:, ~S].sum(1)) <= B)
+            if not bool(ok.any()):
+                continue
+            brows.append((int(can[ok].max()), int(S.sum())))
+    BB = np.array(brows); fr = BB[:, 0] / BB[:, 1]
+    print(f"  {len(BB)} 个 chunk。能被抬到 ≥1 配额的饿死头数 中位 {np.median(BB[:,0]):.0f}"
+          f" / 共 {np.median(BB[:,1]):.0f}")
+    print(f"  **覆盖率 中位 {np.median(fr)*100:.1f}%**"
+          f"   p10 {np.percentile(fr,10)*100:.1f}%  p90 {np.percentile(fr,90)*100:.1f}%")
+    print(f"  ⇒ 地板 b1 需要 **100%** 覆盖（每头 +1，仅 60 单位 / 10 万预算）"
+          f"并给出 +25.80★；可达集最多覆盖 {np.median(fr)*100:.0f}%。"
+          f"\n     **限制在「广度」而不在「预算」** —— 总抬升量可达 45%，"
+          f"但只能堆在那 {np.median(fr)*100:.0f}% 的头上。")
+
     print("\n  ⚠ 口径一：trace 每 (chunk,层,头) 只有 256~768 个**近阈值候选**，"
           "配额是候选池内的量，\n     绝对数值不可外推到 eval。")
     print("  ⚠ 口径二（**曾经算错**）：界必须用 trace 里**存的** `sig_h`（建 trace 时"
