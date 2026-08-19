@@ -47,6 +47,7 @@ def main():
                 nn_ = pl["n_near"]
                 S0.append(pl["s0"][:, :nn_].float())                  # [H, n]
             sc = torch.cat(S0, dim=0)                                 # [L*H, n]
+            sig = torch.cat([pl["sig_h"].float().reshape(-1) for pl in ch["layers"]])
             G, npt = sc.shape
             s0f = sc.reshape(-1)
             B = int((s0f > t).sum())
@@ -75,7 +76,7 @@ def main():
             if int(tg.sum()) != B:
                 nskip += 1; continue
             try:
-                q, l1 = reachable_project(tg, sc, B, alpha=alpha)
+                q, l1 = reachable_project(tg, sc, B, alpha=alpha, sigma=sig)
             except RuntimeError as e:
                 # **不静默跳过**：丢样本会让统计有偏，而且正是我刚在 floorproj 上
                 # 批评过的模式。计数并在末尾报出来。
@@ -87,16 +88,18 @@ def main():
                 nskip += 1; continue
             # 位移落在**哪些头**上？假说：`a_h = α·σ_h` 对饿死头极小，
             # 于是投影只能把预算调整**改道**到 σ_h 大的（非饿死）头上。
-            sig = (alpha * sc.std(-1).clamp_min(1e-6)).numpy()
+            # **不要在这里重算 σ** —— 上面第一处就是这么错的：候选池是近阈值截断，
+            # 在它上面算 std 会系统性低估界。用 trace 里存的 `sig_h`（整块口径）。
+            a_np = (alpha * sig.clamp_min(1e-6)).numpy()
             starved = (b0.numpy() == 0)
             raise_f = np.maximum(df, 0)                       # 地板想抬的量
             raise_p = np.maximum(dp, 0)                       # 投影实际抬的量
-            hi_sig = sig >= np.median(sig)
+            hi_sig = a_np >= np.median(a_np)
             extra.append((
                 float(np.abs(dp)[hi_sig].sum() / max(np.abs(dp).sum(), 1e-9)),   # 位移集中在高σ头的比例
                 float(np.abs(df)[hi_sig].sum() / max(np.abs(df).sum(), 1e-9)),   # 地板的对照
                 float(raise_p[starved].sum() / max(raise_f[starved].sum(), 1e-9)) if starved.any() else np.nan,
-                float(np.corrcoef(np.abs(dp), sig)[0, 1]) if np.std(np.abs(dp)) > 0 else np.nan,
+                float(np.corrcoef(np.abs(dp), a_np)[0, 1]) if np.std(np.abs(dp)) > 0 else np.nan,
                 float(starved.mean()),
                 # 位移落在**饿死头 vs 非饿死头**上的份额（这才是直接的切分）
                 float(np.abs(dp)[starved].sum() / max(np.abs(dp).sum(), 1e-9)),
@@ -109,7 +112,7 @@ def main():
                 float(dp @ df) / (nf ** 2),                    # ρ_impl
                 float(np.linalg.norm(dp)) / nf,                # 幅度比
                 float(dp @ df) / (nf * max(np.linalg.norm(dp), 1e-12)),   # 余弦
-                float(slack_of(tg, torch.sort(sc, dim=-1).values, alpha * sc.std(-1).clamp_min(1e-6))),
+                float(slack_of(tg, torch.sort(sc, dim=-1).values, alpha * sig.clamp_min(1e-6))),
             ))
     A = np.array(rows)
     print(f"teacher trace，b_min={bmin:.0f}，α={alpha:.6f}，{len(A)} 个 chunk"
@@ -165,7 +168,8 @@ def main():
             S = (b0 == 0)
             if not bool(S.any()):
                 continue
-            X = sc.float(); a_ = alpha * X.std(-1).clamp_min(1e-6)
+            sig2 = torch.cat([pl["sig_h"].float().reshape(-1) for pl in ch["layers"]])
+            X = sc.float(); a_ = alpha * sig2.clamp_min(1e-6)     # **整块口径**，不是候选池
             ss = torch.sort(X, dim=-1).values
             hp = (X + a_[:, None]).reshape(-1); lp = (X - a_[:, None]).reshape(-1)
             N = hp.numel()
@@ -199,11 +203,26 @@ def main():
           f"（饿死头中位 {np.median(BR[:,2]):.0f}/{int(BR[0,3])} 个）")
     print(f"  **可达集内最大可抬升量 / 地板想抬的量** 中位 **{np.median(frac)*100:.2f}%**"
           f"   p10 {np.percentile(frac,10)*100:.2f}%  p90 {np.percentile(frac,90)*100:.2f}%")
-    print(f"  ⇒ 这是**集合级**结论：不是「L1 最近那一点抬不动」，而是"
-          f"**整个 Q_box 里没有任何一点能把饿死头抬起来**。")
+    # **判词不能写死**：第一版把「整个 Q_box 里没有任何一点能把饿死头抬起来」
+    # 硬编码在这里，而那次算错了 σ_h（见下），重算后是 45% —— 一句写死的话
+    # 把一个被推翻的结论继续打印了出来。判词必须由数字生成。
+    mf = float(np.median(frac))
+    if mf < 0.10:
+        print(f"  ⇒ **集合级**：整个 `Q_box` 最多只能实现地板意图的 {mf*100:.1f}%，"
+              f"抬饿死头这条机制基本不可用。")
+    elif mf > 0.30:
+        print(f"  ⇒ **集合级**：整个 `Q_box` 最多能实现地板意图的 {mf*100:.1f}% ——"
+              f"**相当可观**。「可达集抬不动饿死头」**不成立**；"
+              f"不可达的是地板那个**精确配额**，不是「抬升」这件事本身。")
+    else:
+        print(f"  ⇒ **集合级**：最多实现 {mf*100:.1f}%，部分可用。")
 
-    print("\n  ⚠ 口径：trace 每 (chunk,层,头) 只有 768 个近阈值候选，配额是**候选池内**的量，"
-          "\n     绝对数值不可外推到 eval；结论只在近阈值结构上成立。")
+    print("\n  ⚠ 口径一：trace 每 (chunk,层,头) 只有 256~768 个**近阈值候选**，"
+          "配额是候选池内的量，\n     绝对数值不可外推到 eval。")
+    print("  ⚠ 口径二（**曾经算错**）：界必须用 trace 里**存的** `sig_h`（建 trace 时"
+          "用整块算），\n     **不能**在近阈值候选池上重算 std —— 后者系统性低估界"
+          "（stored/pool 比值 p90 达 26.6×），\n     第一版因此把最大可抬升算成 2.25%，"
+          "实为约 45%。运行时 `maxlift` 的日志与 45% 同量级，是这次纠错的独立佐证。")
     return 0
 
 

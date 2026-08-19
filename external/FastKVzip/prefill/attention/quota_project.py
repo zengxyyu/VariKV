@@ -78,7 +78,7 @@ def slack_of(q, ss_asc, a):
     return float((s_q + a).min() - (s_q1 - a).max())
 
 
-def reachable_project(tgt, sc, Btot, alpha, n_tau=2048, certify=True):
+def reachable_project(tgt, sc, Btot, alpha, n_tau=2048, certify=True, sigma=None):
     """把目标配额投影到**放宽的有界分数可达集** `Q_box` 上。
 
     **命名很重要，此前的 docstring 写错了。** 三个集合的严格关系是
@@ -120,7 +120,14 @@ def reachable_project(tgt, sc, Btot, alpha, n_tau=2048, certify=True):
     # `sig_h = f0.std(-1)`，随后在 delta() 里 `.clamp_min(1e-6)`。差一个 float()
     # 或差一个 clamp，这个理论关键实验建模的就不是真实控制器的界。
     X = sc.reshape(G, -1).float()
-    a = float(alpha) * X.std(dim=-1).clamp_min(1e-6)
+    # `sigma=None`（生产路径）时从 `sc` 现算，与 calib_scorer.delta 逐字一致。
+    # **离线探针必须显式传 `sigma`**：teacher trace 里的 `s0` 只有近阈值候选
+    # （每 (chunk,层,头) 256~768 个），在这个截断池上重算 std 会系统性地
+    # 低估界（实测 stored/pool 比值 p90 达 26.6×），于是可达集被算得过小。
+    # trace 里存的 `sig_h` 是建 trace 时用**整块**算的，才是对的那个。
+    a = (float(alpha) * X.std(dim=-1).clamp_min(1e-6) if sigma is None
+         else float(alpha) * sigma.reshape(-1).float().clamp_min(1e-6))
+    assert a.numel() == G, f"sigma 形状不对: {a.numel()} != {G}"
     ss, _ = torch.sort(X, dim=-1)                       # 升序
     n_tok = ss.shape[1]
 
@@ -180,7 +187,7 @@ def reachable_project(tgt, sc, Btot, alpha, n_tau=2048, certify=True):
     return best, best_d
 
 
-def max_lift_quota(b0, sc, Btot, alpha, n_tau=2048, certify=True):
+def max_lift_quota(b0, sc, Btot, alpha, n_tau=2048, certify=True, sigma=None):
     """`Q_box` 内**最大化饿死头总抬升**的那个配额点，闭式 + 网格取 τ*。
 
     为什么值得单独跑：`scratch_probe_projdir.py` 已经算出「整个 `Q_box` 里最多只能
@@ -200,7 +207,9 @@ def max_lift_quota(b0, sc, Btot, alpha, n_tau=2048, certify=True):
     """
     G = b0.numel()
     X = sc.reshape(G, -1).float()
-    a = float(alpha) * X.std(dim=-1).clamp_min(1e-6)
+    a = (float(alpha) * X.std(dim=-1).clamp_min(1e-6) if sigma is None
+         else float(alpha) * sigma.reshape(-1).float().clamp_min(1e-6))   # 见 reachable_project
+    assert a.numel() == G, f"sigma 形状不对: {a.numel()} != {G}"
     ss, _ = torch.sort(X, dim=-1)
     n_tok = ss.shape[1]
     S = (b0 == 0)
