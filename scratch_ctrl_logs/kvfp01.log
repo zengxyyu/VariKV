@@ -662,4 +662,83 @@ Results saved at ./results/scbench_kv/21_qwen2.5-7b-instruct-1m_fastkvzip__kvfp0
 
 [effective] clen=169379 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 11)
-Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.32it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:04,  1.81it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.30it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.22s/it]Prefill:  55%|█████▍    | 6/11 [00:06<00:07,  1.46s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.72s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  1.98s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.25s/it]
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.32it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:04,  1.81it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.30it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.22s/it]Prefill:  55%|█████▍    | 6/11 [00:06<00:07,  1.46s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.72s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  1.98s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.25s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.53s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.55s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.85s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-22: 169379 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "d920574e-814b-45fa-8318-5324a56c8609" is "9aaf6f3a-2947-4cc7-8713-512897e13126". | 60c06c5b-fe82-487c-812d-2fbb5b699b7a
+[QA 1] The value associated with the key "dff2d8b2-bf83-4e74-a234-82bc6a302abf" is "cbc01fd7-b0fc-4259-b589-68d5bb2aad80". | cbc01fd7-b0fc-4259-b589-68d5bb2aad80
+[QA 2] The value associated with the key "cdd40c82-630e-4a8a-970c-732067976e2c" is "3f5fbab9-3e66-4e59-963e-31ad0c4a8447". | 3f5fbab9-3e66-4e59-963e-31ad0c4a8447
+[QA 3] The value associated with the key "c26fdade-0e23-4c67-9f6e-b25c941645ea" is "d67c8770-9733-4dc7-a6f8-d0a4d29b1cce". | d67c8770-9733-4dc7-a6f8-d0a4d29b1cce
+[QA 4] The value associated with the key "e77c0d09-7b9c-495b-abdc-b6999154fb13" is "c1431929-c18b-47da-a355-369e1493e759". | b5affcdb-818d-43ca-84ee-378f6f3d466c
+[effective] clen=169379 window=4096 chunk_ratio=0.077696 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][floorproj] chunk lo=28 alpha_eff=0.999000 lam=1.0 L1_cum=298196 n=243 Btot=103343
+Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.61it/s][floorproj] chunk lo=11904 alpha_eff=0.999000 lam=1.0 L1_cum=299468 n=244 Btot=139231
+Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.46it/s][floorproj] chunk lo=27904 alpha_eff=0.999000 lam=1.0 L1_cum=300738 n=245 Btot=139231
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.39it/s][floorproj] chunk lo=43904 alpha_eff=0.999000 lam=1.0 L1_cum=302006 n=246 Btot=139231
+Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.34it/s][floorproj] chunk lo=59904 alpha_eff=0.999000 lam=1.0 L1_cum=303270 n=247 Btot=139231
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.30it/s][floorproj] chunk lo=75904 alpha_eff=0.999000 lam=1.0 L1_cum=304516 n=248 Btot=139231
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.26it/s][floorproj] chunk lo=91904 alpha_eff=0.999000 lam=1.0 L1_cum=305762 n=249 Btot=139231
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.23it/s][floorproj] chunk lo=107904 alpha_eff=0.999000 lam=1.0 L1_cum=306984 n=250 Btot=139231
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.19it/s][floorproj] chunk lo=123904 alpha_eff=0.999000 lam=1.0 L1_cum=308236 n=251 Btot=139231
+Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.15it/s][floorproj] chunk lo=139904 alpha_eff=0.999000 lam=1.0 L1_cum=309502 n=252 Btot=139231
+Prefill:  91%|█████████ | 10/11 [00:08<00:00,  1.12it/s][floorproj] chunk lo=155904 alpha_eff=0.999000 lam=1.0 L1_cum=310686 n=253 Btot=81858
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.25it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.26it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-22: 169379 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/22_qwen2.5-7b-instruct-1m_fastkvzip__kvfp01_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 62.5s. Mem: 14.31/79.18 GB. [scbench_kv-22]
+
+[effective] clen=168943 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.32it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.80it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.30it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.22s/it]Prefill:  55%|█████▍    | 6/11 [00:06<00:07,  1.47s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.72s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  1.99s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.26s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.54s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.55s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.85s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-23: 168943 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 40a6cd93-8876-46b9-9a54-027730e83718 | 9ed558fa-1357-4abf-a1bf-713598e757e8
+[QA 1] "990184cd-f711-46b6-b47d-5d38632a74e1" | fa01d940-8893-45e0-ac00-24b70dcfe020
+[QA 2] "427fa67e-5609-4824-9658-ec36a7cd81b9" | b8b254be-7b47-4b1e-8993-a171e9b8c50b
+[QA 3] 40a6cd93-8876-46b9-9a54-027730e83718 | 40a6cd93-8876-46b9-9a54-027730e83718
+[QA 4] "99355c95-651b-414b-af34-902566951141" | 171d04bf-f454-40aa-8c7e-2c758b6037e2
+[effective] clen=168943 window=4096 chunk_ratio=0.077637 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][floorproj] chunk lo=28 alpha_eff=0.999000 lam=1.0 L1_cum=311704 n=254 Btot=103265
+Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.61it/s][floorproj] chunk lo=11904 alpha_eff=0.999000 lam=1.0 L1_cum=312964 n=255 Btot=139125
+Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.46it/s][floorproj] chunk lo=27904 alpha_eff=0.999000 lam=1.0 L1_cum=314238 n=256 Btot=139125
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.39it/s][floorproj] chunk lo=43904 alpha_eff=0.999000 lam=1.0 L1_cum=315488 n=257 Btot=139125
+Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.35it/s][floorproj] chunk lo=59904 alpha_eff=0.999000 lam=1.0 L1_cum=316758 n=258 Btot=139125
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.30it/s][floorproj] chunk lo=75904 alpha_eff=0.999000 lam=1.0 L1_cum=318018 n=259 Btot=139125
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.26it/s][floorproj] chunk lo=91904 alpha_eff=0.999000 lam=1.0 L1_cum=319262 n=260 Btot=139125
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.23it/s][floorproj] chunk lo=107904 alpha_eff=0.999000 lam=1.0 L1_cum=320490 n=261 Btot=139125
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.19it/s][floorproj] chunk lo=123904 alpha_eff=0.999000 lam=1.0 L1_cum=321740 n=262 Btot=139125
+Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.16it/s][floorproj] chunk lo=139904 alpha_eff=0.999000 lam=1.0 L1_cum=322998 n=263 Btot=139125
+Prefill:  91%|█████████ | 10/11 [00:08<00:00,  1.12it/s][floorproj] chunk lo=155904 alpha_eff=0.999000 lam=1.0 L1_cum=324182 n=264 Btot=78005
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.27it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.26it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-23: 168943 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/23_qwen2.5-7b-instruct-1m_fastkvzip__kvfp01_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 56.8s. Mem: 14.31/79.18 GB. [scbench_kv-23]
+
+[effective] clen=169067 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.31it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:04,  1.80it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.30it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.22s/it]Prefill:  55%|█████▍    | 6/11 [00:06<00:07,  1.47s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.72s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  1.99s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.26s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.54s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.55s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.85s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-24: 169067 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 9d82eef2-e615-4d23-b718-f20297daf7aa | c8f00f33-5274-4190-96cf-ab079cf94cf3
+[QA 1] "31cd6710-f2ae-4416-8882-855bf0b20852" | 1f3fccb6-dffe-4c87-9778-cc2772966b73
+[QA 2] The value associated with the key "ee165448-0c2a-4ae9-a389-04f6dd9ad2a3" is "40bd837a-b9ef-40c7-8bdc-693981e55903". | 40bd837a-b9ef-40c7-8bdc-693981e55903
+[QA 3] "9a3d6893-eb16-48ba-bb90-f5882f82d750" | de909d6b-6ff8-40cc-904b-5d753d4e3f52
+[QA 4] "90c444e4-bf5c-4a17-a65d-3610f48de096" | f33086d4-dc28-4c94-bbb9-cd22628b0bfb
+[effective] clen=169067 window=4096 chunk_ratio=0.077654 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][floorproj] chunk lo=28 alpha_eff=0.999000 lam=1.0 L1_cum=325212 n=265 Btot=103287
+Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.63it/s][floorproj] chunk lo=11904 alpha_eff=0.999000 lam=1.0 L1_cum=326490 n=266 Btot=139155
+Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.47it/s][floorproj] chunk lo=27904 alpha_eff=0.999000 lam=1.0 L1_cum=327766 n=267 Btot=139155
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.40it/s][floorproj] chunk lo=43904 alpha_eff=0.999000 lam=1.0 L1_cum=329022 n=268 Btot=139155
+Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.35it/s][floorproj] chunk lo=59904 alpha_eff=0.999000 lam=1.0 L1_cum=330278 n=269 Btot=139155
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.30it/s][floorproj] chunk lo=75904 alpha_eff=0.999000 lam=1.0 L1_cum=331514 n=270 Btot=139155
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.26it/s][floorproj] chunk lo=91904 alpha_eff=0.999000 lam=1.0 L1_cum=332768 n=271 Btot=139155
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.23it/s][floorproj] chunk lo=107904 alpha_eff=0.999000 lam=1.0 L1_cum=333996 n=272 Btot=139155
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.19it/s][floorproj] chunk lo=123904 alpha_eff=0.999000 lam=1.0 L1_cum=335254 n=273 Btot=139155
+Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.15it/s][floorproj] chunk lo=139904 alpha_eff=0.999000 lam=1.0 L1_cum=336516 n=274 Btot=139155
+Prefill:  91%|█████████ | 10/11 [00:08<00:00,  1.12it/s][floorproj] chunk lo=155904 alpha_eff=0.999000 lam=1.0 L1_cum=337690 n=275 Btot=79100
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.26it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.26it/s]
