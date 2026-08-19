@@ -18456,3 +18456,247 @@ Chunked prefilling with 0.10 ratio, window 4096
 [effective] clen=67153 window=3357 chunk_ratio=0.000000 degenerate=True
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.11it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.83it/s]
+Chunked prefilling with 0.05 ratio, window 3357
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-74: 67153 tokens, KV cache 3.9 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/74_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 469.2s. Mem: 14.31/79.18 GB. [scbench_repoqa-74]
+
+[effective] clen=67153 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.25it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.05it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.17it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-75: 67153 tokens, KV cache 3.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```go
+func calculateSize(base int, size sizeSpec, occupied int, minSize int, pad int) int {
+	max := base - occupied
+	if max < minSize {
+		max = minSize
+	}
+	if size.percent {
+		return util.Constrain(int(float64(base)*0.01*size.size), minSize, max)
+	}
+	return util.Constrain(int(size.size)+pad, minSize, max)
+}
+``` | func calculateSize(base int, size sizeSpec, occupied int, minSize int, pad int) int {
+	max := base - occupied
+	if max < minSize {
+		max = minSize
+	}
+	if size.percent {
+		return util.Constrain(int(float64(base)*0.01*size.size), minSize, max)
+	}
+	return util.Constrain(int(size.size)+pad, minSize, max)
+}
+[QA 1] ```
+func processExecution(action actionType) bool {
+	switch action {
+	case actTransform,
+		actTransformBorderLabel,
+		actTransformHeader,
+		actTransformPreviewLabel,
+		actTransformPrompt,
+		actTransformQuery,
+		actPreview,
+		actChangePreview,
+		actRefreshPreview,
+		actExecute,
+		actExecuteSilent,
+		actExecuteMulti,
+		actReload,
+		actReloadSync,
+		actBecome:
+		return true
+	}
+	return false
+}
+``` | func processExecution(action actionType) bool {
+	switch action {
+	case actTransform,
+		actTransformBorderLabel,
+		actTransformHeader,
+		actTransformPreviewLabel,
+		actTransformPrompt,
+		actTransformQuery,
+		actPreview,
+		actChangePreview,
+		actRefreshPreview,
+		actExecute,
+		actExecuteSilent,
+		actExecuteMulti,
+		actReload,
+		actReloadSync,
+		actBecome:
+		return true
+	}
+	return false
+}
+[QA 2] ```go
+func (r *Reader) feed(src io.Reader) {
+	/*
+		readerSlabSize, ae := strconv.Atoi(os.Getenv("SLAB_KB"))
+		if ae != nil {
+			readerSlabSize = 128 * 1024
+		} else {
+			readerSlabSize *= 1024
+		}
+		readerBufferSize, be := strconv.Atoi(os.Getenv("BUF_KB"))
+		if be != nil {
+			readerBufferSize = 64 * 1024
+		} else {
+			readerBufferSize *= 1024
+		}
+	*/
+
+	delim := byte('\n')
+	trimCR := util.IsWindows()
+	if r.delimNil {
+		delim = '\x00'
+		trimCR = false
+	}
+
+	slab := make([]byte, readerSlabSize)
+	leftover := []byte{}
+	var err error
+	for {
+		n := 0
+		scope := slab[:util.Min(len(slab), readerBufferSize)]
+		for i := 0; i < 100; i++ {
+			n, err = src.Read(scope)
+			if n > 0 || err != nil {
+				break
+			}
+		}
+
+		// We're not making any progress after 100 tries. Stop.
+		if n == 0 && err == nil {
+			break
+		}
+
+		buf := slab[:n]
+		slab = slab[n:]
+
+		for len(buf) > 0 {
+			if i := bytes.IndexByte(buf, delim); i >= 0 {
+				// Found the delimiter
+				slice := buf[:i+1]
+				buf = buf[i+1:]
+				if trimCR && len(slice) >= 2 && slice[len(slice)-2] == byte('\r') {
+					slice = slice[:len(slice)-2]
+				} else {
+					slice = slice[:len(slice)-1]
+				}
+				if len(leftover) > 0 {
+					slice = append(leftover, slice...)
+					leftover = []byte{}
+				}
+				if (err == nil || len(slice) > 0) && r.pusher(slice) {
+					atomic.StoreInt32(&r.event, int32(EvtReadNew))
+				}
+			} else {
+				// Could not find the delimiter in the buffer
+				//   NOTE: We | func EmptyMerger(revision int) *Merger {
+	return NewMerger(nil, [][]Result{}, false, false, revision)
+}
+[QA 3] ```go
+func Max(first int, second int) int {
+	if first >= second {
+		return first
+	}
+	return second
+}
+``` | func Max(first int, second int) int {
+	if first >= second {
+		return first
+	}
+	return second
+}
+[QA 4] ```go
+package fzf
+
+import (
+	"testing"
+)
+
+func TestChunkCache(t *testing.T) {
+	cache := NewChunkCache()
+	chunk1p := &Chunk{}
+	chunk2p := &Chunk{count: chunkSize}
+	items1 := []Result{{}}
+	items2 := []Result{{}, {}}
+	cache.Add(chunk1p, "foo", items1)
+	cache.Add(chunk2p, "foo", items1)
+	cache.Add(chunk2p, "bar", items2)
+
+	{ // chunk1 is not full
+		cached := cache.Lookup(chunk1p, "foo")
+		if cached != nil {
+			t.Error("Cached disabled for non-empty chunks", cached)
+		}
+	}
+	{
+		cached := cache.Lookup(chunk2p, "foo")
+		if cached == nil || len(cached) != 1 {
+			t.Error("Expected 1 item cached", cached)
+		}
+	}
+	{
+		cached := cache.Lookup(chunk2p, "bar")
+		if cached == nil || len(cached) != 2 {
+			t.Error("Expected 2 items cached", cached)
+		}
+	}
+	{
+		cached := cache.Lookup(chunk1p, "foobar")
+		if cached != nil {
+			t.Error("Expected 0 item cached", cached)
+		}
+	}
+}
+``` | func TestChunkCache(t *testing.T) {
+	cache := NewChunkCache()
+	chunk1p := &Chunk{}
+	chunk2p := &Chunk{count: chunkSize}
+	items1 := []Result{{}}
+	items2 := []Result{{}, {}}
+	cache.Add(chunk1p, "foo", items1)
+	cache.Add(chunk2p, "foo", items1)
+	cache.Add(chunk2p, "bar", items2)
+
+	{ // chunk1 is not full
+		cached := cache.Lookup(chunk1p, "foo")
+		if cached != nil {
+			t.Error("Cached disabled for non-empty chunks", cached)
+		}
+	}
+	{
+		cached := cache.Lookup(chunk2p, "foo")
+		if cached == nil || len(cached) != 1 {
+			t.Error("Expected 1 item cached", cached)
+		}
+	}
+	{
+		cached := cache.Lookup(chunk2p, "bar")
+		if cached == nil || len(cached) != 2 {
+			t.Error("Expected 2 items cached", cached)
+		}
+	}
+	{
+		cached := cache.Lookup(chunk1p, "foobar")
+		if cached != nil {
+			t.Error("Expected 0 item cached", cached)
+		}
+	}
+}
+[effective] clen=67153 window=4096 chunk_ratio=0.733761 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.27it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.22it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-75: 67153 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=67153 window=4096 chunk_ratio=0.467521 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.47it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.38it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-75: 67153 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=67153 window=4096 chunk_ratio=0.361026 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.45it/s]
