@@ -20114,3 +20114,225 @@ Chunked prefilling with 0.20 ratio, window 4096
 [effective] clen=65974 window=4096 chunk_ratio=0.040425 degenerate=False
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-80: 65974 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65974 window=3298 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.19it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3298
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-80: 65974 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/80_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 359.4s. Mem: 14.31/79.18 GB. [scbench_repoqa-80]
+
+[effective] clen=65974 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.30it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-81: 65974 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```go
+func GetNewTemplatesInVersions(versions ...string) []string {
+	allTemplates := []string{}
+	for _, v := range versions {
+		if v == config.DefaultConfig.TemplateVersion {
+			allTemplates = append(allTemplates, config.DefaultConfig.GetNewAdditions()...)
+		}
+		_, err := semver.NewVersion(v)
+		if err != nil {
+			gologger.Error().Msgf("%v is not a valid semver version. skipping", v)
+			continue
+		}
+		if config.IsOutdatedVersion(v, "v8.8.4") {
+			// .new-additions was added in v8.8.4 any version before that is not supported
+			gologger.Error().Msgf(".new-additions support was added in v8.8.4 older versions are not supported")
+			continue
+		}
+
+		arr, err := getNewAdditionsFileFromGitHub(v)
+		if err != nil {
+			gologger.Error().Msgf("failed to fetch new additions for %v got: %v", v, err)
+			continue
+		}
+		allTemplates = append(allTemplates, arr...)
+	}
+	return allTemplates
+}
+
+func getNewAdditionsFileFromGitHub(version string) ([]string, error) {
+	resp, err := retryableHttpClient.Get(fmt.Sprintf("https://raw.githubusercontent.com/projectdiscovery/nuclei-templates/%s/.new-additions", version))
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, errorutil.New("version not found")
+	}
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	templatesList := []string{}
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	for scanner.Scan() {
+		text := scanner.Text()
+		if text == "" {
+			continue
+		}
+		if config.IsTemplate(text) {
+			templatesList = append(templatesList, text)
+		}
+	}
+	return templatesList, nil
+}
+```
+``` | func GetNewTemplatesInVersions(versions ...string) []string {
+	allTemplates := []string{}
+	for _, v := range versions {
+		if v == config.DefaultConfig.TemplateVersion {
+			allTemplates = append(allTemplates, config.DefaultConfig.GetNewAdditions()...)
+		}
+		_, err := semver.NewVersion(v)
+		if err != nil {
+			gologger.Error().Msgf("%v is not a valid semver version. skipping", v)
+			continue
+		}
+		if config.IsOutdatedVersion(v, "v8.8.4") {
+			// .new-additions was added in v8.8.4 any version before that is not supported
+			gologger.Error().Msgf(".new-additions support was added in v8.8.4 older versions are not supported")
+			continue
+		}
+
+		arr, err := getNewAdditionsFileFromGitHub(v)
+		if err != nil {
+			gologger.Error().Msgf("failed to fetch new additions for %v got: %v", v, err)
+			continue
+		}
+		allTemplates = append(allTemplates, arr...)
+	}
+	return allTemplates
+}
+[QA 1] ```go
+func formatInteractionHeader(protocol, ID, address string, at time.Time) string {
+	return fmt.Sprintf("[%s] Received %s interaction from %s at %s", ID, protocol, address, at.Format("2006-01-02 15:04:05"))
+}
+``` | func formatInteractionHeader(protocol, ID, address string, at time.Time) string {
+	return fmt.Sprintf("[%s] Received %s interaction from %s at %s", ID, protocol, address, at.Format("2006-01-02 15:04:05"))
+}
+[QA 2] ```go
+func (workflow *Workflow) Compile() error {
+	// description: |
+	//   Workflows is a list of workflows to execute for a template.
+	workflow.Workflows = []*WorkflowTemplate{}
+
+	// description: |
+	//   Tags to run templates based on.
+	workflow.Tags = stringslice.StringSlice{}
+
+	// description: |
+	//   Matchers perform name based matching to run subtemplates for a workflow.
+	workflow.Matchers = []*Matcher{}
+
+	// description: |
+	//   Subtemplates are run if the `template` field Template matches.
+	workflow.Subtemplates = []*WorkflowTemplate{}
+
+	// Executers perform the actual execution for the workflow template
+	workflow.Executers = []*ProtocolExecuterPair{}
+
+	// description: |
+	//   Compile compiles the matcher for workflow
+	if err := matcher.Compile(); err != nil {
+		return err
+	}
+
+	return nil
+}
+``` | func CreateEvent(request protocols.Request, outputEvent output.InternalEvent, isResponseDebug bool) *output.InternalWrappedEvent {
+	return CreateEventWithAdditionalOptions(request, outputEvent, isResponseDebug, nil)
+}
+[QA 3] ```go
+func New(options *Options) (*ProjectFile, error) {
+	var p ProjectFile
+	hOptions := hybrid.DefaultDiskOptions
+	hOptions.Path = options.Path
+	hOptions.Cleanup = options.Cleanup
+	var err error
+	p.hm, err = hybrid.New(hOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	return &p, nil
+}
+``` | func NewGitLabProviders(options *types.Options) ([]*customTemplateGitLabRepo, error) {
+	providers := []*customTemplateGitLabRepo{}
+	if options.GitLabToken != "" && !options.GitLabTemplateDisableDownload {
+		// Establish a connection to GitLab and build a client object with which to download templates from GitLab
+		gitLabClient, err := getGitLabClient(options.GitLabServerURL, options.GitLabToken)
+		if err != nil {
+			return nil, errorutil.NewWithErr(err).Msgf("Error establishing GitLab client for %s %s", options.GitLabServerURL, err)
+		}
+
+		// Create a new GitLab service client
+		gitLabContainer := &customTemplateGitLabRepo{
+			gitLabClient: gitLabClient,
+			serverURL:    options.GitLabServerURL,
+			projectIDs:   options.GitLabTemplateRepositoryIDs,
+		}
+
+		// Add the GitLab service client to the list of custom templates
+		providers = append(providers, gitLabContainer)
+	}
+	return providers, nil
+}
+[QA 4] ```go
+func isExpression(data string, base map[string]interface{}) bool {
+	if _, err := govaluate.NewEvaluableExpression(data); err == nil {
+		if stringsutil.ContainsAny(data, getFunctionsNames(base)...) {
+			return true
+		} else if stringsutil.ContainsAny(data, dsl.FunctionNames...) {
+			return true
+		}
+		return false
+	}
+	_, err := govaluate.NewEvaluableExpressionWithFunctions(data, dsl.HelperFunctions)
+	return err == nil
+}
+``` | func isExpression(data string, base map[string]interface{}) bool {
+	if _, err := govaluate.NewEvaluableExpression(data); err == nil {
+		if stringsutil.ContainsAny(data, getFunctionsNames(base)...) {
+			return true
+		} else if stringsutil.ContainsAny(data, dsl.FunctionNames...) {
+			return true
+		}
+		return false
+	}
+	_, err := govaluate.NewEvaluableExpressionWithFunctions(data, dsl.HelperFunctions)
+	return err == nil
+}
+[effective] clen=65974 window=4096 chunk_ratio=0.733451 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.35it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.32it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-81: 65974 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65974 window=4096 chunk_ratio=0.466903 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.40it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-81: 65974 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65974 window=4096 chunk_ratio=0.360283 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.63it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-81: 65974 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65974 window=4096 chunk_ratio=0.253664 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.76it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-81: 65974 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65974 window=4096 chunk_ratio=0.147044 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.90it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-81: 65974 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65974 window=4096 chunk_ratio=0.040425 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.06it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
