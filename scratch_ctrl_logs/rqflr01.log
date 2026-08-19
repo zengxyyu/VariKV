@@ -1,0 +1,352 @@
+tag: _fastkvzip__rqflr01_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.80it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.84it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.80it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.91it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.87it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/d10_scalar_s0.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.5K
+['scbench_repoqa']
+
+scbench_repoqa loaded, #data: 88
+set generation length: 512 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~88 samples
+[effective] clen=68342 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.56it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.18it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.03s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.00it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```python
+def _can_omit_closing_paren(line: Line, *, last: Leaf, line_length: int) -> bool:
+    """See `can_omit_invisible_parens`."""
+    length = 4 * line.depth
+    seen_other_brackets = False
+    for _index, leaf, leaf_length in line.enumerate_with_length():
+        length += leaf_length
+        if leaf is last.opening_bracket:
+            if seen_other_brackets or length <= line_length:
+                return True
+
+        elif leaf.type in OPENING_BRACKETS:
+            # There are brackets we can further split on.
+            seen_other_brackets = True
+
+    return False
+``` | def _can_omit_closing_paren(line: Line, *, last: Leaf, line_length: int) -> bool:
+    """See `can_omit_invisible_parens`."""
+    length = 4 * line.depth
+    seen_other_brackets = False
+    for _index, leaf, leaf_length in line.enumerate_with_length():
+        length += leaf_length
+        if leaf is last.opening_bracket:
+            if seen_other_brackets or length <= line_length:
+                return True
+
+        elif leaf.type in OPENING_BRACKETS:
+            # There are brackets we can further split on.
+            seen_other_brackets = True
+
+    return False
+[QA 1] ```python
+def fstring_contains_expr(s: str) -> bool:
+    return any(iter_fexpr_spans(s))
+``` | def fstring_contains_expr(s: str) -> bool:
+    return any(iter_fexpr_spans(s))
+[QA 2] ```python
+def supports_feature(target_versions: Set[TargetVersion], feature: Feature) -> bool:
+    return all(feature in VERSION_TO_FEATURES[version] for version in target_versions)
+``` | def supports_feature(target_versions: Set[TargetVersion], feature: Feature) -> bool:
+    return all(feature in VERSION_TO_FEATURES[version] for version in target_versions)
+[QA 3] ```python
+@staticmethod
+def _remove_backslash_line_continuation_chars(
+    line: Line, string_indices: List[int]
+) -> TResult[Line]:
+    """
+    Merge strings that were split across multiple lines using
+    line-continuation backslashes.
+
+    Returns:
+        Ok(new_line), if @line contains backslash line-continuation
+        characters.
+            OR
+        Err(CannotTransform), otherwise.
+    """
+    LL = line.leaves
+
+    indices_to_transform = []
+    for string_idx in string_indices:
+        string_leaf = LL[string_idx]
+        if (
+            string_leaf.type == token.STRING
+            and "\\\n" in string_leaf.value
+            and not has_triple_quotes(string_leaf.value)
+        ):
+            indices_to_transform.append(string_idx)
+
+    if not indices_to_transform:
+        return TErr(
+            "Found no string leaves that contain backslash line continuation"
+            " characters."
+        )
+
+    new_line = line.clone()
+    new_line.comments = line.comments.copy()
+    append_leaves(new_line, line, LL)
+
+    for string_idx in indices_to_transform:
+        new_string_leaf = new_line.leaves[string_idx]
+        new_string_leaf.value = new_string_leaf.value.replace("\\\n", "")
+
+    return Ok(new_line)
+``` |     def _remove_backslash_line_continuation_chars(
+        line: Line, string_indices: List[int]
+    ) -> TResult[Line]:
+        """
+        Merge strings that were split across multiple lines using
+        line-continuation backslashes.
+
+        Returns:
+            Ok(new_line), if @line contains backslash line-continuation
+            characters.
+                OR
+            Err(CannotTransform), otherwise.
+        """
+        LL = line.leaves
+
+        indices_to_transform = []
+        for string_idx in string_indices:
+            string_leaf = LL[string_idx]
+            if (
+                string_leaf.type == token.STRING
+                and "\\\n" in string_leaf.value
+                and not has_triple_quotes(string_leaf.value)
+            ):
+                indices_to_transform.append(string_idx)
+
+        if not indices_to_transform:
+            return TErr(
+                "Found no string leaves that contain backslash line continuation"
+                " characters."
+            )
+
+        new_line = line.clone()
+        new_line.comments = line.comments.copy()
+        append_leaves(new_line, line, LL)
+
+        for string_idx in indices_to_transform:
+            new_string_leaf = new_line.leaves[string_idx]
+            new_string_leaf.value = new_string_leaf.value.replace("\\\n", "")
+
+        return Ok(new_line)
+[QA 4] ```python
+def _get_illegal_split_indices(self, string: str) -> Set[Index]:
+    illegal_indices: Set[Index] = set()
+    iterators = [
+        self._iter_fexpr_slices(string),
+        self._iter_nameescape_slices(string),
+    ]
+    for it in iterators:
+        for begin, end in it:
+            illegal_indices.update(range(begin, end + 1))
+    return illegal_indices
+``` |     def _get_illegal_split_indices(self, string: str) -> Set[Index]:
+        illegal_indices: Set[Index] = set()
+        iterators = [
+            self._iter_fexpr_slices(string),
+            self._iter_nameescape_slices(string),
+        ]
+        for it in iterators:
+            for begin, end in it:
+                illegal_indices.update(range(begin, end + 1))
+        return illegal_indices
+[effective] clen=68342 window=4096 chunk_ratio=0.042621 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.49it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.47it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.44it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.42it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/0_qwen2.5-7b-instruct-1m_fastkvzip__rqflr01_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 65.0s. Mem: 14.31/79.18 GB. [scbench_repoqa-0]
+
+[effective] clen=68342 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.33it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.03it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.16it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-1: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```python
+def enumerate_reversed(sequence: Sequence[T]) -> Iterator[Tuple[Index, T]]:
+    """Like `reversed(enumerate(sequence))` if that were possible."""
+    index = len(sequence) - 1
+    for element in reversed(sequence):
+        yield (index, element)
+        index -= 1
+``` | def enumerate_reversed(sequence: Sequence[T]) -> Iterator[Tuple[Index, T]]:
+    """Like `reversed(enumerate(sequence))` if that were possible."""
+    index = len(sequence) - 1
+    for element in reversed(sequence):
+        yield (index, element)
+        index -= 1
+[QA 1] ```python
+def _return_match(LL: List[Leaf]) -> Optional[int]:
+    """
+    Returns:
+        string_idx such that @LL[string_idx] is equal to our target (i.e.
+        matched) string, if this line matches the return/yield statement
+        requirements listed in the 'Requirements' section of this classes'
+        docstring.
+            OR
+        None, otherwise.
+    """
+    # If this line is a part of a return/yield statement and the first leaf
+    # contains either the "return" or "yield" keywords...
+    if parent_type(LL[0]) in [syms.return_stmt, syms.yield_expr] and LL[
+        0
+    ].value in ["return", "yield"]:
+        is_valid_index = is_valid_index_factory(LL)
+
+        idx = 2 if is_valid_index(1) and is_empty_par(LL[1]) else 1
+        # The next visible leaf MUST contain a string...
+        if is_valid_index(idx) and LL[idx].type == token.STRING:
+            return idx
+
+    return None
+``` |         def more_splits_should_be_made() -> bool:
+            """
+            Returns:
+                True iff `rest_value` (the remaining string value from the last
+                split), should be split again.
+            """
+            if use_custom_breakpoints:
+                return len(custom_splits) > 1
+            else:
+                return str_width(rest_value) > max_last_string_column()
+[QA 2] ```python
+def max_delimiter_priority_in_atom(node: LN) -> Priority:
+    """Return maximum delimiter priority inside `node`.
+
+    This is specific to atoms with contents contained in a pair of parentheses.
+    If `node` isn't an atom or there are no enclosing parentheses, returns 0.
+    """
+    if node.type != syms.atom:
+        return 0
+
+    first = node.children[0]
+    last = node.children[-1]
+    if not (first.type == token.LPAR and last.type == token.RPAR):
+        return 0
+
+    bt = BracketTracker()
+    for c in node.children[1:-1]:
+        if isinstance(c, Leaf):
+            bt.mark(c)
+        else:
+            for leaf in c.leaves():
+                bt.mark(leaf)
+    try:
+        return bt.max_delimiter_priority()
+
+    except ValueError:
+        return 0
+```
+``` | def max_delimiter_priority_in_atom(node: LN) -> Priority:
+    """Return maximum delimiter priority inside `node`.
+
+    This is specific to atoms with contents contained in a pair of parentheses.
+    If `node` isn't an atom or there are no enclosing parentheses, returns 0.
+    """
+    if node.type != syms.atom:
+        return 0
+
+    first = node.children[0]
+    last = node.children[-1]
+    if not (first.type == token.LPAR and last.type == token.RPAR):
+        return 0
+
+    bt = BracketTracker()
+    for c in node.children[1:-1]:
+        if isinstance(c, Leaf):
+            bt.mark(c)
+        else:
+            for leaf in c.leaves():
+                bt.mark(leaf)
+    try:
+        return bt.max_delimiter_priority()
+
+    except ValueError:
+        return 0
+[QA 3] ```python
+@staticmethod
+def _return_match(LL: List[Leaf]) -> Optional[int]:
+    """
+    Returns:
+        string_idx such that @LL[string_idx] is equal to our target (i.e.
+        matched) string, if this line matches the return/yield statement
+        requirements listed in the 'Requirements' section of this classes'
+        docstring.
+            OR
+        None, otherwise.
+    """
+    # If this line is a part of a return/yield statement and the first leaf
+    # contains either the "return" or "yield" keywords...
+    if parent_type(LL[0]) in [syms.return_stmt, syms.yield_expr] and LL[
+        0
+    ].value in ["return", "yield"]:
+        is_valid_index = is_valid_index_factory(LL)
+
+        idx = 2 if is_valid_index(1) and is_empty_par(LL[1]) else 1
+        # The next visible leaf MUST contain a string...
+        if is_valid_index(idx) and LL[idx].type == token.STRING:
+            return idx
+
+    return None
+``` |     def _return_match(LL: List[Leaf]) -> Optional[int]:
+        """
+        Returns:
+            string_idx such that @LL[string_idx] is equal to our target (i.e.
+            matched) string, if this line matches the return/yield statement
+            requirements listed in the 'Requirements' section of this classes'
+            docstring.
+                OR
+            None, otherwise.
+        """
+        # If this line is a part of a return/yield statement and the first leaf
+        # contains either the "return" or "yield" keywords...
+        if parent_type(LL[0]) in [syms.return_stmt, syms.yield_expr] and LL[
+            0
+        ].value in ["return", "yield"]:
+            is_valid_index = is_valid_index_factory(LL)
+
+            idx = 2 if is_valid_index(1) and is_empty_par(LL[1]) else 1
+            # The next visible leaf MUST contain a string...
+            if is_valid_index(idx) and LL[idx].type == token.STRING:
+                return idx
+
+        return None
+[QA 4] ```python
+@mypyc_attr(patchable=True)
+def _err(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+    if message is not None:
+        if "fg" not in styles:
+            styles["fg"] = "red"
+        message = style(message, **styles)
+    echo(message, nl=nl, err=True)
+``` | def _out(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:
+    if message is not None:
+        if "bold" not in styles:
+            styles["bold"] = True
+        message = style(message, **styles)
+    echo(message, nl=nl, err=True)
+[effective] clen=68342 window=4096 chunk_ratio=0.042621 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.94it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.72it/s]
