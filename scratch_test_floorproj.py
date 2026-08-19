@@ -228,6 +228,30 @@ def main():
           f"{'OK' if ok_d else '**FAIL：α 未接上或单调性被破坏**'}")
     bad += n6
 
+    print("\n【7】`floorpath` 剂量轴：λ=0 必须等于基线，λ=1 必须等于地板")
+    # 这条轴存在的理由：`b_min` 扫描**不是**剂量——改 b_min 同时改抬升量、
+    # 供给头、全局阈值。λ 沿同一方向线性缩放同一位移，头集合与方向都不变。
+    # 两端必须**逐位**退化，否则中间点的读数没有解释。
+    n7 = 0
+    prev_d = None
+    for lam in [0.0, 0.25, 0.5, 0.75, 1.0]:
+        os.environ["VARIKV_PROJ_LAMBDA"] = str(lam)
+        q = project_quota(b0.clone(), delta, n, "floorpath", L, H)
+        d_b0 = float((q - b0.long()).abs().sum()); d_f = float((q - bf).abs().sum())
+        ok = int(q.sum()) == int(bf.sum())
+        if lam == 0.0:
+            ok &= (d_b0 == 0)
+        if lam == 1.0:
+            ok &= (d_f == 0)
+        if prev_d is not None:
+            ok &= (d_b0 >= prev_d)          # 离基线只能越来越远
+        prev_d = d_b0
+        n7 += (not ok)
+        print(f"    λ={lam:<5} |q−b0|={d_b0:5.0f}  |q−floor|={d_f:5.0f}  "
+              f"Σq={int(q.sum())}  {'OK' if ok else '**FAIL**'}")
+    os.environ["VARIKV_PROJ_LAMBDA"] = "1.0"
+    bad += n7
+
     print(f"\n{'全部通过' if bad == 0 else f'**{bad} 项 FAIL**'}")
     return 1 if bad else 0
 

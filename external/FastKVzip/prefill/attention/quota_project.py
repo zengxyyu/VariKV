@@ -187,13 +187,14 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
     函数末尾直接断言而不做兜底修补 —— 若将来投影出 bug，必须让它崩，而不是被
     一个通用修补循环悄悄"修好"同时破坏因果不变量（那正是本项目栽过的坑）。
     """
-    assert mode in ("full", "within", "across", "floor", "floorproj", "pathproj"), mode
+    assert mode in ("full", "within", "across", "floor", "floorproj",
+                    "pathproj", "floorpath"), mode
     L, H = int(n_layers), int(n_heads)
     assert b0.numel() == L * H and delta.numel() == L * H
     Btot = int(b0.sum().item())
     tgt = (b0 + delta).clamp(0, n)
 
-    if mode in ("floor", "floorproj", "pathproj"):
+    if mode in ("floor", "floorproj", "pathproj", "floorpath"):
         # **防饿死对照**：完全不用 `delta` 的方向，只强制 b_g ≥ b_min，
         # 缺口按 (b⁰ − b_min)⁺ 的比例从富余头等量扣回，总预算不变。
         # 为什么必须有这个对照：`fastkvzip@pair` 在 ρ=0.2 有 41.3% 的头零配额，
@@ -219,13 +220,20 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
             t = t - room * (excess / tot_room)
         t = t.clamp(0, n)
         bt = rebalance(t.round().long().clamp(0, n), t, Btot, n)
-        if mode == "pathproj":
+        if mode in ("pathproj", "floorpath"):
             # **可达效用探针（便宜的一档）**：沿 baseline → floor 方向取 λ 处的目标，
             # 再投影回 `Q_box`。目的见 reachable_project 的 docstring —— `floorproj`
             # （λ=1）只回答「地板那一点附近」，而我们真正想估的是
             #     max_{q ∈ Q_box} J(q)
             # 扫 λ 得到这个上确界在**一条一维路径上**的下界。λ=0 退化为基线配额
             # （本就可达，投影是恒等），λ=1 退化为 floorproj。
+            # `floorpath` = 只插值、**不投影**：这是「地板机制」的**剂量–反应**轴。
+            # 为什么必须是这条轴而不是 `b_min` 扫描：改 `b_min` 会同时改变抬升量、
+            # 哪些头是供给头、以及全局阈值，三者混在一起；而 λ 沿**同一方向**
+            # 线性缩放同一个位移，头集合与方向都不变，是干净的剂量。
+            # 它要回答的前提是：「地板的 +33.60 是不是来自把饿死头抬起来」。
+            # 若收益随 λ 单调上升 ⇒ 前提成立，配合「整个 Q_box 最多只能抬 2.25%」
+            # 就直接推出可达性是主因；若小 λ 就拿满收益 ⇒ 收益另有来源。
             lam = float(os.environ.get("VARIKV_PROJ_LAMBDA", "1.0"))
             tp = (1.0 - lam) * b0 + lam * bt.float()
             bt = rebalance(tp.round().long().clamp(0, n), tp, Btot, n)

@@ -264,7 +264,7 @@ class LearnedControlRetainCache(RetainCache):
                 _ae = _ge * float(self.ctrl.alpha) if self.ctrl is not None else None
                 bt = project_quota(b0, self._qinj.to(b0.device), n, _qm, L, H,
                                    sc=sc, alpha_eff=_ae)
-                if _qm in ("floorproj", "pathproj"):
+                if _qm in ("floorproj", "pathproj", "floorpath"):
                     # **事后可验证性**：不打这一行，我就无法在日志里证明这一臂真的
                     # 按设计跑了（用对了 α、投影真的动了）。地板臂靠 dump 事后判定，
                     # 这里靠这行。L1=0 全程出现即说明地板本就可达、投影是恒等的。
