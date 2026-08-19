@@ -1305,3 +1305,39 @@ Results saved at ./results/scbench_kv/70_qwen2.5-7b-instruct-1m_fastkvzip__kvf01
 [effective] clen=169123 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 11)
 Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.23it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.76it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.27it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:07,  1.01s/it]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.25s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.50s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:07,  1.76s/it]Prefill:  73%|███████▎  | 8/11 [00:12<00:06,  2.04s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.32s/it]Prefill:  91%|█████████ | 10/11 [00:18<00:02,  2.60s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.62s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.90s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-71: 169123 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] "56b878f8-085c-4537-a160-1bec65c2f94f" | 56b878f8-085c-4537-a160-1bec65c2f94f
+[QA 1] The value associated with the key "3476f0ce-0b97-48a8-950b-e102a2e00a4d" is "f66a2506-c8df-4650-b836-bcb06ac6ae92". | f66a2506-c8df-4650-b836-bcb06ac6ae92
+[QA 2] The value associated with the key "4691105d-a958-4065-89ec-8a617accdebf" is "290644e0-c06f-4ba4-8657-abc40c243673". | 290644e0-c06f-4ba4-8657-abc40c243673
+[QA 3] The value associated with the specified key "701513cb-2344-42f5-849e-9e4318ed2d3a" is "34d6a06b-e6b8-4175-b727-85c48d57e0ea". | 34d6a06b-e6b8-4175-b727-85c48d57e0ea
+[QA 4] 7d996b1e-2c3d-4476-acf5-b4dbcd6b6102 | 7d996b1e-2c3d-4476-acf5-b4dbcd6b6102
+[effective] clen=169123 window=4096 chunk_ratio=0.077662 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.69it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.50it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.43it/s]Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.38it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.32it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.29it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.24it/s]Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.21it/s]Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.17it/s]Prefill:  91%|█████████ | 10/11 [00:08<00:00,  1.14it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.29it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.28it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-71: 169123 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/71_qwen2.5-7b-instruct-1m_fastkvzip__kvf01d_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 60.1s. Mem: 14.31/79.18 GB. [scbench_kv-71]
+
+[effective] clen=169047 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.27it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.77it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.28it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:07,  1.00s/it]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.24s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.50s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:07,  1.76s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:06,  2.03s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.31s/it]Prefill:  91%|█████████ | 10/11 [00:18<00:02,  2.59s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.61s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.89s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-72: 169047 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "25bcd6f3-aef9-48f9-ac27-3e797b113d38" is "da84f07f-5b30-4f6d-8eb6-90c8b037c58b". | da84f07f-5b30-4f6d-8eb6-90c8b037c58b
+[QA 1] The value associated with the key "515ad9fb-6d99-4204-8e96-0e9e12f67dec" is "a56f9374-e563-454a-a105-985841569086". | 4be5c5d2-5464-4b55-a8a0-846815dbd70c
+[QA 2] 94786bd1-c894-4bcc-9d56-b9e1aca8d29c | 6bbc5f1a-c370-456d-aecd-4f339a2d472a
+[QA 3] The value associated with the key "29ce9275-d7af-4be8-857f-b9d23bba6870" is "6e890ce5-f6c1-43c8-9ed2-379b412f8440". | 6e890ce5-f6c1-43c8-9ed2-379b412f8440
+[QA 4] The value associated with the key "68b54887-5b96-43ec-93f9-663f7e39b3fe" is "28fcd66b-8b59-4e1b-a870-b35662c897b9". | 28fcd66b-8b59-4e1b-a870-b35662c897b9
+[effective] clen=169047 window=4096 chunk_ratio=0.077652 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.69it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.51it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.43it/s]Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.38it/s]Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.33it/s]Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.29it/s]Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.25it/s]Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.21it/s]Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.17it/s]Prefill:  91%|█████████ | 10/11 [00:08<00:00,  1.14it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.29it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.29it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-72: 169047 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/72_qwen2.5-7b-instruct-1m_fastkvzip__kvf01d_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 61.5s. Mem: 14.31/79.18 GB. [scbench_kv-72]
+
+[effective] clen=169185 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.25it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.77it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.28it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:07,  1.01s/it]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.25s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.50s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:07,  1.77s/it]Prefill:  73%|███████▎  | 8/11 [00:12<00:06,  2.04s/it]
