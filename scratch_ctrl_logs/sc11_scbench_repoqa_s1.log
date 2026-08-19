@@ -16410,3 +16410,1750 @@ Results saved at ./results/scbench_repoqa/66_qwen2.5-7b-instruct-1m_fastkvzip__s
 [effective] clen=65802 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-67: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```rust
+use std::collections::HashSet;
+use std::convert::TryFrom;
+use std::error::Error as StdError;
+use std::fmt;
+use std::sync::Arc;
+
+use headers::{
+    AccessControlAllowHeaders, AccessControlAllowMethods, AccessControlExposeHeaders, HeaderMapExt,
+};
+use http::header::{self, HeaderName, HeaderValue};
+
+use crate::filter::{Filter, WrapSealed};
+use crate::reject::{CombineRejection, Rejection};
+use crate::reply::Reply;
+
+use self::internal::{CorsFilter, IntoOrigin, Seconds};
+
+/// Create a wrapping [`Filter`](crate::Filter) that exposes [CORS][] behavior for a wrapped
+/// filter.
+///
+/// [CORS]: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+///
+/// # Example
+///
+/// ```
+/// use warp::Filter;
+///
+/// let cors = warp::cors()
+///     .allow_origin("https://hyper.rs")
+///     .allow_methods(vec!["GET", "POST", "DELETE"]);
+///
+/// let route = warp::any()
+///     .map(warp::reply)
+///     .with(cors);
+/// ```
+/// If you want to allow any route:
+/// ```
+/// use warp::Filter;
+/// let cors = warp::cors()
+///     .allow_any_origin();
+/// ```
+/// You can find more usage examples [here](https://github.com/seanmonstar/warp/blob/7fa54eaecd0fe12687137372791ff22fc7995766/tests/cors.rs).
+pub fn cors() -> Builder {
+    Builder {
+        credentials: false,
+        allowed_headers: HashSet::new(),
+        exposed_headers: HashSet::new(),
+        max_age: None,
+        methods: HashSet::new(),
+        origins: None,
+    }
+}
+
+/// A wrapping [`Filter`](crate::Filter) constructed via `warp::cors()`.
+#[derive(Clone, Debug)]
+pub struct Cors {
+    config: Arc<Configured>,
+}
+
+/// A constructed via `warp::cors()`.
+#[derive(Clone, Debug)]
+pub struct Builder {
+    credentials: bool,
+    allowed_headers: HashSet<HeaderName>,
+    exposed_headers: HashSet<HeaderName>,
+    max_age: Option<u64>,
+    methods: HashSet<http::Method>,
+    origins: Option<HashSet<HeaderValue>>,
+}
+
+impl Builder {
+    /// Sets whether to add the `Access-Control-Allow | pub fn cors() -> Builder {
+    Builder {
+        credentials: false,
+        allowed_headers: HashSet::new(),
+        exposed_headers: HashSet::new(),
+        max_age: None,
+        methods: HashSet::new(),
+        origins: None,
+    }
+}
+[QA 1] ```rust
+fn is_method_allowed(&self, header: &HeaderValue) -> bool {
+    http::Method::from_bytes(header.as_bytes())
+        .map(|method| self.methods.contains(&method))
+        .unwrap_or(false)
+}
+``` |     fn is_method_allowed(&self, header: &HeaderValue) -> bool {
+        http::Method::from_bytes(header.as_bytes())
+            .map(|method| self.cors.methods.contains(&method))
+            .unwrap_or(false)
+    }
+[QA 2] ```rust
+impl Ws {
+    /// Does nothing.
+    ///
+    /// # Deprecated
+    ///
+    /// Use `max_write_buffer_size()` instead.
+    #[deprecated = "use max_write_buffer_size instead"]
+    pub fn max_send_queue(self, _max: usize) -> Self {
+        self
+    }
+
+    /// The max size of the write buffer, in bytes.
+    pub fn max_write_buffer_size(mut self, max: usize) -> Self {
+        self.config
+            .get_or_insert_with(WebSocketConfig::default)
+            .max_write_buffer_size = max;
+        self
+    }
+
+    /// Set the maximum message size (defaults to 64 megabytes)
+    pub fn max_message_size(mut self, max: usize) -> Self {
+        self.config
+            .get_or_insert_with(WebSocketConfig::default)
+            .max_message_size = Some(max);
+    }
+
+    /// Set the maximum frame size (defaults to 16 megabytes)
+    pub fn max_frame_size(mut self, max: usize) -> Self {
+        self.config
+            .get_or_insert_with(WebSocketConfig::default)
+            .max_frame_size = Some(max);
+    }
+}
+``` |     pub fn max_send_queue(self, _max: usize) -> Self {
+        self
+    }
+[QA 3] ```rust
+fn reserve_at_least(buf: &mut BytesMut, cap: usize) {
+    if buf.capacity() - buf.len() < cap {
+        buf.reserve(cap);
+    }
+}
+``` | fn reserve_at_least(buf: &mut BytesMut, cap: usize) {
+    if buf.capacity() - buf.len() < cap {
+        buf.reserve(cap);
+    }
+}
+[QA 4] ```rust
+#[test]
+fn rejection_status() {
+    assert_eq!(not_found().status(), StatusCode::NOT_FOUND);
+    assert_eq!(
+        method_not_allowed().status(),
+        StatusCode::METHOD_NOT_ALLOWED
+    );
+    assert_eq!(length_required().status(), StatusCode::LENGTH_REQUIRED);
+    assert_eq!(payload_too_large().status(), StatusCode::PAYLOAD_TOO_LARGE);
+    assert_eq!(
+        unsupported_media_type().status(),
+        StatusCode::UNSUPPORTED_MEDIA_TYPE
+    );
+    assert_eq!(custom(Left).status(), StatusCode::INTERNAL_SERVER_ERROR);
+}
+``` |     fn rejection_status() {
+        assert_eq!(not_found().status(), StatusCode::NOT_FOUND);
+        assert_eq!(
+            method_not_allowed().status(),
+            StatusCode::METHOD_NOT_ALLOWED
+        );
+        assert_eq!(length_required().status(), StatusCode::LENGTH_REQUIRED);
+        assert_eq!(payload_too_large().status(), StatusCode::PAYLOAD_TOO_LARGE);
+        assert_eq!(
+            unsupported_media_type().status(),
+            StatusCode::UNSUPPORTED_MEDIA_TYPE
+        );
+        assert_eq!(custom(Left).status(), StatusCode::INTERNAL_SERVER_ERROR);
+    }
+[effective] clen=65802 window=4096 chunk_ratio=0.733405 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-67: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65802 window=4096 chunk_ratio=0.466810 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-67: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65802 window=4096 chunk_ratio=0.360172 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-67: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65802 window=4096 chunk_ratio=0.253535 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.76it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-67: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65802 window=4096 chunk_ratio=0.146897 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-67: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65802 window=4096 chunk_ratio=0.040259 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-67: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65802 window=3290 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3290
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-67: 65802 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/67_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 228.0s. Mem: 14.31/79.18 GB. [scbench_repoqa-67]
+
+[effective] clen=67008 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.30it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.17it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-68: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```rust
+fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+where
+    V: Visitor<'de>,
+{
+    struct OptionVisitor<T>(PhantomData<T>);
+
+    impl<'de, T> Visitor<'de> for OptionVisitor<T>
+    where
+        T: Deserialize<'de>,
+    {
+        type Value = Option<T>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("option")
+        }
+
+        #[inline]
+        fn visit_unit<E>(self) -> Result<Self::Value, E>
+        where
+            E: Error,
+        {
+            Ok(None)
+        }
+
+        #[inline]
+        fn visit_none<E>(self) -> Result<Self::Value, E>
+        where
+            E: Error,
+        {
+            Ok(None)
+        }
+
+        #[inline]
+        fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            T::deserialize(deserializer).map(Some)
+        }
+
+        fn __private_visit_untagged_option<D>(self, deserializer: D) -> Result<Self::Value, ()>
+        where
+            D: Deserializer<'de>,
+        {
+            Ok(T::deserialize(deserializer).ok())
+        }
+    }
+
+    let visitor = OptionVisitor(PhantomData);
+    deserializer.deserialize_option(visitor)
+}
+``` |     fn __private_visit_untagged_option<D>(self, deserializer: D) -> Result<Self::Value, ()>
+    where
+        D: Deserializer<'de>,
+    {
+        Ok(T::deserialize(deserializer).ok())
+    }
+[QA 1] ```rust
+fn serialize_newtype_struct<T>(self, name: &'static str, value: &T) -> Result<Self::Ok, Self::Error>
+where
+    T: ?Sized + Serialize,
+{
+    T::serialize(value, self)
+}
+``` |     fn serialize_newtype_struct<T>(self, _name: &'static str, value: &T) -> fmt::Result
+    where
+        T: ?Sized + Serialize,
+    {
+        Serialize::serialize(value, self)
+    }
+[QA 2] ```rust
+fn deserialize_i8<E>(self, visitor: V) -> Result<V::Value, Self::Error>
+where
+    V: Visitor<'de>,
+{
+    self.deserialize_i64(visitor.map(|v| v as i64))
+}
+``` |     fn visit_i8<E>(self, v: i8) -> Result<Self::Value, E>
+    where
+        E: Error,
+    {
+        self.visit_i64(v as i64)
+    }
+[QA 3] ```rust
+fn deserialize_i128<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+where
+    V: Visitor<'de>,
+{
+    let _ = visitor;
+    Err(Error::custom("i128 is not supported"))
+}
+``` |     fn deserialize_i128<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        let _ = visitor;
+        Err(Error::custom("i128 is not supported"))
+    }
+[QA 4] ```rust
+impl<'de, T> Deserialize<'de> for IgnoredAny {
+    #[inline]
+    fn deserialize<D>(deserializer: D) -> Result<IgnoredAny, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_ignored_any(IgnoredAny)
+    }
+}
+``` |     fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        IgnoredAny::deserialize(deserializer)
+    }
+[effective] clen=67008 window=4096 chunk_ratio=0.733723 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.27it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.22it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-68: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=67008 window=4096 chunk_ratio=0.467447 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.38it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-68: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=67008 window=4096 chunk_ratio=0.360936 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.45it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-68: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=67008 window=4096 chunk_ratio=0.254425 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.70it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-68: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=67008 window=4096 chunk_ratio=0.147915 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.85it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-68: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=67008 window=4096 chunk_ratio=0.041404 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.01it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.76it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-68: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=67008 window=3350 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.12it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.83it/s]
+Chunked prefilling with 0.05 ratio, window 3350
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-68: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/68_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 165.6s. Mem: 14.31/79.18 GB. [scbench_repoqa-68]
+
+[effective] clen=67008 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.30it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.05it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.17it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-69: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```rust
+fn serialize_i128(self, v: i128) -> Result<Self::Ok, Self::Error> {
+    let _ = v;
+    Err(Error::custom("i128 is not supported"))
+}
+``` |     fn serialize_i128(self, v: i128) -> Result<Self::Ok, Self::Error> {
+        let _ = v;
+        Err(Error::custom("i128 is not supported"))
+    }
+[QA 1] ```rust
+#[cfg(feature = "std")]
+#[inline]
+fn format_u8(mut n: u8, out: &mut [u8]) -> usize {
+    if n >= 100 {
+        let d1 = ((n % 100) << 1) as usize;
+        n /= 100;
+        out[0] = b'0' + n;
+        out[1] = DEC_DIGITS_LUT[d1];
+        out[2] = DEC_DIGITS_LUT[d1 + 1];
+        3
+    } else if n >= 10 {
+        let d1 = (n << 1) as usize;
+        out[0] = DEC_DIGITS_LUT[d1];
+        out[1] = DEC_DIGITS_LUT[d1 + 1];
+        2
+    } else {
+        out[0] = b'0' + n;
+        1
+    }
+}
+``` | fn format_u8(mut n: u8, out: &mut [u8]) -> usize {
+    if n >= 100 {
+        let d1 = ((n % 100) << 1) as usize;
+        n /= 100;
+        out[0] = b'0' + n;
+        out[1] = DEC_DIGITS_LUT[d1];
+        out[2] = DEC_DIGITS_LUT[d1 + 1];
+        3
+    } else if n >= 10 {
+        let d1 = (n << 1) as usize;
+        out[0] = DEC_DIGITS_LUT[d1];
+        out[1] = DEC_DIGITS_LUT[d1 + 1];
+        2
+    } else {
+        out[0] = b'0' + n;
+        1
+    }
+}
+[QA 2] ```rust
+fn custom<T>(_msg: T) -> Self
+where
+    T: Display;
+```
+
+The function `custom` is defined to take a generic parameter `_msg` of type `T` that implements the `Display` trait and returns the current type `Self` (which is assumed to be a type that implements the `Error` trait). The function is intended to create a custom error with the provided message, but in this context, it seems to be returning a formatting error without using the provided message. |     fn custom<T: Display>(_msg: T) -> Self {
+        fmt::Error
+    }
+[QA 3] ```rust
+fn collect_seq<I>(self, iter: I) -> Result<Self::Ok, Self::Error>
+where
+    I: IntoIterator,
+    <I as IntoIterator>::Item: Serialize,
+{
+    let mut iter = iter.into_iter();
+    let mut serializer = tri!(self.serialize_seq(iterator_len_hint(&iter)));
+    tri!(iter.try_for_each(|item| serializer.serialize_element(&item)));
+    serializer.end()
+}
+``` |     fn collect_seq<I>(self, iter: I) -> Result<Self::Ok, Self::Error>
+    where
+        I: IntoIterator,
+        <I as IntoIterator>::Item: Serialize,
+    {
+        let mut iter = iter.into_iter();
+        let mut serializer = tri!(self.serialize_seq(iterator_len_hint(&iter)));
+        tri!(iter.try_for_each(|item| serializer.serialize_element(&item)));
+        serializer.end()
+    }
+[QA 4] ```rust
+fn serialize_key<K>(&mut self, key: &K) -> Result<(), Self::Error>
+where
+    K: ?Sized + Serialize,
+{
+    let _ = key;
+    match self.void {}
+}
+```
+
+This function is part of the `SerializeMap` trait, which is responsible for handling the serialization of map structures. The function attempts to serialize a key, but due to the use of `match self.void {}`, it is inherently designed to never succeed, ensuring that any attempt to serialize a key will result in an error. |     fn serialize_key<T>(&mut self, key: &T) -> Result<(), Error>
+    where
+        T: ?Sized + Serialize,
+    {
+        let _ = key;
+        match self.void {}
+    }
+[effective] clen=67008 window=4096 chunk_ratio=0.733723 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.27it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.21it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-69: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=67008 window=4096 chunk_ratio=0.467447 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.09it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.47it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.38it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-69: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=67008 window=4096 chunk_ratio=0.360936 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.46it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-69: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=67008 window=4096 chunk_ratio=0.254425 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.70it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-69: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=67008 window=4096 chunk_ratio=0.147915 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.41it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.84it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-69: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=67008 window=4096 chunk_ratio=0.041404 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.01it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.75it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-69: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=67008 window=3350 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.13it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.84it/s]
+Chunked prefilling with 0.05 ratio, window 3350
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-69: 67008 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/69_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 182.5s. Mem: 14.31/79.18 GB. [scbench_repoqa-69]
+
+[effective] clen=65869 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.24it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-70: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```rust
+use alloc::string::ToString;
+use core::time::Duration;
+
+use libafl_bolts::{current_time, format_duration_hms, ClientId};
+
+use super::Aggregator;
+use crate::monitors::{ClientStats, Monitor};
+
+/// Tracking monitor during fuzzing and display both per-client and cumulative info.
+#[derive(Clone)]
+pub struct MultiMonitor<F>
+where
+    F: FnMut(&str),
+{
+    print_fn: F,
+    start_time: Duration,
+    client_stats: Vec<ClientStats>,
+    aggregator: Aggregator,
+}
+
+impl<F> Debug for MultiMonitor<F>
+where
+    F: FnMut(&str),
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("MultiMonitor")
+            .field("start_time", &self.start_time)
+            .field("client_stats", &self.client_stats)
+            .finish_non_exhaustive()
+    }
+}
+
+impl<F> Monitor for MultiMonitor<F>
+where
+    F: FnMut(&str),
+{
+    /// the client monitor, mutable
+    fn client_stats_mut(&mut self) -> &mut Vec<ClientStats> {
+        &mut self.client_stats
+    }
+
+    /// the client monitor
+    fn client_stats(&self) -> &[ClientStats] {
+        &self.client_stats
+    }
+
+    /// Set creation time
+    fn set_start_time(&mut self, time: Duration) {
+        self.start_time = time;
+    }
+
+    /// Time this fuzzing run stated
+    fn start_time(&self) -> Duration {
+        self.start_time
+    }
+
+    fn aggregate(&mut self, name: &str) {
+        self.aggregator.aggregate(name, &self.client_stats);
+    }
+
+    fn display(&mut self, event_msg: &str, sender_id: ClientId) {
+        let sender = format!("#{}", sender_id.0);
+        let pad = if event_msg.len() + sender.len() < 13 {
+            " ".repeat(13 - event_msg.len() - sender.len())
+        } else {
+            String::new()
+        };
+        let head = format!("{event_msg}{pad} {sender}");
+        let mut global_fmt = format!(
+            "[{}]  (GLOBAL) run time: {}, clients: {}, corpus: {}, objectives: {}, executions: {}, exec/sec: {}",
+            head,
+            format_duration_hms(&(current_time() - self.start_time())),
+            self.client |     pub fn with_user_monitor(print_fn: F, print_user_monitor: bool) -> Self {
+        Self {
+            print_fn,
+            start_time: current_time(),
+            print_user_monitor,
+            client_stats: vec![],
+        }
+    }
+[QA 1] ```rust
+impl<'map, S> ConcolicObserver<'map> {
+    /// Create the concolic observer metadata for this run
+    #[must_use]
+    pub fn create_metadata_from_current_map(&self) -> ConcolicMetadata {
+        let reader = MessageFileReader::from_length_prefixed_buffer(self.map)
+            .expect("constructing the message reader from a memory buffer should not fail");
+        ConcolicMetadata::from_buffer(reader.get_buffer().to_vec())
+    }
+}
+``` |     pub fn create_metadata_from_current_map(&self) -> ConcolicMetadata {
+        let reader = MessageFileReader::from_length_prefixed_buffer(self.map)
+            .expect("constructing the message reader from a memory buffer should not fail");
+        ConcolicMetadata::from_buffer(reader.get_buffer().to_vec())
+    }
+[QA 2] ```rust
+impl<T: ShMem> MessageFileWriter<ShMemCursor<T>> {
+    /// Creates a new `MessageFileWriter` from the given [`ShMemCursor`].
+    pub fn from_shmem(shmem: T) -> io::Result<Self> {
+        Self::from_writer(ShMemCursor::new(shmem))
+    }
+}
+
+impl MessageFileWriter<ShMemCursor<<StdShMemProvider as ShMemProvider>::ShMem>> {
+    /// Creates a new `MessageFileWriter` by reading a [`ShMem`] from the given environment variable.
+    pub fn from_stdshmem_env_with_name(env_name: impl AsRef<str>) -> io::Result<Self> {
+        Self::from_shmem(
+            StdShMemProvider::new()
+                .expect("unable to initialize StdShMemProvider")
+                .existing_from_env(env_name.as_ref())
+                .expect("unable to get shared memory from env"),
+        )
+    }
+
+    /// Creates a new `MessageFileWriter` by reading a [`ShMem`] using [`DEFAULT_ENV_NAME`].
+    pub fn from_stdshmem_default_env() -> io::Result<Self> {
+        Self::from_stdshmem_env_with_name(DEFAULT_ENV_NAME)
+    }
+}
+
+/// A writer that will write messages to a shared memory buffer.
+pub type StdShMemMessageFileWriter =
+    MessageFileWriter<ShMemCursor<<StdShMemProvider as ShMemProvider>::ShMem>>;
+
+#[cfg(test)]
+mod serialization_tests {
+    use alloc::vec::Vec;
+    use std::io::Cursor;
+
+    use super::{MessageFileReader, MessageFileWriter, SymExpr};
+
+    /// This test intends to ensure that the serialization format can efficiently encode the required information.
+    /// This is mainly useful to fail if any changes should be made in the future that (inadvertently) reduce
+    /// serialization efficiency.
+    #[test]
+    fn efficient_serialization() {
+        let mut buf = Vec::new();
+        {
+            let mut cursor = Cursor::new(&mut buf);
+            let mut writer = MessageFileWriter::from_writer(&mut cursor).unwrap();
+            let a = writer.write_message(SymExpr::True).unwrap();
+            let b = writer.write_message(SymExpr::True).unwrap();
+            writer.write_message(SymExpr::And { a, b }).unwrap();
+            writer.update_trace_header().unwrap();
+        }
+        let expected_size = 8 + // the header takes 8 bytes to encode the |     pub fn from_length_prefixed_buffer(mut buffer: &'buffer [u8]) -> io::Result<Self> {
+        let mut len_buf = 0_u64.to_le_bytes();
+        buffer.read_exact(&mut len_buf)?;
+        let buffer_len = u64::from_le_bytes(len_buf);
+        usize::try_from(buffer_len).unwrap();
+        let buffer_len = buffer_len as usize;
+        let (buffer, _) = buffer.split_at(buffer_len);
+        Ok(Self::from_buffer(buffer))
+    }
+[QA 3] ```rust
+#[inline]
+pub fn set_current_time(&mut self) {
+    self.current_time = libafl_bolts::cpu::read_time_counter();
+}
+``` |     pub fn set_current_time(&mut self, time: u64) {
+        self.current_time = time;
+    }
+[QA 4] ```rust
+impl<'map> ConcolicObserver<'map> {
+    /// Iterates over all messages in the buffer. Does not consume the buffer.
+    pub fn iter_messages(&self) -> impl Iterator<Item = (SymExprRef, SymExpr)> + '_ {
+        let mut parser = MessageFileReader::from_buffer(&self.map);
+        std::iter::from_fn(move || parser.next_message()).flatten()
+    }
+}
+``` |     pub fn iter_messages(&self) -> impl Iterator<Item = (SymExprRef, SymExpr)> + '_ {
+        let mut parser = MessageFileReader::from_buffer(&self.buffer);
+        std::iter::from_fn(move || parser.next_message()).flatten()
+    }
+[effective] clen=65869 window=4096 chunk_ratio=0.733423 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.25it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-70: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65869 window=4096 chunk_ratio=0.466846 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-70: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65869 window=4096 chunk_ratio=0.360216 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-70: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65869 window=4096 chunk_ratio=0.253585 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.76it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-70: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65869 window=4096 chunk_ratio=0.146954 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.90it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-70: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65869 window=4096 chunk_ratio=0.040323 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-70: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65869 window=3293 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.19it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3293
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-70: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/70_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 256.5s. Mem: 14.31/79.18 GB. [scbench_repoqa-70]
+
+[effective] clen=65869 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.28it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-71: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```rust
+impl<C, I, R, SC> StdState<I, C, R, SC>
+where
+    I: Input,
+    C: Corpus<Input = <Self as UsesInput>::Input>,
+    R: Rand,
+    SC: Corpus<Input = <Self as UsesInput>::Input>,
+{
+    fn generate_initial_internal<G, E, EM, Z>(
+        &mut self,
+        fuzzer: &mut Z,
+        executor: &mut E,
+        generator: &mut G,
+        manager: &mut EM,
+        num: usize,
+        forced: bool,
+    ) -> Result<(), Error>
+    where
+        E: UsesState<State = Self>,
+        EM: EventFirer<State = Self>,
+        G: Generator<<Self as UsesInput>::Input, Self>,
+        Z: Evaluator<E, EM, State = Self>,
+    {
+        let mut added = 0;
+        for _ in 0..num {
+            let input = generator.generate(self)?;
+            if forced {
+                let _: CorpusId = fuzzer.add_input(self, executor, manager, input)?;
+                added += 1;
+            } else {
+                let (res, _) = fuzzer.evaluate_input(self, executor, manager, input)?;
+                if res != ExecuteInputResult::None {
+                    added += 1;
+                }
+            }
+        }
+        manager.fire(
+            self,
+            Event::Log {
+                severity_level: LogSeverity::Debug,
+                message: format!("Loaded {added} over {num} initial testcases"),
+                phantom: PhantomData,
+            },
+        )?;
+        Ok(())
+    }
+
+    /// Generate `num` initial inputs, using the passed-in generator and force the addition to corpus.
+    pub fn generate_initial_inputs_forced<G, E, EM, Z>(
+        &mut self,
+        fuzzer: &mut Z,
+        executor: &mut E,
+        generator: &mut G,
+        manager: &mut EM,
+        num: usize,
+    ) -> Result<(), Error>
+    where
+        E: UsesState<State = Self>,
+        EM: EventFirer<State = Self>,
+        G: Generator<<Self as UsesInput>::Input, Self>,
+        Z: Evaluator<E, EM, State = Self>,
+    {
+        self.generate_initial_internal(fuzzer, executor, generator, manager, num, true)
+    }
+
+    /// Generate `num` initial inputs, using the passed-in generator.
+    pub fn generate_initial_inputs<G, E, |     fn generate_initial_internal<G, E, EM, Z>(
+        &mut self,
+        fuzzer: &mut Z,
+        executor: &mut E,
+        generator: &mut G,
+        manager: &mut EM,
+        num: usize,
+        forced: bool,
+    ) -> Result<(), Error>
+    where
+        E: UsesState<State = Self>,
+        EM: EventFirer<State = Self>,
+        G: Generator<<Self as UsesInput>::Input, Self>,
+        Z: Evaluator<E, EM, State = Self>,
+    {
+        let mut added = 0;
+        for _ in 0..num {
+            let input = generator.generate(self)?;
+            if forced {
+                let _: CorpusId = fuzzer.add_input(self, executor, manager, input)?;
+                added += 1;
+            } else {
+                let (res, _) = fuzzer.evaluate_input(self, executor, manager, input)?;
+                if res!= ExecuteInputResult::None {
+                    added += 1;
+                }
+            }
+        }
+        manager.fire(
+            self,
+            Event::Log {
+                severity_level: LogSeverity::Debug,
+                message: format!("Loaded {added} over {num} initial testcases"),
+                phantom: PhantomData,
+            },
+        )?;
+        Ok(())
+    }
+[QA 1] ```rust
+impl<I, C, R, SC> HasNamedMetadata for StdState<I, C, R, SC> {
+    /// Get all the metadata into an [`hashbrown::HashMap`]
+    #[inline]
+    fn named_metadata_map(&self) -> &NamedSerdeAnyMap {
+        &self.named_metadata
+    }
+
+    /// Get all the metadata into an [`hashbrown::HashMap`] (mutable)
+    #[inline]
+    fn named_metadata_map_mut(&mut self) -> &mut NamedSerdeAnyMap {
+        &mut self.named_metadata
+    }
+}
+``` |     fn named_metadata_map(&self) -> &NamedSerdeAnyMap {
+        &self.named_metadata
+    }
+[QA 2] ```rust
+impl<W: Write + Seek> MessageFileWriter<W> {
+    /// Create a `MessageFileWriter` from the given [`Write`].
+    pub fn from_writer(mut writer: W) -> io::Result<Self> {
+        let writer_start_position = writer.stream_position()?;
+        // write dummy trace length
+        writer.write_all(&0_u64.to_le_bytes())?;
+        Ok(Self {
+            id_counter: 1,
+            writer,
+            writer_start_position,
+            serialization_options: serialization_options(),
+        })
+    }
+
+    fn write_trace_size(&mut self) -> io::Result<()> {
+        // calculate size of trace
+        let end_pos = self.writer.stream_position()?;
+        let trace_header_len = 0_u64.to_le_bytes().len() as u64;
+        assert!(
+            end_pos >= self.writer_start_position + trace_header_len,
+            "our end position can not be before our start position"
+        );
+        let trace_length = end_pos - self.writer_start_position - trace_header_len;
+
+        // write trace size to beginning of trace
+        self.writer
+            .seek(SeekFrom::Start(self.writer_start_position))?;
+        self.writer.write_all(&trace_length.to_le_bytes())?;
+        // rewind to previous position
+        self.writer.seek(SeekFrom::Start(end_pos))?;
+        Ok(())
+    }
+
+    /// Updates the trace header which stores the total length of the trace in bytes.
+    pub fn update_trace_header(&mut self) -> io::Result<()> {
+        self.write_trace_size()?;
+        Ok(())
+    }
+
+    fn make_relative(&self, expr: SymExprRef) -> SymExprRef {
+        SymExprRef::new(self.id_counter - expr.get()).unwrap()
+    }
+
+    /// Writes a message to the stream and returns the [`SymExprRef`] that should be used to refer back to this message.
+    /// May error when the underlying `Write` errors or when there is a serialization error.
+    #[allow(clippy::too_many_lines)]
+    pub fn write_message(&mut self, mut message: SymExpr) -> Result<SymExprRef> {
+        let current_id = self.id_counter;
+        match &mut message {
+            SymExpr::InputByte { .. }
+            | SymExpr::Integer { .. }
+            | SymExpr::Integer128 { .. }
+            | SymExpr::Float { .. }
+            | SymExpr::NullPointer
+            | SymExpr::True
+            | SymExpr::False |     pub fn from_writer(mut writer: W) -> io::Result<Self> {
+        let writer_start_position = writer.stream_position()?;
+        // write dummy trace length
+        writer.write_all(&0_u64.to_le_bytes())?;
+        Ok(Self {
+            id_counter: 1,
+            writer,
+            writer_start_position,
+            serialization_options: serialization_options(),
+        })
+    }
+[QA 3] ```rust
+use alloc::{string::String, vec::Vec};
+use core::time::Duration;
+use std::{
+    fs::{File, OpenOptions},
+    io::Write,
+    path::PathBuf,
+};
+
+use libafl_bolts::{current_time, format_duration_hms, ClientId};
+use serde_json::json;
+
+use crate::monitors::{ClientStats, Monitor, NopMonitor};
+
+/// Wrap a monitor and log the current state of the monitor into a TOML file.
+#[derive(Debug, Clone)]
+pub struct OnDiskTOMLMonitor<M>
+where
+    M: Monitor,
+{
+    base: M,
+    filename: PathBuf,
+    last_update: Duration,
+}
+
+impl<M> Monitor for OnDiskTOMLMonitor<M>
+where
+    M: Monitor,
+{
+    /// The client monitor, mutable
+    fn client_stats_mut(&mut self) -> &mut Vec<ClientStats> {
+        self.base.client_stats_mut()
+    }
+
+    /// The client monitor
+    fn client_stats(&self) -> &[ClientStats] {
+        self.base.client_stats()
+    }
+
+    /// Time this fuzzing run stated
+    fn start_time(&self) -> Duration {
+        self.base.start_time()
+    }
+
+    /// Set creation time
+    fn set_start_time(&mut self, time: Duration) {
+        self.base.set_start_time(time);
+    }
+
+    fn aggregate(&mut self, name: &str) {
+        self.base.aggregate(name);
+    }
+
+    fn display(&mut self, event_msg: &str, sender_id: ClientId) {
+        let cur_time = current_time();
+
+        if (cur_time - self.last_update).as_secs() >= 60 {
+            self.last_update = cur_time;
+
+            let mut file = File::create(&self.filename).expect("Failed to open the TOML file");
+            write!(
+                &mut file,
+                "# This TOML is generated using the OnDiskMonitor component of LibAFL
+
+[global]
+run_time = \"{}\"
+clients = {}
+corpus = {}
+objectives = {}
+executions = {}
+exec_sec = {}
+",
+                format_duration_hms(&(cur_time - self.start_time())),
+                self.client_stats_count(),
+                self.corpus_size(),
+                self.objective_size(),
+                self.total_execs(),
+                self.execs_per_sec()
+            )
+            .expect("Failed to write to the TOML file");
+
+            for (i, client) in self.client_stats_mut().iter_mut().skip |     pub fn nop<P>(filename: P) -> Self
+    where
+        P: Into<PathBuf>,
+    {
+        Self::new(filename, NopMonitor::new())
+    }
+[QA 4] ```rust
+impl<T> MapFeedbackMetadata<T>
+where
+    T: Default + Copy + 'static + Serialize + DeserializeOwned + PartialEq,
+{
+    /// Create new `MapFeedbackMetadata`
+    #[must_use]
+    pub fn new(map_size: usize) -> Self {
+        Self {
+            history_map: vec![T::default(); map_size],
+            num_covered_map_indexes: 0,
+        }
+    }
+
+    /// Create new `MapFeedbackMetadata` using a name and a map.
+    /// The map can be shared.
+    /// `initial_elem_value` is used to calculate `Self.num_covered_map_indexes`
+    #[must_use]
+    pub fn with_history_map(history_map: Vec<T>, initial_elem_value: T) -> Self {
+        let num_covered_map_indexes = history_map
+            .iter()
+            .fold(0, |acc, x| acc + usize::from(*x != initial_elem_value));
+        Self {
+            history_map,
+            num_covered_map_indexes,
+        }
+    }
+
+    /// Reset the map
+    pub fn reset(&mut self) -> Result<(), Error> {
+        let cnt = self.history_map.len();
+        for i in 0..cnt {
+            self.history_map[i] = T::default();
+        }
+        self.num_covered_map_indexes = 0;
+        Ok(())
+    }
+
+    /// Reset the map with any value
+    pub fn reset_with_value(&mut self, value: T) -> Result<(), Error> {
+        let cnt = self.history_map.len();
+        for i in 0..cnt {
+            self.history_map[i] = value;
+        }
+        // assume that resetting the map should indicate no coverage,
+        // regardless of value
+        self.num_covered_map_indexes = 0;
+        Ok(())
+    }
+}
+``` |     pub fn with_history_map(history_map: Vec<T>, initial_elem_value: T) -> Self {
+        let num_covered_map_indexes = history_map
+            .iter()
+            .fold(0, |acc, x| acc + usize::from(*x != initial_elem_value));
+        Self {
+            history_map,
+            num_covered_map_indexes,
+        }
+    }
+[effective] clen=65869 window=4096 chunk_ratio=0.733423 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.25it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-71: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65869 window=4096 chunk_ratio=0.466846 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-71: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65869 window=4096 chunk_ratio=0.360216 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-71: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65869 window=4096 chunk_ratio=0.253585 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.77it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-71: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65869 window=4096 chunk_ratio=0.146954 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.90it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-71: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65869 window=4096 chunk_ratio=0.040323 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-71: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65869 window=3293 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.19it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3293
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-71: 65869 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/71_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 543.4s. Mem: 14.31/79.18 GB. [scbench_repoqa-71]
+
+[effective] clen=66997 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.30it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-72: 66997 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```rust
+impl Options {
+    /// Logging filter level.
+    pub fn log_level(&self) -> LevelFilter {
+        match (self.quiet, self.verbose) {
+            // Force at least `Info` level for `--print-events`.
+            (_, 0) if self.print_events => LevelFilter::Info,
+
+            // Default.
+            (0, 0) => LevelFilter::Warn,
+
+            // Verbose.
+            (_, 1) => LevelFilter::Info,
+            (_, 2) => LevelFilter::Debug,
+            (0, _) => LevelFilter::Trace,
+
+            // Quiet.
+            (1, _) => LevelFilter::Error,
+            (..) => LevelFilter::Off,
+        }
+    }
+}
+```
+``` |     pub fn log_level(&self) -> LevelFilter {
+        match (self.quiet, self.verbose) {
+            // Force at least `Info` level for `--print-events`.
+            (_, 0) if self.print_events => LevelFilter::Info,
+
+            // Default.
+            (0, 0) => LevelFilter::Warn,
+
+            // Verbose.
+            (_, 1) => LevelFilter::Info,
+            (_, 2) => LevelFilter::Debug,
+            (0, _) => LevelFilter::Trace,
+
+            // Quiet.
+            (1, _) => LevelFilter::Error,
+            (..) => LevelFilter::Off,
+        }
+    }
+[QA 1] ```rust
+pub fn create_gl_surface(
+    gl_context: &NotCurrentContext,
+    size: PhysicalSize<u32>,
+    raw_window_handle: RawWindowHandle,
+) -> GlutinResult<Surface<WindowSurface>> {
+    // Get the display and the config used to create that context.
+    let gl_display = gl_context.display();
+    let gl_config = gl_context.config();
+
+    let surface_attributes =
+        SurfaceAttributesBuilder::<WindowSurface>::new().with_srgb(Some(false)).build(
+            raw_window_handle,
+            NonZeroU32::new(size.width).unwrap(),
+            NonZeroU32::new(size.height).unwrap(),
+        );
+
+    // Create the GL surface to draw into.
+    unsafe { gl_display.create_window_surface(&gl_config, &surface_attributes) }
+}
+``` | pub fn create_gl_surface(
+    gl_context: &NotCurrentContext,
+    size: PhysicalSize<u32>,
+    raw_window_handle: RawWindowHandle,
+) -> GlutinResult<Surface<WindowSurface>> {
+    // Get the display and the config used to create that context.
+    let gl_display = gl_context.display();
+    let gl_config = gl_context.config();
+
+    let surface_attributes =
+        SurfaceAttributesBuilder::<WindowSurface>::new().with_srgb(Some(false)).build(
+            raw_window_handle,
+            NonZeroU32::new(size.width).unwrap(),
+            NonZeroU32::new(size.height).unwrap(),
+        );
+
+    // Create the GL surface to draw into.
+    unsafe { gl_display.create_window_surface(&gl_config, &surface_attributes) }
+}
+[QA 2] ```rust
+fn get_program_info_log(program: GLuint) -> String {
+    // Get expected log length.
+    let mut max_length: GLint = 0;
+    unsafe {
+        gl::GetProgramiv(program, gl::INFO_LOG_LENGTH, &mut max_length);
+    }
+
+    // Read the info log.
+    let mut actual_length: GLint = 0;
+    let mut buf: Vec<u8> = Vec::with_capacity(max_length as usize);
+    unsafe {
+        gl::GetProgramInfoLog(program, max_length, &mut actual_length, buf.as_mut_ptr() as *mut _);
+    }
+
+    // Build a string.
+    unsafe {
+        buf.set_len(actual_length as usize);
+    }
+
+    String::from_utf8_lossy(&buf).to_string()
+}
+``` | fn get_program_info_log(program: GLuint) -> String {
+    // Get expected log length.
+    let mut max_length: GLint = 0;
+    unsafe {
+        gl::GetProgramiv(program, gl::INFO_LOG_LENGTH, &mut max_length);
+    }
+
+    // Read the info log.
+    let mut actual_length: GLint = 0;
+    let mut buf: Vec<u8> = Vec::with_capacity(max_length as usize);
+    unsafe {
+        gl::GetProgramInfoLog(program, max_length, &mut actual_length, buf.as_mut_ptr() as *mut _);
+    }
+
+    // Build a string.
+    unsafe {
+        buf.set_len(actual_length as usize);
+    }
+
+    String::from_utf8_lossy(&buf).to_string()
+}
+[QA 3] ```rust
+/// RGB color optionally referencing the cell's foreground or background.
+#[derive(SerdeReplace, Copy, Clone, Debug, PartialEq, Eq)]
+pub enum CellRgb {
+    CellForeground,
+    CellBackground,
+    Rgb(Rgb),
+}
+
+impl CellRgb {
+    pub fn color(self, foreground: Rgb, background: Rgb) -> Rgb {
+        match self {
+            Self::CellForeground => foreground,
+            Self::CellBackground => background,
+            Self::Rgb(rgb) => rgb,
+        }
+    }
+}
+
+impl Default for CellRgb {
+    fn default() -> Self {
+        Self::Rgb(Rgb::default())
+    }
+}
+
+impl<'de> Deserialize<'de> for CellRgb {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        const EXPECTING: &str = "CellForeground, CellBackground, or hex color like #ff00ff";
+
+        struct CellRgbVisitor;
+        impl<'a> Visitor<'a> for CellRgbVisitor {
+            type Value = CellRgb;
+
+            fn expecting(&self, f: &mut Formatter<'_>) -> fmt::Result {
+                f.write_str(EXPECTING)
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<CellRgb, E>
+            where
+                E: serde::de::Error,
+            {
+                // Attempt to deserialize as enum constants.
+                match value {
+                    "CellForeground" => return Ok(CellRgb::CellForeground),
+                    "CellBackground" => return Ok(CellRgb::CellBackground),
+                    _ => (),
+                }
+
+                Rgb::from_str(value).map(CellRgb::Rgb).map_err(|_| {
+                    E::custom(format!("failed to parse color {value}; expected {EXPECTING}"))
+                })
+            }
+        }
+
+        deserializer.deserialize_str(CellRgbVisitor).map_err(D::Error::custom)
+    }
+}
+``` |     pub fn color(self, foreground: Rgb, background: Rgb) -> Rgb {
+        match self {
+            Self::CellForeground => foreground,
+            Self::CellBackground => background,
+            Self::Rgb(rgb) => rgb,
+        }
+    }
+[QA 4] ```rust
+/// Handle keyboard input during hint selection.
+pub fn keyboard_input<T>(&mut self, term: &Term<T>, c: char) -> Option<HintMatch> {
+    match c {
+        // Use backspace to remove the last character pressed.
+        '\x08' | '\x1f' => {
+            self.keys.pop();
+        },
+        // Cancel hint highlighting on ESC/Ctrl+c.
+        '\x1b' | '\x03' => self.stop(),
+        _ => (),
+    }
+
+    // Update the visible matches.
+    self.update_matches(term);
+
+    let hint = self.hint.as_ref()?;
+
+    // Find the last label starting with the input character.
+    let mut labels = self.labels.iter().enumerate().rev();
+    let (index, label) = labels.find(|(_, label)| !label.is_empty() && label[0] == c)?;
+
+    // Check if the selected label is fully matched.
+    if label.len() == 1 {
+        let bounds = self.matches[index].clone();
+        let action = hint.action.clone();
+
+        // Exit hint mode unless it requires explicit dismissal.
+        if hint.persist {
+            self.keys.clear();
+        } else {
+            self.stop();
+        }
+
+        // Hyperlinks take precedence over regex matches.
+        let hyperlink = term.grid()[*bounds.start()].hyperlink();
+        Some(HintMatch { action, bounds, hyperlink })
+    } else {
+        // Store character to preserve the selection.
+        self.keys.push(c);
+
+        None
+    }
+}
+``` |     pub fn keyboard_input<T>(&mut self, term: &Term<T>, c: char) -> Option<HintMatch> {
+        match c {
+            // Use backspace to remove the last character pressed.
+            '\x08' | '\x1f' => {
+                self.keys.pop();
+            },
+            // Cancel hint highlighting on ESC/Ctrl+c.
+            '\x1b' | '\x03' => self.stop(),
+            _ => (),
+        }
+
+        // Update the visible matches.
+        self.update_matches(term);
+
+        let hint = self.hint.as_ref()?;
+
+        // Find the last label starting with the input character.
+        let mut labels = self.labels.iter().enumerate().rev();
+        let (index, label) = labels.find(|(_, label)| !label.is_empty() && label[0] == c)?;
+
+        // Check if the selected label is fully matched.
+        if label.len() == 1 {
+            let bounds = self.matches[index].clone();
+            let action = hint.action.clone();
+
+            // Exit hint mode unless it requires explicit dismissal.
+            if hint.persist {
+                self.keys.clear();
+            } else {
+                self.stop();
+            }
+
+            // Hyperlinks take precedence over regex matches.
+            let hyperlink = term.grid()[*bounds.start()].hyperlink();
+            Some(HintMatch { action, bounds, hyperlink })
+        } else {
+            // Store character to preserve the selection.
+            self.keys.push(c);
+
+            None
+        }
+    }
+[effective] clen=66997 window=4096 chunk_ratio=0.733720 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.35it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.27it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.21it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-72: 66997 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66997 window=4096 chunk_ratio=0.467441 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.38it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-72: 66997 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66997 window=4096 chunk_ratio=0.360929 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.46it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-72: 66997 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66997 window=4096 chunk_ratio=0.254417 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.50it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.26it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.71it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.55it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-72: 66997 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66997 window=4096 chunk_ratio=0.147905 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.84it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-72: 66997 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66997 window=4096 chunk_ratio=0.041394 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.01it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.76it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-72: 66997 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66997 window=3349 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.12it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.83it/s]
+Chunked prefilling with 0.05 ratio, window 3349
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-72: 66997 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/72_qwen2.5-7b-instruct-1m_fastkvzip__sc11_s1_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 447.7s. Mem: 14.31/79.18 GB. [scbench_repoqa-72]
+
+[effective] clen=66997 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.25it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.17it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-73: 66997 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```rust
+pub fn fill_cube(&mut self, colors: &Colors) {
+    let mut index: usize = 16;
+    // Build colors.
+    for r in 0..6 {
+        for g in 0..6 {
+            for b in 0..6 {
+                // Override colors 16..232 with the config (if present).
+                if let Some(indexed_color) =
+                    colors.indexed_colors.iter().find(|ic| ic.index() == index as u8)
+                {
+                    self[index] = indexed_color.color;
+                } else {
+                    self[index] = Rgb::new(
+                        if r == 0 { 0 } else { r * 40 + 55 },
+                        if g == 0 { 0 } else { g * 40 + 55 },
+                        if b == 0 { 0 } else { b * 40 + 55 },
+                    );
+                }
+                index += 1;
+            }
+        }
+    }
+
+    debug_assert!(index == 232);
+}
+```
+``` |     pub fn fill_cube(&mut self, colors: &Colors) {
+        let mut index: usize = 16;
+        // Build colors.
+        for r in 0..6 {
+            for g in 0..6 {
+                for b in 0..6 {
+                    // Override colors 16..232 with the config (if present).
+                    if let Some(indexed_color) =
+                        colors.indexed_colors.iter().find(|ic| ic.index() == index as u8)
+                    {
+                        self[index] = indexed_color.color;
+                    } else {
+                        self[index] = Rgb::new(
+                            if r == 0 { 0 } else { r * 40 + 55 },
+                            if g == 0 { 0 } else { g * 40 + 55 },
+                            if b == 0 { 0 } else { b * 40 + 55 },
+                        );
+                    }
+                    index += 1;
+                }
+            }
+        }
+
+        debug_assert!(index == 232);
+    }
+[QA 1] ```rust
+/// Message for display in the MessageBuffer.
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub struct Message {
+    text: String,
+    ty: MessageType,
+    target: Option<String>,
+}
+
+/// Purpose of the message.
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+pub enum MessageType {
+    /// A message represents an error.
+    Error,
+
+    /// A message represents a warning.
+    Warning,
+}
+
+impl Message {
+    /// Create a new message.
+    pub fn new(text: String, ty: MessageType) -> Message {
+        Message { text, ty, target: None }
+    }
+
+    /// Formatted message text lines.
+    pub fn text(&self, size_info: &SizeInfo) -> Vec<String> {
+        let num_cols = size_info.columns();
+        let total_lines =
+            (size_info.height() - 2. * size_info.padding_y()) / size_info.cell_height();
+        let max_lines = (total_lines as usize).saturating_sub(MIN_FREE_LINES);
+        let button_len = CLOSE_BUTTON_TEXT.chars().count();
+
+        // Split line to fit the screen.
+        let mut lines = Vec::new();
+        let mut line = String::new();
+        let mut line_len = 0;
+        for c in self.text.trim().chars() {
+            if c == '\n'
+                || line_len == num_cols
+                // Keep space in first line for button.
+                || (lines.is_empty()
+                    && num_cols >= button_len
+                    && line_len == num_cols.saturating_sub(button_len + CLOSE_BUTTON_PADDING))
+            {
+                let is_whitespace = c.is_whitespace();
+
+                // Attempt to wrap on word boundaries.
+                let mut new_line = String::new();
+                if let Some(index) = line.rfind(char::is_whitespace).filter(|_| !is_whitespace) {
+                    let split = line.split_off(index + 1);
+                    line.pop();
+                    new_line = split;
+                }
+
+                lines.push(Self::pad_text(line, num_cols));
+                line = new_line;
+                line_len = line.chars().count();
+
+                // Do not append whitespace at EOL.
+                if is_whitespace {
+                    continue;
+                }
+            }
+
+            line.push(c);
+
+            // Reserve extra column for fullwidth characters.
+            let width = c.width().unwrap_or(0);
+            if width == 2 {
+                line.push(' ');
+            }
+
+            line_len += width
+        }
+        lines.push(Self::pad_text(line, num |     pub fn ty(&self) -> MessageType {
+        self.ty
+    }
+[QA 2] ```rust
+fn add_rect(vertices: &mut Vec<Vertex>, half_width: f32, half_height: f32, rect: &RenderRect) {
+    // Calculate rectangle vertices positions in normalized device coordinates.
+    // NDC range from -1 to +1, with Y pointing up.
+    let x = rect.x / half_width - 1.0;
+    let y = -rect.y / half_height + 1.0;
+    let width = rect.width / half_width;
+    let height = rect.height / half_height;
+    let (r, g, b) = rect.color.as_tuple();
+    let a = (rect.alpha * 255.) as u8;
+
+    // Make quad vertices.
+    let quad = [
+        Vertex { x, y, r, g, b, a },
+        Vertex { x, y: y - height, r, g, b, a },
+        Vertex { x: x + width, y, r, g, b, a },
+        Vertex { x: x + width, y: y - height, r, g, b, a },
+    ];
+
+    // Append the vertices to form two triangles.
+    vertices.push(quad[0]);
+    vertices.push(quad[1]);
+    vertices.push(quad[2]);
+    vertices.push(quad[2]);
+    vertices.push(quad[3]);
+    vertices.push(quad[1]);
+}
+``` |     fn add_rect(vertices: &mut Vec<Vertex>, half_width: f32, half_height: f32, rect: &RenderRect) {
+        // Calculate rectangle vertices positions in normalized device coordinates.
+        // NDC range from -1 to +1, with Y pointing up.
+        let x = rect.x / half_width - 1.0;
+        let y = -rect.y / half_height + 1.0;
+        let width = rect.width / half_width;
+        let height = rect.height / half_height;
+        let (r, g, b) = rect.color.as_tuple();
+        let a = (rect.alpha * 255.) as u8;
+
+        // Make quad vertices.
+        let quad = [
+            Vertex { x, y, r, g, b, a },
+            Vertex { x, y: y - height, r, g, b, a },
+            Vertex { x: x + width, y, r, g, b, a },
+            Vertex { x: x + width, y: y - height, r, g, b, a },
+        ];
+
+        // Append the vertices to form two triangles.
+        vertices.push(quad[0]);
+        vertices.push(quad[1]);
+        vertices.push(quad[2]);
+        vertices.push(quad[2]);
+        vertices.push(quad[3]);
+        vertices.push(quad[1]);
+    }
+[QA 3] ```rust
+impl Message {
+    /// Formatted message text lines.
+    pub fn text(&self, size_info: &SizeInfo) -> Vec<String> {
+        let num_cols = size_info.columns();
+        let total_lines =
+            (size_info.height() - 2. * size_info.padding_y()) / size_info.cell_height();
+        let max_lines = (total_lines as usize).saturating_sub(MIN_FREE_LINES);
+        let button_len = CLOSE_BUTTON_TEXT.chars().count();
+
+        // Split line to fit the screen.
+        let mut lines = Vec::new();
+        let mut line = String::new();
+        let mut line_len = 0;
+        for c in self.text.trim().chars() {
+            if c == '\n'
+                || line_len == num_cols
+                // Keep space in first line for button.
+                || (lines.is_empty()
+                    && num_cols >= button_len
+                    && line_len == num_cols.saturating_sub(button_len + CLOSE_BUTTON_PADDING))
+            {
+                let is_whitespace = c.is_whitespace();
+
+                // Attempt to wrap on word boundaries.
+                let mut new_line = String::new();
+                if let Some(index) = line.rfind(char::is_whitespace).filter(|_| !is_whitespace) {
+                    let split = line.split_off(index + 1);
+                    line.pop();
+                    new_line = split;
+                }
+
+                lines.push(Self::pad_text(line, num_cols));
+                line = new_line;
+                line_len = line.chars().count();
+
+                // Do not append whitespace at EOL.
+                if is_whitespace {
+                    continue;
+                }
+            }
+
+            line.push(c);
+
+            // Reserve extra column for fullwidth characters.
+            let width = c.width().unwrap_or(0);
+            if width == 2 {
+                line.push(' ');
+            }
+
+            line_len += width
+        }
+        lines.push(Self::pad_text(line, num_cols));
+
+        // Truncate output if it's too long.
+        if lines.len() > max_lines {
+            lines.truncate(max_lines);
+            if TRUNCATED_MESSAGE.len() <= num_cols {
+                if let Some(line) = lines.iter_mut().last() {
+                    *line = Self::pad_text(TRUNCATED_MESSAGE.into(), num_cols);
+                }
+            }
+        }
+
+        // Append close button to first line.
+        if button_len <= num_cols {
+            if let Some(line) = lines.get_mut(0) {
+                line.truncate(num_cols - button_len);
+                |     fn hide_truncated_when_too_narrow() {
+        let input = "hahahahahahahahaha";
+        let mut message_buffer = MessageBuffer::default();
+        message_buffer.push(Message::new(input.into(), MessageType::Error));
+        let size = SizeInfo::new(2., (MIN_FREE_LINES + 2) as f32, 1., 1., 0., 0., false);
+
+        let lines = message_buffer.message().unwrap().text(&size);
+
+        assert_eq!(lines, vec![String::from("ha"), String::from("ha")]);
+    }
+[QA 4] ```rust
+#[test]
+fn closed_bracket_does_not_result_in_infinite_iterator() {
+    let term = mock_term(" ) ");
+
+    let mut search = RegexSearch::new("[^/ ]").unwrap();
+
+    let count = HintPostProcessor::new(
+        &term,
+        &mut search,
+        Point::new(Line(0), Column(1))..=Point::new(Line(0), Column(1)),
+    )
+    .take(1)
+    .count();
+
+    assert_eq!(count, 0);
+}
+``` |     fn closed_bracket_does_not_result_in_infinite_iterator() {
+        let term = mock_term(" ) ");
+
+        let mut search = RegexSearch::new("[^/ ]").unwrap();
+
+        let count = HintPostProcessor::new(
+            &term,
+            &mut search,
+            Point::new(Line(0), Column(1))..=Point::new(Line(0), Column(1)),
+        )
+        .take(1)
+        .count();
+
+        assert_eq!(count, 0);
+    }
+[effective] clen=66997 window=4096 chunk_ratio=0.733720 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.27it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.22it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-73: 66997 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66997 window=4096 chunk_ratio=0.467441 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.38it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-73: 66997 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66997 window=4096 chunk_ratio=0.360929 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.45it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-73: 66997 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66997 window=4096 chunk_ratio=0.254417 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.71it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.55it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-73: 66997 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66997 window=4096 chunk_ratio=0.147905 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.53it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.85it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.65it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-73: 66997 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66997 window=4096 chunk_ratio=0.041394 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.01it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.76it/s]

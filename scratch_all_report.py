@@ -162,6 +162,20 @@ def cell(base, arm):
     return m, (lo > 0 or hi < 0), len(c)
 
 
+def _seed_ps(d, tpls, S, r):
+    """按顺序试多个 tag 模板，返回第一个非空的逐样本结果。
+
+    一条臂的数据可能分散在不同批次的 tag 里（例如 scalar 的过夜扫描 `_sc11_s*`
+    不含 scbench_kv 的 ρ=0.1，那一格只存在于更早的 `_d10scalar_s*`）。
+    **按顺序取第一个有数据的**，而不是合并——避免同一 (panel,ratio) 混批。
+    """
+    for t in tpls:
+        x = per_sample(d, t.format(S=S), r)
+        if x:
+            return x
+    return {}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--md", action="store_true")
@@ -178,9 +192,15 @@ def main():
     # **没跑**，不是跑失败。
     ARMS = [("v2", lambda d: "__g8v2_chunk16k_w4096_ctrlmmemo8"),
             ("v2c", ("SEEDS", "__v2c_s{S}_chunk16k_w4096_ctrlmmemo8", v2c_done)),
+            # 每条臂可给**多个 tag 模板**，按顺序取第一个有数据的。
+            # scalar：过夜扫描 `_sc11_s*` 覆盖 11 panel x 7 ratio x 2 种子；
+            # scbench_kv 的 ρ=0.1 在该批里**按计划未跑**（旧批已有三种子），
+            # 故回退到 `_d10scalar_s*`。**同一行可能混用两个 tag，见表头说明。**
             ("scalar", ("SEEDS",
-                        "__d10scalar_s{S}_chunk16k_w4096_ctrlmstat8_scalar", None)),
-            ("kv", ("SEEDS", "__d10kv_s{S}_chunk16k_w4096_ctrlmstat8_kv", None)),
+                        ("__sc11_s{S}_chunk16k_w4096_ctrlmmemo8_scalar",
+                         "__d10scalar_s{S}_chunk16k_w4096_ctrlmstat8_scalar"), None)),
+            ("kv", ("SEEDS", ("__d10kv_s{S}_chunk16k_w4096_ctrlmstat8_kv",
+                              "__pskv_s{S}_chunk16k_w4096_ctrlmmemo8_kv"), None)),
             ("v3", lambda d: "__g8v3_chunk16k_w4096_ctrlmmemo8"),
             ("cen16", None), ("cen1024", None)]     # 质心按 ratio 选 tag
     agg = {a_: {r: [] for r in RAT} for a_, _ in ARMS}
@@ -195,6 +215,8 @@ def main():
             try:
                 if isinstance(sfx, tuple) and sfx[0] == "SEEDS":
                     _tpl, _done = sfx[1], sfx[2]
+                    if isinstance(_tpl, str):
+                        _tpl = (_tpl,)
                     if _done is not None:
                         seeds = [S for S in (0, 1, 2) if _done(d, S)]
                     else:
@@ -204,8 +226,7 @@ def main():
                         # 跑到一半的作业）。
                         _n = len(B.get(0.2) or B.get(1.0) or {})
                         seeds = [S for S in (0, 1, 2)
-                                 if _n and len(per_sample(
-                                     d, _tpl.format(S=S), 0.2)) == _n]
+                                 if _n and len(_seed_ps(d, _tpl, S, 0.2)) == _n]
                     seed_tpl = _tpl
                     A = {}
                 elif sfx is None:                        # 质心：逐 ratio 找 tag
@@ -226,7 +247,7 @@ def main():
                 if seeds is not None:                    # 多种子：逐种子算再平均
                     ms = []
                     for S in seeds:
-                        c = cell(B[r], per_sample(d, seed_tpl.format(S=S), r))
+                        c = cell(B[r], _seed_ps(d, seed_tpl, S, r))
                         if c:
                             ms.append(c)
                     if not ms:
