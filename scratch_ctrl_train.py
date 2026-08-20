@@ -221,6 +221,12 @@ def main():
                          "拆开的消融（见 attention/calib_scorer.py）。"
                          "affine 只有 224 个参数，若它就够，说明增益是"
                          "跨层/头的分数尺度重校准，不是 KV 语义")
+    ap.add_argument("--alpha_max", type=float, default=1.0,
+                    help="修正幅度的上限系数：alpha = alpha_max*sigmoid(alpha_on)。"
+                         "默认 1.0（原样）。scale=global 时若要覆盖 C*=1.16*sig_g，"
+                         "需要 alpha>1，因此必须放开这个上限。"
+                         "**它不在 state_dict 里，所以必须随 ckpt 存取，"
+                         "否则评测端按默认 1.0 构造会把 alpha 静默缩小。**")
     ap.add_argument("--scale", default="head", choices=["head", "global"],
                     help="修正幅度的尺度：head 用逐头 sig_h（原样）；"
                          "global 用全局 sig_g。见 calib_scorer.__init__ 的推导："
@@ -259,7 +265,8 @@ def main():
         torch.manual_seed(a.seed)
         Cls = ControlMemory if a.arch == "memory" else CalibScorer
         kw = ({} if a.arch == "memory"
-              else {"arch": a.arch, "replace": a.replace, "scale": a.scale})
+              else {"arch": a.arch, "replace": a.replace, "scale": a.scale,
+                    "alpha_max": a.alpha_max})
         cm = Cls(a.d_kv, L, H, n_slots=a.slots, d_m=a.dim,
                  mode=mode, alpha_init=a.alpha_init, **kw).to(dev)
         if a.freeze_alpha:
@@ -303,7 +310,7 @@ def main():
             hist.setdefault(mode, []).append((va / max(m_, 1), vg / max(m_, 1)))
         torch.save(dict(state=cm.state_dict(), mode=mode, slots=a.slots,
                         dim=a.dim, d_kv=a.d_kv, L=L, H=H, arch=a.arch,
-                        scale=a.scale, args=vars(a)),
+                        scale=a.scale, alpha_max=a.alpha_max, args=vars(a)),
                    os.path.join(ROOT, a.out, f"{mode}.pt"))
 
     print("\n" + "=" * 78)

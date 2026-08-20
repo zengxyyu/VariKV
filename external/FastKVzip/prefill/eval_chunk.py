@@ -94,9 +94,11 @@ if __name__ == "__main__":
                       d_m=_ck.get("dim", args.ctrlm_dim), mode="memoryless",
                       typed=_ck["state"]["M_init"].shape[2] == 2 * _ns)
         else:
+            # scale 与 alpha_max 都**不在 state_dict 里**却改变方法本体，必须从 ckpt 读
             _cm = _CS(_ck.get("d_kv", 128), _ck["L"], _ck["H"], n_slots=_ns,
                       d_m=_ck.get("dim", args.ctrlm_dim), mode="memoryless",
-                      arch=_arch)
+                      arch=_arch, scale=_ck.get("scale", "head"),
+                      alpha_max=_ck.get("alpha_max", 1.0))
         _cm.load_state_dict(_ck["state"])
         model.ctrl_module = _cm.to(model.device).eval()
         model.ctrl_seed, model.ctrl_rho_max = args.ctrl_seed, args.ctrlm_rho_max
@@ -150,7 +152,8 @@ if __name__ == "__main__":
             # **scale 必须从 ckpt 读**，与 arch 同理：它改变方法本体，
             # 靠构造函数默认值加载会在某天静默跑成另一个方法（`--ctrlm_mode` 前车之鉴）。
             _typed, _cls, _kw = None, _CS, {"arch": _arch,
-                                            "scale": _ck.get("scale", "head")}
+                                            "scale": _ck.get("scale", "head"),
+                                            "alpha_max": _ck.get("alpha_max", 1.0)}
             _mode = "memoryless"            # CalibScorer 无记忆
         # **tag 在 arch 分支之后才拼** —— 它必须反映**实际跑的** mode。原来拼在前面，
         # 于是 CalibScorer 臂的目录名带的是覆盖前的 mode：修 `--ctrlm_mode` 默认值
