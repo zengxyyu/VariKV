@@ -1,0 +1,56 @@
+tag: _fastkvzip__kv4f8_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.79it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.80it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.80it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.90it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.86it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/d10_scalar_s0.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.5K
+['scbench_kv']
+
+scbench_kv loaded, #data: 100
+set generation length: 96 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~100 samples
+[effective] clen=169035 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.55it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.43it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.19it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:07,  1.03s/it]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.24s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.48s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.73s/it]Prefill:  73%|███████▎  | 8/11 [00:12<00:05,  1.99s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.26s/it]Prefill:  91%|█████████ | 10/11 [00:18<00:02,  2.53s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.55s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.88s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_kv-0: 169035 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] "cb59052b-9128-4979-9c0e-e1de4adcf73b" | cb59052b-9128-4979-9c0e-e1de4adcf73b
+[QA 1] "a9ee6345-2331-4914-b32b-25a780931d45" | a9ee6345-2331-4914-b32b-25a780931d45
+[QA 2] 5e6b7b90-710d-4953-9b18-3e96b2cadbf2 | 5e6b7b90-710d-4953-9b18-3e96b2cadbf2
+[QA 3] 3b2dd49b-7437-4432-ac24-06fb8f7f862e | 3b2dd49b-7437-4432-ac24-06fb8f7f862e
+[QA 4] 89545afe-fded-413c-aa0e-f8bb3e5fd45e | 96945afe-fded-413c-aa0e-f8bb3e5fd45e
+[effective] clen=169035 window=4096 chunk_ratio=0.385100 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][floor] chunk lo=28 bmin=8 n_starved=1/112 n_lifted=17 lift=80 Btot=512225
+Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.52it/s][floor] chunk lo=11904 bmin=8 n_starved=14/112 n_lifted=22 lift=156 Btot=690098
+Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.39it/s][floor] chunk lo=27904 bmin=8 n_starved=16/112 n_lifted=25 lift=174 Btot=690098
+Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.26it/s][floor] chunk lo=43904 bmin=8 n_starved=10/112 n_lifted=23 lift=149 Btot=690098
+Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.14it/s][floor] chunk lo=59904 bmin=8 n_starved=13/112 n_lifted=22 lift=147 Btot=690098
+Prefill:  45%|████▌     | 5/11 [00:04<00:05,  1.03it/s][floor] chunk lo=75904 bmin=8 n_starved=16/112 n_lifted=23 lift=161 Btot=690098
+Prefill:  55%|█████▍    | 6/11 [00:05<00:05,  1.06s/it][floor] chunk lo=91904 bmin=8 n_starved=14/112 n_lifted=22 lift=153 Btot=690098
+Prefill:  64%|██████▎   | 7/11 [00:07<00:04,  1.16s/it][floor] chunk lo=107904 bmin=8 n_starved=15/112 n_lifted=22 lift=153 Btot=690098
+Prefill:  73%|███████▎  | 8/11 [00:08<00:03,  1.26s/it][floor] chunk lo=123904 bmin=8 n_starved=12/112 n_lifted=20 lift=140 Btot=690098
+Prefill:  82%|████████▏ | 9/11 [00:10<00:02,  1.37s/it][floor] chunk lo=139904 bmin=8 n_starved=14/112 n_lifted=19 lift=139 Btot=690098
+Prefill:  91%|█████████ | 10/11 [00:11<00:01,  1.48s/it][floor] chunk lo=155904 bmin=8 n_starved=15/112 n_lifted=21 lift=148 Btot=390897
+Prefill: 100%|██████████| 11/11 [00:12<00:00,  1.35s/it]Prefill: 100%|██████████| 11/11 [00:12<00:00,  1.17s/it]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-0: 169035 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/0_qwen2.5-7b-instruct-1m_fastkvzip__kv4f8_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 55.4s. Mem: 14.31/79.18 GB. [scbench_kv-0]
+
+[effective] clen=169258 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.26it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.79it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.30it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.22s/it]Prefill:  55%|█████▍    | 6/11 [00:06<00:07,  1.46s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.72s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  1.98s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.25s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.53s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.55s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.85s/it]
