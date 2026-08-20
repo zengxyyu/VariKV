@@ -1766,6 +1766,24 @@ PrefSuf@0.1 的干净交叉显示**那里是抬升量显著、覆盖不显著**�
 `f=0.15 vs f=1.00`（固定每头 +1）与 `f=0.15 vs maxlift`（固定覆盖 15%）。
 
 
+### 运行环境陷阱：`grep` 在会话中途变成了一个会失败的 shell 函数（2026-08-20 07:15）
+
+巡检时发现所有临时状态检查都返回空。原因是当前 shell 里 **`grep` 是一个函数**
+（`type grep` → `grep is a function`），它内部调用 `claude` 二进制而该二进制未安装，
+于是每次调用把错误写到 stderr、**stdout 为空**。
+
+**为什么值得记**：`n=$(grep -c ... )` 在这种情况下得到**空串**而不是报错退出，
+正是本项目反复栽的**静默返回空**那一类（`VARIKV_RATIOS` 没导出给 parse 时打印 0.00、
+`zip` 静默截断）。这次它显示成 `kvcov15 /100` 一眼可见，没有酿成错误读数。
+
+**影响范围（已核）**：**分析管线不受影响** —— `scratch_read_scores.py`、
+`scratch_audit_complete.py`、`scratch_verify_ablation.py` 全部用 Python 的
+`open()`/`in` 读文件，不经过 grep。受影响的只有我的临时 shell 检查。
+
+**规则**：临时检查一律用 **`command grep`**（或 `/bin/grep`），
+不要依赖会话里 `grep` 还是那个二进制。
+
+
 ### 数据完整性审计：**文档引用的每个 tag 都跑满了整个数据集**（2026-08-19 18:20）
 
 脚本 `scratch_audit_complete.py`（零 GPU）。它与 `scratch_verify_ablation.py` **方向相反**：
