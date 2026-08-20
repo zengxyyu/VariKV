@@ -1,3 +1,4 @@
+import os
 import re
 
 import torch
@@ -10,14 +11,30 @@ def load_model(model_id: str, **kwargs):
     replace_attn(model_id)
 
     config = AutoConfig.from_pretrained(model_id)
+    # **本地新增开关 `VARIKV_NO_YARN=1`（默认不设 ⇒ 行为与上游逐字节相同）。**
+    # 动机：上游对 `"Qwen3-" in id and "Instruct" not in id` **无条件**开 YaRN×4，
+    # 但我们的 Qwen3 实验上下文只有 24,470，**远在原生 40,960 之内** ——
+    # YaRN 被无谓开启，它重标定全部位置的 RoPE、已知会轻微损伤短上下文，
+    # 于是成为跨 backbone 对照里一个**未受控变量**。这个开关用来把它控住。
+    # **⚠ 只有在 clen < 原生 max_position_embeddings 时才可以关**，否则会越界；
+    # 下面把两个数都打进日志，判读时必须核对。
+    _no_yarn = os.environ.get("VARIKV_NO_YARN") == "1"
     if "Qwen3-" in model_id and "Instruct" not in model_id:
-        config.rope_scaling = {
-            "rope_type": "yarn",
-            "factor": 4.0,
-            "original_max_position_embeddings": 32768,
-        }
-        config.max_position_embeddings = 131072
-        print("Max context length extended")
+        _native = int(getattr(config, "max_position_embeddings", 0))
+        if _no_yarn:
+            print(f"[rope] **VARIKV_NO_YARN=1 ⇒ 不开 YaRN**；"
+                  f"native max_position_embeddings={_native} rope_scaling={config.rope_scaling}",
+                  flush=True)
+        else:
+            config.rope_scaling = {
+                "rope_type": "yarn",
+                "factor": 4.0,
+                "original_max_position_embeddings": 32768,
+            }
+            config.max_position_embeddings = 131072
+            print(f"[rope] YaRN x4 已开（上游默认）；native was {_native} "
+                  f"⇒ max_position_embeddings=131072", flush=True)
+            print("Max context length extended")
 
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
