@@ -384,7 +384,13 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
                 # 校验和让种子随实际候选身份变化，该说法才成立。
                 _sd = os.environ.get("VARIKV_COV_SEED")
                 assert _sd is not None, "bandrand 必须给 VARIKV_COV_SEED"
-                _ck = int(cand.sum().item()) if cand.numel() else 0
+                # **位置加权**的多项式散列，不能用裸求和 —— {1,4} 与 {2,3} 同和，
+                # 会让两个不同候选集共用同一置换（外部复核指出）。
+                # 不用 Python 内建 hash：它对 str 加盐、跨进程不稳定。
+                _c = cand.long() + 1
+                _w = torch.arange(1, _c.numel() + 1, dtype=torch.long)
+                _ck = int(((_c * 1315423911 + _w * 2654435761) % 1000003).sum().item()) \
+                    if _c.numel() else 0
                 _g = torch.Generator(device="cpu")
                 _g.manual_seed((int(_sd) * 1000003 + int(Btot) * 31
                                 + int(cand.numel()) * 7 + _ck) % (2 ** 31 - 1))
