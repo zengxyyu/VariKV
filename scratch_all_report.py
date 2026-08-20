@@ -233,7 +233,10 @@ def _seed_ps(d, tpls, S, r):
     **按顺序取第一个有数据的**，而不是合并——避免同一 (panel,ratio) 混批。
     """
     for t in tpls:
-        x = per_sample(d, t.format(S=S), r)
+        # 模板可含 `{d}` —— 走 qrun.sh 的全网格必须每 panel 一个 tag，
+        # 否则 11 个 panel 会写进同一个 `${TAG#_}.log`、互相覆盖，
+        # 完成判定与审计都失效。老模板不含 `{d}`，format 多给一个键无害。
+        x = per_sample(d, t.format(S=S, d=d), r)
         if x:
             return x
     return {}
@@ -267,6 +270,21 @@ def main():
             ("kv", ("SEEDS", ("__d10kv_s{S}_chunk16k_w4096_ctrlmstat8_kv",
                               "__pskv_s{S}_chunk16k_w4096_ctrlmmemo8_kv"), None)),
             ("v3", lambda d: "__g8v3_chunk16k_w4096_ctrlmmemo8"),
+            # ---- 2026-08-20 新增三条：全局尺度族 ----
+            # `sgs`  = scalar 架构 + `scale=global`（界用 σ_g 而非 σ_h），α=.999
+            # `chead`= **严格保序**逐头平移，α=1.25（沿用已撤回的 C* 选 α）
+            # `chd10`= 同上但 α=.999，与 `sgs` **α 匹配**，是保序充分性的判决臂
+            # 全网格 tag 含 panel（qrun.sh 的日志名由 tag 派生，见 `_seed_ps`）；
+            # 第二个模板是更早只跑 ρ=0.1 的那批，作为回退。
+            ("sgs", ("SEEDS",
+                     ("__gsgs{S}_{d}_chunk16k_w4096_ctrlmmemo8_scalar",
+                      "__sgs{S}_chunk16k_w4096_ctrlmmemo8_scalar"), None)),
+            ("chead", ("SEEDS",
+                       ("__gchd{S}_{d}_chunk16k_w4096_ctrlmmemo8_chead",
+                        "__cheads{S}_chunk16k_w4096_ctrlmmemo8_chead"), None)),
+            ("chd10", ("SEEDS",
+                       ("__gc10{S}_{d}_chunk16k_w4096_ctrlmmemo8_chead",
+                        "__chd10s{S}_chunk16k_w4096_ctrlmmemo8_chead"), None)),
             ("cen16", None), ("cen1024", None)]     # 质心按 ratio 选 tag
     agg = {a_: {r: [] for r in RAT} for a_, _ in ARMS}
     rows = []
@@ -296,9 +314,18 @@ def main():
                         # 与本 panel 基线的样本数相等**。比固定阈值稳（choice_eng
                         # 只有 18 条也算完整），也比只看"有没有目录"稳（能挡住
                         # 跑到一半的作业）。
-                        _n = len(B.get(0.2) or B.get(1.0) or {})
-                        seeds = [S for S in (0, 1, 2)
-                                 if _n and len(_seed_ps(d, _tpl, S, 0.2)) == _n]
+                        # 旧版固定用 ρ=0.2 判完整，于是**只跑了别的 ratio 的臂
+                        # 会被整条丢掉**（例如 σ_g 标量最初只跑 ρ=0.1，那一格是
+                        # 满的 n=100，却因 0.2 没数据而整行变 `—`）。
+                        # 改成：任一 ratio 上与基线样本数相等即入选，
+                        # **完整性由下面的逐格检查兜底**（更严，且是按格判的）。
+                        seeds = []
+                        for S in (0, 1, 2):
+                            for _r in RAT:
+                                _nb = len(B.get(_r) or {})
+                                if _nb and len(_seed_ps(d, _tpl, S, _r)) == _nb:
+                                    seeds.append(S)
+                                    break
                     seed_tpl = _tpl
                     A = {}
                 elif sfx is None:                        # 质心：逐 ratio 找 tag
@@ -319,7 +346,13 @@ def main():
                 if seeds is not None:                    # 多种子：逐种子算再平均
                     ms = []
                     for S in seeds:
-                        c = cell(B[r], _seed_ps(d, seed_tpl, S, r))
+                        _ps = _seed_ps(d, seed_tpl, S, r)
+                        # **逐格完整性**：该种子在这个 ratio 上的样本数必须与基线
+                        # 相等。跑到一半的作业会给出偏斜的交集（本项目已被坑过：
+                        # 38/100 时 Math.Find 读到 −3.95★，满量后是 −2.33 不显著）。
+                        if len(_ps) != len(B[r]):
+                            continue
+                        c = cell(B[r], _ps)
                         if c:
                             ms.append(c)
                     if not ms:

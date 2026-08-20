@@ -14,9 +14,30 @@ PANEL = {"Retr.KV": "scbench_kv", "Retr.PrefSuf": "scbench_prefix_suffix",
          "En.QA": "scbench_qa_eng", "En.MultiChoice": "scbench_choice_eng",
          "En.Summary": "scbench_summary", "Retr.MultiHop": "scbench_vt",
          "Math.Find": "scbench_mf", "ICL.ManyShot": "scbench_many_shot"}
+# 值可以是**一个模板**或**一串模板**（按顺序取第一个有数据的，与
+# `scratch_all_report.py:_seed_ps` 同规则）。模板里可用 `{S}`（种子）与
+# `{d}`（数据集）—— 走 qrun.sh 的全网格必须每 panel 一个 tag，否则 11 个 panel
+# 会写进同一个 `${TAG#_}.log` 互相覆盖。
+#
+# ⚠ **新增臂必须同时加到这里** —— 本脚本是对 `scratch_all_report.py` 的
+# **独立复核**，只加到生成器里而漏掉这里，那条臂就永远没被交叉验证过，
+# 而末行仍会印「全部一致」。2026-08-20 加 sgs/chead/chd10 时就差点漏掉。
 TPL = {"v2": "_g8v2", "v3": "_g8v3",
-       "v2c": "_v2c_s{S}", "scalar": "_d10scalar_s{S}", "kv": "_d10kv_s{S}"}
-SEEDED = {"v2c", "scalar", "kv"}
+       "v2c": "_v2c_s{S}", "scalar": "_d10scalar_s{S}", "kv": "_d10kv_s{S}",
+       "sgs": ("_gsgs{S}_{d}", "_sgs{S}"),
+       "chead": ("_gchd{S}_{d}", "_cheads{S}"),
+       "chd10": ("_gc10{S}_{d}", "_chd10s{S}")}
+SEEDED = {"v2c", "scalar", "kv", "sgs", "chead", "chd10"}
+
+
+def _resolve(arm, ds, S, r):
+    """按顺序试模板，返回第一个非空的逐样本结果。"""
+    t = TPL[arm]
+    for tpl in ((t,) if isinstance(t, str) else t):
+        o = read_scores(ds, tpl.format(S=S, d=ds), r, strict=False)
+        if o:
+            return o
+    return {}
 RAT = [0.75, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05, 0.02]
 
 # 解析表格
@@ -49,7 +70,7 @@ for panel, arm, cells in rows:
         if arm in SEEDED:
             ms = []
             for S in (0, 1, 2):
-                o = read_scores(ds, TPL[arm].format(S=S), r, strict=False)
+                o = _resolve(arm, ds, S, r)
                 if len(set(o) & set(base)) >= 5 and len(o) == len(base):
                     ms.append(paired(o, base)[0])
             if not ms:
@@ -58,7 +79,7 @@ for panel, arm, cells in rows:
             m_new = float(np.mean(ms))
             n_new = len(ms)
         else:
-            o = read_scores(ds, TPL[arm], r, strict=False)
+            o = _resolve(arm, ds, 0, r)
             if len(set(o) & set(base)) < 5:
                 skipped += 1
                 continue
