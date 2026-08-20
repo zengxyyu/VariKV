@@ -65,6 +65,11 @@ def main(path="/tmp/vq/jobs.txt"):
         mode = f[6] if len(f) > 6 else ""
         xenv = f[7] if len(f) > 7 else ""
         model = f[8] if len(f) > 8 else "Qwen/Qwen2.5-7B-Instruct-1M"
+        # 第 10 字段是打分器 ckpt（相对 prefill/ 的路径）。**必须查它已落盘** ——
+        # 2026-08-20 20:15 排过一个训练还没写完的 ckpt：目录已由训练器建好，
+        # 但 `memoryless.pt` 还不存在，worker 取到就会直接失败。
+        # 「目录在」不等于「ckpt 在」。
+        ckpt = f[9] if len(f) > 9 else None
         env = dict(kv.split("=", 1) for kv in xenv.split(",") if "=" in kv)
         L, H = GEOM.get(model, (None, None))
         errs = []
@@ -94,6 +99,10 @@ def main(path="/tmp/vq/jobs.txt"):
                     errs.append(f"层带 {lo}-{hi} 越界（L={L}）")
             if "VARIKV_COV_N" not in env:
                 errs.append("order=band 但缺 VARIKV_COV_N")
+        if ckpt and ckpt != "-":
+            _cp = os.path.normpath(os.path.join(ROOT, "external/FastKVzip/prefill", ckpt))
+            if not os.path.isfile(_cp):
+                errs.append(f"**ckpt 不存在**（还在训？）: {ckpt}")
         if "qwen3" in model.lower() and mode not in ("floor", "floorcov"):
             errs.append(f"Qwen3 用未训练打分器，只允许 floor/floorcov（收到 {mode}）")
         key = ("qwen3" if "qwen3" in model.lower() else "qwen2.5", ds)
