@@ -278,6 +278,7 @@ class LearnedControlRetainCache(RetainCache):
                           f" Btot={int(b0.sum())}", flush=True)
                 if _qm == "floorcov":
                     print(f"[floorcov] chunk lo={lo} frac={os.environ.get('VARIKV_COV_FRAC','1.0')}"
+                          f" order={os.environ.get('VARIKV_COV_ORDER','smax')}"
                           f" n_starved={int((b0==0).sum())}/{int(b0.numel())}"
                           f" n_lifted={int(((bt.float()-b0)>0).sum())}"
                           f" lift={float((bt.float()-b0).clamp(min=0).sum()):.0f}"

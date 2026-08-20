@@ -298,6 +298,22 @@ def main():
         prev_nl = nl; n9 += (not ok)
         print(f"    f={fr:<5} 抬起头数={nl:2d}  Σq={int(q.sum())}"
               f"  {'==地板b1 ' if fr == 1.0 else ''}{'OK' if ok else '**FAIL**'}")
+    print("    选头顺序对照（`VARIKV_COV_ORDER`）：数量必须相同、头必须不同；f=1 时相同")
+    for fr in [0.3, 0.5, 1.0]:
+        os.environ["VARIKV_COV_FRAC"] = str(fr); res = {}
+        for od in ["smax", "index"]:
+            os.environ["VARIKV_COV_ORDER"] = od
+            q = project_quota(b0.clone(), delta, n, "floorcov", L, H, sc=sc)
+            res[od] = (int(((q.float() - b0) > 0).sum()),
+                       tuple(torch.nonzero((q.float() - b0) > 0).flatten().tolist()),
+                       int(q.sum()))
+        same_n = res["smax"][0] == res["index"][0]
+        same_set = res["smax"][1] == res["index"][1]
+        ok = same_n and (fr < 1.0 or same_set) and res["smax"][2] == int(b0.sum())
+        n9 += (not ok)
+        print(f"      f={fr:<5} 抬起数 {res['smax'][0]}/{res['index'][0]}  同一批头={same_set}"
+              f"  {'OK' if ok else '**FAIL**'}")
+    os.environ["VARIKV_COV_ORDER"] = "smax"
     os.environ["VARIKV_COV_FRAC"] = "1.0"; os.environ["VARIKV_QUOTA_FLOOR"] = "16"
     bad += n9
 

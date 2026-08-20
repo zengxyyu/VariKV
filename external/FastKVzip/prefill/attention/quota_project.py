@@ -338,9 +338,18 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
             nb = int(below.sum())
             k = int(round(fr * nb))
             if k < nb:
-                smax = sc.reshape(b0.numel(), -1).float().max(dim=-1).values
+                # **选头顺序是一个独立的自变量**，必须能切换：`smax` 是「最便宜抬」
+                # （也是可达集会选的那批），`index` 是与分数无关的任意顺序。
+                # 两者若给出同一条曲线 ⇒ 起作用的是**覆盖率本身**；若不同 ⇒
+                # 「选了哪些头」也携带信息，覆盖率不是唯一变量。
                 cand = torch.nonzero(below).flatten()
-                pick = cand[torch.argsort(smax[cand], descending=True)[:k]]
+                _ord = os.environ.get("VARIKV_COV_ORDER", "smax")
+                assert _ord in ("smax", "index"), f"未知 VARIKV_COV_ORDER={_ord}"
+                if _ord == "smax":
+                    smax = sc.reshape(b0.numel(), -1).float().max(dim=-1).values
+                    pick = cand[torch.argsort(smax[cand], descending=True)[:k]]
+                else:
+                    pick = cand[:k]                     # 头编号顺序，零信息
                 t = b0.clone()
                 t[pick] = bmin
             # k == nb 时落回上一行的 `t`，与 floor 逐位相同
