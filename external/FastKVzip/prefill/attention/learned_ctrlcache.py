@@ -276,6 +276,16 @@ class LearnedControlRetainCache(RetainCache):
                           f" n_starved={int((b0==0).sum())}/{int(b0.numel())}"
                           f" L1_b0={float((bt.float()-b0).abs().sum()):.0f}"
                           f" Btot={int(b0.sum())}", flush=True)
+                if _qm == "floor":
+                    # **最老的 mode，此前唯一没有运行时日志的** —— 于是 Qwen3 上
+                    # 「地板到底抬了几个头、搬了多少预算」只能靠逐样本比分数间接推。
+                    # 补齐后与 floorcov 同字段，判读时不必再区分两条路径。
+                    print(f"[floor] chunk lo={lo}"
+                          f" bmin={os.environ.get('VARIKV_QUOTA_FLOOR','0')}"
+                          f" n_starved={int((b0 == 0).sum())}/{int(b0.numel())}"
+                          f" n_lifted={int(((bt.float() - b0) > 0).sum())}"
+                          f" lift={float((bt.float() - b0).clamp(min=0).sum()):.0f}"
+                          f" Btot={int(b0.sum())}", flush=True)
                 if _qm == "floorcov":
                     from attention.quota_project import project_quota as _pq
                     # `req`/`avail` 缺一不可：band 模式下带内候选可能少于请求头数，
