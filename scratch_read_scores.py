@@ -31,8 +31,20 @@ if _PRE not in sys.path:
 _MUTE = contextlib.redirect_stdout(io.StringIO())
 
 
-def read_scores(ds, tag, ratio, model="qwen2.5-7b-instruct-1m", strict=True):
-    """→ {sample_idx: score}。`tag` 形如 `_expbase`（前导下划线可有可无）。"""
+def read_scores(ds, tag, ratio, model="qwen2.5-7b-instruct-1m", strict=True,
+                field="pruned"):
+    """→ {sample_idx: score}。`tag` 形如 `_expbase`（前导下划线可有可无）。
+
+    `field="full__"` 读**同一次运行里的满缓存生成**（每条 record 都存了
+    `pruned` / `full__` / `answer` 三个字段）。用途：某些运行只评了单个 ratio
+    （`VARIKV_RATIOS=0.2`），于是没有 ρ=1.0 那一行，但 `full__` 仍在，
+    可以据此算 headroom 而**不必重跑**。
+    **⚠ 两个前提**：①`full__` 是**该次运行自己**产生的满缓存参照，若该臂会
+    扰动满缓存路径（例如 residual 记忆的空记忆注入，见 CLAUDE.md 2026-08-11），
+    它就不是干净基线 —— floor/floorcov 不走那条路径，满缓存 pass 不做驱逐、
+    也不进配额分支，所以这里是干净的；②`ratio` 参数此时仍用来**选记录**，
+    满缓存文本对所有 ratio 相同，故任取一个已评的 ratio 即可。
+    """
     from results.parse import parse_answer, evaluate_answer          # noqa: E402
     cwd = os.getcwd()
     os.chdir(_PRE)
@@ -56,7 +68,7 @@ def read_scores(ds, tag, ratio, model="qwen2.5-7b-instruct-1m", strict=True):
             for k in [x for x in d if x.startswith("qa")]:
                 for info, rec in d[k]:
                     if abs(float(info[0]) - ratio) < 1e-9:
-                        pred.append(rec["pruned"]); gold.append(rec["answer"])
+                        pred.append(rec[field]); gold.append(rec["answer"])
             if pred:
                 with _MUTE:
                     out[i] = float(np.mean(evaluate_answer(
