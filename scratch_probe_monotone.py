@@ -43,9 +43,11 @@ def load(ckpt):
         f"只对标量族有效（头内退化成一元函数）；arch={arch} 不在 {list(CalibScorer.SCALAR_FEATS)}"
     m = CalibScorer(sd.get("d_kv", 128), sd["L"], sd["H"],
                     n_slots=sd.get("slots", 8), d_m=sd.get("dim", 128),
-                    mode="memoryless", arch=arch)
+                    mode="memoryless", arch=arch,
+                    scale=sd.get("scale", "head"),
+                    alpha_max=sd.get("alpha_max", 1.0))
     m.load_state_dict(sd["state"])
-    return m.eval(), arch
+    return m.eval(), arch, sd.get("scale", "head")
 
 
 def states(traces, n_doc):
@@ -73,12 +75,13 @@ def main():
     ap.add_argument("--pad", type=float, default=2.0, help="z 网格在观测范围外再扩多少")
     a = ap.parse_args()
 
-    m, arch = load(a.ckpt)
+    m, arch, scale = load(a.ckpt)
     alpha = float(m.alpha)
     st, zlo, zhi = states(a.traces, a.n_doc)
     lo, hi = zlo - a.pad, zhi + a.pad
     z = torch.linspace(lo, hi, a.n_grid, dtype=torch.float32)
-    print(f"{os.path.basename(os.path.dirname(a.ckpt))}  arch={arch}  α={alpha:.4f}")
+    print(f"{os.path.basename(os.path.dirname(a.ckpt))}  arch={arch}  "
+          f"**scale={scale}**  α={alpha:.4f}")
     print(f"  实测 z ∈ [{zlo:.2f}, {zhi:.2f}]，网格取 [{lo:.2f}, {hi:.2f}] × {a.n_grid} 点")
     print(f"  实测状态 (chunk,层,头) 共 {len(st)} 组；A_h ∈ "
           f"[{min(s[2] for s in st):.4f}, {max(s[2] for s in st):.4f}]  B_h ∈ "
@@ -96,8 +99,15 @@ def main():
             parts.append(m.emb[l, h][None, :].expand(len(zz), -1))
         phi = m.head(torch.cat(parts, -1)).squeeze(-1)
         dphi, = torch.autograd.grad(phi.sum(), zz)
-        # ds'/ds = 1 + α·sech²(φ)·φ'(z)；sech² = 1 − tanh²
-        marg = 1.0 + alpha * (1.0 - torch.tanh(phi) ** 2) * dphi
+        # ds'/ds 的推导 —— **两个 scale 的系数不同，不能共用一条公式**：
+        #   Δs = α·σ·tanh(φ(z))，z = (s−μ_h)/σ_h ⇒ dφ/ds = φ'(z)/σ_h
+        #   ⇒ ds'/ds = 1 + α·σ·sech²(φ)·φ'(z)/σ_h
+        # scale="head"   ：σ = σ_h ⇒ **σ_h 恰好约掉**，系数为 1（原公式）。
+        # scale="global" ：σ = σ_g ⇒ 系数是 **σ_g/σ_h = 1/A_h**，
+        #   而实测 A_h ∈ [0.0026, 1.61] ⇒ 放大最高 385×。
+        #   **若这里沿用旧公式，会对 global ckpt 给出错误的「安全」结论。**
+        coef = 1.0 if scale == "head" else 1.0 / max(A, 1e-12)
+        marg = 1.0 + coef * alpha * (1.0 - torch.tanh(phi) ** 2) * dphi
         mn = float(marg.min())
         if mn <= 0: n_bad += 1
         if mn < worst:

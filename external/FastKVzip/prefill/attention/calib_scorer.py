@@ -55,11 +55,23 @@ class CalibScorer(nn.Module):
     #     szmr0 = MLP([z, margin, rs])     **去掉头身份** —— 若仍有效，说明存在
     #                                      与"我是哪个头"无关的普适修正律
     MODES = ("bias", "affine", "scalar", "kv", "k", "v",
-             "sz", "szr", "szm", "szmr0")
+             "sz", "szr", "szm", "szmr0", "chead")
     # 逐 arch 的标量输入清单，delta() 与 __init__ 共用同一张表，避免两处各改各的
     SCALAR_FEATS = {"sz": ("z",), "szr": ("z", "rs"), "szm": ("z", "mg"),
                     "scalar": ("z", "mg", "rs"), "szmr0": ("z", "mg", "rs")}
     NO_EMB = ("szmr0",)
+    # **逐头常数臂（2026-08-21 加）**：输出与 token 无关的 `c_h`。
+    # 为什么必须有它：`scale="global"` 下逐 token 残差**会破坏头内保序** ——
+    # 实测三个种子最小 `ds'/ds` = −4.87/−4.41/−1.56，非单调状态 528/506/347 (共 1680)，
+    # 最危险点全在 `A_h = σ_h/σ_g ≈ 0.003` 的低 σ 头上（放大 1/A ≈ 300×）。
+    # 而头内常数平移使 `ds'/ds ≡ 1` —— **保序是构造性的，不需要任何探针**，
+    # 于是等价定理的前提自动满足，该臂**可证地只做逐头配额重分配**。
+    # 头级输入（每头三个标量，全部可从 stats 得到，不看 K/V）：
+    #   rs  = log(σ_h/σ_g)        本头尺度 vs 全局尺度
+    #   mgm = mean_i (s⁰_i − τ)/σ_g   本头到全局阈值的平均距离
+    #   mgx = max_i  (s⁰_i − τ)/σ_g   本头**最好的那个 token** 离阈值多远
+    # `mgx` 是可达性分析直接指出的量：越阈与否取决于缺口 `τ − s_max,h`。
+    HEAD_FEATS = {"chead": ("rs", "mgm", "mgx")}
 
     def __init__(self, d_kv: int, n_layers: int, n_heads_kv: int, arch: str = "affine",
                  n_slots: int = 8, d_m: int = 128, mode: str = "memoryless",
@@ -98,7 +110,9 @@ class CalibScorer(nn.Module):
             self.ab = nn.Parameter(torch.zeros(n_layers, n_heads_kv, 2))
         else:
             self.emb = nn.Parameter(torch.randn(n_layers, n_heads_kv, d_emb) * 0.02)
-            if arch in self.SCALAR_FEATS:
+            if arch in self.HEAD_FEATS:
+                d_in = len(self.HEAD_FEATS[arch]) + d_emb
+            elif arch in self.SCALAR_FEATS:
                 d_in = len(self.SCALAR_FEATS[arch]) + (0 if arch in self.NO_EMB else d_emb)
             else:
                 d_in = d_m + d_emb
@@ -173,14 +187,24 @@ class CalibScorer(nn.Module):
             mg = torch.zeros_like(z) if margin is None else margin
             rs = (sig_h / sig_g).log().expand_as(z)
             e = r[:, None, :].expand(z.shape[0], z.shape[1], -1)
-            if self.arch in self.SCALAR_FEATS:
+            if self.arch in self.HEAD_FEATS:
+                # **逐头一个标量**：先把逐 token 的 mg 汇成头级统计量，
+                # MLP 只吃 [H, 3+d_emb]，输出 [H,1] 再广播回 [H,n]。
+                # 广播是关键：同一头内所有 token 拿到**同一个**修正 ⇒ 保序恒成立。
+                avail_h = {"rs": rs[:, :1], "mgm": mg.mean(-1, keepdim=True),
+                           "mgx": mg.max(-1, keepdim=True).values}
+                fh = [avail_h[k] for k in self.HEAD_FEATS[self.arch]] + [r]
+                raw = self.head(torch.cat(fh, dim=-1)).expand_as(z)
+            elif self.arch in self.SCALAR_FEATS:
                 avail = {"z": z, "mg": mg, "rs": rs}
                 feats = [avail[k][..., None] for k in self.SCALAR_FEATS[self.arch]]
                 if self.arch not in self.NO_EMB:
                     feats.append(e)
             else:
                 feats = [x, e]
-            raw = self.head(torch.cat(feats, dim=-1)).squeeze(-1)
+            if self.arch not in self.HEAD_FEATS:
+                # chead 分支上面已经算好 raw 并广播过了，不能再走这一行
+                raw = self.head(torch.cat(feats, dim=-1)).squeeze(-1)
         if self.replace:
             return raw                                 # 独立打分器：分数本身，不设界
         # 与 ControlMemory 同一条输出规范：有界、乘 α。
