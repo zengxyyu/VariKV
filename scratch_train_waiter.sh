@@ -9,6 +9,13 @@
 # 两者都在 EXIT trap 里恢复，脚本被杀也不会把队列卡死。
 set -u
 cd "$(dirname "$0")"
+
+# ⚠ 单实例保护。2026-08-20 15:14 的事故：脚本改过后重启，**只杀了一个实例**，
+# 两个等卡器并存，各自把 seed 2 派到不同卡 —— 同一个种子跑了两份，
+# 交叉写同一个 ckpt 与同一个日志，产物只能全部作废重来。
+SELFLOCK=/tmp/vq/waiter.lock
+mkdir "$SELFLOCK" 2>/dev/null || { echo "[abort] 已有等卡器在运行（$SELFLOCK 存在）"; exit 1; }
+trap 'rmdir "$SELFLOCK" 2>/dev/null' EXIT
 L=/tmp/vq/lock; Q=/tmp/vq/jobs.txt; HOLD=/tmp/vq/jobs.hold_waiter
 BASE="--arch chead --d_kv 128 --dim 128 --epochs 40 --freeze_alpha --lam_global 1.0 \
 --lr 0.0003 --n_pairs 256 --pair_w linear --slots 8 --split_seed 42 \
@@ -20,7 +27,7 @@ cleanup() {
     for g in $HELD; do rmdir "$L/$g" 2>/dev/null; done
     if [ -f "$HOLD" ]; then cat "$HOLD" >> "$Q"; rm -f "$HOLD"; echo "[restore] 队列已恢复"; fi
 }
-trap cleanup EXIT
+trap 'cleanup; rmdir "$SELFLOCK" 2>/dev/null' EXIT
 
 # ① 暂停队列
 if [ -s "$Q" ]; then cp "$Q" "$HOLD"; : > "$Q"; echo "[hold] 队列暂存 $(grep -cve '^\s*$' "$HOLD") 行"; fi
@@ -38,11 +45,15 @@ for s in 0 1 2; do
     while [ $placed -eq 0 ]; do
         for g in 0 1 2 3 4 5 6 7; do
             occupied "$g" && continue
-            mkdir "$L/$g" 2>/dev/null || continue        # 原子获取，与 worker 同规则
+            # ⚠ 若这把锁**已经是我们自己**持有的（该卡上一个训练已结束、卡已空），
+            # 就不能再 mkdir —— 它必然失败，导致我们永远用不了自己占着的卡。
+            if ! printf ' %s ' $HELD | grep -q " $g "; then
+                mkdir "$L/$g" 2>/dev/null || continue    # 原子获取，与 worker 同规则
+                HELD="$HELD $g"
+            fi
             sleep 20
             if occupied "$g"; then rmdir "$L/$g"; continue; fi
             echo "[launch] seed $s -> GPU$g  $(date +%H:%M:%S)"
-            HELD="$HELD $g"
             CUDA_VISIBLE_DEVICES=$g setsid nohup .venv/bin/python -u \
                 scratch_ctrl_train.py $BASE --seed "$s" --out "$out" \
                 > "scratch_ctrl_logs/train_chead10_s$s.log" 2>&1 &
