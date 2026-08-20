@@ -64,9 +64,21 @@ class CalibScorer(nn.Module):
     def __init__(self, d_kv: int, n_layers: int, n_heads_kv: int, arch: str = "affine",
                  n_slots: int = 8, d_m: int = 128, mode: str = "memoryless",
                  alpha_max: float = 1.0, alpha_init: float = 1.0, typed: bool = True,
-                 d_emb: int = 16, replace: bool = False):
+                 d_emb: int = 16, replace: bool = False, scale: str = "head"):
         super().__init__()
         assert arch in self.MODES, arch
+        # **动作幅度的尺度**（2026-08-21 加）。原实现固定用 `sig_h`（该头自己的分数
+        # 离散度），但**决策边界是全局 Top-B，活在 `sig_g` 的尺度上**。
+        # 实测（`scratch_probe_cstar.py`，74 chunk）：让地板配额可达所需的统一界
+        # `C* = 1.16·sig_g` 中位，而当前中位允许量只有 `0.137·sig_g` —— **差 7.3 倍**。
+        # ⚠ 这不是「把界调大」：`VARIKV_CTRL_GAIN` 的增益扫描已证明单纯放大**有害**
+        # （|g|=1 近最优，g=2 在两个 panel 上都显著变差），因为按 `sig_h` 放大会
+        # **同比例**放大本来就可达的高 σ 头。`scale="global"` 是**重加权**：
+        # 低 σ 头相对得到更多、高 σ 头相对更少，正是诊断指向的方向。
+        # **存进 ckpt、不走环境变量** —— `--ctrlm_mode` 那次默认值把整批评测跑成
+        # 另一个方法的教训：任何会改变方法本体的开关都必须随权重一起走。
+        assert scale in ("head", "global"), scale
+        self.scale = scale
         # mode 只为与 ControlMemory 的三臂接口兼容；本模块无记忆，三臂必然同解，
         # 所以只允许 memoryless，避免有人误读成"对照做过了"
         assert mode == "memoryless", "CalibScorer 无记忆，只跑 memoryless 臂"
@@ -171,5 +183,8 @@ class CalibScorer(nn.Module):
             raw = self.head(torch.cat(feats, dim=-1)).squeeze(-1)
         if self.replace:
             return raw                                 # 独立打分器：分数本身，不设界
-        # 与 ControlMemory 同一条输出规范：有界、逐头尺度、乘 α
-        return self.alpha * sig_h * torch.tanh(raw)
+        # 与 ControlMemory 同一条输出规范：有界、乘 α。
+        # `scale="head"` 用逐头 `sig_h`（原样，默认，逐位不变）；
+        # `scale="global"` 用全局 `sig_g` —— 见 __init__ 里的推导。
+        _sc = sig_h if getattr(self, "scale", "head") == "head" else sig_g
+        return self.alpha * _sc * torch.tanh(raw)

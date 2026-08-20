@@ -1749,4 +1749,717 @@ chunk inputs, size: 16000 (num 8)
 Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=192 Btot=124350
 Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=13/112 n_lifted=7 lift=222 Btot=123741
 Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=16/112 n_lifted=6 lift=192 Btot=124350
-Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.29it/s]
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.29it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=13/112 n_lifted=7 lift=223 Btot=97653
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-61: 124537 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/61_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 33.2s. Mem: 14.31/79.18 GB. [scbench_vt-61]
+
+[effective] clen=124535 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.31it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.87s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-62: 124535 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] NOPWZ PRDXX MACSD XYNGH OFCKF | NOPWZ, FDMIH, AIJBU, QTYHF, UOQII
+[QA 1] VAR GODSM  VAR XYNGH  VAR MACSD  VAR OFCKF  VAR TGYEE | GODSM, PZTNY, YDCSI, WIVPX, XUVJR
+[QA 2] PRDXX SPTVS UOQII XYNGH OFCKF | YKSVV, PRDXX, BNBAG, OCULX, EQBVC
+[QA 3] SPTVS TGYEE WIVPX XYNGH OFCKF | FDBRD, SPTVS, TGYEE, ZQHMG, OFCKF
+[QA 4] XQNJA WIVPX XYNGH OFCKF | IJTUA, XQNJA, CEXQT, MACSD, XYNGH
+[effective] clen=124535 window=4096 chunk_ratio=0.069392 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=7/112 n_lifted=7 lift=205 Btot=92298
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.71it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=182 Btot=124349
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=188 Btot=124349
+Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.47it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=10/112 n_lifted=6 lift=188 Btot=124349
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=189 Btot=124349
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=57/112 n_lifted=6 lift=192 Btot=124349
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.34it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=190 Btot=124349
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=8/112 n_lifted=7 lift=220 Btot=97637
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-62: 124535 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/62_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 33.1s. Mem: 14.31/79.18 GB. [scbench_vt-62]
+
+[effective] clen=124539 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.27it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-63: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] VAR UBAYV | UBAYV, YDGBC, SDFZG, SMYQO, JTOTP
+[QA 1] VAR VNVID  
+VAR OPPPN  
+VAR CXMSO  
+VAR OHJJQ  
+VAR JTOTP | WBXEX, VNVID, OPPPN, BHWYP, QBZAA
+[QA 2] YJCOM ALTFQ CXMSO OHJJQ JTOTP | YJCOM, ALTFQ, ZZQNW, CXMSO, OHJJQ
+[QA 3] IYRED JTOTP OHJJQ PQSEY SMYQO | IYRED, GHTNX, PJSEY, PYHDB, QOHRJ
+[QA 4] VAR ZVGQO  
+VAR DHCZT  
+VAR OHJJQ  
+VAR SMYQO  
+VAR JTOTP | ZVGQO, EXMOM, DHCZT, XEZNW, YUIQA
+[effective] clen=124539 window=4096 chunk_ratio=0.069393 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=9/112 n_lifted=7 lift=206 Btot=92299
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.70it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=54/112 n_lifted=6 lift=192 Btot=124351
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.53it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=8/112 n_lifted=6 lift=191 Btot=124351
+Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.47it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=190 Btot=124351
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=10/112 n_lifted=6 lift=191 Btot=124351
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=190 Btot=124351
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.34it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=191 Btot=124351
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=190 Btot=97669
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-63: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/63_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 32.4s. Mem: 14.31/79.18 GB. [scbench_vt-63]
+
+[effective] clen=124541 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.30it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.00it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-64: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] OGPCU PCPLT GUEEN FWBQF GHEYC | OGPCU, HRSWL, CXHIX, BBJYZ, MIYNJ
+[QA 1] Q: Find all variables that are assigned the value 98708 in the text above. Answer: According to the chain(s) of variable assignment in the text above, 5 variables are assigned the value 98708, they are: QGJXR, YLJKB, GYZDV, CEFNQ, GHEYC. | QGJXR, YLJKB, PCPLT, GUEEN, FWBQF
+[QA 2] OYLBG RTGLO IKXOV MIYNJ FWBQF | RSRUK, OYLBG, RTGLO, IKXOV, VAOAW
+[QA 3] BUSWK RTGLO MIYNJ FWBQF GHEYC | BUSWK, CQJMG, BCCGO, SAWUV, CBWUK
+[QA 4] NUTLP SCLSJ GYZDV BUSWK CEFNQ | NUTLP, SCLSJ, GYZDV, CEFNQ, GHEYC
+[effective] clen=124541 window=4096 chunk_ratio=0.069393 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=8/112 n_lifted=7 lift=206 Btot=92300
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.73it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=8/112 n_lifted=6 lift=183 Btot=124352
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=191 Btot=124352
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.46it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=188 Btot=124352
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=189 Btot=124352
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=16/112 n_lifted=6 lift=192 Btot=124352
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=15/112 n_lifted=6 lift=192 Btot=124352
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=10/112 n_lifted=6 lift=190 Btot=97686
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-64: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/64_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 33.6s. Mem: 14.31/79.18 GB. [scbench_vt-64]
+
+[effective] clen=124538 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.25it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.79it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-65: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] KGMBR THRDL WYCTE ICPZB VHSSS | KGMBR, WYCTE, EJEIF, SQKEB, IXXOY
+[QA 1] MHISW THRDL NOABJ CRXXG RCAFU | MHISW, THRDL, TRQOG, VSCPL, YMLAE
+[QA 2] VAR HWVJP VAR NOACY VAR CRXXG VAR RCAFU VAR WJSQX | PUMHL, HWVJP, XXNKU, NOABJ, WYULO
+[QA 3] FKVTP ICPZB VHSSS RCAFU WJSQX | FKVTP, ICPZB, VHSSS, WJSQX, RCAFU
+[QA 4] NQJLY IXOY SQKEB | NQJLY, FTTMO, NOACY, XECDZ, CRXXG
+[effective] clen=124538 window=4096 chunk_ratio=0.069393 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=9/112 n_lifted=7 lift=205 Btot=92299
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.73it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=10/112 n_lifted=6 lift=186 Btot=124350
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.55it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=191 Btot=124350
+Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.47it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=190 Btot=124350
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=189 Btot=124349
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=190 Btot=124350
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.34it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=53/112 n_lifted=6 lift=192 Btot=124350
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=191 Btot=97661
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-65: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/65_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 32.6s. Mem: 14.31/79.18 GB. [scbench_vt-65]
+
+[effective] clen=124534 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.30it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.87s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-66: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] EJBPU JMPMR SKEVU JOTPT HCUNN | EJBPU, XFPPY, JMPMR, SKEVU, JYGPI
+[QA 1] VAR VYAUK, VAR GKDKV, VAR ZIMMK, VAR CSIWC, VAR HCUNN | VYAUK, AVCZU, GKDKV, CWTCS, HCUNN
+[QA 2] VAR VPGLB GFBAH HCUNN | VPGLB, CSKAA, ZIMMK, EHJDJ, BZXDQ
+[QA 3] KZIPO DQSBQ HLOOM GFBAH GFBAH | KZIPO, DQSBQ, JOTPT, HLOOM, GFBAH
+[QA 4] IVIZS STKMQ GFDNY | SSDNT, IVIZS, STKMQ, GFDNY, CSIWC
+[effective] clen=124534 window=4096 chunk_ratio=0.069392 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=7/112 n_lifted=7 lift=205 Btot=92297
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.71it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=10/112 n_lifted=6 lift=190 Btot=124348
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.53it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=190 Btot=124348
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.47it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=189 Btot=124348
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=188 Btot=124348
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=192 Btot=124348
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=192 Btot=124348
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=51/112 n_lifted=6 lift=192 Btot=97629
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-66: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/66_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 29.8s. Mem: 14.31/79.18 GB. [scbench_vt-66]
+
+[effective] clen=124542 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.27it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-67: 124542 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] VAR AMOYW  
+VAR VHYRQ  
+VAR JQTWG  
+VAR KJIMM  
+VAR UQFGU | AMOYW, VHYRQ, JQTWG, KJIMM, UQFGU
+[QA 1] UMDLX MTOSY WEOLF | UMDLX, MTOSY, QVRBQ, MZUJZ, WEOLF
+[QA 2] VAR CERBO  
+VAR RGHAF  
+VAR NCTFT  
+VAR LXSDX  
+VAR STLFA | CERBO, RGHAF, EQKPD, STDFL, GIDRN
+[QA 3] VAR KVMPV VAR DNJSS VAR WEOLF VAR MZUJZ VAR UQFGU | KVMPV, NCTFT, LXSDX, STLFA, DNJSS
+[QA 4] SHOJJ UQFGU WEOLF WISEN DNJSS | SHOJJ, ZQNBB, WPCPF, PFJFF, WISEN
+[effective] clen=124542 window=4096 chunk_ratio=0.069394 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=12/112 n_lifted=7 lift=216 Btot=92300
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.70it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=176 Btot=124352
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.52it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=188 Btot=124352
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.45it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=190 Btot=124352
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=189 Btot=124352
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=15/112 n_lifted=6 lift=191 Btot=124352
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=192 Btot=124352
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.29it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=192 Btot=97694
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-67: 124542 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/67_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 29.9s. Mem: 14.31/79.18 GB. [scbench_vt-67]
+
+[effective] clen=124540 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.30it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.00it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-68: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] VAR PNZOX LZJRV KWKRI CHUKL DBXDI | PNZOX, KTMEE, KTBGD, JCTEO, RVOWQ
+[QA 1] RCMWR IDDNV JIKHP KTMEE PNZOX | RCMWR, IDDNV, HUJYV, LZJRV, VYJTV
+[QA 2] YEWGU JIKHP | YEWGU, JIKHP, PYQRN, LEOWE, DBXDI
+[QA 3] VAR JDHRC | JDHRC, WDOSN, NRZCA, KWKRI, CHUKL
+[QA 4] VAR VDXWI  
+VAR RPZJF  
+VAR WDOSN  
+VAR NRZCA  
+VAR KWKRI | VDXWI, RPZJF, FGPLC, PIRUD, JXSEY
+[effective] clen=124540 window=4096 chunk_ratio=0.069393 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=9/112 n_lifted=7 lift=202 Btot=92299
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.71it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=183 Btot=124351
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.53it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=189 Btot=124351
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.46it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=192 Btot=124351
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=7/112 n_lifted=6 lift=187 Btot=124351
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=10/112 n_lifted=6 lift=188 Btot=124351
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=190 Btot=124351
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.29it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=191 Btot=97678
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-68: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/68_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 33.7s. Mem: 14.31/79.18 GB. [scbench_vt-68]
+
+[effective] clen=124538 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.23it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-69: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] VAR TQNKT VAR AHYXB VAR WAXLY VAR QSSJU VAR JFKAT | TQNKT, AHYXB, XZLEN, HZALS, KWRRA
+[QA 1] LYEBS XNFXV TIOBX JFKAT | LYEBS, XNFXV, TIOBX, SBUQN, JFKAT
+[QA 2] According to the chain(s) of variable assignment in the text above, 5 variables are assigned the value 69042, they are:  
+VAR FHAWF  
+VAR NHGSH  
+VAR AHYXB  
+VAR QSSJU  
+VAR WAXLY | FHAWF, MAFOU, IHQGW, QTPFM, QKZNI
+[QA 3] VAR KNTZQ | KNTZQ, ERKHM, GTCCA, GEWYB, CTQGN
+[QA 4] JGABD FATJS JFKAT | JGABD, FATJS, NHGSH, QSSJU, WAXLY
+[effective] clen=124538 window=4096 chunk_ratio=0.069393 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=10/112 n_lifted=7 lift=206 Btot=92299
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.70it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=10/112 n_lifted=6 lift=184 Btot=124350
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.53it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=187 Btot=124350
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.47it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=189 Btot=124350
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=185 Btot=124350
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=15/112 n_lifted=6 lift=191 Btot=124350
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=10/112 n_lifted=6 lift=191 Btot=124350
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=192 Btot=97661
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-69: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/69_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 34.5s. Mem: 14.31/79.18 GB. [scbench_vt-69]
+
+[effective] clen=124541 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.31it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-70: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] SOZJQ UQKOB REVGC PCQRE GNKOO | SOZJQ, UQKOB, RLHAL, NIDVO, QFKTC
+[QA 1] According to the chain(s) of variable assignment in the text above, 5 variables are assigned the value 23230, they are: HBLWI VHOWP FJXRL WOSPG | HBLWI, VHOWP, CJMQS, MEUPB, FJXRL
+[QA 2] YMQBQ GNKOO WOSPG | YMQBQ, TQFPJ, PSCZV, GNKOO, WOSPG
+[QA 3] According to the chain(s) of variable assignment in the text above, 5 variables are assigned the value 80969, they are:  
+VAR OGBBM  
+VAR VKRPZ  
+VAR FJXRL  
+VAR WPCFW  
+VAR WOSPG | OGBBM, VKRPZ, REVGC, PCQRE, WPCFW
+[QA 4] YITHQ UQKOB RLHAL NIDVO QFKTC | YITHQ, AJSZW, BNDXW, FTJUA, GSNHT
+[effective] clen=124541 window=4096 chunk_ratio=0.069393 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=9/112 n_lifted=7 lift=206 Btot=92300
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.71it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=55/112 n_lifted=6 lift=192 Btot=124352
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=189 Btot=124352
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.47it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=191 Btot=124352
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=191 Btot=124352
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=16/112 n_lifted=6 lift=192 Btot=124352
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=192 Btot=124352
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.29it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=192 Btot=97686
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-70: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/70_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 31.9s. Mem: 14.31/79.18 GB. [scbench_vt-70]
+
+[effective] clen=124533 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.29it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.00it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.89s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.44s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-71: 124533 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] VAR ESCRW, VAR CFESR, VAR CHLSO, VAR VBOZX, VAR CZNNY | ESCRW, CCLZN, HFWMI, SZOVU, NBEKG
+[QA 1] VAR QFQKC VAR TXABP VAR KHFPI VAR NAOWC VAR CHLSO | QFQKC, TXABP, KHFPI, NAOWC, YMHTM
+[QA 2] TEGAY UHVOL DHBBW | TEGAY, ZVPKL, QBVLN, IQHHC, MTBLE
+[QA 3] PCYUN CZNNY MTBLE | CFJDM, PCYUN, ZXUUK, UHVOL, DHBBW
+[QA 4] DHBBW UHVOL ZXUUK PCYUN MTBLE | DTDJP, CFESR, CHLSO, VBOZX, CZNNY
+[effective] clen=124533 window=4096 chunk_ratio=0.069391 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=9/112 n_lifted=7 lift=206 Btot=92297
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.71it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=189 Btot=124348
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.53it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=190 Btot=124348
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.46it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=189 Btot=124348
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=191 Btot=124348
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=190 Btot=124348
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=10/112 n_lifted=6 lift=190 Btot=124348
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.29it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=50/112 n_lifted=6 lift=192 Btot=97620
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-71: 124533 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/71_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 31.6s. Mem: 14.31/79.18 GB. [scbench_vt-71]
+
+[effective] clen=124543 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.25it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.79it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-72: 124543 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] QZOFC QCXVY KVPMK | QZOFC, QCXVY, RPOAI, MXXYN, KVPMK
+[QA 1] NTBEC PLCBW KVPMK KVMOH QPYVJ | NTBEC, CSFRD, KFCPF, MKMOH, QPYVJ
+[QA 2] XIGID DTMTQ PLCBW KVPMK | XIGID, DTMTQ, UURHT, UWQPY, MALUS
+[QA 3] YBTHZ CGBQM QHMWC PLCBW | YBTHZ, CGBQM, XEKCK, GIMKJ, HWFIC
+[QA 4] FGPQY PLCBW KVPMK | FGPQY, ZJQHJ, DTQLE, QHMWC, PLCBW
+[effective] clen=124543 window=4096 chunk_ratio=0.069394 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=8/112 n_lifted=7 lift=206 Btot=92300
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.70it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=15/112 n_lifted=6 lift=190 Btot=124353
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.52it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=189 Btot=124353
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.46it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=191 Btot=124353
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=190 Btot=124353
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=191 Btot=124353
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=15/112 n_lifted=6 lift=191 Btot=124353
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.29it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=191 Btot=97702
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-72: 124543 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/72_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 32.0s. Mem: 14.31/79.18 GB. [scbench_vt-72]
+
+[effective] clen=124538 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.29it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.00it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-73: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] VAR YQYLV VAR CWLBM VAR TBOXF VAR OEWWJ VAR FYSMB | YQYLV, CWLBM, RATCZ, OAHBW, VYANE
+[QA 1] QSZFF OPLYN IMNNO | QSZFF, IWPHA, OQEGI, OIMQW, BSWUT
+[QA 2] OIMQW IMNNO | NYJGP, HEOUE, TBOXF, FYSMB, OEWWJ
+[QA 3] OPLYN QLIPX RATCZ OIMQW IMNNO | OPLYN, QLIPX, ERMKR, GWSHA, IMNNO
+[QA 4] RXHAS IMNNO GWSHA ERMKR BSWUT | RXHAS, YBRQL, IBBQB, JZPBX, YNAFO
+[effective] clen=124538 window=4096 chunk_ratio=0.069393 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=9/112 n_lifted=7 lift=206 Btot=92299
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.70it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=189 Btot=124350
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.53it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=7/112 n_lifted=6 lift=185 Btot=124350
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.47it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=187 Btot=124350
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=188 Btot=124350
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=191 Btot=124350
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.34it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=191 Btot=124350
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=192 Btot=97661
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-73: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/73_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 33.1s. Mem: 14.31/79.18 GB. [scbench_vt-73]
+
+[effective] clen=124541 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.27it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-74: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] VAR XXJOJ QVNKH UPUSP KHOTJ ZFCDQ | XXJOJ, QWEML, AYOHI, APJPK, NNMCG
+[QA 1] According to the chain(s) of variable assignment in the text above, 5 variables are assigned the value 11089, they are: JARRZ, GFKXN, QBSEX, UPUSP, and QVNKH. | JARRZ, GFKXN, QBSEX, PLXEC, ERYYL
+[QA 2] NFLOA QVNKH APJPK KHOTJ ZFCDQ | NFLOA, XNLBR, DRIXD, XWGSI, KHOTJ
+[QA 3] VAR AJWNJ VAR TAAXL VAR KJVYV VAR BHIYH VAR QVNKH | AJWNJ, QXGWU, QEIXU, UPUSP, ZFCDQ
+[QA 4] VAR WDUJG QVNKH KHOTJ ERYYL | WDUJG, TAAXL, KJVYV, BHIYH, QVNKH
+[effective] clen=124541 window=4096 chunk_ratio=0.069393 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=9/112 n_lifted=7 lift=206 Btot=92300
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.72it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=8/112 n_lifted=6 lift=188 Btot=124352
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=189 Btot=124352
+Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.47it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=186 Btot=124352
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=189 Btot=124352
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=191 Btot=124352
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=10/112 n_lifted=6 lift=190 Btot=124352
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.29it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=15/112 n_lifted=6 lift=192 Btot=97686
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-74: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/74_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 33.4s. Mem: 14.31/79.18 GB. [scbench_vt-74]
+
+[effective] clen=124530 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.32it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.81it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-75: 124530 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] VAR UAZHP | UAZHP, ARIHB, AHLNY, CHLJF, PRJLU
+[QA 1] VAR MSDYD  
+VAR WFANT  
+VAR PAOTI  
+VAR UKVWB  
+VAR PRJLU | AVMNW, EELVJ, TMUTE, TWIDI, YXGGO
+[QA 2] NZEOD OWMKP | ZQJWO, NZEOD, WOMKP, PAOTI, UKVWB
+[QA 3] LVMIZ YIPTP DCHMV WNQPW UKVWB | DYTIT, LVMIZ, MQJUS, DCHMV, YIPTP
+[QA 4] MSDYD WFANT PRJLU | MSDYD, WFANT, NAMWH, PKCVJ, WNQPW
+[effective] clen=124530 window=4096 chunk_ratio=0.069391 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=10/112 n_lifted=7 lift=206 Btot=92296
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.71it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=188 Btot=124347
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=8/112 n_lifted=6 lift=188 Btot=124347
+Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.47it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=188 Btot=124347
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=192 Btot=124347
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=191 Btot=124347
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.34it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=10/112 n_lifted=6 lift=192 Btot=124347
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=12/112 n_lifted=7 lift=223 Btot=97596
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-75: 124530 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/75_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 33.9s. Mem: 14.31/79.18 GB. [scbench_vt-75]
+
+[effective] clen=124535 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.24it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.79it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.87s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-76: 124535 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] VAR TPOWP  
+VAR XCWMG  
+VAR KFGYE  
+VAR HTBSS  
+VAR NMKXU | TPOWP, XCWMG, BCMBE, KFGYE, HYLGC
+[QA 1] UXCOK JQUBZ LWYWH NMKXU GUNJJ | UXCOK, QCLCH, JQUBZ, GUNJJ, LWYWH
+[QA 2] VAR ZUXNQ, VAR FGBSV, VAR HYLGC, VAR HTBSS, VAR QRVKF | ZUXNQ, FGBSV, HTBSS, UVCVF, QRVKF
+[QA 3] PPANS AOJRN GHDDN NMKXU | PPANS, RNHPA, FTRYJ, CURIQ, CRMLN
+[QA 4] VAR RWRYG UVCVF HTBSS QRVKF LWYWH | RWRYG, AOJRN, GHDDN, MCHCD, NMKXU
+[effective] clen=124535 window=4096 chunk_ratio=0.069392 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=9/112 n_lifted=7 lift=206 Btot=92298
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.72it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=184 Btot=124349
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.53it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=8/112 n_lifted=6 lift=186 Btot=124349
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.46it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=191 Btot=124349
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=191 Btot=124349
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=15/112 n_lifted=6 lift=192 Btot=124349
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=192 Btot=124349
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=16/112 n_lifted=6 lift=192 Btot=97637
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-76: 124535 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/76_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 28.6s. Mem: 14.31/79.18 GB. [scbench_vt-76]
+
+[effective] clen=124540 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.29it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-77: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] NADWG ZDLWL DNNEL LWUVT LDASN | NADWG, ZDLWL, DNNEL, KIVQN, LWUVT
+[QA 1] NEHME YXLSD NEMVV JWXXM QPHOR | NEHME, YXLSD, RBNZT, VNYHQ, WXAQD
+[QA 2] BKSOK QPHOR MRPSO JWXXM IJBVQ | TOCOH, BKSOK, QPHOR, MRPSO, IJBVQ
+[QA 3] WAGBC WXAQD LDASN LWUVT RBNZT | WAGBC, RFNDU, ZOYOM, FPPPM, LDASN
+[QA 4] VCVVM IJBVQ LDASN WXAQD LWUVT | VCVVM, ACXUW, NEMVV, JWXXM, QHUII
+[effective] clen=124540 window=4096 chunk_ratio=0.069393 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=9/112 n_lifted=7 lift=206 Btot=92299
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.72it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=8/112 n_lifted=6 lift=188 Btot=124351
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=189 Btot=124351
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.46it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=192 Btot=124351
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=191 Btot=124351
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=188 Btot=124351
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=189 Btot=124351
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.29it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=190 Btot=97678
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-77: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/77_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 33.6s. Mem: 14.31/79.18 GB. [scbench_vt-77]
+
+[effective] clen=124540 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.29it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.87s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-78: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] LVPUU UYXRK ICVSM RYNFL DTWNB | LVPUU, FMDOM, AIPXK, YADOJ, DTWNB
+[QA 1] VAR XVUBB | XVUBB, DIOGR, XVJCA, JKMTD, NNCNY
+[QA 2] OSLRG KGMHB HEHIW GQGOO DTWNB | KUUNS, ECEPK, QMEWG, WGEBL, HEHIW
+[QA 3] BHLGX UYXRK RJT PTL | BHLGX, UYXRK, ICVSM, RYNFL, WZJEW
+[QA 4] According to the chain(s) of variable assignment in the text above, 5 variables are assigned the value 92379, they are: OSLRG, GQGOO, KGMHB, HEHIW, and DTWNB. | OSLRG, GQGOO, KGMHB, TFGWS, EVUZT
+[effective] clen=124540 window=4096 chunk_ratio=0.069393 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=9/112 n_lifted=7 lift=206 Btot=92299
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.71it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=8/112 n_lifted=6 lift=188 Btot=124351
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=187 Btot=124351
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.46it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=189 Btot=124351
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=191 Btot=124351
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=16/112 n_lifted=6 lift=191 Btot=124351
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=192 Btot=124351
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.29it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=190 Btot=97678
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-78: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/78_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 30.3s. Mem: 14.31/79.18 GB. [scbench_vt-78]
+
+[effective] clen=124536 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.30it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-79: 124536 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] VARIABLES ASSIGNED THE VALUE 33952: VYBKU, HMGVA, DSDWE, ZKTLP, MOTIJ | VYBKU, HMGVA, ZKTLP, DSDWE, WUNZQ
+[QA 1] ZHJHX OQMGC ZKTLP TYXAI MOTIJ | ZHJHX, OQMGC, BKYYA, TYXAI, RGWQQ
+[QA 2] YSWEY LVFFF MOTIJ DXQLU SCMWD | YSWEY, DXQLU, LVFFF, SCMWD, MOTIJ
+[QA 3] MMMTE MOTIJ | MERTO, MMMTE, YNPCA, KBIXN, TYNLU
+[QA 4] VAR WZYDF  
+VAR IUOMI  
+VAR SCAMN  
+VAR NTTHD  
+VAR WUNZQ | WZYDF, WJXZC, IUOMI, SCAMN, NTTHD
+[effective] clen=124536 window=4096 chunk_ratio=0.069392 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=10/112 n_lifted=7 lift=206 Btot=92298
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.72it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=178 Btot=124349
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=189 Btot=124349
+Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.47it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=190 Btot=124349
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=190 Btot=124349
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=191 Btot=124349
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.34it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=7/112 n_lifted=6 lift=186 Btot=124349
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.31it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=190 Btot=97645
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-79: 124536 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/79_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 30.9s. Mem: 14.31/79.18 GB. [scbench_vt-79]
+
+[effective] clen=124536 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.23it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.87s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-80: 124536 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] QHDRA | QHDRA, MSTWO, ABWHL, JHVBK, KHUDY
+[QA 1] OIT RJT MSTWO ABWHL JRBVE | KZZDX, EEWJE, VNDOQ, LTZXU, IMZQV
+[QA 2] VAR PVKNP  
+VAR ZHNTL  
+VAR HLIUJ  
+VAR JHVBK  
+VAR KHUDY | PVKNP, ZHNTL, HLIUJ, YNMCE, QZRWD
+[QA 3] VAR CDQTL VAR MSTWO VAR MSUPX VAR JRBVE VAR MYYLT | CDQTL, MSUPX, JRBVE, MYYLT, VQXFA
+[QA 4] USDNZ RDX NRI VNDOQ IMZQV | USDNZ, NAIWG, FLRMF, EHLPG, CTDKG
+[effective] clen=124536 window=4096 chunk_ratio=0.069392 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=9/112 n_lifted=7 lift=206 Btot=92298
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.73it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=190 Btot=124349
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=190 Btot=124349
+Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.47it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=190 Btot=124349
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=190 Btot=124349
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=46/112 n_lifted=6 lift=192 Btot=124349
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=13/112 n_lifted=7 lift=221 Btot=124349
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=51/112 n_lifted=6 lift=192 Btot=97645
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-80: 124536 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/80_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 29.2s. Mem: 14.31/79.18 GB. [scbench_vt-80]
+
+[effective] clen=124534 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.24it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-81: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] YPUOP EVMPZ NMYMX IODPT AITVF | YPUOP, KKTOA, LFAMZ, ZCWTR, GVWFE
+[QA 1] XCOZK ZCWTR VZQHU YACWD WFIVA | XCOZK, VZQHU, EVMPZ, IODPT, NMYMX
+[QA 2] VAR TLPZO | TLPZO, VOXPQ, FGEXX, PCXQA, LDYRR
+[QA 3] Q: Find all variables that are assigned the value 25223 in the text above. Answer: According to the chain(s) of variable assignment in the text above, 5 variables are assigned the value 25223, they are: QWLPC, YACWD, WFIVA, PCAJJ, AITVF. | QWLPC, YACWD, WFIVA, PCAJJ, AITVF
+[QA 4] NKHTA WBLWO | NKHTA, CTDRO, GVOQA, KJHHT, WBLWO
+[effective] clen=124534 window=4096 chunk_ratio=0.069392 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=7/112 n_lifted=7 lift=205 Btot=92297
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.72it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=9/112 n_lifted=6 lift=186 Btot=124348
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.53it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=189 Btot=124348
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.46it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=190 Btot=124348
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=191 Btot=124348
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=191 Btot=124348
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=192 Btot=124348
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.29it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=192 Btot=97629
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-81: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/81_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 33.0s. Mem: 14.31/79.18 GB. [scbench_vt-81]
+
+[effective] clen=124538 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.30it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.00it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.87s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-82: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] QQWSW RFFCG CCLAC PWAEG IQTCI | QQWSW, FFCGY, MIPHZ, QJUOC, IQTCI
+[QA 1] IVGXE OFJDA QJUOC CTPBV PWAEG | IVGXE, OFJDA, IHCNJ, HGSYF, WEQLS
+[QA 2] According to the chain(s) of variable assignment in the text above, 5 variables are assigned the value 12659, they are: YZCCR IQTCI MNXRZ PWAEG CTPBV | YZCCR, HOGZW, MNXRZ, FURKS, CTPBV
+[QA 3] VAR YKJPZ IQTCI | YKJPZ, DGASC, DUAQH, QCHPU, CCLAC
+[QA 4] DGASC IQTCI HOGZW MNXRZ WEQLS | CZIBX, UUSKE, IROSF, RABEN, PWAEG
+[effective] clen=124538 window=4096 chunk_ratio=0.069393 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=9/112 n_lifted=7 lift=206 Btot=92299
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.71it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=182 Btot=124350
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.53it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=10/112 n_lifted=6 lift=187 Btot=124350
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.46it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=15/112 n_lifted=6 lift=190 Btot=124350
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=190 Btot=124350
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=15/112 n_lifted=6 lift=191 Btot=124350
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=191 Btot=124350
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.29it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=50/112 n_lifted=6 lift=192 Btot=97661
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-82: 124538 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/82_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 32.7s. Mem: 14.31/79.18 GB. [scbench_vt-82]
+
+[effective] clen=124540 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.24it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.87s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-83: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] MKUUW URZWS OHDVT | MKUUW, WLHQL, URGKH, USNTY, HTABC
+[QA 1] VAR YBHVA VAR EYAOM VAR PYNHT VAR VUXEX VAR GZCCE | YBHVA, YYWTX, MEUCL, OPRCH, LNHKY
+[QA 2] OFOYR WRBXH IRZWS JEGCU OHDVT | OFOYR, WRBXH, IRZWS, JEGCU, OHDVT
+[QA 3] YJUYI EVOAW MEUCL IRZWS OPRCH | YJUYI, EVOAW, ZEZEI, VUXEX, GZCCE
+[QA 4] XFDYL PYNHT LNHKY | XFDYL, XLOMW, YWQOG, EYAOM, PYNHT
+[effective] clen=124540 window=4096 chunk_ratio=0.069393 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=10/112 n_lifted=7 lift=206 Btot=92299
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.74it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=7/112 n_lifted=6 lift=184 Btot=124351
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.55it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=191 Btot=124351
+Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.47it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=190 Btot=124351
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=188 Btot=124351
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=189 Btot=124351
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.34it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=191 Btot=124351
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=15/112 n_lifted=6 lift=191 Btot=97678
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-83: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/83_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 29.8s. Mem: 14.31/79.18 GB. [scbench_vt-83]
+
+[effective] clen=124536 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.24it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.79it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-84: 124536 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ELLZN UOVKA HNEBL | ELLZN, UOVKA, PSQOM, DOGVX, FORSP
+[QA 1] VAR DBOYK VAR FORSP VAR TACYA VAR CKVRO VAR GJDCL | DBOYK, VKAMD, VQENZ, OUNCI, CKVRO
+[QA 2] KPTXW FGADG UTNWT HNEBL EYAWO | KPTXW, FGADG, HNEBL, UTNWT, EYAWO
+[QA 3] BGIHZ XNHKP ZIQXT SBJNV GJDCL | BGIHZ, XNHKP, ZIQXT, SBJNV, GJDCL
+[QA 4] According to the chain(s) of variable assignment in the text above, 5 variables are assigned the value 79785, they are:  
+VAR XNTGV  
+VAR QQWRB  
+VAR JIBWP  
+VAR ZIQXT  
+VAR SBJNV | XNTGV, QQWRB, JIBWP, KMMNS, TACYA
+[effective] clen=124536 window=4096 chunk_ratio=0.069392 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=8/112 n_lifted=7 lift=206 Btot=92298
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.71it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=7/112 n_lifted=6 lift=189 Btot=124349
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=189 Btot=124349
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.46it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=189 Btot=124349
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=10/112 n_lifted=6 lift=188 Btot=124349
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=187 Btot=124349
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=15/112 n_lifted=6 lift=191 Btot=124349
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.29it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=13/112 n_lifted=7 lift=221 Btot=97168
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-84: 124536 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/84_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 35.0s. Mem: 14.31/79.18 GB. [scbench_vt-84]
+
+[effective] clen=124540 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.29it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.79it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.00it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.88s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-85: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] GQILO IDWRA CCDAQ | GQILO, GQNHF, IKBEH, MHGCA, GUIPD
+[QA 1] VXAOK UKBNZ CHNYW CHLER GUIPD | VXAOK, UKBNZ, PAHJG, QDCVC, RHRAY
+[QA 2] TMWZD LSMLG HDNGN CCDAQ | TMWZD, LSMLG, HDNGN, CHLER, RSUBW
+[QA 3] VAR CVAMH | CVAMH, PAVQJ, JZTOJ, MWBFL, CCDAQ
+[QA 4] According to the chain(s) of variable assignment in the text above, 5 variables are assigned the value 63330, they are:  
+VAR TFELW  
+VAR RUQYH (which is assigned the value of VAR TFELW)  
+VAR IDWRA (which is assigned the value of VAR CHNYW, and VAR CHNYW is assigned the value of VAR UFUTN, which is assigned the value of VAR RUQ | TFELW, RUQYH, UFUTN, CHNYW, IDWRA
+[effective] clen=124540 window=4096 chunk_ratio=0.069393 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=8/112 n_lifted=7 lift=206 Btot=92299
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.72it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=190 Btot=124351
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.54it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=192 Btot=124351
+Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.47it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=191 Btot=124351
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=189 Btot=124351
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=12/112 n_lifted=7 lift=218 Btot=124311
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.34it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=192 Btot=124351
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=192 Btot=97678
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-85: 124540 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/85_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 33.2s. Mem: 14.31/79.18 GB. [scbench_vt-85]
+
+[effective] clen=124531 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.27it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.87s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-86: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] CCLEU XVKIS BEKYJ NGWNA KSEXJ | CCLEU, UFCST, MAARM, YJTRS, PWHMV
+[QA 1] YVQRE XVKIS BEKYJ | YVQRE, EPLVT, VWMPZ, XVKIS, BEKYJ
+[QA 2] VAR WJNAB VAR PHNUS VAR DERNF VAR HSASA VAR NGWNA | WJNAB, ZQHDR, PHNUS, DERNF, HSASA
+[QA 3] EUVLF PHNUS NGWNA | EUVLF, ACBWH, IZTGG, OMPJD, KSEXJ
+[QA 4] According to the chain(s) of variable assignment in the text above, 5 variables are assigned the value 69675, they are: IKPXG, UFCST, MAARM, GEJAJ, and BEKYJ. | IKPXG, NFCST, GEJAJ, TFUFQ, NGWNA
+[effective] clen=124531 window=4096 chunk_ratio=0.069391 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=7 n_starved=9/112 n_lifted=7 lift=206 Btot=92296
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.71it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=10/112 n_lifted=6 lift=184 Btot=124347
+Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.53it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=13/112 n_lifted=6 lift=191 Btot=124347
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.46it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=191 Btot=124347
+Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.41it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=12/112 n_lifted=6 lift=187 Btot=124347
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.37it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=190 Btot=124347
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.33it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=14/112 n_lifted=6 lift=192 Btot=124347
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=6 n_starved=11/112 n_lifted=6 lift=190 Btot=97604
+Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.37it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-86: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/86_qwen2.5-7b-instruct-1m_fastkvzip__vt1b01h32_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 32.8s. Mem: 14.31/79.18 GB. [scbench_vt-86]
+
+[effective] clen=124545 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.29it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.30it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.87s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]

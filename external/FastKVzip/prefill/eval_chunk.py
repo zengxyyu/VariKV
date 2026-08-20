@@ -147,7 +147,10 @@ if __name__ == "__main__":
             _cls, _kw = _CM, {"typed": _typed}
         else:
             from attention.calib_scorer import CalibScorer as _CS
-            _typed, _cls, _kw = None, _CS, {"arch": _arch}
+            # **scale 必须从 ckpt 读**，与 arch 同理：它改变方法本体，
+            # 靠构造函数默认值加载会在某天静默跑成另一个方法（`--ctrlm_mode` 前车之鉴）。
+            _typed, _cls, _kw = None, _CS, {"arch": _arch,
+                                            "scale": _ck.get("scale", "head")}
             _mode = "memoryless"            # CalibScorer 无记忆
         # **tag 在 arch 分支之后才拼** —— 它必须反映**实际跑的** mode。原来拼在前面，
         # 于是 CalibScorer 臂的目录名带的是覆盖前的 mode：修 `--ctrlm_mode` 默认值
