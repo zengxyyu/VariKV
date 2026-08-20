@@ -161,3 +161,39 @@ chunk inputs, size: 16000 (num 8)
 Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.07s/it][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=2 n_starved=13/112 n_lifted=2 lift=256 Btot=676119
 Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.17s/it][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=8 n_starved=31/112 n_lifted=8 lift=858 Btot=16394
 Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.12it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-4: 112360 tokens, KV cache 6.4 GB, torch.bfloat16
+Results saved at ./results/scbench_prefix_suffix/4_qwen2.5-7b-instruct-1m_fastkvzip__ps4b01h128_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 27.6s. Mem: 14.31/79.18 GB. [scbench_prefix_suffix-4]
+
+[effective] clen=112422 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.27it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.27it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.01s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.58s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.32s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-5: 112422 tokens, KV cache 6.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The word in the dictionary that has both the prefix "yObWx" and the suffix "zPcFN" is:
+
+`sYObWxzPcFN` | yObWxXANUq^sYolUk-qazPcFN
+[QA 1] B^hpcsmieefFIxiqOYdVDvUtp | B^hpcsmieefFIxiqOYdVDvUtp
+[QA 2] sPd-Al-iXgcun+krrZTLfaBTA | sPd-Al-iXgcun+krrZTLfaBTA
+[QA 3] The word in the dictionary that has both the prefix "tfPiw" and the suffix "YquqE" is `tfPiwEeZR+iIevJL+_dUGFTubUp`. | tfPiwEeZRniQLrcqDvKxYquqE
+[QA 4] ZsHj-KelKD+zgiBI_uIFSZXHv | ZsHj-KelKD+zgiBI_uIFSZXHv
+[effective] clen=112422 window=4096 chunk_ratio=0.377313 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=0-1 seed=- req=8 avail=2 n_starved=1/112 n_lifted=2 lift=250 Btot=501867
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.70it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=0-1 seed=- req=8 avail=2 n_starved=18/112 n_lifted=2 lift=254 Btot=676143
+Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.43it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=0-1 seed=- req=8 avail=2 n_starved=8/112 n_lifted=2 lift=255 Btot=676143
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.27it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=0-1 seed=- req=8 avail=2 n_starved=12/112 n_lifted=2 lift=256 Btot=676143
+Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.14it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=0-1 seed=- req=8 avail=2 n_starved=11/112 n_lifted=2 lift=256 Btot=676143
+Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.03it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=0-1 seed=- req=8 avail=2 n_starved=10/112 n_lifted=2 lift=256 Btot=676143
+Prefill:  75%|███████▌  | 6/8 [00:05<00:02,  1.07s/it][floorcov] chunk lo=91904 frac=1.0 order=band band=0-1 seed=- req=8 avail=2 n_starved=12/112 n_lifted=2 lift=256 Btot=676143
+Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.17s/it][floorcov] chunk lo=107904 frac=1.0 order=band band=0-1 seed=- req=8 avail=8 n_starved=24/112 n_lifted=8 lift=824 Btot=19015
+Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.19it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.11it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-5: 112422 tokens, KV cache 6.4 GB, torch.bfloat16
+Results saved at ./results/scbench_prefix_suffix/5_qwen2.5-7b-instruct-1m_fastkvzip__ps4b01h128_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 28.6s. Mem: 14.31/79.18 GB. [scbench_prefix_suffix-5]
+
+[effective] clen=112504 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.20it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.00s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.59s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.32s/it]

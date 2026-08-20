@@ -1925,3 +1925,28 @@ Results saved at ./results/scbench_kv_short/75_qwen3-8b_fastkvzip__q3rx15_chunk1
 [effective] clen=24597 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 2)
 Prefill:   0%|          | 0/2 [00:00<?, ?it/s]Prefill:  50%|█████     | 1/2 [00:00<00:00,  1.91it/s]Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.69it/s]Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.72it/s]
+# prefill qwen3-8b scbench_kv_short-76: 24597 tokens, KV cache 3.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] "62f9bcbb-104e-4659-92de-f4eb648c0e6d" | 62f9bcbb-104e-4659-92de-f4eb648c0e6d
+[QA 1] "4042704d-1e45-40f5-ad8e-55400ac7fffc" | 4042704d-1e45-40f5-ad8e-55400ac7fffc
+[QA 2] "52cd4f3a-5c48-4b5f-b2cb-eeac1b96ca32" | a536f3d5-c561-4476-9901-3b46e9ebbff4
+[QA 3] "859b6e05-5512-4d7a-8a2e-5ada9b09feb5" | 859b6e05-5512-4d7a-8a2e-5ada9b09feb5
+[QA 4] "043a1545-c2fe-46cc-81f0-eee3072b74bd" | 043a1545-c2fe-46cc-81f0-eee3072b74bd
+[QA 5] "02e40441-891c-4a57-8a39-77f19771289a" | 02e40441-891c-4a57-8a39-77f19771289a
+[QA 6] "fc9fa461-dff1-4dcb-8ad9-78b50fe4c819" | fc9fa461-dff1-4dcb-8ad9-78b50fe4c819
+[QA 7] "6b26e4d3-7f12-462e-9c36-6243562fe571" | 6b26e4d3-7f12-462e-9c36-6243562fe571
+[QA 8] "7e631f59-1471-4299-a81b-5cef4472ed37" | 7e631f59-1471-4299-a81b-5cef4472ed37
+[QA 9] "8a7ba0b6-d8a4-4193-929d-71294d9cfbbd" | a1a1d080-939c-4a64-bc8c-d8f0c374a8cc
+[effective] clen=24597 window=4096 chunk_ratio=0.040164 degenerate=False
+chunk inputs, size: 16000 (num 2)
+Prefill:   0%|          | 0/2 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=0.15 order=revindex band=- req=31 avail=204 n_starved=204/288 n_lifted=31 lift=31 Btot=137371
+Prefill:  50%|█████     | 1/2 [00:00<00:00,  1.30it/s][floorcov] chunk lo=11904 frac=0.15 order=revindex band=- req=28 avail=184 n_starved=184/288 n_lifted=28 lift=28 Btot=99766
+Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.69it/s]Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.61it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen3-8b scbench_kv_short-76: 24597 tokens, KV cache 3.6 GB, torch.bfloat16
+Results saved at ./results/scbench_kv_short/76_qwen3-8b_fastkvzip__q3rx15_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 36.5s. Mem: 15.46/79.18 GB. [scbench_kv_short-76]
+
+[effective] clen=24485 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 2)
+Prefill:   0%|          | 0/2 [00:00<?, ?it/s]Prefill:  50%|█████     | 1/2 [00:00<00:00,  1.92it/s]Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.70it/s]Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.73it/s]

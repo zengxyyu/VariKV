@@ -2142,3 +2142,28 @@ chunk inputs, size: 16000 (num 2)
 Prefill:   0%|          | 0/2 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=0.15 order=revindex band=- req=21 avail=139 n_starved=139/288 n_lifted=21 lift=21 Btot=266425
 Prefill:  50%|█████     | 1/2 [00:00<00:00,  1.28it/s][floorcov] chunk lo=11904 frac=0.15 order=revindex band=- req=21 avail=142 n_starved=142/288 n_lifted=21 lift=21 Btot=191518
 Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.67it/s]Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.60it/s]
+Chunked prefilling with 0.23 ratio, window 4096
+# prefill qwen3-8b scbench_kv_short-84: 24509 tokens, KV cache 3.6 GB, torch.bfloat16
+Results saved at ./results/scbench_kv_short/84_qwen3-8b_fastkvzip__q3mrx15_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 35.2s. Mem: 15.46/79.18 GB. [scbench_kv_short-84]
+
+[effective] clen=24547 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 2)
+Prefill:   0%|          | 0/2 [00:00<?, ?it/s]Prefill:  50%|█████     | 1/2 [00:00<00:00,  1.89it/s]Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.68it/s]Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.71it/s]
+# prefill qwen3-8b scbench_kv_short-85: 24547 tokens, KV cache 3.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] "6aa7e4e9-369d-4100-8ce2-2c4ad7caaa4b" | 6aa7e4e9-369d-4100-8ce2-2c4ad7caaa4b
+[QA 1] "2729bb69-362c-4cfb-a8b9-b4ad8c6a0ec5" | 2729bb69-362c-4cfb-a8b9-b4ad8c6a0ec5
+[QA 2] "254038fd-06a4-4ac7-97df-87c6b867f1d0" | 254038fd-06a4-4ac7-97df-87c6b867f1d0
+[QA 3] "90587f45-9e52-4dd7-9254-6d2ea78dc5d3" | 90587f45-9e52-4dd7-9254-6d2ea78dc5d3
+[QA 4] "5c8b51c2-a65a-4d3e-94ad-9d252ed6de1f" | 5c8b51c2-a65a-4d3e-94ad-9d252ed6de1f
+[QA 5] "059efa52-12fb-4fad-abc9-7480de59df97" | 0f63e404-f31f-4ec3-9b4b-28fe379abed5
+[QA 6] "58ffad22-566a-4d4b-bbb4-83abf131e5b8" | 58ffad22-566a-4d4b-bbb4-83abf131e5b8
+[QA 7] "1f7ab333-dbf8-44d2-af36-14211c063998" | 1f7ab333-dbf8-44d2-af36-14211c063998
+[QA 8] "4b38fa3e-02b7-476c-89e6-8b0f00f23219" | f4052540-f507-41b2-b179-89d768dc73f5
+[QA 9] "9a922506-afed-4cfd-a569-ab3d7bba0baa" | 9a922506-afed-4cfd-a569-ab3d7bba0baa
+[effective] clen=24547 window=4096 chunk_ratio=0.078182 degenerate=False
+chunk inputs, size: 16000 (num 2)
+Prefill:   0%|          | 0/2 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=0.15 order=revindex band=- req=27 avail=177 n_starved=177/288 n_lifted=27 lift=27 Btot=267404
+Prefill:  50%|█████     | 1/2 [00:00<00:00,  1.28it/s][floorcov] chunk lo=11904 frac=0.15 order=revindex band=- req=29 avail=195 n_starved=195/288 n_lifted=29 lift=29 Btot=193077
+Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.67it/s]Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.60it/s]

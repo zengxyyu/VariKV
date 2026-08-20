@@ -3266,4 +3266,36 @@ Results saved at ./results/scbench_kv/80_qwen2.5-7b-instruct-1m_fastkvzip__kvf0c
 
 [effective] clen=169081 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 11)
-Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.33it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:04,  1.81it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.30it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.22s/it]Prefill:  55%|█████▍    | 6/11 [00:06<00:07,  1.47s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.72s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  1.99s/it]
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.33it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:04,  1.81it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.30it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.22s/it]Prefill:  55%|█████▍    | 6/11 [00:06<00:07,  1.47s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.72s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  1.99s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.26s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.54s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.55s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.85s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-81: 169081 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "e084db03-011c-4196-a1ab-a6b38fa4835b" is "cb106d20-de86-49a7-8db1-744ae035eaf2". | cb106d20-de86-49a7-8db1-744ae035eaf2
+[QA 1] The value associated with the key "81cba809-1434-482f-bce1-1f9be1ef4366" is "0e87e874-921c-4e0d-8fd4-8690cf17e2a1". | 0e87e874-921c-4e0d-8fd4-8690cf17e2a1
+[QA 2] The value associated with the key "276c2307-8383-4c7e-a0f3-fc72771cfb84" is "99f75d07-5ff8-4064-872b-a80e5d0c86a9". | 99f75d07-5ff8-4064-872b-a80e5d0c86a9
+[QA 3] The value associated with the key "deec0f66-a962-4628-830b-623b48538847" is "c65090d5-dbf4-472f-8a20-11c4c04ee6bc". | c68e2866-87c6-47de-b65e-fc4b6229421b
+[QA 4] The value associated with the key "2c42654b-5669-4f5b-bff6-1c43946b6656" is "5dbe59cc-2857-47f6-b362-2f27053aca60". | 5dbe59cc-2857-47f6-b362-2f27053aca60
+[effective] clen=169081 window=4096 chunk_ratio=0.077656 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=0.0 order=smax band=- req=0 avail=63 n_starved=63/112 n_lifted=0 lift=0 Btot=103290
+[inject-selfcheck] chunk lo=28 掩码逐位不同 0 / 1330112  累计 0/1330112
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.71it/s][floorcov] chunk lo=11904 frac=0.0 order=smax band=- req=0 avail=75 n_starved=75/112 n_lifted=0 lift=0 Btot=139158
+[inject-selfcheck] chunk lo=11904 掩码逐位不同 0 / 1792000  累计 0/3122112
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.53it/s][floorcov] chunk lo=27904 frac=0.0 order=smax band=- req=0 avail=75 n_starved=75/112 n_lifted=0 lift=0 Btot=139158
+[inject-selfcheck] chunk lo=27904 掩码逐位不同 0 / 1792000  累计 0/4914112
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.46it/s][floorcov] chunk lo=43904 frac=0.0 order=smax band=- req=0 avail=73 n_starved=73/112 n_lifted=0 lift=0 Btot=139158
+[inject-selfcheck] chunk lo=43904 掩码逐位不同 0 / 1792000  累计 0/6706112
+Prefill:  36%|███▋      | 4/11 [00:02<00:04,  1.41it/s][floorcov] chunk lo=59904 frac=0.0 order=smax band=- req=0 avail=74 n_starved=74/112 n_lifted=0 lift=0 Btot=139158
+[inject-selfcheck] chunk lo=59904 掩码逐位不同 0 / 1792000  累计 0/8498112
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.36it/s][floorcov] chunk lo=75904 frac=0.0 order=smax band=- req=0 avail=76 n_starved=76/112 n_lifted=0 lift=0 Btot=139158
+[inject-selfcheck] chunk lo=75904 掩码逐位不同 0 / 1792000  累计 0/10290112
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.32it/s][floorcov] chunk lo=91904 frac=0.0 order=smax band=- req=0 avail=74 n_starved=74/112 n_lifted=0 lift=0 Btot=139158
+[inject-selfcheck] chunk lo=91904 掩码逐位不同 0 / 1792000  累计 0/12082112
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.28it/s][floorcov] chunk lo=107904 frac=0.0 order=smax band=- req=0 avail=72 n_starved=72/112 n_lifted=0 lift=0 Btot=139158
+[inject-selfcheck] chunk lo=107904 掩码逐位不同 0 / 1792000  累计 0/13874112
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.24it/s][floorcov] chunk lo=123904 frac=0.0 order=smax band=- req=0 avail=71 n_starved=71/112 n_lifted=0 lift=0 Btot=139158
+[inject-selfcheck] chunk lo=123904 掩码逐位不同 0 / 1792000  累计 0/15666112
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.20it/s][floorcov] chunk lo=139904 frac=0.0 order=smax band=- req=0 avail=73 n_starved=73/112 n_lifted=0 lift=0 Btot=139158
+[inject-selfcheck] chunk lo=139904 掩码逐位不同 0 / 1792000  累计 0/17458112
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.17it/s][floorcov] chunk lo=155904 frac=0.0 order=smax band=- req=0 avail=77 n_starved=77/112 n_lifted=0 lift=0 Btot=79224
+[inject-selfcheck] chunk lo=155904 掩码逐位不同 0 / 1020208  累计 0/18478320
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.32it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]
