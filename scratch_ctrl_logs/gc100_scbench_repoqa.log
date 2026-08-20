@@ -5590,3 +5590,3547 @@ Chunked prefilling with 0.30 ratio, window 4096
 [effective] clen=65850 window=4096 chunk_ratio=0.146938 degenerate=False
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.35it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.68it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-20: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.040305 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.79it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-20: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=3292 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3292
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-20: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/20_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 381.0s. Mem: 14.31/79.18 GB. [scbench_repoqa-20]
+
+[effective] clen=65850 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+array broadcast_to(
+    const array& a,
+    const std::vector<int>& shape,
+    StreamOrDevice s /* = {} */) {
+  if (a.shape() == shape) {
+    return a;
+  }
+
+  // Make sure the shapes are broadcastable
+  auto bxshape = broadcast_shapes(a.shape(), shape);
+  if (bxshape != shape) {
+    std::ostringstream msg;
+    msg << "Cannot broadcast array of shape " << a.shape() << " into shape "
+        << shape << ".";
+    throw std::invalid_argument(msg.str());
+  }
+  return array(
+      std::move(bxshape),
+      a.dtype(),
+      std::make_shared<Broadcast>(to_stream(s), shape),
+      {a});
+}
+``` | array broadcast_to(
+    const array& a,
+    const std::vector<int>& shape,
+    StreamOrDevice s /* = {} */) {
+  if (a.shape() == shape) {
+    return a;
+  }
+
+  // Make sure the shapes are broadcastable
+  auto bxshape = broadcast_shapes(a.shape(), shape);
+  if (bxshape != shape) {
+    std::ostringstream msg;
+    msg << "Cannot broadcast array of shape " << a.shape() << " into shape "
+        << shape << ".";
+    throw std::invalid_argument(msg.str());
+  }
+  return array(
+      std::move(bxshape),
+      a.dtype(),
+      std::make_shared<Broadcast>(to_stream(s), shape),
+      {a});
+}
+[QA 1] ```cpp
+array number_of_elements(
+    const array& a,
+    std::vector<int> axes,
+    bool inverted,
+    Dtype dtype /* = int32 */,
+    StreamOrDevice s /* = {} */) {
+  for (auto& ax : axes) {
+    int normal_axis = (ax + a.ndim()) % a.ndim();
+    if (normal_axis >= a.ndim() || normal_axis < 0) {
+      std::ostringstream msg;
+      msg << "[number_of_elements] Can't get the shape for axis " << ax
+          << " from an array with " << a.ndim() << " dimensions.";
+      throw std::invalid_argument(msg.str());
+    }
+    ax = normal_axis;
+  }
+
+  return stop_gradient(array(
+      std::vector<int>{},
+      dtype,
+      std::make_shared<NumberOfElements>(
+          to_stream(s), std::move(axes), inverted, dtype),
+      {a}));
+}
+``` | array number_of_elements(
+    const array& a,
+    std::vector<int> axes,
+    bool inverted,
+    Dtype dtype /* = int32 */,
+    StreamOrDevice s /* = {} */) {
+  for (auto& ax : axes) {
+    int normal_axis = (ax + a.ndim()) % a.ndim();
+    if (normal_axis >= a.ndim() || normal_axis < 0) {
+      std::ostringstream msg;
+      msg << "[number_of_elements] Can't get the shape for axis " << ax
+          << " from an array with " << a.ndim() << " dimensions.";
+      throw std::invalid_argument(msg.str());
+    }
+    ax = normal_axis;
+  }
+
+  return stop_gradient(array(
+      std::vector<int>{},
+      dtype,
+      std::make_shared<NumberOfElements>(
+          to_stream(s), std::move(axes), inverted, dtype),
+      {a}));
+}
+[QA 2] ```cpp
+namespace {
+
+std::tuple<array, array, int> vmap_binary_op(
+    const std::vector<array>& inputs,
+    const std::vector<int>& axes,
+    const Stream& stream) {
+  assert(inputs.size() == 2);
+  assert(axes.size() == 2);
+
+  if (axes[0] == -1 && axes[1] == -1) {
+    return {inputs[0], inputs[1], -1};
+  }
+
+  auto a = inputs[0];
+  auto b = inputs[1];
+  int ndim = std::max(a.ndim() + (axes[0] == -1), b.ndim() + (axes[1] == -1));
+
+  auto expand_dims = [stream, ndim](auto in) {
+    auto shape = in.shape();
+    shape.insert(shape.begin(), ndim - shape.size(), 1);
+    return reshape(in, shape, stream);
+  };
+
+  int to_ax = (ndim - a.ndim()) + axes[0];
+  int from_ax = (ndim - b.ndim()) + axes[1];
+  a = expand_dims(a);
+  b = expand_dims(b);
+
+  if (from_ax != to_ax) {
+    std::vector<int> tdims(b.ndim());
+    std::iota(tdims.begin(), tdims.end(), 0);
+    tdims.erase(tdims.begin() + from_ax);
+    tdims.insert(tdims.begin() + to_ax, from_ax);
+    b = transpose(b, tdims, stream);
+  }
+  return {a, b, to_ax};
+}
+
+} // namespace
+``` | std::tuple<array, array, int> vmap_binary_op(
+    const std::vector<array>& inputs,
+    const std::vector<int>& axes,
+    const Stream& stream) {
+  assert(inputs.size() == 2);
+  assert(axes.size() == 2);
+
+  if (axes[0] == -1 && axes[1] == -1) {
+    return {inputs[0], inputs[1], -1};
+  }
+
+  auto a = inputs[0];
+  auto b = inputs[1];
+  int ndim = std::max(a.ndim() + (axes[0] == -1), b.ndim() + (axes[1] == -1));
+
+  auto expand_dims = [stream, ndim](auto in) {
+    auto shape = in.shape();
+    shape.insert(shape.begin(), ndim - shape.size(), 1);
+    return reshape(in, shape, stream);
+  };
+
+  int to_ax = (ndim - a.ndim()) + axes[0];
+  int from_ax = (ndim - b.ndim()) + axes[1];
+  a = expand_dims(a);
+  b = expand_dims(b);
+
+  if (from_ax!= to_ax) {
+    std::vector<int> tdims(b.ndim());
+    std::iota(tdims.begin(), tdims.end(), 0);
+    tdims.erase(tdims.begin() + from_ax);
+    tdims.insert(tdims.begin() + to_ax, from_ax);
+    b = transpose(b, tdims, stream);
+  }
+  return {a, b, to_ax};
+}
+[QA 3] ```cpp
+std::vector<int> broadcast_shapes(
+    const std::vector<int>& s1,
+    const std::vector<int>& s2) {
+  // Use the same broadcasting rules as numpy
+  // https://numpy.org/doc/1.20/user/theory.broadcasting.html
+  // "The size of the trailing axes for both arrays in an operation must
+  // either be the same size or one of them must be one."
+
+  int ndim1 = s1.size();
+  int ndim2 = s2.size();
+  int ndim = std::max(ndim1, ndim2);
+  int diff = std::abs(ndim1 - ndim2);
+  const auto& big = ndim1 > ndim2 ? s1 : s2;
+  const auto& small = ndim1 > ndim2 ? s2 : s1;
+  std::vector<int> out_shape(ndim);
+  for (int i = ndim - 1; i >= diff; --i) {
+    int a = big[i];
+    int b = small[i - diff];
+    if (b == a) {
+      out_shape[i] = a;
+    } else if (a == 1 || b == 1) {
+      // 0 if a or b is 0 otherwise max(a, b)
+      out_shape[i] = a * b;
+    } else {
+      std::ostringstream msg;
+      msg << "Shapes " << s1 << " and " << s2 << " cannot be broadcast.";
+      throw std::invalid_argument(msg.str());
+    }
+  }
+  for (int i = diff - 1; i >= 0; --i) {
+    out_shape[i] = big[i];
+  }
+  return out_shape;
+}
+``` | std::vector<int> broadcast_shapes(
+    const std::vector<int>& s1,
+    const std::vector<int>& s2) {
+  // Use the same broadcasting rules as numpy
+  // https://numpy.org/doc/1.20/user/theory.broadcasting.html
+  // "The size of the trailing axes for both arrays in an operation must
+  // either be the same size or one of them must be one."
+  int ndim1 = s1.size();
+  int ndim2 = s2.size();
+  int ndim = std::max(ndim1, ndim2);
+  int diff = std::abs(ndim1 - ndim2);
+  const auto& big = ndim1 > ndim2 ? s1 : s2;
+  const auto& small = ndim1 > ndim2 ? s2 : s1;
+  std::vector<int> out_shape(ndim);
+  for (int i = ndim - 1; i >= diff; --i) {
+    int a = big[i];
+    int b = small[i - diff];
+    if (b == a) {
+      out_shape[i] = a;
+    } else if (a == 1 || b == 1) {
+      // 0 if a or b is 0 otherwise max(a, b)
+      out_shape[i] = a * b;
+    } else {
+      std::ostringstream msg;
+      msg << "Shapes " << s1 << " and " << s2 << " cannot be broadcast.";
+      throw std::invalid_argument(msg.str());
+    }
+  }
+  for (int i = diff - 1; i >= 0; --i) {
+    out_shape[i] = big[i];
+  }
+  return out_shape;
+}
+[QA 4] ```cpp
+array reshape(
+    const array& a,
+    std::vector<int> shape,
+    StreamOrDevice s /* = {} */) {
+  if (a.shape() == shape) {
+    return a;
+  }
+
+  size_t size = 1;
+  int infer_idx = -1;
+  for (int i = 0; i < shape.size(); ++i) {
+    if (shape[i] == -1) {
+      if (infer_idx >= 0) {
+        throw std::invalid_argument(
+            "[reshape] Reshape can only infer one dimension.");
+      }
+      infer_idx = i;
+    } else {
+      size *= shape[i];
+    }
+  }
+
+  // Infer the shape
+  if (size > 0) {
+    auto q_and_r = std::ldiv(a.size(), size);
+    if (infer_idx >= 0) {
+      shape[infer_idx] = q_and_r.quot;
+      size *= q_and_r.quot;
+    }
+  } else if (infer_idx >= 0) {
+    throw std::invalid_argument(
+        "[reshape] Cannot infer the shape of an empty array");
+  }
+
+  // Check the the reshaping is valid
+  if (a.size() != size) {
+    std::ostringstream msg;
+    msg << "[reshape] Cannot reshape array of size " << a.size()
+        << " into shape " << shape << ".";
+    throw std::invalid_argument(msg.str());
+  }
+  auto p = std::make_shared<Reshape>(to_stream(s), shape);
+  return array(std::move(shape), a.dtype(), std::move(p), {a});
+}
+``` | array reshape(
+    const array& a,
+    std::vector<int> shape,
+    StreamOrDevice s /* = {} */) {
+  if (a.shape() == shape) {
+    return a;
+  }
+
+  size_t size = 1;
+  int infer_idx = -1;
+  for (int i = 0; i < shape.size(); ++i) {
+    if (shape[i] == -1) {
+      if (infer_idx >= 0) {
+        throw std::invalid_argument(
+            "[reshape] Reshape can only infer one dimension.");
+      }
+      infer_idx = i;
+    } else {
+      size *= shape[i];
+    }
+  }
+
+  // Infer the shape
+  if (size > 0) {
+    auto q_and_r = std::ldiv(a.size(), size);
+    if (infer_idx >= 0) {
+      shape[infer_idx] = q_and_r.quot;
+      size *= q_and_r.quot;
+    }
+  } else if (infer_idx >= 0) {
+    throw std::invalid_argument(
+        "[reshape] Cannot infer the shape of an empty array");
+  }
+
+  // Check the the reshaping is valid
+  if (a.size() != size) {
+    std::ostringstream msg;
+    msg << "[reshape] Cannot reshape array of size " << a.size()
+        << " into shape " << shape << ".";
+    throw std::invalid_argument(msg.str());
+  }
+  auto p = std::make_shared<Reshape>(to_stream(s), shape);
+  return array(std::move(shape), a.dtype(), std::move(p), {a});
+}
+[effective] clen=65850 window=4096 chunk_ratio=0.733418 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.04s/it]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.25it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.466836 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.09it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.40it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.360203 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.49it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.253571 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.76it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.146938 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.41it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=4096 chunk_ratio=0.040305 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65850 window=3292 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.20it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.87it/s]
+Chunked prefilling with 0.05 ratio, window 3292
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-21: 65850 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/21_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 472.3s. Mem: 14.31/79.18 GB. [scbench_repoqa-21]
+
+[effective] clen=66030 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+future<size_t> aio_storage_context::submit_work() {
+    auto pr = make_shared_promise<size_t>();
+    auto fut = pr->get_future();
+    auto op_func = [this, pr = std::move(pr)] (size_t pos, size_t len) mutable {
+        return do_with(io_operation(pos, len), [pr = std::move(pr)] (auto&& result) mutable {
+            pr->set_value(result);
+        });
+    };
+    try {
+        _iocb_pool.get_one().set_io_op(std::move(op_func));
+        return fut;
+    } catch (...) {
+        return current_exception_as_future<size_t>();
+    }
+}
+``` |     future<T...> enqueue(opcode type, uint64_t pos, size_t len, Func&& func) noexcept {
+        try {
+            auto pr = make_lw_shared(promise<T...>());
+            auto fut = pr->get_future();
+            auto op_func = [func = std::move(func), pr = std::move(pr)] () mutable {
+                return futurize_invoke(std::move(func)).then_wrapped([pr = std::move(pr)] (future<T...> f) mutable {
+                    f.forward_to(std::move(*pr));
+                });
+            };
+            try {
+                enqueue_op({type, pos, len, std::move(op_func)});
+                return fut;
+            } catch (...) {
+                fut.ignore_ready_future();
+                return current_exception_as_future<T...>();
+            }
+        } catch (...) {
+            return make_exception_future<T...>(std::current_exception());
+        }
+    }
+[QA 1] ```cpp
+future<sstring> read_entire_file_contiguous(std::filesystem::path path) {
+    return with_file_input_stream(path, [] (input_stream<char>& in) {
+        return read_entire_stream_contiguous(in);
+    });
+}
+``` | future<sstring> read_entire_file_contiguous(std::filesystem::path path) {
+    return with_file_input_stream(path, [] (input_stream<char>& in) {
+        return read_entire_stream_contiguous(in);
+    });
+}
+[QA 2] ```cpp
+net::dhcp::dhcp(ipv4 & ip)
+: _impl(std::make_unique<impl>(ip))
+{}
+
+net::dhcp::dhcp(dhcp && v) noexcept = default;
+
+net::dhcp::~dhcp()
+{}
+``` |     impl(ipv4 & stack)
+       : _stack(stack)
+    {
+        _sock = _stack.get_udp().make_channel({0, client_port});
+    }
+[QA 3] ```cpp
+class fd_kernel_completion : public kernel_completion {
+protected:
+    file_desc& _fd;
+    fd_kernel_completion(file_desc& fd) : _fd(fd) {}
+public:
+    file_desc& fd() {
+        return _fd;
+    }
+};
+
+struct hrtimer_aio_completion : public fd_kernel_completion,
+                                public completion_with_iocb {
+private:
+    reactor& _r;
+public:
+    hrtimer_aio_completion(reactor& r, file_desc& fd);
+    virtual void complete_with(ssize_t value) override;
+};
+
+struct task_quota_aio_completion : public fd_kernel_completion,
+                                   public completion_with_iocb {
+    task_quota_aio_completion(file_desc& fd);
+    virtual void complete_with(ssize_t value) override;
+};
+
+struct smp_wakeup_aio_completion : public fd_kernel_completion,
+                                   public completion_with_iocb {
+    smp_wakeup_aio_completion(file_desc& fd);
+    virtual void complete_with(ssize_t value) override;
+};
+```
+
+These classes (`fd_kernel_completion`, `hrtimer_aio_completion`, `task_quota_aio_completion`, and `smp_wakeup_aio_completion`) are designed to manage kernel-level I/O completions for file descriptors within the Seastar framework. They inherit from `kernel_completion` and `completion_with_iocb`, providing specific implementations for handling different types of I/O operations. |     fd_kernel_completion(file_desc& fd) : _fd(fd) {}
+[QA 4] ```cpp
+template <typename T>
+struct work_item_returning : work_item {
+    noncopyable_function<T ()> _func;
+    promise<T> _promise;
+    std::optional<T> _result;
+    work_item_returning(noncopyable_function<T ()> func) : _func(std::move(func)) {}
+    virtual void process() override { _result = this->_func(); }
+    virtual void complete() override { _promise.set_value(std::move(*_result)); }
+    virtual void set_exception(std::exception_ptr eptr) override { _promise.set_exception(eptr); };
+    future<T> get_future() { return _promise.get_future(); }
+};
+``` |         work_item_returning(noncopyable_function<T ()> func) : _func(std::move(func)) {}
+[effective] clen=66030 window=4096 chunk_ratio=0.733466 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.32it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.466933 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.360319 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.63it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.253706 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.76it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.147092 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.90it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.66it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.040479 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=3301 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.18it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.05 ratio, window 3301
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-22: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/22_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 223.7s. Mem: 14.31/79.18 GB. [scbench_repoqa-22]
+
+[effective] clen=66030 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.24it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+static input_stream<char> make_content_stream(http::request* req, input_stream<char>& buf) {
+    // Create an input stream based on the requests body encoding or lack thereof
+    if (seastar::internal::case_insensitive_cmp()(req->get_header("Transfer-Encoding"), "chunked")) {
+        return input_stream<char>(data_source(std::make_unique<internal::chunked_source_impl>(buf, req->chunk_extensions, req->trailing_headers)));
+    } else {
+        return input_stream<char>(data_source(std::make_unique<internal::content_length_source_impl>(buf, req->content_length)));
+    }
+}
+``` | static input_stream<char> make_content_stream(http::request* req, input_stream<char>& buf) {
+    // Create an input stream based on the requests body encoding or lack thereof
+    if (seastar::internal::case_insensitive_cmp()(req->get_header("Transfer-Encoding"), "chunked")) {
+        return input_stream<char>(data_source(std::make_unique<internal::chunked_source_impl>(buf, req->chunk_extensions, req->trailing_headers)));
+    } else {
+        return input_stream<char>(data_source(std::make_unique<internal::content_length_source_impl>(buf, req->content_length)));
+    }
+}
+[QA 1] ```cpp
+future<reply> connection::make_request(request req) {
+    return do_make_request(std::move(req)).then([] (reply_ptr rep) {
+        return make_ready_future<reply>(std::move(*rep));
+    });
+}
+``` |     explicit basic_connection_factory(socket_address addr)
+            : _addr(std::move(addr))
+    {
+    }
+[QA 2] ```cpp
+std::ostream& operator<<(std::ostream& out, log_level level) {
+    return out << log_level_names.at(level);
+}
+``` | static internal::log_buf::inserter_iterator print_no_timestamp(internal::log_buf::inserter_iterator it) {
+    return it;
+}
+[QA 3] ```cpp
+class reactor_backend_selector {
+    std::string _name;
+private:
+    static bool has_enough_aio_nr();
+    explicit reactor_backend_selector(std::string name) : _name(std::move(name)) {}
+public:
+    const std::string& name() const { return _name; }
+    std::unique_ptr<reactor_backend> create(reactor& r);
+    static reactor_backend_selector default_backend();
+    static std::vector<reactor_backend_selector> available();
+    friend std::ostream& operator<<(std::ostream& os, const reactor_backend_selector& rbs) {
+        return os << rbs._name;
+    }
+};
+
+reactor_backend_selector::reactor_backend_selector(std::string name) : _name(std::move(name)) {}
+
+std::unique_ptr<reactor_backend> reactor_backend_selector::create(reactor& r) {
+    if (_name == "epoll") {
+        return std::make_unique<reactor_backend_epoll>(r);
+    } else if (_name == "aio") {
+        return std::make_unique<reactor_backend_aio>(r);
+#ifdef HAVE_OSV
+    } else if (_name == "osv") {
+        return std::make_unique<reactor_backend_osv>();
+#endif
+    }
+    throw std::runtime_error("Unsupported backend: " + _name);
+}
+
+reactor_backend_selector reactor_backend_selector::default_backend() {
+    if (has_enough_aio_nr()) {
+        return reactor_backend_selector("aio");
+    } else {
+        return reactor_backend_selector("epoll");
+    }
+}
+
+std::vector<reactor_backend_selector> reactor_backend_selector::available() {
+    std::vector<reactor_backend_selector> backends;
+    if (has_enough_aio_nr()) {
+        backends.push_back(reactor_backend_selector("aio"));
+    }
+    backends.push_back(reactor_backend_selector("epoll"));
+#ifdef HAVE_OSV
+    backends.push_back(reactor_backend_selector("osv"));
+#endif
+    return backends;
+}
+
+bool reactor_backend_selector::has_enough_aio_nr() {
+    // System check to determine if the system supports enough AIO resources
+    // This is a placeholder for actual implementation
+    return true;
+}
+``` |     explicit reactor_backend_selector(std::string name) : _name(std::move(name)) {}
+[QA 4] ```cpp
+static fs::path
+generate_tmp_name(const fs::path& path_template) {
+    fs::path parent = path_template.parent_path();
+    std::string filename = path_template.filename().native();
+    if (parent.empty()) {
+        parent = ".";
+    }
+    auto pos = filename.find("XX");
+    if (pos == std::string::npos) {
+        parent = path_template;
+        filename = default_tmp_name_template;
+        pos = filename.find("XX");
+        assert(pos != std::string::npos);
+    }
+    auto end = filename.size();
+    static constexpr char charset[] = "0123456789abcdef";
+    static thread_local std::default_random_engine engine(std::random_device{}());
+    static thread_local std::uniform_int_distribution<int> dist(0, sizeof(charset) - 2);
+    while (pos < end && filename[pos] == 'X') {
+        filename[pos++] = charset[dist(engine)];
+    }
+    parent /= filename;
+    return parent;
+}
+``` | static fs::path
+generate_tmp_name(const fs::path& path_template) {
+    fs::path parent = path_template.parent_path();
+    std::string filename = path_template.filename().native();
+    if (parent.empty()) {
+        parent = ".";
+    }
+    auto pos = filename.find("XX");
+    if (pos == std::string::npos) {
+        parent = path_template;
+        filename = default_tmp_name_template;
+        pos = filename.find("XX");
+        assert(pos != std::string::npos);
+    }
+    auto end = filename.size();
+    static constexpr char charset[] = "0123456789abcdef";
+    static thread_local std::default_random_engine engine(std::random_device{}());
+    static thread_local std::uniform_int_distribution<int> dist(0, sizeof(charset) - 2);
+    while (pos < end && filename[pos] == 'X') {
+        filename[pos++] = charset[dist(engine)];
+    }
+    parent /= filename;
+    return parent;
+}
+[effective] clen=66030 window=4096 chunk_ratio=0.733466 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.32it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.466933 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.40it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.360319 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.63it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.253706 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.76it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.56it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.147092 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.41it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.90it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.66it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=4096 chunk_ratio=0.040479 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66030 window=3301 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.57it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.18it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.05 ratio, window 3301
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-23: 66030 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/23_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 329.6s. Mem: 14.31/79.18 GB. [scbench_repoqa-23]
+
+[effective] clen=65810 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.28it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-24: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+inline constexpr __wasi_advice_t fromAdvice(int Advice) noexcept {
+  switch (Advice) {
+  case POSIX_FADV_NORMAL:
+    return __WASI_ADVICE_NORMAL;
+  case POSIX_FADV_SEQUENTIAL:
+    return __WASI_ADVICE_SEQUENTIAL;
+  case POSIX_FADV_RANDOM:
+    return __WASI_ADVICE_RANDOM;
+  case POSIX_FADV_WILLNEED:
+    return __WASI_ADVICE_WILLNEED;
+  case POSIX_FADV_DONTNEED:
+    return __WASI_ADVICE_DONTNEED;
+  case POSIX_FADV_NOREUSE:
+    return __WASI_ADVICE_NOREUSE;
+  default:
+    assumingUnreachable();
+  }
+}
+``` | inline constexpr int toAdvice(__wasi_advice_t Advice) noexcept {
+  switch (Advice) {
+  case __WASI_ADVICE_NORMAL:
+    return POSIX_FADV_NORMAL;
+  case __WASI_ADVICE_SEQUENTIAL:
+    return POSIX_FADV_SEQUENTIAL;
+  case __WASI_ADVICE_RANDOM:
+    return POSIX_FADV_RANDOM;
+  case __WASI_ADVICE_WILLNEED:
+    return POSIX_FADV_WILLNEED;
+  case __WASI_ADVICE_DONTNEED:
+    return POSIX_FADV_DONTNEED;
+  case __WASI_ADVICE_NOREUSE:
+    return POSIX_FADV_NOREUSE;
+  default:
+    assumingUnreachable();
+  }
+}
+[QA 1] ```cpp
+WasiExpect<void> INode::sockAddressAssignHelper(__wasi_address_family_t AddrFamily,
+                                                const Span<const uint8_t> &Address,
+                                                uint16_t Port) {
+  VarAddrT Addr;
+  if (Address.size() == 0) {
+    Addr.emplace<SockEmptyAddr>();
+  } else if (AddrFamily == __WASI_ADDRESS_FAMILY_INET4) {
+    auto &ServerAddr4 = Addr.emplace<sockaddr_in>();
+
+    ServerAddr4.sin_family = AF_INET;
+    ServerAddr4.sin_port = htons(Port);
+    assuming(Address.size() >= sizeof(in_addr));
+    std::memcpy(&ServerAddr4.sin_addr, Address.data(), sizeof(in_addr));
+  } else if (AddrFamily == __WASI_ADDRESS_FAMILY_INET6) {
+    auto &ServerAddr6 = Addr.emplace<sockaddr_in6>();
+
+    ServerAddr6.sin6_family = AF_INET6;
+    ServerAddr6.sin6_port = htons(Port);
+    ServerAddr6.sin6_flowinfo = 0;
+    assuming(Address.size() >= sizeof(in6_addr));
+    std::memcpy(&ServerAddr6.sin6_addr, Address.data(), sizeof(in6_addr));
+  } else if (AddrFamily == __WASI_ADDRESS_FAMILY_AF_UNIX) {
+    auto &ServerAddrUN = Addr.emplace<sockaddr_un>();
+
+    ServerAddrUN.sun_family = AF_UNIX;
+    // The length of sockaddr_un::sun_path is depend on current system
+    // We should always check the size of it.
+    assuming(Address.size() >= sizeof(sockaddr_un::sun_path));
+    std::memcpy(&ServerAddrUN.sun_path, Address.data(),
+                sizeof(sockaddr_un::sun_path));
+  } else {
+    assumingUnreachable();
+  }
+
+  return Addr;
+}
+``` | static VarAddrT sockAddressAssignHelper(__wasi_address_family_t AddrFamily,
+                                        const Span<const uint8_t> &Address,
+                                        uint16_t Port) {
+  VarAddrT Addr;
+  if (Address.size() == 0) {
+    Addr.emplace<SockEmptyAddr>();
+  } else if (AddrFamily == __WASI_ADDRESS_FAMILY_INET4) {
+    auto &ServerAddr4 = Addr.emplace<sockaddr_in>();
+
+    ServerAddr4.sin_family = AF_INET;
+    ServerAddr4.sin_port = htons(Port);
+    assuming(Address.size() >= sizeof(in_addr));
+    std::memcpy(&ServerAddr4.sin_addr, Address.data(), sizeof(in_addr));
+  } else if (AddrFamily == __WASI_ADDRESS_FAMILY_INET6) {
+    auto &ServerAddr6 = Addr.emplace<sockaddr_in6>();
+
+    ServerAddr6.sin6_family = AF_INET6;
+    ServerAddr6.sin6_port = htons(Port);
+    ServerAddr6.sin6_flowinfo = 0;
+    assuming(Address.size() >= sizeof(in6_addr));
+    std::memcpy(&ServerAddr6.sin6_addr, Address.data(), sizeof(in6_addr));
+  } else if (AddrFamily == __WASI_ADDRESS_FAMILY_AF_UNIX) {
+    auto &ServerAddrUN = Addr.emplace<sockaddr_un>();
+
+    ServerAddrUN.sun_family = AF_UNIX;
+    // The length of sockaddr_un::sun_path is depend on cruuent system
+    // We should always check the size of it.
+    assuming(Address.size() >= sizeof(sockaddr_un::sun_path));
+    std::memcpy(&ServerAddrUN.sun_path, Address.data(),
+                sizeof(sockaddr_un::sun_path));
+  } else {
+    assumingUnreachable();
+  }
+
+  return Addr;
+}
+[QA 2] ```cpp
+template <typename Container>
+inline __wasi_size_t calculateBufferSize(const Container &Array) noexcept {
+  std::vector<__wasi_size_t> Lengths(Array.size());
+  std::transform(Array.begin(), Array.end(), Lengths.begin(),
+                 [](const auto &String) -> __wasi_size_t {
+                   return static_cast<__wasi_size_t>(String.size()) +
+                          UINT32_C(1);
+                 });
+  return std::accumulate(Lengths.begin(), Lengths.end(), UINT32_C(0));
+}
+``` | inline __wasi_size_t calculateBufferSize(const Container &Array) noexcept {
+  std::vector<__wasi_size_t> Lengths(Array.size());
+  std::transform(Array.begin(), Array.end(), Lengths.begin(),
+                 [](const auto &String) -> __wasi_size_t {
+                   return static_cast<__wasi_size_t>(String.size()) +
+                          UINT32_C(1);
+                 });
+  return std::accumulate(Lengths.begin(), Lengths.end(), UINT32_C(0));
+}
+[QA 3] ```cpp
+inline constexpr __wasi_errno_t fromErrNo(int ErrNo) noexcept {
+  switch (ErrNo) {
+  case 0:
+    return __WASI_ERRNO_SUCCESS;
+  case E2BIG:
+    return __WASI_ERRNO_2BIG;
+  case EACCES:
+    return __WASI_ERRNO_ACCES;
+  case EADDRINUSE:
+    return __WASI_ERRNO_ADDRINUSE;
+  case EADDRNOTAVAIL:
+    return __WASI_ERRNO_ADDRNOTAVAIL;
+  case EAFNOSUPPORT:
+    return __WASI_ERRNO_AFNOSUPPORT;
+  case EAGAIN:
+    return __WASI_ERRNO_AGAIN;
+  case EALREADY:
+    return __WASI_ERRNO_ALREADY;
+  case EBADF:
+    return __WASI_ERRNO_BADF;
+  case EBADMSG:
+    return __WASI_ERRNO_BADMSG;
+  case EBUSY:
+    return __WASI_ERRNO_BUSY;
+  case ECANCELED:
+    return __WASI_ERRNO_CANCELED;
+  case ECHILD:
+    return __WASI_ERRNO_CHILD;
+  case ECONNABORTED:
+    return __WASI_ERRNO_CONNABORTED;
+  case ECONNREFUSED:
+    return __WASI_ERRNO_CONNREFUSED;
+  case ECONNRESET:
+    return __WASI_ERRNO_CONNRESET;
+  case EDEADLK:
+    return __WASI_ERRNO_DEADLK;
+  case EDESTADDRREQ:
+    return __WASI_ERRNO_DESTADDRREQ;
+  case EDOM:
+    return __WASI_ERRNO_DOM;
+  case EDQUOT:
+    return __WASI_ERRNO_DQUOT;
+  case EEXIST:
+    return __WASI_ERRNO_EXIST;
+  case EFAULT:
+    return __WASI_ERRNO_FAULT;
+  case EFBIG:
+    return __WASI_ERRNO_FBIG;
+  case EHOSTUNREACH:
+    return __WASI_ERRNO_HOSTUNREACH;
+  case EIDRM:
+    return __WASI_ERRNO_IDRM;
+  case EILSEQ:
+    return __WASI_ERRNO_ILSEQ;
+  case EINPROGRESS:
+    return __WASI_ERRNO_INPROGRESS;
+  case EINTR:
+    return __WASI_ERRNO_INTR;
+  case EINVAL:
+    return __WASI_ERRNO_INVAL;
+  case EIO:
+    return __WASI_ERRNO_IO | inline constexpr __wasi_errno_t fromWSAError(int WSAError) noexcept {
+  switch (WSAError) {
+  case WSATRY_AGAIN_:
+    return __WASI_ERRNO_AIAGAIN;
+  case WSAEINVAL_:
+    return __WASI_ERRNO_AIBADFLAG;
+  case WSANO_RECOVERY_:
+    return __WASI_ERRNO_AIFAIL;
+  case WSAEAFNOSUPPORT_:
+    return __WASI_ERRNO_AIFAMILY;
+  case ERROR_NOT_ENOUGH_MEMORY_:
+    return __WASI_ERRNO_AIMEMORY;
+  case WSAHOST_NOT_FOUND_:
+    return __WASI_ERRNO_AINONAME;
+  case WSATYPE_NOT_FOUND_:
+    return __WASI_ERRNO_AISERVICE;
+  case WSAESOCKTNOSUPPORT_:
+    return __WASI_ERRNO_AISOCKTYPE;
+  default:
+    assumingUnreachable();
+  }
+}
+[QA 4] ```cpp
+inline constexpr __wasi_errno_t fromErrNo(int ErrNo) noexcept {
+  switch (ErrNo) {
+  case 0:
+    return __WASI_ERRNO_SUCCESS;
+  case E2BIG:
+    return __WASI_ERRNO_2BIG;
+  case EACCES:
+    return __WASI_ERRNO_ACCES;
+  case EADDRINUSE:
+    return __WASI_ERRNO_ADDRINUSE;
+  case EADDRNOTAVAIL:
+    return __WASI_ERRNO_ADDRNOTAVAIL;
+  case EAFNOSUPPORT:
+    return __WASI_ERRNO_AFNOSUPPORT;
+  case EAGAIN:
+    return __WASI_ERRNO_AGAIN;
+  case EALREADY:
+    return __WASI_ERRNO_ALREADY;
+  case EBADF:
+    return __WASI_ERRNO_BADF;
+  case EBADMSG:
+    return __WASI_ERRNO_BADMSG;
+  case EBUSY:
+    return __WASI_ERRNO_BUSY;
+  case ECANCELED:
+    return __WASI_ERRNO_CANCELED;
+  case ECHILD:
+    return __WASI_ERRNO_CHILD;
+  case ECONNABORTED:
+    return __WASI_ERRNO_CONNABORTED;
+  case ECONNREFUSED:
+    return __WASI_ERRNO_CONNREFUSED;
+  case ECONNRESET:
+    return __WASI_ERRNO_CONNRESET;
+  case EDEADLK:
+    return __WASI_ERRNO_DEADLK;
+  case EDESTADDRREQ:
+    return __WASI_ERRNO_DESTADDRREQ;
+  case EDOM:
+    return __WASI_ERRNO_DOM;
+  case EDQUOT:
+    return __WASI_ERRNO_DQUOT;
+  case EEXIST:
+    return __WASI_ERRNO_EXIST;
+  case EFAULT:
+    return __WASI_ERRNO_FAULT;
+  case EFBIG:
+    return __WASI_ERRNO_FBIG;
+  case EHOSTUNREACH:
+    return __WASI_ERRNO_HOSTUNREACH;
+  case EIDRM:
+    return __WASI_ERRNO_IDRM;
+  case EILSEQ:
+    return __WASI_ERRNO_ILSEQ;
+  case EINPROGRESS:
+    return __WASI_ERRNO_INPROGRESS;
+  case EINTR:
+    return __WASI_ERRNO_INTR;
+  case EINVAL:
+    return __WASI_ERRNO_INVAL;
+  case EIO:
+    return __WASI_ERRNO_IO | inline __wasi_errno_t fromLastError(DWORD_ Code) noexcept {
+  switch (Code) {
+  case ERROR_INVALID_PARAMETER_: // MultiByteToWideChar
+  case ERROR_INVALID_HANDLE_:    // GetFinalPathNameByHandleW
+    return __WASI_ERRNO_INVAL;
+  case ERROR_SHARING_VIOLATION_: // CreateFile2
+  case ERROR_PIPE_BUSY_:         // CreateFile2
+    return __WASI_ERRNO_BUSY;
+  case ERROR_ACCESS_DENIED_: // CreateFile2
+    return __WASI_ERRNO_ACCES;
+  case ERROR_ALREADY_EXISTS_: // CreateFile2
+  case ERROR_FILE_EXISTS_:    // CreateFile2
+    return __WASI_ERRNO_EXIST;
+  case ERROR_FILE_NOT_FOUND_: // CreateFile2
+    return __WASI_ERRNO_NOENT;
+  case ERROR_PRIVILEGE_NOT_HELD_: // CreateSymbolicLinkW
+    return __WASI_ERRNO_PERM;
+
+  case ERROR_IO_PENDING_:             // ReadFileEx
+  case ERROR_HANDLE_EOF_:             // ReadFileEx
+  case ERROR_INSUFFICIENT_BUFFER_:    // MultiByteToWideChar
+  case ERROR_INVALID_FLAGS_:          // MultiByteToWideChar
+  case ERROR_NO_UNICODE_TRANSLATION_: // MultiByteToWideChar
+  default:
+    return __WASI_ERRNO_NOSYS;
+  }
+}
+[effective] clen=65810 window=4096 chunk_ratio=0.733407 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.04s/it]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.25it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-24: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65810 window=4096 chunk_ratio=0.466815 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-24: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65810 window=4096 chunk_ratio=0.360178 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.49it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-24: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65810 window=4096 chunk_ratio=0.253541 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.77it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-24: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65810 window=4096 chunk_ratio=0.146903 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-24: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65810 window=4096 chunk_ratio=0.040266 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.79it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-24: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65810 window=3290 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.87it/s]
+Chunked prefilling with 0.05 ratio, window 3290
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-24: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/24_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 535.3s. Mem: 14.31/79.18 GB. [scbench_repoqa-24]
+
+[effective] clen=65810 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-25: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+static constexpr uint64_t counter() noexcept {
+  LARGE_INTEGER_ Counter;
+  QueryPerformanceCounter(&Counter);
+  return static_cast<uint64_t>(Counter.QuadPart);
+}
+``` | uint64_t counter() noexcept {
+  LARGE_INTEGER_ Counter;
+  QueryPerformanceCounter(&Counter);
+  return static_cast<uint64_t>(Counter.QuadPart);
+}
+[QA 1] ```cpp
+template <typename T, size_t MaxSize> class StaticVector {
+public:
+  constexpr StaticVector() = default;
+  constexpr const T *data() const noexcept {
+    return reinterpret_cast<T *>(Storage);
+  }
+  constexpr T *data() noexcept { return reinterpret_cast<T *>(Storage); }
+  constexpr size_t size() const noexcept { return Size; }
+  template <typename... ArgsT>
+  void emplace_back_unchecked(ArgsT &&...Args) noexcept(
+      std::is_nothrow_constructible_v<T, ArgsT...>) {
+    assuming(Size < MaxSize);
+    new (data() + Size) T(std::forward<ArgsT>(Args)...);
+    ++Size;
+  }
+  ~StaticVector() noexcept(std::is_nothrow_destructible_v<T>) {
+    std::destroy_n(data(), Size);
+  }
+
+private:
+  size_t Size = 0;
+  alignas(alignof(T)) uint8_t Storage[sizeof(T[MaxSize])];
+};
+``` |   constexpr StaticVector() = default;
+[QA 2] ```cpp
+WasiExpect<void> INode::forceDirectory(HANDLE_ Handle) noexcept {
+  if (auto Res = getAttribute(Handle); unlikely(!Res)) {
+    return WasiUnexpect(Res);
+  } else if (unlikely(!((*Res) & FILE_ATTRIBUTE_DIRECTORY_))) {
+    return WasiUnexpect(__WASI_ERRNO_NOTDIR);
+  }
+
+  return {};
+}
+``` | inline WasiExpect<void> forceDirectory(HANDLE_ Handle) noexcept {
+  if (auto Res = getAttribute(Handle); unlikely(!Res)) {
+    return WasiUnexpect(Res);
+  } else if (unlikely(!((*Res) & FILE_ATTRIBUTE_DIRECTORY_))) {
+    return WasiUnexpect(__WASI_ERRNO_NOTDIR);
+  }
+
+  return {};
+}
+[QA 3] ```cpp
+#if WINAPI_PARTITION_DESKTOP
+inline constexpr uint64_t combineHighLow(uint32_t HighPart, uint32_t LowPart) noexcept {
+  const ULARGE_INTEGER_ Temp = {/* LowPart */ LowPart, /* HighPart */ HighPart};
+  return Temp.QuadPart;
+}
+#endif
+``` | inline constexpr uint64_t combineHighLow(uint32_t HighPart,
+                                         uint32_t LowPart) noexcept {
+  const ULARGE_INTEGER_ Temp = {/* LowPart */ LowPart, /* HighPart */ HighPart};
+  return Temp.QuadPart;
+}
+[QA 4] ```cpp
+void sigevCallback(union sigval Value) noexcept {
+    const uint64_t One = 1;
+    ::write(Value.sival_int, &One, sizeof(One));
+}
+```
+``` | static void sigevCallback(union sigval Value) noexcept {
+  const uint64_t One = 1;
+  ::write(Value.sival_int, &One, sizeof(One));
+}
+[effective] clen=65810 window=4096 chunk_ratio=0.733407 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.35it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-25: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65810 window=4096 chunk_ratio=0.466815 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-25: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65810 window=4096 chunk_ratio=0.360178 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-25: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65810 window=4096 chunk_ratio=0.253541 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.77it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-25: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65810 window=4096 chunk_ratio=0.146903 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-25: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65810 window=4096 chunk_ratio=0.040266 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-25: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65810 window=3290 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.57it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3290
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-25: 65810 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/25_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 170.0s. Mem: 14.31/79.18 GB. [scbench_repoqa-25]
+
+[effective] clen=65909 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.30it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+/**
+ * Error Handler.
+ */
+class ErrorHandler {
+public:
+  /**
+   * Convenience typedef for Headers. <br>
+   * See &id:oatpp::web::protocol::http::Headers;
+   */
+  typedef web::protocol::http::Headers Headers;
+public:
+  /**
+   * Virtual destructor since the class is meant to be derived from.
+   * */
+  virtual ~ErrorHandler() = default;
+
+  /**
+   * Implement this method!
+   * @param error - &std::exception;.
+   * @return - std::shared_ptr to &id:oatpp::web::protocol::http::outgoing::Response;.
+   */
+  virtual std::shared_ptr<protocol::http::outgoing::Response> handleError(const std::exception_ptr& exceptionPtr);
+
+  /**
+   * Implement this method!
+   * @param status - &id:oatpp::web::protocol::http::Status;.
+   * @param message - &id:oatpp::String;.
+   * @param Headers - &id:oatpp::web::protocol::http::Headers;
+   * @return - std::shared_ptr to &id:oatpp::web::protocol::http::outgoing::Response;.
+   */
+  [[deprecated]]
+  virtual
+  std::shared_ptr<protocol::http::outgoing::Response>
+  handleError(const protocol::http::Status& status, const oatpp::String& message, const Headers& headers) = 0;
+
+  /**
+   * Convenience method to call `handleError` method with no headers.
+   * @param status - &id:oatpp::web::protocol::http::Status;
+   * @param message - &id:oatpp::String;.
+   * @return - std::shared_ptr to &id:oatpp::web::protocol::http::outgoing::Response;.
+   */
+  [[deprecated]]
+  std::shared_ptr<protocol::http::outgoing::Response> handleError(const protocol::http::Status& status, const oatpp::String& message);
+  
+};
+``` |   DefaultErrorHandler() = default;
+[QA 1] ```cpp
+namespace oatpp { namespace network {
+
+/**
+ * Server calls &id:oatpp::network::ConnectionProvider::get; in the loop and passes obtained Connection
+ * to &id:oatpp::network::ConnectionHandler;.
+ */
+class Server : public base::Countable {
+private:
+
+  static void mainLoop(Server *instance);
+  void conditionalMainLoop();
+
+  bool setStatus(v_int32 expectedStatus, v_int32 newStatus);
+  void setStatus(v_int32 status);
+
+private:
+
+  std::atomic<v_int32> m_status;
+  std::function<bool()> m_condition;
+  std::thread m_thread;
+  std::mutex m_mutex;
+
+  std::shared_ptr<ConnectionProvider> m_connectionProvider;
+  std::shared_ptr<ConnectionHandler> m_connectionHandler;
+
+  bool m_threaded;
+  
+public:
+
+  /**
+   * Constructor.
+   * @param connectionProvider - &id:oatpp::network::ConnectionProvider;.
+   * @param connectionHandler - &id:oatpp::network::ConnectionHandler;.
+   */
+  Server(const std::shared_ptr<ConnectionProvider>& connectionProvider,
+         const std::shared_ptr<ConnectionHandler>& connectionHandler);
+
+  virtual ~Server() override;
+
+ public:
+
+  /**
+   * Status constant.
+   */
+  static const v_int32 STATUS_CREATED;
+
+  /**
+   * Status constant.
+   */
+  static const v_int32 STATUS_STARTING;
+
+  /**
+   * Status constant.
+   */
+  static const v_int32 STATUS_RUNNING;
+
+  /**
+   * Status constant.
+   */
+  static const v_int32 STATUS_STOPPING;
+
+  /**
+   * Status constant.
+   */
+  static const v_int32 STATUS_DONE;
+
+  /**
+   * Create shared Server.
+   * @param connectionProvider - &id:oatpp::network::ConnectionProvider;.
+   * @param connectionHandler - &id:oatpp::network::ConnectionHandler;.
+   * @return - `std::shared_ptr` to Server.
+   */
+  static std::shared_ptr<Server> createShared(const std::shared_ptr<ServerConnectionProvider>& connectionProvider,
+                                              const std::shared_ptr<ConnectionHandler>& connectionHandler){
+    return std::make_shared<Server>(connectionProvider, connectionHandler);
+  }
+
+  /**
+   * Call &id:oatpp::network::ConnectionProvider::getConnection; in the loop and passes obtained Connection
+   * to &id:oatpp::network::ConnectionHandler;.
+   |   ConnectionAcquisitionProxy(const provider::ResourceHandle<data::stream::IOStream>& resource,
+                             const std::shared_ptr<PoolInstance>& pool)
+    : provider::AcquisitionProxy<data::stream::IOStream, ConnectionAcquisitionProxy>(resource, pool)
+  {}
+[QA 2] ```cpp
+void HttpConnectionHandler::handleConnection(const provider::ResourceHandle<data::stream::IOStream>& connection,
+                                             const std::shared_ptr<const ParameterMap>& params)
+{
+  (void)params;
+
+  if (m_continue.load()) {
+
+    connection.object->setOutputStreamIOMode(oatpp::data::stream::IOMode::BLOCKING);
+    connection.object->setInputStreamIOMode(oatpp::data::stream::IOMode::BLOCKING);
+
+    /* Create working thread */
+    std::thread thread(&HttpProcessor::Task::run, std::move(HttpProcessor::Task(m_components, connection, this)));
+
+    /* Get hardware concurrency -1 in order to have 1cpu free of workers. */
+    v_int32 concurrency = oatpp::concurrency::getHardwareConcurrency();
+    if (concurrency > 1) {
+      concurrency -= 1;
+    }
+
+    /* Set thread affinity group CPUs [0..cpu_count - 1]. Leave one cpu free of workers */
+    oatpp::concurrency::setThreadAffinityToCpuRange(thread.native_handle(),
+                                                    0,
+                                                    concurrency - 1 /* -1 because 0-based index */);
+
+    thread.detach();
+  }
+}
+``` |     Task(const Task&) = delete;
+[QA 3] ```cpp
+template<typename RouterEndpoint>
+class HttpRouterTemplate : public oatpp::base::Countable {
+private:
+  /**
+   * Convenience typedef for &id:oatpp::data::share::StringKeyLabel;.
+   */
+  typedef data::share::StringKeyLabel StringKeyLabel;
+public:
+
+  /**
+   * &id:oatpp::web::url::mapping::Router;
+   */
+  typedef web::url::mapping::Router<RouterEndpoint> BranchRouter;
+
+  /**
+   * Http method to &l:HttpRouter::BranchRouter; map.
+   * Meaning that for each http method like ["GET", "POST", ...] there is a separate &l:HttpRouter::BranchRouter;.
+   */
+  typedef std::unordered_map<StringKeyLabel, std::shared_ptr<BranchRouter>> BranchMap;
+protected:
+  BranchMap m_branchMap;
+protected:
+
+  const std::shared_ptr<BranchRouter>& getBranch(const StringKeyLabel& name){
+    auto it = m_branchMap.find(name);
+    if(it == m_branchMap.end()){
+      m_branchMap[name] = BranchRouter::createShared();
+    }
+    return m_branchMap[name];
+  }
+
+public:
+
+  /**
+   * Default Constructor.
+   */
+  HttpRouterTemplate() = default;
+
+  /**
+   * Create shared HttpRouter.
+   * @return - `std::shared_ptr` to HttpRouter.
+   */
+  static std::shared_ptr<HttpRouterTemplate> createShared() {
+    return std::make_shared<HttpRouterTemplate>();
+  }
+
+  /**
+   * Route URL to Endpoint by method, and pathPattern.
+   * @param method - http method like ["GET", "POST", etc.].
+   * @param pathPattern - url path pattern. ex.: `"/path/to/resource/with/{param1}/{param2}"`.
+   * @param endpoint - router endpoint.
+   */
+  void route(const oatpp::String& method, const oatpp::String& pathPattern, const RouterEndpoint& endpoint) {
+    getBranch(method)->route(pathPattern, endpoint);
+  }
+
+  /**
+   * Resolve http method and path to &id:oatpp::web::url::mapping::Router::Route;
+   * @param method - http method like ["GET", "POST", etc.].
+   * @param url - url path. "Path" part of url only.
+   * @return - &id:oatpp::web::url::mapping::Router::Route; |   HttpRouterTemplate() = default;
+[QA 4] ```cpp
+oatpp::async::CoroutineStarterForResult<const provider::ResourceHandle<data::stream::IOStream>&>
+ConnectionMonitor::getAsync() {
+
+  class GetConnectionCoroutine : public async::CoroutineWithResult<GetConnectionCoroutine, const provider::ResourceHandle<data::stream::IOStream>&> {
+  private:
+    std::shared_ptr<Monitor> m_monitor;
+    std::shared_ptr<ConnectionProvider> m_connectionProvider;
+    std::shared_ptr<ConnectionInvalidator> m_invalidator;
+  public:
+
+    GetConnectionCoroutine(const std::shared_ptr<Monitor>& monitor,
+                           const std::shared_ptr<ConnectionProvider>& connectionProvider,
+                           const std::shared_ptr<ConnectionInvalidator>& invalidator)
+      : m_monitor(monitor)
+      , m_connectionProvider(connectionProvider)
+      , m_invalidator(invalidator)
+    {}
+
+    Action act() override {
+      return m_connectionProvider->getAsync().callbackTo(&GetConnectionCoroutine::onConnection);
+    }
+
+    Action onConnection(const provider::ResourceHandle<data::stream::IOStream>& connection) {
+      if(!connection) {
+        return _return(nullptr);
+      }
+      auto proxy = std::make_shared<ConnectionProxy>(m_monitor, connection);
+      m_monitor->addConnection(proxy.get());
+      return _return(provider::ResourceHandle<data::stream::IOStream>(proxy, m_invalidator));
+    }
+
+  };
+
+  return GetConnectionCoroutine::startForResult(m_monitor, m_connectionProvider, m_invalidator);
+
+}
+``` |     GetConnectionCoroutine(const std::shared_ptr<Monitor>& monitor,
+                           const std::shared_ptr<ConnectionProvider>& connectionProvider,
+                           const std::shared_ptr<ConnectionInvalidator>& invalidator)
+      : m_monitor(monitor)
+      , m_connectionProvider(connectionProvider)
+      , m_invalidator(invalidator)
+    {}
+[effective] clen=65909 window=4096 chunk_ratio=0.733434 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.04s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.25it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65909 window=4096 chunk_ratio=0.466868 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65909 window=4096 chunk_ratio=0.360241 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65909 window=4096 chunk_ratio=0.253615 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.76it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65909 window=4096 chunk_ratio=0.146988 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.35it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65909 window=4096 chunk_ratio=0.040362 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65909 window=3295 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.19it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3295
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-26: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/26_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 593.6s. Mem: 14.31/79.18 GB. [scbench_repoqa-26]
+
+[effective] clen=65909 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.24it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```cpp
+template<class T>
+class Handler : public RequestHandler {
+public:
+  typedef std::shared_ptr<OutgoingResponse> (T::*Method)(const std::shared_ptr<IncomingRequest>&);
+  typedef oatpp::async::CoroutineStarterForResult<const std::shared_ptr<OutgoingResponse>&>
+          (T::*MethodAsync)(const std::shared_ptr<IncomingRequest>&);
+
+private:
+
+  class ErrorHandlingCoroutine : public oatpp::async::CoroutineWithResult<ErrorHandlingCoroutine, const std::shared_ptr<OutgoingResponse>&> {
+  private:
+    Handler* m_handler;
+    std::shared_ptr<IncomingRequest> m_request;
+  public:
+
+    ErrorHandlingCoroutine(Handler* handler, const std::shared_ptr<IncomingRequest>& request)
+      : m_handler(handler)
+      , m_request(request)
+    {}
+
+    async::Action act() override {
+      return (m_handler->m_controller->*m_handler->m_methodAsync)(m_request)
+        .callbackTo(&ErrorHandlingCoroutine::onResponse);
+    }
+
+    async::Action onResponse(const std::shared_ptr<OutgoingResponse>& response) {
+      return this->_return(response);
+    }
+
+    async::Action handleError(async::Error* error) override {
+      auto eptr = std::make_exception_ptr(*error);
+      auto response = m_handler->m_controller->m_errorHandler->handleError(eptr);
+      return this->_return(response);
+    }
+
+  };
+
+private:
+  T* m_controller;
+  Method m_method;
+  MethodAsync m_methodAsync;
+public:
+  Handler(T* controller, Method method, MethodAsync methodAsync)
+    : m_controller(controller)
+    , m_method(method)
+    , m_methodAsync(methodAsync)
+  {}
+public:
+  
+  static std::shared_ptr<Handler> createShared(T* controller, Method method, MethodAsync methodAsync){
+    return std::make_shared<Handler>(controller, method, methodAsync);
+  }
+  
+  std::shared_ptr<OutgoingResponse> handle(const std::shared_ptr<IncomingRequest>& request) override {
+
+    if(m_method == nullptr) {
+      if(m_methodAsync == nullptr) {
+        throw protocol::http::HttpError(Status::CODE_500, "[ApiController]: Error. Handler method is nullptr.");
+      }
+      throw protocol::http::HttpError(Status::CODE_500, "[ApiController]: Error. Non-async call to async endpoint.");
+    }
+
+    try {
+      return (m_controller->* |   ApiController(const std::shared_ptr<oatpp::data::mapping::ObjectMapper>& defaultObjectMapper, const oatpp::String &routerPrefix = nullptr)
+    : m_defaultObjectMapper(defaultObjectMapper)
+    , m_routerPrefix(routerPrefix)
+  {
+
+  }
+[QA 1] ```cpp
+class ConnectionSubmission {
+  friend Interface;
+private:
+  std::shared_ptr<Socket> m_socket;
+  std::mutex m_mutex;
+  std::condition_variable m_condition;
+  std::atomic<bool> m_valid;
+private:
+  void invalidate();
+public:
+
+  /**
+   * Constructor.
+   */
+  ConnectionSubmission(bool valid) : m_valid(valid) {}
+
+  /**
+   * Set socket to be returned in call to &l:Interface::ConnectionSubmission::getSocket ();/&l:Interface::ConnectionSubmission::getSocketNonBlocking ();.
+   * @param socket - &id:oatpp::network::virtual_::Socket;.
+   */
+  void setSocket(const std::shared_ptr<Socket>& socket);
+
+  /**
+   * Block and wait for socket.
+   * @return - `std::shared_ptr` to &id:oatpp::network::virtual_::Socket;.
+   */
+  std::shared_ptr<Socket> getSocket();
+
+  /**
+   * Check if socket already available.
+   * User should repeat call if `(!socket && isPending())`.
+   * @return - `std::shared_ptr` to &id:oatpp::network::virtual_::Socket;.
+   */
+  std::shared_ptr<Socket> getSocketNonBlocking();
+
+  /**
+   * Check if submission is still valid.
+   * @return - `true` if still valid.
+   */
+  bool isValid();
+  
+};
+``` |     ConnectionSubmission(bool valid) : m_valid(valid) {}
+[QA 2] ```cpp
+/**
+ * Abstract Authorization Handler.
+ */
+class AuthorizationHandler {
+public:
+  /**
+   * Convenience typedef for &l:AuthorizationObject;.
+   */
+  typedef oatpp::web::server::handler::AuthorizationObject AuthorizationObject;
+
+  /**
+   * Convenience typedef for &id:oatpp::data::stream::BufferOutputStream;.
+   */
+  typedef oatpp::data::stream::BufferOutputStream BufferOutputStream;
+
+  /**
+   * Convenience typedef for &id:oatpp::web::protocol::http::Headers;.
+   */
+  typedef oatpp::web::protocol::http::Headers Headers;
+private:
+  oatpp::String m_scheme;
+  oatpp::String m_realm;
+public:
+
+  /**
+   * Constructor.
+   * @param scheme - authorization type scheme. &id:oatpp::String;.
+   * @param realm - realm. &id:oatpp::String;.
+   */
+  AuthorizationHandler(const oatpp::String& scheme, const oatpp::String& realm);
+
+  /**
+   * Default virtual destructor.
+   */
+  virtual ~AuthorizationHandler() = default;
+
+  /**
+   * Implement this method! Return nullptr if authorization should be denied.
+   * @param header - `Authorization` header. &id:oatpp::String;.
+   * @return - `std::shared_ptr` to &id:oatpp::web::server::handler::AuthorizationObject;.
+   */
+  virtual std::shared_ptr<AuthorizationObject> handleAuthorization(const oatpp::String& authorizationHeader) = 0;
+
+  /**
+   * Render WWW-Authenicate header value. <br>
+   * Custom Authorization handlers may override this method in order to provide additional information.
+   * @param stream - &id:oatpp::data::stream::BufferOutputStream;.
+   */
+  virtual void renderAuthenticateHeaderValue(BufferOutputStream& stream);
+
+  /**
+   * Add authorization error headers to the headers map. <br>
+   * @param headers - &id:oatpp::web::protocol::http::Headers;.
+   */
+  virtual void addErrorResponseHeaders(Headers& headers);
+
+  /**
+   * Get authorization scheme.
+   * @return
+   */
+  oatpp::String getScheme();
+
+  /**
+   * Get authorization realm.
+   * @return
+   */
+  oatpp::String getRealm();
+
+};
+```
+``` |   AuthorizationObject() = default;
+[QA 3] ```cpp
+template<class CoroutineT, class ControllerT>
+class HandlerCoroutine : public oatpp::async::CoroutineWithResult<CoroutineT, const std::shared_ptr<OutgoingResponse>&> {
+public:
+    
+    HandlerCoroutine(ControllerT* pController, const std::shared_ptr<IncomingRequest>& pRequest)
+      : controller(pController)
+      , request(pRequest)
+    {}
+    
+    ControllerT* const controller;
+    std::shared_ptr<IncomingRequest> request;
+    
+};
+``` |     HandlerCoroutine(ControllerT* pController, const std::shared_ptr<IncomingRequest>& pRequest)
+      : controller(pController)
+      , request(pRequest)
+    {}
+[QA 4] ```cpp
+/**
+ * Pipe Reader. Extends &id:oatpp::data::stream::InputStream;.
+ * Provides read interface for the pipe. Can work in both blocking and nonblocking regime.
+ */
+class Reader : public oatpp::data::stream::InputStream {
+  friend Pipe;
+public:
+  static data::stream::DefaultInitializedContext DEFAULT_CONTEXT;
+private:
+
+  class WaitListListener : public oatpp::async::CoroutineWaitList::Listener {
+  private:
+    Pipe* m_pipe;
+  public:
+
+    WaitListListener(Pipe* pipe)
+      : m_pipe(pipe)
+    {}
+
+    void onNewItem(oatpp::async::CoroutineWaitList& list) override {
+      std::lock_guard<std::mutex> lock(m_pipe->m_mutex);
+      if (m_pipe->m_fifo.availableToRead() > 0 || !m_pipe->m_open) {
+        list.notifyAll();
+      }
+    }
+
+  };
+
+private:
+  Pipe* m_pipe;
+  oatpp::data::stream::IOMode m_ioMode;
+  
+  /*
+   * this one used for testing purposes only
+   */
+  v_io_size m_maxAvailableToRead;
+
+  oatpp::async::CoroutineWaitList m_waitList;
+  WaitListListener m_waitListListener;
+protected:
+    
+  Reader(Pipe* pipe, oatpp::data::stream::IOMode ioMode = oatpp::data::stream::IOMode::BLOCKING)
+    : m_pipe(pipe)
+    , m_ioMode(ioMode)
+    , m_maxAvailableToRead(-1)
+    , m_waitListListener(pipe)
+  {
+    m_waitList.setListener(&m_waitListListener);
+  }
+
+public:
+
+  /**
+   * Limit the available amount of bytes to read from pipe.<br>
+   * This method is used for testing purposes only.<br>
+   * set to -1 in order to ignore this value.<br>
+   * @param maxAvailableToRead - maximum available amount of bytes to read.
+   */
+  void setMaxAvailableToRead(v_io_size maxAvailableToRead);
+
+  /**
+   * Implements &id:oatpp::data::stream::InputStream::read; method.
+   * Read data from pipe.
+   * @param data - buffer to read data to.
+   * @param count - max count of bytes to read.
+   * @param action - async specific action. If action is NOT &id:oatpp::async::Action::TYPE_NONE;, then
+   * |     Reader(Pipe* pipe, oatpp::data::stream::IOMode ioMode = oatpp::data::stream::IOMode::BLOCKING)
+      : m_pipe(pipe)
+      , m_ioMode(ioMode)
+      , m_maxAvailableToRead(-1)
+      , m_waitListListener(pipe)
+    {
+      m_waitList.setListener(&m_waitListListener);
+    }
+[effective] clen=65909 window=4096 chunk_ratio=0.733434 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.25it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65909 window=4096 chunk_ratio=0.466868 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65909 window=4096 chunk_ratio=0.360241 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.63it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65909 window=4096 chunk_ratio=0.253615 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.76it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65909 window=4096 chunk_ratio=0.146988 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.90it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65909 window=4096 chunk_ratio=0.040362 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65909 window=3295 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.20it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.87it/s]
+Chunked prefilling with 0.05 ratio, window 3295
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-27: 65909 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/27_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 622.0s. Mem: 14.31/79.18 GB. [scbench_repoqa-27]
+
+[effective] clen=65772 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.32it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```java
+public static <TT> TypeAdapterFactory newFactoryForMultipleTypes(
+    final Class<TT> base,
+    final Class<? extends TT> sub,
+    final TypeAdapter<? super TT> typeAdapter) {
+  return new TypeAdapterFactory() {
+    @SuppressWarnings("unchecked") // we use a runtime check to make sure the 'T's equal
+    @Override
+    public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
+      Class<? super T> rawType = typeToken.getRawType();
+      return (rawType == base || rawType == sub) ? (TypeAdapter<T>) typeAdapter : null;
+    }
+
+    @Override
+    public String toString() {
+      return "Factory[type="
+          + base.getName()
+          + "+"
+          + sub.getName()
+          + ",adapter="
+          + typeAdapter
+          + "]";
+    }
+  };
+}
+``` |   @SuppressWarnings("TypeParameterNaming")
+  public static <TT> TypeAdapterFactory newFactoryForMultipleTypes(
+      final Class<TT> base,
+      final Class<? extends TT> sub,
+      final TypeAdapter<? super TT> typeAdapter) {
+    return new TypeAdapterFactory() {
+      @SuppressWarnings("unchecked") // we use a runtime check to make sure the 'T's equal
+      @Override
+      public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
+        Class<? super T> rawType = typeToken.getRawType();
+        return (rawType == base || rawType == sub) ? (TypeAdapter<T>) typeAdapter : null;
+      }
+
+      @Override
+      public String toString() {
+        return "Factory[type="
+            + base.getName()
+            + "+"
+            + sub.getName()
+            + ",adapter="
+            + typeAdapter
+            + "]";
+      }
+    };
+  }
+[QA 1] ```java
+/** Rotates the subtree so that its root's right child is the new root. */
+private void rotateLeft(Node<K, V> root) {
+    Node<K, V> left = root.left;
+    Node<K, V> pivot = root.right;
+    Node<K, V> pivotLeft = pivot.left;
+    Node<K, V> pivotRight = pivot.right;
+
+    // move the pivot's left child to the root's right
+    root.right = pivotLeft;
+    if (pivotLeft != null) {
+        pivotLeft.parent = root;
+    }
+
+    replaceInParent(root, pivot);
+
+    // move the root to the pivot's left
+    pivot.left = root;
+    root.parent = pivot;
+
+    // fix heights
+    root.height =
+        Math.max(left != null ? left.height : 0, pivotLeft != null ? pivotLeft.height : 0) + 1;
+    pivot.height = Math.max(root.height, pivotRight != null ? pivotRight.height : 0) + 1;
+}
+``` |   private void rotateLeft(Node<K, V> root) {
+    Node<K, V> left = root.left;
+    Node<K, V> pivot = root.right;
+    Node<K, V> pivotLeft = pivot.left;
+    Node<K, V> pivotRight = pivot.right;
+
+    // move the pivot's left child to the root's right
+    root.right = pivotLeft;
+    if (pivotLeft != null) {
+      pivotLeft.parent = root;
+    }
+
+    replaceInParent(root, pivot);
+
+    // move the root to the pivot's left
+    pivot.left = root;
+    root.parent = pivot;
+
+    // fix heights
+    root.height =
+        Math.max(left != null ? left.height : 0, pivotLeft != null ? pivotLeft.height : 0) + 1;
+    pivot.height = Math.max(root.height, pivotRight != null ? pivotRight.height : 0) + 1;
+  }
+[QA 2] ```java
+/**
+ * Gets the declaring Class that contains this field
+ *
+ * @return the declaring class that contains this field
+ */
+public Class<?> getDeclaringClass() {
+    return field.getDeclaringClass();
+}
+``` |   public Class<?> getDeclaringClass() {
+    return field.getDeclaringClass();
+  }
+[QA 3] ```java
+/**
+ * Creates a duplicate of an object, ensuring that the new object is a separate instance with the
+ * same properties as the original.
+ *
+ * @param obj the object to duplicate
+ * @return a new object that is a copy of the input object
+ */
+public static Object duplicate(Object obj) {
+    if (obj == null) {
+        return null;
+    }
+    try {
+        // Retrieve the components of the input object using reflection
+        Field[] fields = obj.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            field.set(obj, field.get(obj));
+        }
+        return obj;
+    } catch (IllegalAccessException e) {
+        throw new RuntimeException("Unable to duplicate object", e);
+    }
+}
+``` |   @Override
+  protected Excluder clone() {
+    try {
+      return (Excluder) super.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new AssertionError(e);
+    }
+  }
+[QA 4] ```java
+/**
+ * @deprecated This is an internal Gson method. Use {@link Objects#requireNonNull(Object)}
+ *     instead.
+ */
+// Only deprecated for now because external projects might be using this by accident
+@Deprecated
+public static <T> T checkNotNull(T obj) {
+  if (obj == null) {
+    throw new NullPointerException("Element must be non-null");
+  }
+  return obj;
+}
+``` |   private E nonNull(E element) {
+    if (element == null) {
+      throw new NullPointerException("Element must be non-null");
+    }
+    return element;
+  }
+[effective] clen=65772 window=4096 chunk_ratio=0.733397 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.25it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65772 window=4096 chunk_ratio=0.466794 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.55it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65772 window=4096 chunk_ratio=0.360153 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65772 window=4096 chunk_ratio=0.253512 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.50it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.78it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65772 window=4096 chunk_ratio=0.146871 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65772 window=4096 chunk_ratio=0.040230 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.79it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65772 window=3288 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3288
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-28: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/28_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 269.6s. Mem: 14.31/79.18 GB. [scbench_repoqa-28]
+
+[effective] clen=65772 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.31it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```java
+private JsonElement getAsSingleElement() {
+    int size = elements.size();
+    if (size == 1) {
+        return elements.get(0);
+    }
+    throw new IllegalStateException("Array must have size 1, but has size " + size);
+}
+``` |   private JsonElement getAsSingleElement() {
+    int size = elements.size();
+    if (size == 1) {
+      return elements.get(0);
+    }
+    throw new IllegalStateException("Array must have size 1, but has size " + size);
+  }
+[QA 1] ```java
+static String separateCamelCase(String name, char separator) {
+    StringBuilder translation = new StringBuilder();
+    for (int i = 0, length = name.length(); i < length; i++) {
+        char character = name.charAt(i);
+        if (Character.isUpperCase(character) && translation.length() != 0) {
+            translation.append(separator);
+        }
+        translation.append(character);
+    }
+    return translation.toString();
+}
+``` |   static String separateCamelCase(String name, char separator) {
+    StringBuilder translation = new StringBuilder();
+    for (int i = 0, length = name.length(); i < length; i++) {
+      char character = name.charAt(i);
+      if (Character.isUpperCase(character) && translation.length() != 0) {
+        translation.append(separator);
+      }
+      translation.append(character);
+    }
+    return translation.toString();
+  }
+[QA 2] ```java
+private static Writer writerForAppendable(Appendable appendable) {
+    return appendable instanceof Writer ? (Writer) appendable : new AppendableWriter(appendable);
+}
+
+private static final class AppendableWriter extends Writer {
+    private final Appendable appendable;
+    private final CurrentWrite currentWrite = new CurrentWrite();
+
+    AppendableWriter(Appendable appendable) {
+        this.appendable = appendable;
+    }
+
+    @SuppressWarnings("UngroupedOverloads") // this is intentionally ungrouped, see comment below
+    @Override
+    public void write(char[] chars, int offset, int length) throws IOException {
+        currentWrite.setChars(chars);
+        appendable.append(currentWrite, offset, offset + length);
+    }
+
+    @Override
+    public void flush() {}
+
+    @Override
+    public void close() {}
+
+    // Override these methods for better performance
+    // They would otherwise unnecessarily create Strings or char arrays
+
+    @Override
+    public void write(int i) throws IOException {
+        appendable.append((char) i);
+    }
+
+    @Override
+    public void write(String str, int off, int len) throws IOException {
+        // Appendable.append turns null -> "null", which is not desired here
+        Objects.requireNonNull(str);
+        appendable.append(str, off, off + len);
+    }
+
+    @Override
+    public Writer append(CharSequence csq) throws IOException {
+        appendable.append(csq);
+        return this;
+    }
+
+    @Override
+    public Writer append(CharSequence csq, int start, int end) throws IOException {
+        appendable.append(csq, start, end);
+        return this;
+    }
+
+    /** A mutable char sequence pointing at a single char[]. */
+    private static class CurrentWrite implements CharSequence {
+        private char[] chars;
+        private String cachedString;
+
+        void setChars(char[] chars) {
+            this.chars = chars;
+            this.cachedString = null;
+        }
+
+        @Override
+        public int length() {
+            return chars.length;
+        }
+
+        @Override
+        public char charAt(int i) {
+            return chars[i];
+        }
+
+        @Override
+        public CharSequence subSequence(int start, int end) {
+            return new String(chars, start, end - start);
+        }
+
+        // Must return string representation to satisfy toString() contract
+        @Override
+        public String toString() {
+            if (cachedString == null) {
+                cachedString = new String(chars);
+            }
+ |   public static Writer writerForAppendable(Appendable appendable) {
+    return appendable instanceof Writer ? (Writer) appendable : new AppendableWriter(appendable);
+  }
+[QA 3] ```java
+private TypeAdapter<T> delegate() {
+    // A race might lead to `delegate` being assigned by multiple threads but the last assignment
+    // will stick
+    TypeAdapter<T> d = delegate;
+    return d != null
+        ? d
+        : (delegate = gson.getDelegateAdapter(skipPastForGetDelegateAdapter, typeToken));
+}
+``` |   @Override
+  public TypeAdapter<T> getSerializationDelegate() {
+    return serializer != null ? this : delegate();
+  }
+[QA 4] ```java
+private static void checkNumberStringLength(String s) {
+    if (s.length() > MAX_NUMBER_STRING_LENGTH) {
+      throw new NumberFormatException("Number string too large: " + s.substring(0, 30) + "...");
+    }
+}
+``` |   private static void checkNumberStringLength(String s) {
+    if (s.length() > MAX_NUMBER_STRING_LENGTH) {
+      throw new NumberFormatException("Number string too large: " + s.substring(0, 30) + "...");
+    }
+  }
+[effective] clen=65772 window=4096 chunk_ratio=0.733397 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.25it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65772 window=4096 chunk_ratio=0.466794 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65772 window=4096 chunk_ratio=0.360153 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.45it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65772 window=4096 chunk_ratio=0.253512 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.77it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65772 window=4096 chunk_ratio=0.146871 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65772 window=4096 chunk_ratio=0.040230 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.08it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.79it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65772 window=3288 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.53it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.87it/s]
+Chunked prefilling with 0.05 ratio, window 3288
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-29: 65772 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/29_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 276.0s. Mem: 14.31/79.18 GB. [scbench_repoqa-29]
+
+[effective] clen=65809 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.78it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-30: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```java
+public int getStatus() {
+    return status;
+}
+``` |     public int getStatus() {
+        return status;
+    }
+[QA 1] ```java
+protected static String removePrefix(String text) {
+    if (text.startsWith(Resource.CLASSPATH_COLON) || text.startsWith(Resource.FILE_COLON)) {
+        return text.substring(text.indexOf(':') + 1);
+    } else {
+        return text;
+    }
+}
+
+public static Path getPathContaining(Class clazz) {
+    String relative = toPathFromClassPathRoot(clazz);
+    URL url = clazz.getClassLoader().getResource(relative);
+    try {
+        return Paths.get(url.toURI());
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    }
+}
+
+public static File getDirContaining(Class clazz) {
+    Path path = getPathContaining(clazz);
+    return path.toFile();
+}
+
+public static String toPathFromClassPathRoot(Class clazz) {
+    Package p = clazz.getPackage();
+    String relative = "";
+    if (p != null) {
+        relative = p.getName().replace('.', '/');
+    }
+    return relative;
+}
+```
+
+The provided code does not contain the exact function described in your prompt. Instead, it includes utility methods related to handling classpath resources and paths. If you need the specific function described, please provide additional context or clarify the function's requirements. |     public static String getParentPath(String relativePath) {
+        int pos = relativePath.lastIndexOf('/');
+        return pos == -1 ? "" : relativePath.substring(0, pos + 1);        
+    }
+[QA 2] ```java
+package com.intuit.karate.core;
+
+import com.intuit.karate.http.PerfEvent;
+
+import java.util.concurrent.CompletableFuture;
+
+/**
+ *
+ * @author pthomas3
+ */
+public interface PerfHook {
+
+    /**
+     * Retrieves the name of a performance event based on the HTTP request and scenario runtime.
+     *
+     * @param request the HTTP request object
+     * @param sr the scenario runtime instance
+     * @return the name of the performance event
+     */
+    String getPerfEventName(HttpRequest request, ScenarioRuntime sr);
+
+    /**
+     * Reports a performance event by passing the event instance.
+     *
+     * @param event the performance event instance
+     */
+    void reportPerfEvent(PerfEvent event);
+    
+    /**
+     * Submits a runnable task for execution.
+     *
+     * @param runnable the task to be executed
+     */
+    void submit(Runnable runnable);
+    
+    /**
+     * Performs actions after a feature has completed, using the feature result.
+     *
+     * @param fr the feature result instance
+     */
+    void afterFeature(FeatureResult fr);
+    
+    /**
+     * Pauses execution for a specified duration.
+     *
+     * @param millis the duration in milliseconds
+     */
+    void pause(Number millis);
+
+}
+``` |         public Builder http(int value) {
+            port = value;
+            return this;
+        }
+[QA 3] ```java
+private static void processScenarioOutline(Context context, ScenarioOutline scenarioOutline) {
+    FeatureSection section = new FeatureSection();
+    scenarioOutline.setSection(section);
+    feature.addSection(section);
+    
+    if (scenarioOutline.getTags() != null) {
+        scenarioOutline.setTags(convertTags(scenarioOutline.getTags()));
+    }
+    
+    if (scenarioOutline.getDescription() != null) {
+        StringUtils.Pair pair = StringUtils.splitByFirstLineFeed(scenarioOutline.getDescription());
+        scenarioOutline.setName(pair.left);
+        scenarioOutline.setDescription(pair.right);
+    }
+    
+    List<Step> steps = convertSteps(scenarioOutline.getSteps());
+    scenarioOutline.setSteps(steps);
+    
+    List<ExamplesTable> examples = new ArrayList<>();
+    scenarioOutline.setExamples(examples);
+    
+    for (ExampleContext exampleContext : scenarioOutline.getExamples()) {
+        Table table = convertTable(exampleContext.getTable());
+        ExamplesTable example = new ExamplesTable(table);
+        examples.add(example);
+        
+        if (exampleContext.getTags() != null) {
+            example.setTags(convertTags(exampleContext.getTags()));
+        }
+        
+        if (logger.isTraceEnabled()) {
+            logger.trace("example rows: {}", table.getRows());
+        }
+    }
+    
+    if (logger.isTraceEnabled()) {
+        logger.trace("outline steps: {}", steps);
+    }
+}
+
+private static List<Tag> convertTags(List<Tag> tags) {
+    if (tags == null) {
+        return Collections.emptyList();
+    }
+    return tags.stream().map(Tag::new).collect(Collectors.toList());
+}
+
+private static List<Step> convertSteps(List<Step> steps) {
+    if (steps == null) {
+        return Collections.emptyList();
+    }
+    return steps.stream().map(Step::new).collect(Collectors.toList());
+}
+
+private static Table convertTable(Table table) {
+    if (table == null) {
+        return null;
+    }
+    return new Table(table.getRows(), table.getLineNumbers());
+}
+```
+``` |     @Override
+    public void enterScenarioOutline(KarateParser.ScenarioOutlineContext ctx) {
+        FeatureSection section = new FeatureSection();
+        ScenarioOutline outline = new ScenarioOutline(feature, section);
+        outline.setLine(getActualLine(ctx.SCENARIO_OUTLINE()));
+        section.setScenarioOutline(outline);
+        feature.addSection(section);
+        if (ctx.tags() != null) {
+            outline.setTags(toTags(-1, ctx.tags().TAGS()));
+        }
+        if (ctx.scenarioDescription() != null) {
+            outline.setDescription(ctx.scenarioDescription().getText());
+            StringUtils.Pair pair = StringUtils.splitByFirstLineFeed(ctx.scenarioDescription().getText());
+            outline.setName(pair.left);
+            outline.setDescription(pair.right);
+        }
+        List<Step> steps = toSteps(null, ctx.step());
+        outline.setSteps(steps);
+        if (logger.isTraceEnabled()) {
+            logger.trace("outline steps: {}", steps);
+        }
+        List<ExamplesTable> examples = new ArrayList(ctx.examples().size());
+        outline.setExamplesTables(examples);
+        for (KarateParser.ExamplesContext ec : ctx.examples()) {
+            Table table = toTable(ec.table());
+            ExamplesTable example = new ExamplesTable(outline, table);
+            examples.add(example);
+            if (ec.tags() != null) {
+                example.setTags(toTags(-1, ec.tags().TAGS()));
+            }
+            if (logger.isTraceEnabled()) {
+                logger.trace("example rows: {}", table.getRows());
+            }
+        }
+    }
+[QA 4] ```java
+private static int countLineFeeds(String text) {
+    int count = 0;
+    for (char c : text.toCharArray()) {
+        if (c == '\n') {
+            count++;
+        }
+    }
+    return count;
+}
+``` |     @Override
+    public long getSize() {
+        return array.length;
+    }
+[effective] clen=65809 window=4096 chunk_ratio=0.733407 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.25it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-30: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65809 window=4096 chunk_ratio=0.466814 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-30: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65809 window=4096 chunk_ratio=0.360177 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.65it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.49it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-30: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65809 window=4096 chunk_ratio=0.253540 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.77it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.58it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-30: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65809 window=4096 chunk_ratio=0.146903 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-30: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65809 window=4096 chunk_ratio=0.040265 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-30: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65809 window=3290 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.86it/s]
+Chunked prefilling with 0.05 ratio, window 3290
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-30: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/30_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 233.8s. Mem: 14.31/79.18 GB. [scbench_repoqa-30]
+
+[effective] clen=65809 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.81it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.08it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-31: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```java
+public static Document newDocument() {
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder builder;
+    try {
+        builder = factory.newDocumentBuilder();
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    }
+    return builder.newDocument();
+}
+``` |     public static Document newDocument() {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder;
+        try {
+            builder = factory.newDocumentBuilder();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return builder.newDocument();
+    }
+[QA 1] ```java
+public static String[] prefixShellArgs(String[] args) {
+    List<String> list = new ArrayList<>();
+    switch (FileUtils.getOsType()) {
+        case WINDOWS:
+            list.add("cmd");
+            list.add("/c");
+            break;
+        default:
+            list.add("sh");
+            list.add("-c");
+    }
+    list.add(StringUtils.join(args, ' '));
+    return list.toArray(new String[list.size()]);
+}
+``` |     public Map<String, String> getEnvironment() {
+        return environment;
+    }
+[QA 2] ```java
+public interface Actions {
+    
+    boolean isFailed();
+
+    Throwable getFailedReason();
+
+    boolean isAborted();
+
+    void assertTrue(String exp);
+
+    void call(String line);
+
+    void callonce(String line);
+
+    void csv(String name, String exp);
+    
+    void csvDocString(String name, String exp);
+
+    void json(String name, String exp);
+
+    void string(String name, String exp);
+
+    void xml(String name, String exp);
+
+    void xmlstring(String name, String exp);
+
+    void bytes(String name, String exp);
+
+    void configure(String key, String exp);
+
+    void configureDocString(String key, String exp);
+
+    void cookie(String name, String value);
+
+    void cookies(String exp);
+
+    void copy(String name, String exp);
+
+    void def(String name, String exp);
+
+    void defDocString(String name, String exp);
+
+    void eval(String exp);
+
+    void evalDocString(String exp);
+
+    void eval(String name, String dotOrParen, String exp);
+
+    void evalIf(String exp);
+    
+    void evalDelete(String exp);
+
+    void formField(String name, String exp);
+
+    void formFields(String exp);
+
+    void header(String name, String exp);
+
+    void headers(String exp);
+
+    void listen(String exp);
+
+    void match(String exp, String op1, String op2, String rhs);
+
+    void method(String method);
+
+    void retry(String until);
+
+    void multipartEntity(String value);
+
+    void multipartFiles(String exp);
+
+    void multipartField(String name, String value);
+
+    void multipartFields(String exp);
+
+    void multipartFile(String name, String value);
+
+    void param(String name, String exp);
+
+    void params(String exp);
+
+    void path(String exp);
+
+    void print(String exp);        
+
+    void remove(String name, String path);
+
+    void replace(String name, List<Map<String, String>> table);
+
+    void replace(String name, String token, String value);
+
+    void request(String body);
+
+    void requestDocString(String body);
+
+    void set(String name, String path, String value);
+
+    void setDocString(String name, String path, String value);
+
+    void set(String name, String path, List<Map<String, String>> table);
+
+    void soapAction(String action);
+
+    void status(int status);
+
+    void table(String name, List<Map<String, String>> table);
+
+    void text(String name, String exp);
+
+    void url(String exp);
+
+    void yaml(String name, String exp);
+    
+    void yamlDocString(String name, String exp);
+
+    void |     public List<Step> getSteps() {
+        return steps;
+    }
+[QA 3] ```java
+public static Object fromJava(Object o) {
+    if (o instanceof Function || o instanceof Proxy) {
+        return o;
+    } else if (o instanceof List) {
+        return new JsList((List) o);
+    } else if (o instanceof Map) {
+        return new JsMap((Map) o);
+    } else if (o instanceof Node) {
+        return new JsXml((Node) o);
+    } else {
+        return o;
+    }
+}
+``` |         @Override
+        protected JsEngine initialValue() {
+            return new JsEngine(createContext(null));
+        }
+[QA 4] ```java
+private void logError(String message) {
+    if (currentStep != null) {
+        message = currentStep.getDebugInfo()
+                + "\n" + currentStep.toString()
+                + "\n" + message;
+    }
+    logger.error("{}", message);
+}
+``` |     public void debug(String format, Object... arguments) {
+        if (LOGGER.isDebugEnabled()) {
+            if (!appendOnly) {
+                LOGGER.debug(format, arguments);
+            }
+            formatAndAppend(format, arguments);
+        }
+    }
+[effective] clen=65809 window=4096 chunk_ratio=0.733407 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.70it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.35it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.04s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.25it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-31: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65809 window=4096 chunk_ratio=0.466814 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.42it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.24it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.54it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-31: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65809 window=4096 chunk_ratio=0.360177 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.64it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.48it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-31: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65809 window=4096 chunk_ratio=0.253540 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.77it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-31: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65809 window=4096 chunk_ratio=0.146903 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.67it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-31: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65809 window=4096 chunk_ratio=0.040265 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.07it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-31: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=65809 window=3290 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.59it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.55it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.87it/s]
+Chunked prefilling with 0.05 ratio, window 3290
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-31: 65809 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/31_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 225.0s. Mem: 14.31/79.18 GB. [scbench_repoqa-31]
+
+[effective] clen=68707 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.30it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.02it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.15it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-32: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```java
+protected int getLogarithmicRounds()
+{
+    return logRounds;
+}
+``` |     public int getLogarithmicRounds()
+    {
+        return logRounds;
+    }
+[QA 1] ```java
+static byte[] decodeBase64(byte[] src)
+{
+    byte[] dst = new byte[outLength(src, src.length)];
+    int ret = decode(src, src.length, dst);
+    if (ret != dst.length)
+    {
+        dst = Arrays.copyOf(dst, ret);
+    }
+    return dst;
+}
+
+private static int outLength(byte[] source, int length)
+{
+    int paddings = 0;
+    if (length == 0)
+    {
+        return 0;
+    }
+    if (length < 2)
+    {
+        throw new IllegalArgumentException("Input byte[] should at least have 2 bytes for base64 bytes");
+    }
+
+    if (source[length - 1] == '=')
+    {
+        paddings++;
+        if (source[length - 2] == '=')
+        {
+            paddings++;
+        }
+    }
+
+    if (paddings == 0 && (length & 0x3) != 0)
+    {
+        paddings = 4 - (length & 0x3);
+    }
+    return 3 * ((length + 3) / 4) - paddings;
+}
+
+private static int decode(byte[] src, int sl, byte[] dst)
+{
+    int dp = 0;
+    int bits = 0;
+    int sp = 0;
+    int shiftTo = 18;
+    while (sp < sl)
+    {
+        int b = src[sp++] & 0xff;
+        if ((b = FROM_BASE64[b]) < 0)
+        {
+            if (b == -2)
+            {
+                if (shiftTo == 6 && (sp == sl || src[sp] != '=') || shiftTo == 18)
+                {
+                    throw new IllegalArgumentException("Input byte array has wrong 4-byte ending unit");
+                }
+                break;
+            }
+            else
+                throw new IllegalArgumentException("Illegal base64 character " + Integer.toString(src[sp - 1], 16));
+        }
+        bits |= (b << shiftTo);
+        shiftTo -= 6;
+        if (shiftTo < 0)
+        {
+            dst[dp++] = (byte) (bits >> 16);
+            dst[dp++] = (byte) (bits >> 8);
+            dst[dp++] = (byte) (bits);
+            shiftTo = 18;
+            bits = 0;
+        }
+    }
+    if (shiftTo |     private static int decode(byte[] src, int sl, byte[] dst)
+    {
+        int dp = 0;
+        int bits = 0;
+        int sp = 0;
+        int shiftTo = 18;
+        while (sp < sl)
+        {
+            int b = src[sp++] & 0xff;
+            if ((b = FROM_BASE64[b]) < 0)
+            {
+                if (b == -2)
+                {
+                    if (shiftTo == 6 && (sp == sl || src[sp] != '=') || shiftTo == 18)
+                    {
+                        throw new IllegalArgumentException("Input byte array has wrong 4-byte ending unit");
+                    }
+                    break;
+                }
+                else
+                    throw new IllegalArgumentException("Illegal base64 character " + Integer.toString(src[sp - 1], 16));
+            }
+            bits |= (b << shiftTo);
+            shiftTo -= 6;
+            if (shiftTo < 0)
+            {
+                dst[dp++] = (byte) (bits >> 16);
+                dst[dp++] = (byte) (bits >> 8);
+                dst[dp++] = (byte) (bits);
+                shiftTo = 18;
+                bits = 0;
+            }
+        }
+        if (shiftTo == 6)
+        {
+            dst[dp++] = (byte) (bits >> 16);
+        }
+        else if (shiftTo == 0)
+        {
+            dst[dp++] = (byte) (bits >> 16);
+            dst[dp++] = (byte) (bits >> 8);
+        }
+        else if (shiftTo == 12)
+        {
+            throw new IllegalArgumentException("Last unit does not have enough valid bits");
+        }
+        return dp;
+    }
+[QA 2] ```java
+public Argon2 getVariant()
+{
+    return variant;
+}
+``` |     public Argon2 getVariant()
+    {
+        return variant;
+    }
+[QA 3] ```java
+private void init()
+{
+    internalState = new long[16];
+    chainValue = new long[8];
+    chainValue[0] = IV[0] ^ (digestLength | ((long) keyLength << 8) | 0x1010000);
+    chainValue[1] = IV[1];
+    chainValue[2] = IV[2];
+    chainValue[3] = IV[3];
+    chainValue[4] = IV[4];
+    chainValue[5] = IV[5];
+    chainValue[6] = IV[6];
+    chainValue[7] = IV[7];
+}
+``` |     private void initializeInternalState()
+    {
+        System.arraycopy(chainValue, 0, internalState, 0, chainValue.length);
+        System.arraycopy(IV, 0, internalState, chainValue.length, 4);
+        internalState[12] = t0 ^ IV[4];
+        internalState[13] = t1 ^ IV[5];
+        internalState[14] = f0 ^ IV[6];
+        internalState[15] = IV[7];// ^ f1 with f1 = 0
+    }
+[QA 4] ```java
+package com.password4j;
+
+import com.password4j.types.Hmac;
+
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+
+
+/**
+ * Class containing the implementation of PBKDF2 function and its parameters.
+ *
+ * @author David Bertoldi
+ * @see <a href="https://en.wikipedia.org/wiki/PBKDF2">PBKDF2</a>
+ * @since 0.1.0
+ */
+public class PBKDF2Function extends AbstractHashingFunction
+{
+    private static final Map<String, PBKDF2Function> INSTANCES = new ConcurrentHashMap<>();
+
+    private static final String ALGORITHM_PREFIX = "PBKDF2WithHmac";
+
+    protected Hmac algorithm;
+
+    protected String algorithmAsString;
+
+    protected int iterations;
+
+    protected int length;
+
+    protected PBKDF2Function()
+    {
+        //
+    }
+
+    protected PBKDF2Function(int iterations, int length)
+    {
+        this.iterations = iterations;
+        this.length = length;
+    }
+
+    protected PBKDF2Function(Hmac algorithm, int iterations, int length)
+    {
+        this(iterations, length);
+        this.algorithm = algorithm;
+        this.algorithmAsString = algorithm.name();
+    }
+
+    protected PBKDF2Function(String algorithm, int iterations, int length)
+    {
+        this(iterations, length);
+        this.algorithmAsString = algorithm;
+    }
+
+    /**
+     * Creates a singleton instance, depending on the provided
+     * algorithm, number of iterations and key length.
+     *
+     * @param algorithm  hmac algorithm
+     * @param iterations number of iterations
+     * @param length     length of the derived key
+     * @return a singleton instance
+     * @since 0.1.0
+     */
+    public static PBKDF2Function getInstance(Hmac algorithm, int iterations, int length)
+    {
+        return getInstance(algorithm.name(), iterations, length);
+    }
+
+    /**
+     * Creates a singleton instance, depending on the provided
+     * algorithm, number of iterations and key length.
+     *
+     * @param algorithm  string version of hmac algorithm
+     * @param iterations number of iterations
+     * @param length     length of the derived key
+     * @return a singleton instance
+     * |     public static int rOperation(int a, int b)
+    {
+        return a << b | a >>> 32 - b;
+    }
+[effective] clen=68707 window=4096 chunk_ratio=0.734151 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.20it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-32: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68707 window=4096 chunk_ratio=0.468303 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.40it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.34it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-32: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68707 window=4096 chunk_ratio=0.361963 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-32: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68707 window=4096 chunk_ratio=0.255624 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.62it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.51it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-32: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68707 window=4096 chunk_ratio=0.149284 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.76it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.60it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-32: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68707 window=4096 chunk_ratio=0.042945 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.92it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.72it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-32: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68707 window=3435 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.57it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.53it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.51it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.03it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.79it/s]
+Chunked prefilling with 0.05 ratio, window 3435
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-32: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/32_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 398.7s. Mem: 14.31/79.18 GB. [scbench_repoqa-32]
+
+[effective] clen=68707 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.27it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.03it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.15it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-33: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```java
+/**
+ * Verifies if the algorithm is supported by the current environment.
+ * PBKDF2 variants are available if the JVM has a corresponding
+ * {@link java.security.Provider.Service}.
+ *
+ * @param algorithm the algorithm to check
+ * @return true if the algorithm is supported; false otherwise
+ */
+public static boolean isPBKDF2Supported(String algorithm)
+{
+    if (algorithm == null)
+    {
+        throw new BadParametersException("Algorithm cannot be null.");
+    }
+    List<String> variants = AlgorithmFinder.getAllPBKDF2Variants();
+    for(String variant : variants)
+    {
+        if(algorithm.equals(variant))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+``` |     public static boolean isPBKDF2Supported(String algorithm)
+    {
+        if (algorithm == null)
+        {
+            throw new BadParametersException("Algorithm cannot be null.");
+        }
+        List<String> variants = AlgorithmFinder.getAllPBKDF2Variants();
+        for(String variant : variants)
+        {
+            if(algorithm.equals(variant))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+[QA 1] ```java
+/**
+ * Finds the optimal configuration for Argon2.
+ * <p>
+ * To prevent timing attacks, a maximum interval of time (in milliseconds)
+ * is required to perform a single hash.
+ * <p>
+ * This function returns a prototype {@link Argon2Function} and the real
+ * elapsed time.
+ * If the hash cannot be performed under the specified time, the elapsed time is set to -1
+ * and prototype null.
+ *
+ * @param maxMilliseconds max time to perform the hashing
+ * @param memory          logarithmic memory
+ * @param parallelism     level of parallelism
+ * @param outputLength    length of the final hash
+ * @param type            argon2 type (i, d or id)
+ * @return a benchmark result for bcrypt
+ * @see Argon2Function
+ * @since 1.5.0
+ */
+public static BenchmarkResult<Argon2Function> benchmarkForArgon2(long maxMilliseconds, int memory, int parallelism,
+        int outputLength, Argon2 type)
+{
+    warmUpArgon2();
+
+    long finalElapsed = -1;
+    Argon2Function prototype = null;
+    int iterations = 1;
+
+    while (true)
+    {
+        Argon2Function tmp = new Argon2Function(memory, iterations, parallelism, outputLength, type,
+                Argon2Function.ARGON2_VERSION_13);
+
+        long start = System.currentTimeMillis();
+
+        tmp.hash(TO_BE_HASHED);
+
+        long end = System.currentTimeMillis();
+        long elapsed = end - start;
+
+        if (elapsed > maxMilliseconds)
+        {
+            break;
+        }
+        else
+        {
+            finalElapsed = elapsed;
+            prototype = tmp;
+            iterations++;
+        }
+    }
+
+    if (finalElapsed == -1 && memory <= 4)
+    {
+        return benchmarkForArgon2(maxMilliseconds, memory / 2, parallelism, outputLength, type);
+    }
+
+    return new BenchmarkResult<>(prototype, finalElapsed);
+}
+``` |     @SuppressWarnings("Duplicates")
+    public static BenchmarkResult<Argon2Function> benchmarkForArgon2(long maxMilliseconds, int memory, int parallelism,
+            int outputLength, Argon2 type)
+    {
+        warmUpArgon2();
+
+        long finalElapsed = -1;
+        Argon2Function prototype = null;
+        int iterations = 1;
+
+        while (true)
+        {
+            Argon2Function tmp = new Argon2Function(memory, iterations, parallelism, outputLength, type,
+                    Argon2Function.ARGON2_VERSION_13);
+
+            long start = System.currentTimeMillis();
+
+            tmp.hash(TO_BE_HASHED);
+
+            long end = System.currentTimeMillis();
+            long elapsed = end - start;
+
+            if (elapsed > maxMilliseconds)
+            {
+                break;
+            }
+            else
+            {
+                finalElapsed = elapsed;
+                prototype = tmp;
+                iterations++;
+            }
+        }
+
+        if (finalElapsed == -1 && memory <= 4)
+        {
+            return benchmarkForArgon2(maxMilliseconds, memory / 2, parallelism, outputLength, type);
+        }
+
+        return new BenchmarkResult<>(prototype, finalElapsed);
+
+    }
+[QA 2] ```java
+private static byte[] getInitialHashLong(byte[] initialHash, byte[] appendix)
+{
+    byte[] initialHashLong = new byte[ARGON2_INITIAL_SEED_LENGTH];
+
+    System.arraycopy(initialHash, 0, initialHashLong, 0, ARGON2_INITIAL_DIGEST_LENGTH);
+    System.arraycopy(appendix, 0, initialHashLong, ARGON2_INITIAL_DIGEST_LENGTH, 4);
+
+    return initialHashLong;
+}
+``` |     private static byte[] getInitialHashLong(byte[] initialHash, byte[] appendix)
+    {
+        byte[] initialHashLong = new byte[ARGON2_INITIAL_SEED_LENGTH];
+
+        System.arraycopy(initialHash, 0, initialHashLong, 0, ARGON2_INITIAL_DIGEST_LENGTH);
+        System.arraycopy(appendix, 0, initialHashLong, ARGON2_INITIAL_DIGEST_LENGTH, 4);
+
+        return initialHashLong;
+    }
+[QA 3] ```java
+protected void encipher(int[] lr, int off, int[] pArray, int[] sBox) {
+    int i;
+    int n;
+    int l = lr[off];
+    int r = lr[off + 1];
+
+    l ^= pArray[0];
+    for (i = 0; i <= BLOWFISH_NUM_ROUNDS - 2; ) {
+        n = feistelSubstitution(l, sBox);
+        r ^= n ^ pArray[++i];
+        n = feistelSubstitution(r, sBox);
+        l ^= n ^ pArray[++i];
+    }
+    lr[off] = r ^ pArray[BLOWFISH_NUM_ROUNDS + 1];
+    lr[off + 1] = l;
+}
+``` |     protected void encipher(int[] lr, int off, int[] pArray, int[] sBox)
+    {
+        int i;
+        int n;
+        int l = lr[off];
+        int r = lr[off + 1];
+
+        l ^= pArray[0];
+        for (i = 0; i <= BLOWFISH_NUM_ROUNDS - 2; )
+        {
+
+            n = feistelSubstitution(l, sBox);
+            r ^= n ^ pArray[++i];
+
+            n = feistelSubstitution(r, sBox);
+            l ^= n ^ pArray[++i];
+        }
+        lr[off] = r ^ pArray[BLOWFISH_NUM_ROUNDS + 1];
+        lr[off + 1] = l;
+    }
+[QA 4] ```java
+static String toHex(byte[] bytes)
+{
+    final int length = bytes.length;
+    final char[] output = new char[length << 1];
+    int j = 0;
+    for (byte aByte : bytes)
+    {
+        output[j++] = HEX_ALPHABET[(0xF0 & aByte) >>> 4];
+        output[j++] = HEX_ALPHABET[0x0F & aByte];
+    }
+    return new String(output);
+}
+``` |     static String toHex(byte[] bytes)
+    {
+        final int length = bytes.length;
+        final char[] output = new char[length << 1];
+        int j = 0;
+        for (byte aByte : bytes)
+        {
+            output[j++] = HEX_ALPHABET[(0xF0 & aByte) >>> 4];
+            output[j++] = HEX_ALPHABET[0x0F & aByte];
+        }
+        return new String(output);
+    }
+[effective] clen=68707 window=4096 chunk_ratio=0.734151 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.37it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.04s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.19it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-33: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68707 window=4096 chunk_ratio=0.468303 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.40it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.34it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-33: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68707 window=4096 chunk_ratio=0.361963 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.41it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-33: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68707 window=4096 chunk_ratio=0.255624 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.62it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.50it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-33: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68707 window=4096 chunk_ratio=0.149284 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.76it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.60it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-33: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68707 window=4096 chunk_ratio=0.042945 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.54it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.48it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.44it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.91it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.71it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-33: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68707 window=3435 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.53it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.03it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.79it/s]
+Chunked prefilling with 0.05 ratio, window 3435
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-33: 68707 tokens, KV cache 3.9 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/33_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 293.3s. Mem: 14.31/79.18 GB. [scbench_repoqa-33]
+
+[effective] clen=66297 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.06it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-34: 66297 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```java
+package com.google.cloud.tools.jib.api;
+
+import com.google.cloud.tools.jib.docker.json.DockerManifestEntryTemplate;
+import com.google.cloud.tools.jib.image.ImageTarball;
+import com.google.cloud.tools.jib.image.json.OciIndexTemplate;
+import com.google.cloud.tools.jib.json.JsonTemplate;
+import com.google.cloud.tools.jib.json.JsonTemplateMapper;
+import com.google.cloud.tools.jib.tar.TarStreamBuilder;
+import com.google.common.collect.ImmutableSet;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.security.DigestException;
+import java.util.Collections;
+import java.util.function.Consumer;
+
+public class TarImage {
+
+  /**
+   * Constructs a {@link TarImage} with the specified path.
+   *
+   * @param path the path to the tarball archive
+   * @return a new {@link TarImage}
+   */
+  public static TarImage at(Path path) {
+    return new TarImage(path);
+  }
+
+  private final Path path;
+  @Nullable private ImageReference imageReference;
+
+  /** Instantiate with {@link #at}. */
+  private TarImage(Path path) {
+    this.path = path;
+  }
+
+  /**
+   * Sets the name of the image. This is the name that shows up when the tar is loaded by the Docker
+   * daemon.
+   *
+   * @param imageReference the image reference
+   * @return this
+   */
+  public TarImage named(ImageReference imageReference) {
+    this.imageReference = imageReference;
+    return this;
+  }
+
+  /**
+   * Sets the name of the image. This is the name that shows up when the tar is loaded by the Docker
+   * daemon.
+   *
+   * @param imageReference the image reference
+   * @return this
+   * @throws InvalidImageReferenceException if {@code imageReference} is not a valid image reference
+   */
+  public TarImage named(String imageReference) throws InvalidImageReferenceException {
+    return named(ImageReference.parse(imageReference));
+  }
+
+  Path getPath() {
+    return path;
+  }
+
+  Optional<ImageReference> getImageReference() {
+    return Optional.ofNullable(imageReference);
+  }
+}
+``` |   public static TarImage at(Path path) {
+    return new TarImage(path);
+  }
+[QA 1] ```java
+import com.google.cloud.tools.jib.api.LogEvent;
+import com.google.cloud.tools.jib.http.FailoverHttpClient;
+import com.google.cloud.tools.jib.http.Response;
+import java.io.IOException;
+import java.net.URL;
+
+private Response call(
+    String httpMethod,
+    URL url,
+    Request request,
+    HttpTransport httpTransport,
+    boolean retryOnIoException) // See https://github.com/GoogleContainerTools/jib/issues/3424
+    throws IOException {
+    boolean clearAuthorization = !isHttpsProtocol(url) && !sendAuthorizationOverHttp;
+
+    HttpHeaders requestHeaders =
+        clearAuthorization
+            ? request.getHeaders().clone().setAuthorization((String) null) // deep clone implemented
+            : request.getHeaders();
+
+    HttpRequest httpRequest =
+        httpTransport
+            .createRequestFactory()
+            .buildRequest(httpMethod, new GenericUrl(url), request.getHttpContent())
+            .setUseRawRedirectUrls(true)
+            .setHeaders(requestHeaders);
+    if (enableRetry && retryOnIoException) {
+        httpRequest.setIOExceptionHandler(createBackOffRetryHandler());
+    }
+    if (request.getHttpTimeout() != null) {
+        httpRequest.setConnectTimeout(request.getHttpTimeout());
+        httpRequest.setReadTimeout(request.getHttpTimeout());
+    }
+
+    try {
+        Response response = new Response(httpRequest.execute());
+        synchronized (responsesCreated) {
+            responsesCreated.add(response);
+        }
+        return response;
+    } catch (HttpResponseException ex) {
+        throw new ResponseException(ex, clearAuthorization);
+    }
+}
+```
+``` |   private Optional<Response> followFailoverHistory(String httpMethod, URL url, Request request)
+      throws IOException {
+    Preconditions.checkArgument(isHttpsProtocol(url));
+    switch (failoverHistory.getOrDefault(url.getHost() + ":" + url.getPort(), Failover.NONE)) {
+      case HTTP:
+        return Optional.of(call(httpMethod, toHttp(url), request, getHttpTransport(true), true));
+      case INSECURE_HTTPS:
+        return Optional.of(call(httpMethod, url, request, getHttpTransport(false), true));
+      default:
+        return Optional.empty(); // No history found. Should go for normal execution path.
+    }
+  }
+[QA 2] ```java
+@Override
+public void setSize(long size) {
+    this.size = size;
+}
+``` |     void setSize(long size) {
+      this.size = size;
+    }
+[QA 3] ```java
+package com.google.cloud.tools.jib.image;
+
+import com.google.cloud.tools.jib.api.DescriptorDigest;
+import com.google.cloud.tools.jib.blob.Blob;
+import com.google.cloud.tools.jib.blob.BlobDescriptor;
+import com.google.cloud.tools.jib.hash.Digests;
+import com.google.cloud.tools.jib.image.Image;
+import com.google.cloud.tools.jib.image.json.BuildableManifestTemplate;
+import com.google.cloud.tools.jib.image.json.ImageToJsonTranslator;
+import java.io.IOException;
+import java.util.Objects;
+
+/** Translates an {@link Image} to a tarball that can be loaded into Docker. */
+public class ImageTarball {
+
+  /** File name for the container configuration in the tarball. */
+  private static final String CONTAINER_CONFIGURATION_JSON_FILE_NAME = "config.json";
+
+  /** File name for the manifest in the tarball. */
+  private static final String MANIFEST_JSON_FILE_NAME = "manifest.json";
+
+  /** File name extension for the layer content files. */
+  private static final String LAYER_FILE_EXTENSION = ".tar.gz";
+
+  /** Time that entry is set in the tar. */
+  private static final Instant TAR_ENTRY_MODIFICATION_TIME = Instant.EPOCH;
+
+  private static final String BLOB_PREFIX = "blobs/sha256/";
+
+  private final Image image;
+  private final ImageReference imageReference;
+  private final ImmutableSet<String> allTargetImageTags;
+
+  /**
+   * Instantiate with an {@link Image}.
+   *
+   * @param image the image to convert into a tarball
+   * @param imageReference image reference to set in the manifest (note that the tag portion of the
+   *     image reference is ignored)
+   * @param allTargetImageTags the tags to tag the image with
+   */
+  public ImageTarball(
+      Image image, ImageReference imageReference, ImmutableSet<String> allTargetImageTags) {
+    this.image = image;
+    this.imageReference = imageReference;
+    this.allTargetImageTags = allTargetImageTags;
+  }
+
+  /**
+   * Writes image tar bar in configured {@link Image#getImageFormat()} of OCI or Docker to output
+   * stream.
+   *
+   * @param out the target output stream
+   * @throws IOException if an error occurs writing out the image to stream
+   */
+  public void writeTo(OutputStream out) throws IOException {
+    if (image.getImageFormat() == OciManifestTemplate.class) {
+      ociWriteTo(out);
+    } else {
+      docker |   private void dockerWriteTo(OutputStream out) throws IOException {
+    TarStreamBuilder tarStreamBuilder = new TarStreamBuilder();
+    DockerManifestEntryTemplate manifestTemplate = new DockerManifestEntryTemplate();
+
+    // Adds all the layers to the tarball and manifest.
+    for (Layer layer : image.getLayers()) {
+      String layerName = layer.getBlobDescriptor().getDigest().getHash() + LAYER_FILE_EXTENSION;
+
+      tarStreamBuilder.addBlobEntry(
+          layer.getBlob(),
+          layer.getBlobDescriptor().getSize(),
+          layerName,
+          TAR_ENTRY_MODIFICATION_TIME);
+      manifestTemplate.addLayerFile(layerName);
+    }
+
+    // Adds the container configuration to the tarball.
+    JsonTemplate containerConfiguration =
+        new ImageToJsonTranslator(image).getContainerConfiguration();
+    tarStreamBuilder.addByteEntry(
+        JsonTemplateMapper.toByteArray(containerConfiguration),
+        CONTAINER_CONFIGURATION_JSON_FILE_NAME,
+        TAR_ENTRY_MODIFICATION_TIME);
+
+    // Adds the manifest to tarball.
+    for (String tag : allTargetImageTags) {
+      manifestTemplate.addRepoTag(imageReference.withQualifier(tag).toStringWithQualifier());
+    }
+    tarStreamBuilder.addByteEntry(
+        JsonTemplateMapper.toByteArray(Collections.singletonList(manifestTemplate)),
+        MANIFEST_JSON_FILE_NAME,
+        TAR_ENTRY_MODIFICATION_TIME);
+
+    tarStreamBuilder.writeAsTarArchiveTo(out);
+  }
+[QA 4] ```java
+/**
+ * Pushes the image manifest for a specific tag.
+ *
+ * @param manifestTemplate the image manifest
+ * @param imageTag the tag to push on
+ * @return the digest of the pushed image
+ * @throws IOException if communicating with the endpoint fails
+ * @throws RegistryException if communicating with the endpoint fails
+ */
+public DescriptorDigest pushManifest(ManifestTemplate manifestTemplate, String imageTag)
+    throws IOException, RegistryException {
+  if (isBearerAuth(authorization.get()) && readOnlyBearerAuth) {
+    throw new IllegalStateException("push may fail with pull-only bearer auth token");
+  }
+
+  return callRegistryEndpoint(
+      new ManifestPusher(
+          registryEndpointRequestProperties, manifestTemplate, imageTag, eventHandlers));
+}
+```
+``` |   public DescriptorDigest pushManifest(ManifestTemplate manifestTemplate, String imageTag)
+      throws IOException, RegistryException {
+    if (isBearerAuth(authorization.get()) && readOnlyBearerAuth) {
+      throw new IllegalStateException("push may fail with pull-only bearer auth token");
+    }
+
+    return callRegistryEndpoint(
+        new ManifestPusher(
+            registryEndpointRequestProperties, manifestTemplate, imageTag, eventHandlers));
+  }
+[effective] clen=66297 window=4096 chunk_ratio=0.733537 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.31it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.24it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-34: 66297 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66297 window=4096 chunk_ratio=0.467074 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.51it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.40it/s]
