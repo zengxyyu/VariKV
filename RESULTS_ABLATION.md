@@ -2463,6 +2463,48 @@ L1 的逐层可达率恰为 **0.0%**，是最极端的一层。
 最后一项在 clen 未知时**计数并打印**「不是通过，是没查」，不静默跳过。
 当前 17 条队列全部通过。
 
+### 全链路代码审计（2026-08-20 17:40）—— 九项通过、一项发现缺口
+
+按「参数设置 / 数据集 / 评测流程 / 读数 / 统计」逐层查。**结论分三类写**：
+查过且通过、查过发现问题、**没查**。
+
+**查过且通过（九项）**
+
+| # | 项 | 结论 |
+|---|---|---|
+| 1 | 基线 `_g8base` 的产生方式 | `scratch_full_grid.sh:41` —— **不带 `--ctrlm_ckpt`**，即纯 FastKVzip；模型/chunk 16000/window 4096/level pair/`--num 100` 与各臂一致，8 个 ratio 一次跑完 |
+| 2 | 预算守恒 | `quota_project.py` 两处 `assert int(bt.sum()) == Btot`，**构造性断言、无兜底修补** |
+| 3 | Qwen3 门控可解析 | `load_fastkvzip` 按模型名取权重，`qwen3-8b/q4_dim16_sink16.pt` 在 HF 缓存里，且 Qwen3 就是上游该函数的默认参数 |
+| 4 | 读数不静默给零 | `scratch_read_scores.py:45` 匹配为空即 `FileNotFoundError`；只从 `results.parse` 取 `parse_answer`/`evaluate_answer` **两个打分函数**，**不碰它的相对行**（那是 CLAUDE.md 记的老坑） |
+| 5 | 配对是否按样本对齐 | `paired()` 取 `set(a) & set(b)` 的交集并返回 `n_common`，不是按顺序配 |
+| 6 | `--ctrlm_mode` 显式传 | qrun 里写死 `--ctrlm_mode memoryless`；这正是曾把一整批评测跑成另一方法的那个 CLI 默认值 |
+| 7 | `VARIKV_RATIOS` 导出 | qrun 第 26 行 |
+| 8 | 静默退化 | Qwen3 上排队前算过（ρ=0.1/0.15 是 no-op，已排除）；`scratch_lint_queue.py` 现在对每一行强制 `clen > window/ρ` |
+| 9 | 检查器本身 | 四件套 + linter **五个全 PASS** |
+
+**查过发现的缺口（一项，已排作业去补）**
+
+**每个 Δ 的分母从未端到端验证过。** `_g8base` 走**纯路径**（无 ctrl cache），
+而所有 floorcov 臂走 `learned_ctrlcache`：配额定下后保留集是
+「按 `score0` 取每头 top-`b_h`」，而父类基线用的是 `score > thres` **阈值法**
+（代码注释自己写了"父类用 `score > score_sort[n]` 而非严格 topk"）。
+二者数学上应当恒等（`|{s>τ}| = b₀` ⇒ 那 b₀ 个就是最大的 b₀ 个），
+离线也在真实分数上验过 2464/2464 同集，**但从未在完整评测链路上比过**。
+若有任何偏移（平局处理、ctrl 路径的数值差），**每一个报出的 Δ 都带同一个系统偏置**。
+
+代码里正好有现成仪器 `VARIKV_INJECT_SELFCHECK`（逐 chunk 报掩码异或位数）。
+已排 **`_kvf0chk`**（Retr.KV@0.1、`floorcov` + `COV_FRAC=0.0` + 自检开，**已排队首**）：
+预期 ①自检累计异或 **0 位**；②逐样本与 `_g8base` **100/100 相同**。
+**任一不成立，本文件所有 Δ 都要重新审。**
+
+**没查 / 无法查（必须随结论一起说）**
+
+- **Qwen3 端到端一次都没跑过**：几何 288 组、未训练打分器、门控解析，
+  目前只有**读代码 + 单测**的保证，没有跑通的作业。
+- `b_min` 逐格 oracle 选取仍在（方法论问题，不是 bug）。
+- 层归属/可达率是 **trace 口径**，不可外推 eval。
+- 三篇先验技术只读过 WebFetch 抽取，未亲读 PDF。
+
 ### 数据完整性审计：**文档引用的每个 tag 都跑满了整个数据集**（2026-08-19 18:20）
 
 脚本 `scratch_audit_complete.py`（零 GPU）。它与 `scratch_verify_ablation.py` **方向相反**：
