@@ -344,12 +344,20 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
                 # 「选了哪些头」也携带信息，覆盖率不是唯一变量。
                 cand = torch.nonzero(below).flatten()
                 _ord = os.environ.get("VARIKV_COV_ORDER", "smax")
-                assert _ord in ("smax", "index"), f"未知 VARIKV_COV_ORDER={_ord}"
+                assert _ord in ("smax", "index", "revindex"), f"未知 VARIKV_COV_ORDER={_ord}"
                 if _ord == "smax":
                     smax = sc.reshape(b0.numel(), -1).float().max(dim=-1).values
                     pick = cand[torch.argsort(smax[cand], descending=True)[:k]]
+                elif _ord == "index":
+                    # 头编号 g = layer*H + head ⇒ **编号最小 = 最早的层**。
+                    # 实测 f=0.15 时它 95% 落在 L0–L2，且给出 +25.00★（几乎全部效应），
+                    # 而 smax 顺序（层中位 15、39% 落在 L≥20）只给 +0.80 ns。
+                    pick = cand[:k]
                 else:
-                    pick = cand[:k]                     # 头编号顺序，零信息
+                    # `revindex`：编号最大 = **最晚的层**。这是 `index` 的镜像对照 ——
+                    # 用来分辨「早层特殊」与「连续一段就行」。两者头数相同、
+                    # 每头抬升相同，只有层位置相反。
+                    pick = cand[-k:] if k > 0 else cand[:0]
                 t = b0.clone()
                 t[pick] = bmin
             # k == nb 时落回上一行的 `t`，与 floor 逐位相同
