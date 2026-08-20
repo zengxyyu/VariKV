@@ -1,0 +1,60 @@
+tag: _fastkvzip__pscovrx50_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.73it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.81it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.83it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.95it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.89it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/d10_scalar_s0.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.5K
+['scbench_prefix_suffix']
+
+scbench_prefix_suffix loaded, #data: 100
+set generation length: 128 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~100 samples
+[effective] clen=112577 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.49it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.40it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.16it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.05s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.27s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:03,  1.51s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.76s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.60s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.37s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-0: 112577 tokens, KV cache 6.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] _TmwCWPliaoDImvXiOvic+KJB | _TmwCWPliaoDImvXiOvic+KJB
+[QA 1] The word in the dictionary that has both the prefix `+hVce` and the suffix `rOtsm` is `+hVce--_DsdvGHJSvDSxrOtsm`. | +hVce--_DsdvGHJSvDSxrOtsm
+[QA 2] The word in the dictionary that has both the prefix "LBlPU" and the suffix "zVdkS" is:
+
+**LBlPUsjuZYtqz** | LBlPUIsjuZYbsHkx^fkUzVdkS
+[QA 3] The word in the dictionary that has both the prefix "RviB-" and the suffix "mszHq" is:
+
+`RviB-YiaAUgc_nSFCgaamszHq` | RviB-YiaAUgc_nSFCgaamszHq
+[QA 4] kTqWXSWpGAlpNJNdeLUymkfXA | kTqWXSWpGAlpNJNdeLUymkfXA
+[effective] clen=112577 window=4096 chunk_ratio=0.066018 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:   0%|          | 0/8 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/eval_chunk.py", line 236, in <module>
+    kv = dataset.prefill_context(
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/data/wrapper.py", line 50, in prefill_context
+    kv = self.model.prefill(
+         ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/model/wrapper.py", line 252, in prefill
+    return self._prefill_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/model/wrapper.py", line 311, in _prefill_impl
+    kv.prune_chunk(chunk_ratio, (start_idx, end_idx), level)
+  File "/home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill/attention/learned_ctrlcache.py", line 228, in prune_chunk
+    self._qinj_raw = torch.as_tensor(_np.load(_qi), dtype=torch.float32)
+                                     ^^^^^^^^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/.venv/lib/python3.12/site-packages/numpy/lib/npyio.py", line 427, in load
+    fid = stack.enter_context(open(os_fspath(file), "rb"))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/ubuntu/zxy/vlm-memory/scratch_quota_dbh_ps01.npy'

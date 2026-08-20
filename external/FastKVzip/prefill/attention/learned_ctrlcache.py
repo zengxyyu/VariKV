@@ -277,8 +277,14 @@ class LearnedControlRetainCache(RetainCache):
                           f" L1_b0={float((bt.float()-b0).abs().sum()):.0f}"
                           f" Btot={int(b0.sum())}", flush=True)
                 if _qm == "floorcov":
+                    from attention.quota_project import project_quota as _pq
+                    # `req`/`avail` 缺一不可：band 模式下带内候选可能少于请求头数，
+                    # 只看 `n_lifted` 无法分辨「本来就想抬这么多」与「被截断了」。
                     print(f"[floorcov] chunk lo={lo} frac={os.environ.get('VARIKV_COV_FRAC','1.0')}"
                           f" order={os.environ.get('VARIKV_COV_ORDER','smax')}"
+                          f" band={os.environ.get('VARIKV_COV_BAND','-')}"
+                          f" req={getattr(_pq,'_fc_req',-1)}"
+                          f" avail={getattr(_pq,'_fc_avail',-1)}"
                           f" n_starved={int((b0==0).sum())}/{int(b0.numel())}"
                           f" n_lifted={int(((bt.float()-b0)>0).sum())}"
                           f" lift={float((bt.float()-b0).clamp(min=0).sum()):.0f}"

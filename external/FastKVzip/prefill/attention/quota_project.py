@@ -331,36 +331,63 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
             # 选头规则**只用基线分数、不用学到的方向**：按 `s_max` 降序取前 k 个，
             # 即「离全局阈值最近、最便宜抬」的那些 —— 也正是可达集会选的那批，
             # 所以 f≈0.155 这一点可与 `maxlift` 的覆盖率直接对照。
-            # f=1 时 `t` 与 floor 完全相同（下面的断言保证），故它是可检验的退化点。
             assert sc is not None, "floorcov 需要 score 张量"
             fr = float(os.environ.get("VARIKV_COV_FRAC", "1.0"))
             below = (b0 < bmin)
             nb = int(below.sum())
             k = int(round(fr * nb))
-            if k < nb:
-                # **选头顺序是一个独立的自变量**，必须能切换：`smax` 是「最便宜抬」
-                # （也是可达集会选的那批），`index` 是与分数无关的任意顺序。
-                # 两者若给出同一条曲线 ⇒ 起作用的是**覆盖率本身**；若不同 ⇒
-                # 「选了哪些头」也携带信息，覆盖率不是唯一变量。
-                cand = torch.nonzero(below).flatten()
-                _ord = os.environ.get("VARIKV_COV_ORDER", "smax")
-                assert _ord in ("smax", "index", "revindex"), f"未知 VARIKV_COV_ORDER={_ord}"
-                if _ord == "smax":
-                    smax = sc.reshape(b0.numel(), -1).float().max(dim=-1).values
-                    pick = cand[torch.argsort(smax[cand], descending=True)[:k]]
-                elif _ord == "index":
-                    # 头编号 g = layer*H + head ⇒ **编号最小 = 最早的层**。
-                    # 实测 f=0.15 时它 95% 落在 L0–L2，且给出 +25.00★（几乎全部效应），
-                    # 而 smax 顺序（层中位 15、39% 落在 L≥20）只给 +0.80 ns。
-                    pick = cand[:k]
-                else:
-                    # `revindex`：编号最大 = **最晚的层**。这是 `index` 的镜像对照 ——
-                    # 用来分辨「早层特殊」与「连续一段就行」。两者头数相同、
-                    # 每头抬升相同，只有层位置相反。
-                    pick = cand[-k:] if k > 0 else cand[:0]
-                t = b0.clone()
-                t[pick] = bmin
-            # k == nb 时落回上一行的 `t`，与 floor 逐位相同
+            # **选头顺序是一个独立的自变量**，必须能切换：`smax` 是「最便宜抬」
+            # （也是可达集会选的那批），`index` 是与分数无关的任意顺序。
+            # 两者若给出同一条曲线 ⇒ 起作用的是**覆盖率本身**；若不同 ⇒
+            # 「选了哪些头」也携带信息，覆盖率不是唯一变量。
+            cand = torch.nonzero(below).flatten()
+            _ord = os.environ.get("VARIKV_COV_ORDER", "smax")
+            assert _ord in ("smax", "index", "revindex", "band"), \
+                f"未知 VARIKV_COV_ORDER={_ord}"
+            if _ord == "band":
+                # **显式层带**：`index`/`revindex` 只能定位到「早 vs 晚」两端，且改顺序
+                # 时头数与层跨度**同时**变（`ix05` 3.9 头全在 L0 拿 +0.00 ns，`ix15`
+                # 8.9 头跨 L0–L2 拿 +25.00★ —— 两个自变量纠缠在一起，分不开）。
+                # 本模式把二者**解耦**：候选先按层过滤，再取**绝对头数**
+                # `VARIKV_COV_N`，于是不同层带可以在完全相同的头数下比较。
+                # `VARIKV_COV_BAND="lo-hi"` 是闭区间；缺失即 KeyError ——
+                # **不给默认值**，静默默认会让「忘了设」跑成另一个实验。
+                assert os.environ.get("VARIKV_COV_N") is not None, (
+                    "band 模式必须给 VARIKV_COV_N（绝对头数）—— 否则会按**全体**"
+                    "饿死头算比例、再被带内候选数截断，等于跑了另一个实验")
+                _b = os.environ["VARIKV_COV_BAND"]
+                _blo, _bhi = (int(x) for x in _b.split("-"))
+                assert 0 <= _blo <= _bhi < L, f"层带越界 {_b}（L={L}）"
+                lay = cand // H
+                cand = cand[(lay >= _blo) & (lay <= _bhi)]
+            _n_abs = os.environ.get("VARIKV_COV_N")
+            if _n_abs is not None:
+                # 绝对头数优先于 `VARIKV_COV_FRAC` —— 跨层带匹配头数时必须用它。
+                k = int(_n_abs)
+            # 带内候选可能不足；**截断必须可见**（下面两个诊断量进日志）。
+            k = max(0, min(k, int(cand.numel())))
+            project_quota._fc_req = int(_n_abs) if _n_abs is not None else int(round(fr*nb))
+            project_quota._fc_avail = int(cand.numel())
+            if _ord == "band":
+                pick = cand[:k]
+            elif _ord == "smax":
+                smax = sc.reshape(b0.numel(), -1).float().max(dim=-1).values
+                pick = cand[torch.argsort(smax[cand], descending=True)[:k]]
+            elif _ord == "index":
+                # 头编号 g = layer*H + head ⇒ **编号最小 = 最早的层**。
+                # 实测 f=0.15 时它 95% 落在 L0–L2，且给出 +25.00★（几乎全部效应），
+                # 而 smax 顺序（层中位 15、39% 落在 L≥20）只给 +0.80 ns。
+                pick = cand[:k]
+            else:
+                # `revindex`：编号最大 = **最晚的层**。这是 `index` 的镜像对照 ——
+                # 用来分辨「早层特殊」与「连续一段就行」。两者头数相同、
+                # 每头抬升相同，只有层位置相反。
+                pick = cand[-k:] if k > 0 else cand[:0]
+            t = b0.clone()
+            t[pick] = bmin
+            # `pick` 覆盖全部饿死头时，`t` 与上面的 `maximum(b0, bmin)` **逐位相同**
+            # （饿死头置 bmin、其余保持 b0），所以 f=1 仍是可检验的退化点；
+            # 常驻单测第 9 组对拍了这一条。
         excess = float(t.sum() - Btot)                      # ≥ 0
         if excess > 0:
             room = (b0 - bmin).clamp(min=0)                 # 可扣回的量

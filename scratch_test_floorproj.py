@@ -317,6 +317,99 @@ def main():
     os.environ["VARIKV_COV_FRAC"] = "1.0"; os.environ["VARIKV_QUOTA_FLOOR"] = "16"
     bad += n9
 
+    print("\n【10】`floorcov` 显式层带 `band`：层带与头数**解耦**")
+    # 为什么要这一组：`index`/`revindex` 改顺序时**头数与层跨度同时变**，
+    # `ix05`(3.9 头, 全 L0, +0.00 ns) vs `ix15`(8.9 头, L0–L2, +25.00★) 分不开
+    # 是「层不够」还是「头不够」。band 模式固定 `VARIKV_COV_N` 只改层带，
+    # 于是同一头数可以放到不同层上比。本组验证它真的做到了这件事。
+    #
+    # **自带夹具**：上面的共享夹具只有 L=4 层、饿死头位置不受控，无法测层带。
+    # 这里造一个 L=8、H=4 的确定布局：每层前 2 个头饿死（b0=0）、后 2 个头富余，
+    # 于是每层带内可用数 = 2×层数，可精确预测。
+    L10, H10, n10c = 8, 4, 64
+    b010 = torch.tensor([0.0 if (g % H10) < 2 else 40.0 for g in range(L10 * H10)])
+    d10 = torch.zeros_like(b010)
+    sc10 = torch.randn(L10 * H10, n10c)
+    os.environ["VARIKV_QUOTA_FLOOR"] = "1"
+    os.environ["VARIKV_COV_ORDER"] = "band"
+    nstarve = int((b010 < 1).sum())
+    n10 = 0
+
+    def _run():
+        return project_quota(b010.clone(), d10, n10c, "floorcov", L10, H10, sc=sc10)
+
+    # (a) 选中的头必须**全部落在带内**，且数量 = min(N, 带内候选数)
+    for blo, bhi, N in [(0, 0, 2), (0, 1, 4), (2, 5, 4), (5, 7, 9)]:
+        os.environ["VARIKV_COV_BAND"] = f"{blo}-{bhi}"
+        os.environ["VARIKV_COV_N"] = str(N)
+        q = _run()
+        picked = torch.nonzero((q.float() - b010) > 0).flatten()
+        lay = (picked // H10).tolist()
+        avail = 2 * (bhi - blo + 1)                    # 夹具：每层 2 个饿死头
+        in_band = all(blo <= x <= bhi for x in lay)
+        ok = (in_band and len(lay) == min(N, avail)
+              and int(q.sum()) == int(b010.sum())
+              and project_quota._fc_avail == avail)
+        n10 += (not ok)
+        print(f"    带 L{blo}-{bhi} N={N}  抬起 {len(lay):2d}（带内可用 {avail:2d}，"
+              f"日志 avail={project_quota._fc_avail}）  全在带内={in_band}"
+              f"  Σq 守恒={int(q.sum()) == int(b010.sum())}  {'OK' if ok else '**FAIL**'}")
+
+    # (b) **同一 N、不同带 ⇒ 头数必须完全相同**（这正是本模式存在的理由）
+    os.environ["VARIKV_COV_N"] = "4"
+    cnts, lays = [], []
+    for blo, bhi in [(0, 1), (3, 4), (6, 7)]:
+        os.environ["VARIKV_COV_BAND"] = f"{blo}-{bhi}"
+        q = _run()
+        pk = torch.nonzero((q.float() - b010) > 0).flatten()
+        cnts.append(int(pk.numel())); lays.append(sorted(set((pk // H10).tolist())))
+    ok = len(set(cnts)) == 1 and len({tuple(x) for x in lays}) == 3
+    n10 += (not ok)
+    print(f"    三个层带同 N=4 ⇒ 头数 {cnts} 相同、层 {lays} 互不相同"
+          f"  {'OK' if ok else '**FAIL**'}")
+
+    # (c) 请求超过带内可用 ⇒ **截断必须可见**（`_fc_avail` 报出真实可用数）
+    os.environ["VARIKV_COV_BAND"] = "0-0"; os.environ["VARIKV_COV_N"] = "9999"
+    q = _run(); nl = int(((q.float() - b010) > 0).sum())
+    ok = (project_quota._fc_req == 9999 and project_quota._fc_avail == nl == 2)
+    n10 += (not ok)
+    print(f"    超额请求 N=9999 于 L0-0 ⇒ 抬起 {nl}，日志 req={project_quota._fc_req}"
+          f" avail={project_quota._fc_avail}  {'OK' if ok else '**FAIL**'}")
+
+    # (d) **缺参数必须抛错，不得静默默认**
+    os.environ["VARIKV_COV_BAND"] = "0-2"; os.environ.pop("VARIKV_COV_N", None)
+    try:
+        _run(); raised1 = False
+    except AssertionError:
+        raised1 = True
+    os.environ["VARIKV_COV_N"] = "3"; os.environ.pop("VARIKV_COV_BAND", None)
+    try:
+        _run(); raised2 = False
+    except KeyError:
+        raised2 = True
+    os.environ["VARIKV_COV_BAND"] = f"0-{L10}"          # 越界带
+    try:
+        _run(); raised3 = False
+    except AssertionError:
+        raised3 = True
+    n10 += (not (raised1 and raised2 and raised3))
+    print(f"    缺 COV_N 抛 AssertionError={raised1}  缺 COV_BAND 抛 KeyError={raised2}"
+          f"  层带越界抛 AssertionError={raised3}"
+          f"  {'OK' if raised1 and raised2 and raised3 else '**FAIL**'}")
+
+    # (e) 全层带 + N = 饿死头数 ⇒ 必须与同 `b_min` 的地板 **逐位相同**（退化点）
+    os.environ["VARIKV_COV_BAND"] = f"0-{L10-1}"; os.environ["VARIKV_COV_N"] = str(nstarve)
+    q = _run()
+    bf10 = project_quota(b010.clone(), d10, n10c, "floor", L10, H10)
+    ok = bool((q == bf10).all())
+    n10 += (not ok)
+    print(f"    全层带 N={nstarve} 与地板 b1 逐位相同={ok}  {'OK' if ok else '**FAIL**'}")
+
+    for k in ("VARIKV_COV_BAND", "VARIKV_COV_N"):
+        os.environ.pop(k, None)
+    os.environ["VARIKV_COV_ORDER"] = "smax"; os.environ["VARIKV_QUOTA_FLOOR"] = "16"
+    bad += n10
+
     print(f"\n{'全部通过' if bad == 0 else f'**{bad} 项 FAIL**'}")
     return 1 if bad else 0
 
