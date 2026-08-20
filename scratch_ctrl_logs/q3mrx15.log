@@ -1,0 +1,42 @@
+tag: _fastkvzip__q3mrx15_chunk16k_w4096
+Replace qwen3 attention with gating
+Max context length extended
+Loading checkpoint shards:   0%|          | 0/5 [00:00<?, ?it/s]Loading checkpoint shards:  20%|██        | 1/5 [00:00<00:01,  2.70it/s]Loading checkpoint shards:  40%|████      | 2/5 [00:00<00:01,  2.69it/s]Loading checkpoint shards:  60%|██████    | 3/5 [00:01<00:00,  2.71it/s]Loading checkpoint shards:  80%|████████  | 4/5 [00:01<00:00,  2.94it/s]Loading checkpoint shards: 100%|██████████| 5/5 [00:01<00:00,  3.89it/s]Loading checkpoint shards: 100%|██████████| 5/5 [00:01<00:00,  3.30it/s]
+
+Load Qwen/Qwen3-8B with torch.bfloat16
+load gate qwen3-8b/q4_dim16_sink16.pt (Weight(
+  index=35, output_dim=16, nhead=8, ngroup=4
+  k_base shape: torch.Size([8, 1, 16, 16])
+  b shape: torch.Size([8, 1, 4])
+  
+  (q_proj): Linear(in_features=4096, out_features=512, bias=True)
+  (k_proj): Linear(in_features=4096, out_features=128, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/qwen3_untrained.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=7.3K
+['scbench_kv_short']
+
+scbench_kv_short loaded, #data: 100
+set generation length: 96 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~100 samples
+[effective] clen=24470 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 2)
+Prefill:   0%|          | 0/2 [00:00<?, ?it/s]Prefill:  50%|█████     | 1/2 [00:00<00:00,  1.13it/s]Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.35it/s]Prefill: 100%|██████████| 2/2 [00:01<00:00,  1.31it/s]
+# prefill qwen3-8b scbench_kv_short-0: 24470 tokens, KV cache 3.6 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] "cb59052b-9128-4979-9c0e-e1de4adcf73b" | cb59052b-9128-4979-9c0e-e1de4adcf73b
+[QA 1] "96945afe-fded-413c-aa0e-f8bb3e5fd45e" | a9ee6345-2331-4914-b32b-25a780931d45
+[QA 2] "5e6b7b90-710d-4953-9b18-3e96b2cadbf2" | 5e6b7b90-710d-4953-9b18-3e96b2cadbf2
+[QA 3] "3b2dd49b-7437-4432-ac24-06fb8f7f862e" | 3b2dd49b-7437-4432-ac24-06fb8f7f862e
+[QA 4] "96945afe-fded-413c-aa0e-f8bb3e5fd45e" | 96945afe-fded-413c-aa0e-f8bb3e5fd45e
+[QA 5] "6ab6ea3e-f288-4f33-ba46-7f42bb75b03f" | 6ab6ea3e-f288-4f33-ba46-7f42bb75b03f
+[QA 6] "3ebf05c3-35af-483b-b46e-1bf3c67f3682" | 3ebf05c3-35af-483b-b46e-1bf3c67f3682
+[QA 7] "798c2306-5ad1-42a9-a8de-f2a118b33744" | 798c2306-5ad1-42a9-a8de-f2a118b33744
+[QA 8] "7f8461f4-93c2-4536-9cfa-5ce11560fa07" | 7f8461f4-93c2-4536-9cfa-5ce11560fa07
+[QA 9] "8d339f3b-260c-4360-9849-af3c72317a78" | 8d339f3b-260c-4360-9849-af3c72317a78
+[effective] clen=24470 window=4096 chunk_ratio=0.077601 degenerate=False
+chunk inputs, size: 16000 (num 2)
+Prefill:   0%|          | 0/2 [00:00<?, ?it/s]
