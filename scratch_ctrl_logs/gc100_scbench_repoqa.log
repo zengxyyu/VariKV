@@ -1,0 +1,196 @@
+tag: _fastkvzip__gc100_scbench_repoqa_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.76it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.80it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.78it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.89it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.85it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/chead10_s0.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.4K
+['scbench_repoqa']
+
+scbench_repoqa loaded, #data: 88
+set generation length: 512 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~88 samples
+[effective] clen=68342 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.53it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.18it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.04s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.00s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```python
+def _can_omit_closing_paren(line: Line, *, last: Leaf, line_length: int) -> bool:
+    """See `can_omit_invisible_parens`."""
+    length = 4 * line.depth
+    seen_other_brackets = False
+    for _index, leaf, leaf_length in line.enumerate_with_length():
+        length += leaf_length
+        if leaf is last.opening_bracket:
+            if seen_other_brackets or length <= line_length:
+                return True
+
+        elif leaf.type in OPENING_BRACKETS:
+            # There are brackets we can further split on.
+            seen_other_brackets = True
+
+    return False
+``` | def _can_omit_closing_paren(line: Line, *, last: Leaf, line_length: int) -> bool:
+    """See `can_omit_invisible_parens`."""
+    length = 4 * line.depth
+    seen_other_brackets = False
+    for _index, leaf, leaf_length in line.enumerate_with_length():
+        length += leaf_length
+        if leaf is last.opening_bracket:
+            if seen_other_brackets or length <= line_length:
+                return True
+
+        elif leaf.type in OPENING_BRACKETS:
+            # There are brackets we can further split on.
+            seen_other_brackets = True
+
+    return False
+[QA 1] ```python
+def fstring_contains_expr(s: str) -> bool:
+    return any(iter_fexpr_spans(s))
+``` | def fstring_contains_expr(s: str) -> bool:
+    return any(iter_fexpr_spans(s))
+[QA 2] ```python
+def supports_feature(target_versions: Set[TargetVersion], feature: Feature) -> bool:
+    return all(feature in VERSION_TO_FEATURES[version] for version in target_versions)
+``` | def supports_feature(target_versions: Set[TargetVersion], feature: Feature) -> bool:
+    return all(feature in VERSION_TO_FEATURES[version] for version in target_versions)
+[QA 3] ```python
+@staticmethod
+def _remove_backslash_line_continuation_chars(
+    line: Line, string_indices: List[int]
+) -> TResult[Line]:
+    """
+    Merge strings that were split across multiple lines using
+    line-continuation backslashes.
+
+    Returns:
+        Ok(new_line), if @line contains backslash line-continuation
+        characters.
+            OR
+        Err(CannotTransform), otherwise.
+    """
+    LL = line.leaves
+
+    indices_to_transform = []
+    for string_idx in string_indices:
+        string_leaf = LL[string_idx]
+        if (
+            string_leaf.type == token.STRING
+            and "\\\n" in string_leaf.value
+            and not has_triple_quotes(string_leaf.value)
+        ):
+            indices_to_transform.append(string_idx)
+
+    if not indices_to_transform:
+        return TErr(
+            "Found no string leaves that contain backslash line continuation"
+            " characters."
+        )
+
+    new_line = line.clone()
+    new_line.comments = line.comments.copy()
+    append_leaves(new_line, line, LL)
+
+    for string_idx in indices_to_transform:
+        new_string_leaf = new_line.leaves[string_idx]
+        new_string_leaf.value = new_string_leaf.value.replace("\\\n", "")
+
+    return Ok(new_line)
+``` |     def _remove_backslash_line_continuation_chars(
+        line: Line, string_indices: List[int]
+    ) -> TResult[Line]:
+        """
+        Merge strings that were split across multiple lines using
+        line-continuation backslashes.
+
+        Returns:
+            Ok(new_line), if @line contains backslash line-continuation
+            characters.
+                OR
+            Err(CannotTransform), otherwise.
+        """
+        LL = line.leaves
+
+        indices_to_transform = []
+        for string_idx in string_indices:
+            string_leaf = LL[string_idx]
+            if (
+                string_leaf.type == token.STRING
+                and "\\\n" in string_leaf.value
+                and not has_triple_quotes(string_leaf.value)
+            ):
+                indices_to_transform.append(string_idx)
+
+        if not indices_to_transform:
+            return TErr(
+                "Found no string leaves that contain backslash line continuation"
+                " characters."
+            )
+
+        new_line = line.clone()
+        new_line.comments = line.comments.copy()
+        append_leaves(new_line, line, LL)
+
+        for string_idx in indices_to_transform:
+            new_string_leaf = new_line.leaves[string_idx]
+            new_string_leaf.value = new_string_leaf.value.replace("\\\n", "")
+
+        return Ok(new_line)
+[QA 4] ```python
+def _get_illegal_split_indices(self, string: str) -> Set[Index]:
+    illegal_indices: Set[Index] = set()
+    iterators = [
+        self._iter_fexpr_slices(string),
+        self._iter_nameescape_slices(string),
+    ]
+    for it in iterators:
+        for begin, end in it:
+            illegal_indices.update(range(begin, end + 1))
+    return illegal_indices
+``` |     def _get_illegal_split_indices(self, string: str) -> Set[Index]:
+        illegal_indices: Set[Index] = set()
+        iterators = [
+            self._iter_fexpr_slices(string),
+            self._iter_nameescape_slices(string),
+        ]
+        for it in iterators:
+            for begin, end in it:
+                illegal_indices.update(range(begin, end + 1))
+        return illegal_indices
+[effective] clen=68342 window=4096 chunk_ratio=0.734061 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.63it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.34it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.12it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.21it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68342 window=4096 chunk_ratio=0.468123 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.44it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.42it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.35it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68342 window=4096 chunk_ratio=0.361747 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.43it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68342 window=4096 chunk_ratio=0.255372 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.63it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.51it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-0: 68342 tokens, KV cache 3.9 GB, torch.bfloat16
+[effective] clen=68342 window=4096 chunk_ratio=0.148996 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.52it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.42it/s]
