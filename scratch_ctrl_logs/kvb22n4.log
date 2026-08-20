@@ -278,3 +278,148 @@ chunk inputs, size: 16000 (num 11)
 Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.19it/s][floorcov] chunk lo=139904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=75/112 n_lifted=4 lift=4 Btot=139147
 Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.15it/s][floorcov] chunk lo=155904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=76/112 n_lifted=4 lift=4 Btot=78809
 Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.30it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-8: 169034 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/8_qwen2.5-7b-instruct-1m_fastkvzip__kvb22n4_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 58.8s. Mem: 14.31/79.18 GB. [scbench_kv-8]
+
+[effective] clen=169428 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.30it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.80it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.29it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.23s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.48s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.74s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:06,  2.01s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.29s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.57s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.59s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.87s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-9: 169428 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "e7ff77d8-decd-4974-9152-cdee02274934" is "569164d8-9419-43b5-8428-e5652d8d2f45". | 569164d8-9419-43b5-8428-e5652d8d2f45
+[QA 1] The value associated with the key "50eda566-c3e4-4544-9e5a-0bdbb931c649" is "c609b77f-d265-47b4-a0d7-1be29a189a7a". | c609b77f-d265-47b4-a0d7-1be29a189a7a
+[QA 2] The value associated with the key "7cac3cbc-d4d8-42f3-993b-2386af9bcd7b" is "afac8694-3e88-489b-ac45-2fd9e5ace4a1". | afac8694-3e88-489b-ac45-2fd9e5ace4a1
+[QA 3] The value associated with the key "9eb7fa39-7d08-4a69-ad18-08b8adeba9f3" is "56844371-6763-4497-9ba9-e9d62cc0ac7b". | 56844371-6763-4497-9ba9-e9d62cc0ac7b
+[QA 4] The value associated with the key "dc9c508b-e09d-4e83-b9a7-7b8eb0a0847f" is "f41a651f-351e-48aa-a6b5-34c19c2a5880". | f41a651f-351e-48aa-a6b5-34c19c2a5880
+[effective] clen=169428 window=4096 chunk_ratio=0.077703 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=2-2 req=4 avail=2 n_starved=61/112 n_lifted=2 lift=2 Btot=103352
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.72it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=75/112 n_lifted=4 lift=4 Btot=139242
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.53it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=75/112 n_lifted=4 lift=4 Btot=139242
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.45it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=70/112 n_lifted=4 lift=4 Btot=139242
+Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.40it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=74/112 n_lifted=3 lift=3 Btot=139242
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.35it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=74/112 n_lifted=4 lift=4 Btot=139242
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.31it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=71/112 n_lifted=3 lift=3 Btot=139242
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.27it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=72/112 n_lifted=3 lift=3 Btot=139242
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.23it/s][floorcov] chunk lo=123904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=76/112 n_lifted=4 lift=4 Btot=139242
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.19it/s][floorcov] chunk lo=139904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=77/112 n_lifted=4 lift=4 Btot=139242
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.15it/s][floorcov] chunk lo=155904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=76/112 n_lifted=4 lift=4 Btot=82292
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.30it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.30it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-9: 169428 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/9_qwen2.5-7b-instruct-1m_fastkvzip__kvb22n4_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 61.1s. Mem: 14.31/79.18 GB. [scbench_kv-9]
+
+[effective] clen=169188 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.32it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.80it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.29it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.00it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.23s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.48s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.74s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:06,  2.01s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.29s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.57s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.60s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.88s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-10: 169188 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "abeb3c27-588b-4098-b48b-ff17bd6312e5" is "0e571002-0828-4868-ab89-7b74e8a8d91f". | 0e571002-0828-4868-ab89-7b74e8a8d91f
+[QA 1] 8313b0c2-b578-4854-b546-26f409879f4d | 8313b0c2-b578-4854-b546-26f409879f4d
+[QA 2] c222e8c8-7fc9-4ce6-b1cd-10b502f78a7a | c222e8c8-7fc9-4ce6-b1cd-10b502f78a7a
+[QA 3] The value associated with the key "d3bac418-c1ab-4aa1-9c73-1e05a4e147da" is "a160af49-7a7b-497e-85ea-2ac9f2b60229". | a160af49-7a7b-497e-85ea-2ac9f2b60229
+[QA 4] a15cea24-9444-4874-83c0-b8782f2f7f97 | a15cea24-9444-4874-83c0-b8782f2f7f97
+[effective] clen=169188 window=4096 chunk_ratio=0.077671 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=2-2 req=4 avail=2 n_starved=62/112 n_lifted=2 lift=2 Btot=103309
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.72it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=74/112 n_lifted=4 lift=4 Btot=139184
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.53it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=72/112 n_lifted=4 lift=4 Btot=139184
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.45it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=73/112 n_lifted=3 lift=3 Btot=139184
+Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.40it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=75/112 n_lifted=4 lift=4 Btot=139184
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.35it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=75/112 n_lifted=4 lift=4 Btot=139184
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.30it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=73/112 n_lifted=3 lift=3 Btot=139184
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.26it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=74/112 n_lifted=3 lift=3 Btot=139184
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.22it/s][floorcov] chunk lo=123904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=72/112 n_lifted=3 lift=3 Btot=139184
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.19it/s][floorcov] chunk lo=139904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=75/112 n_lifted=4 lift=4 Btot=139184
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.15it/s][floorcov] chunk lo=155904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=78/112 n_lifted=4 lift=4 Btot=80170
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.30it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.30it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-10: 169188 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/10_qwen2.5-7b-instruct-1m_fastkvzip__kvb22n4_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 57.8s. Mem: 14.31/79.18 GB. [scbench_kv-10]
+
+[effective] clen=169023 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.32it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.79it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.29it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.00it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.23s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.48s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.74s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:06,  2.01s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.28s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.57s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.58s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.87s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-11: 169023 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] "3809b751-fe9b-4b45-8043-a52df8e953c7" | 3809b751-fe9b-4b45-8043-a52df8e953c7
+[QA 1] The value associated with the key "913ac2ef-0564-4048-9c4e-f1b1a65587a1" is "4fb35e8c-0def-46f1-aff4-ed318788cddc". | 4fb35e8c-0def-46f1-aff4-ed318788cddc
+[QA 2] 23d4b783-789d-4d47-a832-d252e0aedec6 | 810e9699-f888-4343-8593-51dc97e45140
+[QA 3] 78e8c54b-9cae-4922-bc8d-29aa57a96ca8 | 8c2ba793-d300-4a26-8db7-e8f406721787
+[QA 4] The value associated with the key "909ae2f1-3b1e-4220-84cb-45c90d07dadb" is "75323a45-beb8-4eb1-83ed-215404177b32". | 75323a45-beb8-4eb1-83ed-215404177b32
+[effective] clen=169023 window=4096 chunk_ratio=0.077648 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=2-2 req=4 avail=2 n_starved=63/112 n_lifted=2 lift=2 Btot=103279
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.73it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=77/112 n_lifted=4 lift=4 Btot=139144
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.53it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=75/112 n_lifted=4 lift=4 Btot=139144
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.45it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=75/112 n_lifted=3 lift=3 Btot=139144
+Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.40it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=72/112 n_lifted=3 lift=3 Btot=139144
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.35it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=76/112 n_lifted=4 lift=4 Btot=139144
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.30it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=73/112 n_lifted=3 lift=3 Btot=139144
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.26it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=70/112 n_lifted=3 lift=3 Btot=139144
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.23it/s][floorcov] chunk lo=123904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=73/112 n_lifted=3 lift=3 Btot=139144
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.19it/s][floorcov] chunk lo=139904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=71/112 n_lifted=3 lift=3 Btot=139144
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.15it/s][floorcov] chunk lo=155904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=78/112 n_lifted=4 lift=4 Btot=78712
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.30it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-11: 169023 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/11_qwen2.5-7b-instruct-1m_fastkvzip__kvb22n4_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 55.1s. Mem: 14.31/79.18 GB. [scbench_kv-11]
+
+[effective] clen=169016 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.31it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.79it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.29it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.00it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.23s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.48s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.74s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:06,  2.01s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.28s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.57s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.58s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.87s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-12: 169016 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "17dece8b-7089-4a44-b62a-6ae3ea23c42f" is "d599fbc7-2036-4939-a764-4ff899563a49". | d599fbc7-2036-4939-a764-4ff899563a49
+[QA 1] 76d29d93-a9c4-4f6a-beeb-daf99dbd24f4 | 76d29d93-a9c4-4f6a-beeb-daf99dbd24f4
+[QA 2] 2c69145c-3da9-4f9e-b3d3-21997fc9f5b6 | 69b8faa3-00cf-46f3-9338-8da70ba271cf
+[QA 3] 30e794fe-6201-495e-836c-660351a93218 | 30e794fe-6201-495e-836c-660351a93218
+[QA 4] "ec6c5ffc-a03f-47ab-9b91-ce301f1b2400" | ec6c5ffc-a03f-47ab-9b91-ce301f1b2400
+[effective] clen=169016 window=4096 chunk_ratio=0.077647 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=2-2 req=4 avail=2 n_starved=63/112 n_lifted=2 lift=2 Btot=103278
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.72it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=76/112 n_lifted=4 lift=4 Btot=139143
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.53it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=73/112 n_lifted=4 lift=4 Btot=139143
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.45it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=72/112 n_lifted=3 lift=3 Btot=139143
+Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.40it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=75/112 n_lifted=4 lift=4 Btot=139143
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.35it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=75/112 n_lifted=4 lift=4 Btot=139143
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.30it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=73/112 n_lifted=3 lift=3 Btot=139143
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.26it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=71/112 n_lifted=3 lift=3 Btot=139143
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.22it/s][floorcov] chunk lo=123904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=73/112 n_lifted=3 lift=3 Btot=139143
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.19it/s][floorcov] chunk lo=139904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=77/112 n_lifted=4 lift=4 Btot=139143
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.15it/s][floorcov] chunk lo=155904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=78/112 n_lifted=4 lift=4 Btot=78650
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.30it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-12: 169016 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/12_qwen2.5-7b-instruct-1m_fastkvzip__kvb22n4_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 56.8s. Mem: 14.31/79.18 GB. [scbench_kv-12]
+
+[effective] clen=169294 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.32it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.80it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.29it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.00it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.23s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.48s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.74s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:06,  2.01s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.28s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.57s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.59s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.87s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-13: 169294 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 561e7ed5-f15b-4309-b035-23a463a663d6 | dc2d5eb0-e30a-47bd-84e2-24a39619bf46
+[QA 1] The value associated with the key "7f00935e-61b7-4915-8dd5-c583f2caa6ce" is "d4b2f926-c903-4813-a17e-a67b190833fa". | d4b2f926-c903-4813-a17e-a67b190833fa
+[QA 2] The value associated with the key "196faaeb-d6a5-4e56-bbd6-2976157db38b" is "4b2d2eca-c114-4be2-8b25-dd70f0d37f88". | d902f2b7-dc3f-4a6c-a139-288365be8677
+[QA 3] 82b828e7-bbd0-4ebf-b66d-f77874bc524c | 32b828e7-bbd0-4ebf-b66d-f77874bc524c
+[QA 4] The value associated with the key "dffc20a2-8d05-480e-b693-3d722ba6b313" is "e8410d75-acf7-4ecb-b5f3-1dd16c9234dc". | e8410d75-acf7-4ecb-b5f3-1dd16c9234dc
+[effective] clen=169294 window=4096 chunk_ratio=0.077685 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=1.0 order=band band=2-2 req=4 avail=2 n_starved=62/112 n_lifted=2 lift=2 Btot=103328
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.70it/s][floorcov] chunk lo=11904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=76/112 n_lifted=4 lift=4 Btot=139210
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.52it/s][floorcov] chunk lo=27904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=74/112 n_lifted=4 lift=4 Btot=139210
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.45it/s][floorcov] chunk lo=43904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=74/112 n_lifted=3 lift=3 Btot=139210
+Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.40it/s][floorcov] chunk lo=59904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=73/112 n_lifted=4 lift=4 Btot=139210
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.35it/s][floorcov] chunk lo=75904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=76/112 n_lifted=4 lift=4 Btot=139210
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.30it/s][floorcov] chunk lo=91904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=72/112 n_lifted=3 lift=3 Btot=139210
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.26it/s][floorcov] chunk lo=107904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=72/112 n_lifted=3 lift=3 Btot=139210
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.23it/s][floorcov] chunk lo=123904 frac=1.0 order=band band=2-2 req=4 avail=3 n_starved=73/112 n_lifted=3 lift=3 Btot=139210
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.19it/s][floorcov] chunk lo=139904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=76/112 n_lifted=4 lift=4 Btot=139210
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.16it/s][floorcov] chunk lo=155904 frac=1.0 order=band band=2-2 req=4 avail=4 n_starved=76/112 n_lifted=4 lift=4 Btot=81107
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.30it/s]
