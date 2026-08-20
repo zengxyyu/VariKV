@@ -2505,6 +2505,58 @@ L1 的逐层可达率恰为 **0.0%**，是最极端的一层。
 - 层归属/可达率是 **trace 口径**，不可外推 eval。
 - 三篇先验技术只读过 WebFetch 抽取，未亲读 PDF。
 
+### 上游为何给 Qwen3 换短数据集：窗口硬约束 + 一处非窗口原因（2026-08-20 18:10）
+
+排 Qwen3 臂时算出「ρ=0.1/0.15 构造性 no-op」，本节补上**成因**，因为它决定
+Qwen3 的读数能不能与 Qwen2.5 并排放。三段代码接起来，每段都可复核：
+
+1. `eval.py:56-63` 按**模型名子串**替换数据集：`qwen3`/`gemma3` 命中 ⇒
+   `prefix_suffix→_short`；再若名字**不含 "instruct"** ⇒ `kv→_short`、`mf→_mid`。
+2. `model/load.py:13-20` 对 `"Qwen3-" in id and "Instruct" not in id` 强开 YaRN
+   （factor 4.0，`max_position_embeddings` 32768→**131072**）。
+   Qwen3-8B 原生 `max_position_embeddings = 40960`（本地 config 实测）。
+3. 三个数据集全长对上这个窗口（clen 中位，Qwen3 tokenizer 实测）：
+
+| 数据集 | 全长 | vs 131,072 | 替换后 | 替换是否必需 |
+|---|---|---|---|---|
+| `scbench_kv` | 169,428 | **超** | 24,551 | **窗口硬约束** |
+| `scbench_mf` | 149,860 | **超** | 73,776 | **窗口硬约束** |
+| `scbench_prefix_suffix` | 112,635 | **装得下** | 18,884 | **不是窗口问题** |
+
+⇒ 两类原因**必须分开说**：`kv`/`mf` 是模型物理上跑不了；`prefix_suffix` 是代码注释
+写的 *"models that achieve near zero performance on specific tasks"*。
+
+**七个已发布模型跑上游 `get_data_list` 得到三种配置**（执行得出，非读注释）：
+Qwen2.5-{7,14}B-1M **零替换**；Qwen3-{8,14}B / Qwen3-8B-FP8 / gemma-3-12b-it **三个都换**；
+**Qwen3-4B-Instruct-2507 只换 `prefix_suffix`**（名字含 "Instruct" ⇒ 既不开 YaRN 也不换 kv/mf）。
+
+**三处脆弱（对本项目是警示，不是对上游的指控）**：①判别式是**模型名子串**而非读 config
+的窗口，换一个「名字含 instruct 但窗口短」的模型会**静默**跑出超窗口上下文；
+②`eval.py` 用 `.lower()` 查 `"instruct"`，`load.py` **大小写敏感**查 `"Instruct"`，
+发布模型集上一致纯属巧合；③`gemma-3-12b-it` 名字里是 `"it"` 不是 `"instruct"`，
+被判为非 instruct —— 对它恰好正确（Gemma3 128k < 169k 本就该换），但是碰对的。
+
+**论文没有交代这件事。** 抽取文本里 `shorten`/`shortened`/`short version`/`YaRN`/
+`context window` **全部 0 命中**。唯一相关的是 Datasets 段
+*"The maximum context length reaches up to 170K tokens using the Qwen3 tokenizer."*
+—— **而这句对 Figure 12 里的 Qwen3 模型不成立**（它们的 `scbench_kv` 是 24.5K）。
+附录第 938 行 *"we uniformly reduce the context lengths of the data"* 是 **Figure 16
+训练数据量消融**的说明，指训练数据，**不能**当作对评测替换的交代。
+
+**两个后果**：①**Figure 12 跨模型平均时各模型评的不是同一批上下文**，而「先按各自满
+缓存归一化」恰好掩盖了这一点（所有曲线都从 ρ=1.0 的 1.0 出发）。该图能支持「方法在各
+模型上都有效」，**不能**支持「各模型的压缩难度可比」。②对本项目：Qwen3 上 Retr.KV 是
+24.5K 而非 169K，**同一个 ρ 不是同一个工作点**，Qwen3 臂的 Δ 只能与 Qwen2.5 做**定性
+方向**比较，不能并列数值。
+
+**顺带独立确认 Figure 12/16 的 ratio 点位**：Figure 16 的 x 轴刻度在抽取文本里完整存活
+为 `0.2 0.3 0.4 0.5 0.75 1`，与 `eval.py:set_ratios()` 的 `[0.75,0.5,0.4,0.3,0.2]`
+加满缓存 1.0 完全一致 ⇒ 这两张图都是**以 ratio 为横轴的六点曲线**，
+平均只发生在数据集之间，**不是对若干 ratio 取平均**。
+
+**⚠ 出处**：代码结论均由读/执行本地源码得出；论文结论来自
+`scratch/refs/fastkvzip_paper.txt`（**PDF 抽取文本，数据点已丢失**），未亲抓 PDF。
+
 ### 数据完整性审计：**文档引用的每个 tag 都跑满了整个数据集**（2026-08-19 18:20）
 
 脚本 `scratch_audit_complete.py`（零 GPU）。它与 `scratch_verify_ablation.py` **方向相反**：
