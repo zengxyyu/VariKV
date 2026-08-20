@@ -410,6 +410,42 @@ def main():
     os.environ["VARIKV_COV_ORDER"] = "smax"; os.environ["VARIKV_QUOTA_FLOOR"] = "16"
     bad += n10
 
+    print("\n【11】floor 族**与学到的方向无关**，且 `f=0` 恰是基线")
+    # 为什么必须有：第二 backbone（Qwen3-8B，36×8）没有训练过的打分器，我们打算
+    # 用一个**未训练**的、只为形状正确而造的 ckpt 去跑 floor/floorcov。
+    # 其正当性来自代码路径 —— 配额模式下保留集由 `argsort(sc)` 重建、
+    # `sc = score0[:,0]` 是基线分数，学到的 delta 只进 `tgt`，而 floor 族不用 `tgt`。
+    # **读代码得出的结论必须变成测试**，否则以后有人在 floor 分支里用了 delta 就悄悄错。
+    os.environ["VARIKV_QUOTA_FLOOR"] = "1"
+    os.environ["VARIKV_COV_ORDER"] = "smax"
+    n11 = 0
+    ref = {}
+    for md in ("floor", "floorcov"):
+        os.environ["VARIKV_COV_FRAC"] = "0.5"
+        ref[md] = project_quota(b0.clone(), torch.zeros_like(delta), n, md, L, H, sc=sc)
+    g = torch.Generator().manual_seed(7)
+    same = True
+    for t in range(20):
+        d = (torch.randn(b0.numel(), generator=g) * 50.0)      # 量级远超真实修正
+        for md in ("floor", "floorcov"):
+            os.environ["VARIKV_COV_FRAC"] = "0.5"
+            q = project_quota(b0.clone(), d, n, md, L, H, sc=sc)
+            same &= bool((q == ref[md]).all())
+    n11 += (not same)
+    print(f"    20 个随机 delta（σ=50，远超真实 α·σ_h）下 floor/floorcov 输出逐位不变"
+          f"={same}  {'OK' if same else '**FAIL**'}")
+
+    # `f=0` ⇒ 一个头都不抬 ⇒ 目标配额必须**逐位等于基线** b0。
+    # 这是第二 backbone 的基线臂构造方式：走完全相同的代码路径、只是不动任何头。
+    os.environ["VARIKV_COV_FRAC"] = "0.0"
+    q0 = project_quota(b0.clone(), delta, n, "floorcov", L, H, sc=sc)
+    ok0 = bool((q0 == b0.round().long()).all()) and int(q0.sum()) == int(b0.sum())
+    n11 += (not ok0)
+    print(f"    f=0.0 ⇒ 配额逐位等于基线 b0={ok0}  Σ 守恒={int(q0.sum()) == int(b0.sum())}"
+          f"  {'OK' if ok0 else '**FAIL**'}")
+    os.environ["VARIKV_COV_FRAC"] = "1.0"; os.environ["VARIKV_QUOTA_FLOOR"] = "16"
+    bad += n11
+
     print(f"\n{'全部通过' if bad == 0 else f'**{bad} 项 FAIL**'}")
     return 1 if bad else 0
 
