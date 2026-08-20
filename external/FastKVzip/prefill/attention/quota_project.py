@@ -376,13 +376,18 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
                 # 的零结果可能来自「恰好挑中的那 8 个头没用」而非层位置。
                 # 外部复核正确指出这一点。本模式在带内**均匀随机**取 N 个，
                 # 配合多个 `VARIKV_COV_SEED` 重复，把头身份平均掉。
-                # **确定性**：种子由 (COV_SEED, Btot, 候选数) 直接构造，
-                # **不依赖调用顺序**，所以同一配置重跑逐位可复现。
+                # **确定性**：种子由 (COV_SEED, Btot, 候选数, **候选集校验和**)
+                # 构造，**不依赖调用顺序**，同一配置重跑逐位可复现。
+                # 加候选集校验和是外部复核指出的缺口：只用 (Btot, 候选数) 时，
+                # 两个 chunk 若这两个量碰巧相同就会共用同一个位置置换 ——
+                # 那仍是合法的固定随机策略，但**不能说「每个 chunk 独立重采样」**。
+                # 校验和让种子随实际候选身份变化，该说法才成立。
                 _sd = os.environ.get("VARIKV_COV_SEED")
                 assert _sd is not None, "bandrand 必须给 VARIKV_COV_SEED"
+                _ck = int(cand.sum().item()) if cand.numel() else 0
                 _g = torch.Generator(device="cpu")
                 _g.manual_seed((int(_sd) * 1000003 + int(Btot) * 31
-                                + int(cand.numel())) % (2 ** 31 - 1))
+                                + int(cand.numel()) * 7 + _ck) % (2 ** 31 - 1))
                 perm = torch.randperm(int(cand.numel()), generator=_g)
                 pick = cand[perm[:k].to(cand.device)]
             elif _ord == "smax":
