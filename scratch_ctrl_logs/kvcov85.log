@@ -2397,3 +2397,30 @@ chunk inputs, size: 16000 (num 11)
 Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.18it/s][floorcov] chunk lo=139904 frac=0.85 order=smax n_starved=71/112 n_lifted=60 lift=60 Btot=139158
 Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.14it/s][floorcov] chunk lo=155904 frac=0.85 order=smax n_starved=73/112 n_lifted=62 lift=62 Btot=79224
 Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.30it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.29it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-81: 169081 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/81_qwen2.5-7b-instruct-1m_fastkvzip__kvcov85_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 63.1s. Mem: 14.31/79.18 GB. [scbench_kv-81]
+
+[effective] clen=169133 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.26it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.77it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.28it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:07,  1.00s/it]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.24s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.49s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.75s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:06,  2.02s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.30s/it]Prefill:  91%|█████████ | 10/11 [00:18<00:02,  2.58s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.60s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.88s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-82: 169133 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the specified key "86e0dbce-5bd5-48c4-883d-4f7fe98c043d" is "a63ff6cf-2dbd-48fa-96fe-68f0808a4d76". | a63ff6cf-2dbd-48fa-96fe-68f0808a4d76
+[QA 1] The value associated with the specified key "23846e0d-d30d-4cfa-9d76-f0076a0b3cc5" is "7203a1a1-30d4-4af9-815c-23e099a8f046". | 7203a1a1-30d4-4af9-815c-23e099a8f046
+[QA 2] The value associated with the key "0a6ca0f8-2562-4f35-a22d-6e810b7f836a" is "39de353a-ab13-4803-a020-9c97bdb6209f". | 39de353a-ab13-4803-a020-9c97bdb6209f
+[QA 3] The value associated with the specified key "93ce2a07-e2e5-4f92-8933-093d902ee487" is "a6b51d1d-4598-4804-a5e7-6ad75b744a6a". | a6b51d1d-4598-4804-a5e7-6ad75b744a6a
+[QA 4] The value associated with the specified key "1e7be787-e342-47f7-908d-ece2772d2b11" is "2378ffb8-a2ee-4274-9748-9e81be0c2a98". | 2378ffb8-a2ee-4274-9748-9e81be0c2a98
+[effective] clen=169133 window=4096 chunk_ratio=0.077663 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][floorcov] chunk lo=28 frac=0.85 order=smax n_starved=61/112 n_lifted=52 lift=52 Btot=103299
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.70it/s][floorcov] chunk lo=11904 frac=0.85 order=smax n_starved=72/112 n_lifted=61 lift=61 Btot=139171
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.52it/s][floorcov] chunk lo=27904 frac=0.85 order=smax n_starved=75/112 n_lifted=64 lift=64 Btot=139171
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.44it/s][floorcov] chunk lo=43904 frac=0.85 order=smax n_starved=72/112 n_lifted=61 lift=61 Btot=139171
+Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.39it/s][floorcov] chunk lo=59904 frac=0.85 order=smax n_starved=72/112 n_lifted=61 lift=61 Btot=139171
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.34it/s][floorcov] chunk lo=75904 frac=0.85 order=smax n_starved=70/112 n_lifted=60 lift=60 Btot=139171
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.30it/s][floorcov] chunk lo=91904 frac=0.85 order=smax n_starved=73/112 n_lifted=62 lift=62 Btot=139171
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.26it/s][floorcov] chunk lo=107904 frac=0.85 order=smax n_starved=74/112 n_lifted=63 lift=63 Btot=139171
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.22it/s][floorcov] chunk lo=123904 frac=0.85 order=smax n_starved=72/112 n_lifted=61 lift=61 Btot=139171
+Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.18it/s]
