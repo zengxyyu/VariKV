@@ -9154,3 +9154,165 @@ Chunked prefilling with 0.20 ratio, window 4096
 [effective] clen=66297 window=4096 chunk_ratio=0.040734 degenerate=False
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.56it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.06it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.78it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-34: 66297 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66297 window=3314 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.17it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.85it/s]
+Chunked prefilling with 0.05 ratio, window 3314
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-34: 66297 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/34_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 385.8s. Mem: 14.31/79.18 GB. [scbench_repoqa-34]
+
+[effective] clen=66297 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.24it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-35: 66297 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```java
+public static boolean isDefaultDockerInstalled() {
+  try {
+    new ProcessBuilder(DEFAULT_DOCKER_CLIENT.toString()).start();
+    return true;
+  } catch (IOException ex) {
+    return false;
+  }
+}
+``` |   public static boolean isDefaultDockerInstalled() {
+    try {
+      new ProcessBuilder(DEFAULT_DOCKER_CLIENT.toString()).start();
+      return true;
+    } catch (IOException ex) {
+      return false;
+    }
+  }
+[QA 1] ```java
+/**
+ * Converts the map of environment variables to a list with items in the format "NAME=VALUE".
+ *
+ * @return the list
+ */
+@VisibleForTesting
+@Nullable
+static ImmutableList<String> environmentMapToList(@Nullable Map<String, String> environment) {
+  if (environment == null) {
+    return null;
+  }
+  Preconditions.checkArgument(
+      environment.keySet().stream().noneMatch(key -> key.contains("=")),
+      "Illegal environment variable: name cannot contain '='");
+  return environment.entrySet().stream()
+      .map(entry -> entry.getKey() + "=" + entry.getValue())
+      .collect(ImmutableList.toImmutableList());
+}
+``` |   @VisibleForTesting
+  @Nullable
+  static ImmutableList<String> environmentMapToList(@Nullable Map<String, String> environment) {
+    if (environment == null) {
+      return null;
+    }
+    Preconditions.checkArgument(
+        environment.keySet().stream().noneMatch(key -> key.contains("=")),
+        "Illegal environment variable: name cannot contain '='");
+    return environment.entrySet().stream()
+        .map(entry -> entry.getKey() + "=" + entry.getValue())
+        .collect(ImmutableList.toImmutableList());
+  }
+[QA 2] ```java
+/**
+ * Adds a {@link TarArchiveEntry} to the archive.
+ *
+ * @param entry the {@link TarArchiveEntry}
+ */
+public void addTarArchiveEntry(TarArchiveEntry entry) {
+  archiveMap.put(
+      entry, entry.isFile() ? Blobs.from(entry.getPath()) : Blobs.from(ignored -> {}, true));
+}
+``` |   public void addTarArchiveEntry(TarArchiveEntry entry) {
+    archiveMap.put(
+        entry, entry.isFile() ? Blobs.from(entry.getPath()) : Blobs.from(ignored -> {}, true));
+  }
+[QA 3] ```java
+/**
+ * Deserializes a JSON file via a JSON object template with a shared lock on the file.
+ *
+ * @param <T> child type of {@link JsonTemplate}
+ * @param jsonFile a file containing a JSON string
+ * @param templateClass the template to deserialize the string to
+ * @return the template filled with the values parsed from {@code jsonFile}
+ * @throws IOException if an error occurred during reading the file or parsing the JSON
+ */
+public static <T extends JsonTemplate> T readJsonFromFileWithLock(
+    Path jsonFile, Class<T> templateClass) throws IOException {
+  // channel is closed by inputStream.close()
+  FileChannel channel = FileChannel.open(jsonFile, StandardOpenOption.READ);
+  channel.lock(0, Long.MAX_VALUE, true); // shared lock, released by channel close
+  try (InputStream inputStream = Channels.newInputStream(channel)) {
+    return objectMapper.readValue(inputStream, templateClass);
+  }
+}
+``` |   public static <T extends JsonTemplate> T readJsonFromFileWithLock(
+      Path jsonFile, Class<T> templateClass) throws IOException {
+    // channel is closed by inputStream.close()
+    FileChannel channel = FileChannel.open(jsonFile, StandardOpenOption.READ);
+    channel.lock(0, Long.MAX_VALUE, true); // shared lock, released by channel close
+    try (InputStream inputStream = Channels.newInputStream(channel)) {
+      return objectMapper.readValue(inputStream, templateClass);
+    }
+  }
+[QA 4] ```java
+/**
+ * Adds a manifest reference with the given {@link BlobDescriptor}.
+ *
+ * @param descriptor the manifest blob descriptor
+ * @param imageReferenceName the image reference name
+ */
+public void addManifest(BlobDescriptor descriptor, String imageReferenceName) {
+    ManifestDescriptorTemplate contentDescriptorTemplate =
+        new ManifestDescriptorTemplate(
+            OciManifestTemplate.MANIFEST_MEDIA_TYPE, descriptor.getSize(), descriptor.getDigest());
+    contentDescriptorTemplate.setAnnotations(
+        ImmutableMap.of("org.opencontainers.image.ref.name", imageReferenceName));
+    manifests.add(contentDescriptorTemplate);
+}
+
+/**
+ * Adds a manifest.
+ *
+ * @param manifest a manifest descriptor
+ */
+public void addManifest(OciIndexTemplate.ManifestDescriptorTemplate manifest) {
+    manifests.add(manifest);
+}
+
+/**
+ * Returns a list of manifest descriptors from the OCI index JSON template.
+ *
+ * @return a list of manifest descriptor objects
+ */
+public List<ManifestDescriptorTemplate> getManifests() {
+    return manifests;
+}
+```
+``` |   @VisibleForTesting
+  public List<ManifestDescriptorTemplate> getManifests() {
+    return manifests;
+  }
+[effective] clen=66297 window=4096 chunk_ratio=0.733537 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.35it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.30it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.23it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-35: 66297 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66297 window=4096 chunk_ratio=0.467074 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.40it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-35: 66297 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66297 window=4096 chunk_ratio=0.360489 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.46it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.61it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.47it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-35: 66297 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66297 window=4096 chunk_ratio=0.253904 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.48it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.35it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.74it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.56it/s]

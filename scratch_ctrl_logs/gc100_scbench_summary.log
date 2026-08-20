@@ -3350,3 +3350,58 @@ Chunked prefilling with 0.20 ratio, window 4096
 [effective] clen=101194 window=4096 chunk_ratio=0.062034 degenerate=False
 chunk inputs, size: 16000 (num 7)
 Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.71it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.53it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.46it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.41it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.37it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.34it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.69it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.53it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-66: 101194 tokens, KV cache 5.8 GB, torch.bfloat16
+[effective] clen=101194 window=4096 chunk_ratio=0.009925 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.70it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.54it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.50it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.47it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.45it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.43it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.83it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.62it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-66: 101194 tokens, KV cache 5.8 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/66_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_summary_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 126.1s. Mem: 14.31/79.18 GB. [scbench_summary-66]
+
+[effective] clen=106031 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.25it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.77it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.28it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.00s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.24s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.49s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.58s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.26s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-67: 106031 tokens, KV cache 6.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper concludes that the proton ionization scenario is not feasible for explaining the high over-ionization observed in supernova remnants, as the required relative abundance of accelerated protons exceeds the expected injection fraction from thermal to non-thermal energies. | The key contribution of this paper is that it concludes the low-energy tail of shock-accelerated protons cannot be responsible for producing the over-ionized plasma observed in supernova remnants, as it would require an unrealistically high abundance of accelerated protons compared to what is expected from diffusive shock acceleration models.
+[QA 1] The paper reveals the elliptically polarized kink oscillations and their damping characteristics within super-penumbral fibrils by reprojecting fibril dynamics into a frame aligned with their central axis, providing insights into the energy transfer and dissipation mechanisms in the solar chromosphere. | The key contribution of this paper is:
+
+Using high-resolution observations and non-linear force-free field extrapolations, the authors analyzed an elliptically polarized, propagating kink oscillation of a chromospheric fibril in the super-penumbral region of a sunspot, re-projecting the oscillation into a reference frame aligned with the fibril axis to account for projection effects. They found the oscillation had a period of 430 seconds, a phase speed of 69±4 km/s, and a damping length of approximately 9.2 Mm, with the energy flux decreasing at a rate of 460 W m^-2/Mm, potentially indicating plasma heating through wave damping.
+[QA 2] This paper presents a systematic search for kpc-scale dual and offset active galactic nuclei (AGNs) around 571 X-ray-selected AGNs using deep HST and JWST imaging, revealing a higher occurrence rate of dual AGNs than offset AGNs and finding that this ratio increases with redshift, providing new insights into AGN triggering in galaxy mergers and their cosmic evolution. | The key contribution of this paper is systematically searching for kpc-scale dual and offset Active Galactic Nuclei (AGNs) around 571 moderate-luminosity, X-ray-selected AGNs at redshifts z~0-5 using deep HST and JWST imaging data in the COSMOS field, and comparing the observed fractions to predictions from cosmological simulations.
+[QA 3] The paper introduces Gromov-Wasserstein Information Bottleneck (GWIB), a novel learning paradigm that mitigates selection bias and over-enforcing balance issues in counterfactual regression by leveraging the Gromov-Wasserstein distance to regularize the encoder and enforce consistent cross-group individual correspondence. | The key contribution of the paper "Revisiting Counterfactual Regression through the Lens of Gromov-Wasserstein Information Bottleneck" is proposing a novel Gromov-Wasserstein information bottleneck (GWIB) learning paradigm for counterfactual regression that mitigates selection bias and over-enforcing balance issues jointly when estimating individual treatment effects.
+[QA 4] The paper presents two new numerical schemes that conserve mass, energy-stably approximate, and approximately preserve the maximum principle for the Navier-Stokes-Cahn-Hilliard system with degenerate mobility, enabling accurate simulation of complex multiphase flow phenomena. | The key contribution of this paper is proposing two new finite element schemes (called G_ε-scheme and J_ε-scheme) for the Navier-Stokes-Cahn-Hilliard system with degenerate mobility, which are conservative, energy-stable, and preserve the maximum principle approximately.
+[effective] clen=106031 window=4096 chunk_ratio=0.739954 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.35it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.12it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.06s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.23s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.42s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.36s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.20s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-67: 106031 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=106031 window=4096 chunk_ratio=0.479909 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.71it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.41it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.22it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.08it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.04s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.16s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.10s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.00s/it]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-67: 106031 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=106031 window=4096 chunk_ratio=0.375891 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.43it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.28it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.15it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.04it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.06s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.01it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.08it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-67: 106031 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=106031 window=4096 chunk_ratio=0.271872 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.71it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.47it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.33it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.22it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.13it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.04it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.13it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.18it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-67: 106031 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=106031 window=4096 chunk_ratio=0.167854 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.71it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.50it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.39it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.31it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.24it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.18it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.30it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.31it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-67: 106031 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=106031 window=4096 chunk_ratio=0.063836 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.54it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.47it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.42it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.38it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.34it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.50it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.46it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-67: 106031 tokens, KV cache 6.1 GB, torch.bfloat16
+[effective] clen=106031 window=4096 chunk_ratio=0.011827 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.71it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.54it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.49it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.46it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.44it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.43it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.63it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.54it/s]
