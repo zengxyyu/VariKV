@@ -10130,3 +10130,234 @@ Results saved at ./results/scbench_repoqa/39_qwen2.5-7b-instruct-1m_fastkvzip__g
 [effective] clen=66423 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 5)
 Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.29it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.80it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-40: 66423 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```java
+/**
+ * Returns the TLS encryption option.
+ * 
+ * @return the TLS encrypt option
+ */
+String getEncrypt();
+``` |     String getEncrypt();
+[QA 1] ```java
+void setRequest(TokenRequestContext request) {
+    this.request = request;
+}
+``` |     void setRequest(TokenRequestContext request) {
+        this.request = request;
+    }
+[QA 2] ```java
+/**
+ * Specifies the initial capacity of the hash table (default <code>16</code>).
+ * This is the number of key-value pairs that the hash table can hold
+ * before a resize operation is required.
+ *
+ * @param initialCapacity
+ *        the initial capacity used to size the hash table
+ *        to accommodate this many entries.
+ * 
+ * @return Builder
+ * @throws IllegalArgumentException
+ *         if the initialCapacity is negative
+ */
+public Builder<K, V> initialCapacity(int initialCapacity) {
+    checkArgument(initialCapacity >= 0);
+    this.initialCapacity = initialCapacity;
+    return this;
+}
+``` |         public Builder<K, V> initialCapacity(int initialCapacity) {
+            checkArgument(initialCapacity >= 0);
+            this.initialCapacity = initialCapacity;
+            return this;
+        }
+[QA 3] ```java
+static String checkAndAppendClientConnId(String errMsg, SQLServerConnection conn) {
+    if (null != conn && conn.isConnected()) {
+        UUID clientConnId = conn.getClientConIdInternal();
+        if (null != clientConnId) {
+            StringBuilder sb = (errMsg != null) ? new StringBuilder(errMsg) : new StringBuilder();
+            // This syntax of adding connection id is matched in a retry logic. If anything changes here, make
+            // necessary changes to enableSSL() function's exception handling mechanism.
+            sb.append(LOG_CLIENT_CONNECTION_ID_PREFIX);
+            sb.append(clientConnId.toString());
+            return sb.toString();
+        }
+    }
+    return (errMsg != null) ? errMsg : "";
+}
+``` |     static String checkAndAppendClientConnId(String errMsg, SQLServerConnection conn) {
+        if (null != conn && conn.isConnected()) {
+            UUID clientConnId = conn.getClientConIdInternal();
+            if (null != clientConnId) {
+                StringBuilder sb = (errMsg != null) ? new StringBuilder(errMsg) : new StringBuilder();
+                // This syntax of adding connection id is matched in a retry logic. If anything changes here, make
+                // necessary changes to enableSSL() function's exception handling mechanism.
+                sb.append(LOG_CLIENT_CONNECTION_ID_PREFIX);
+                sb.append(clientConnId.toString());
+                return sb.toString();
+            }
+        }
+        return (errMsg != null) ? errMsg : "";
+
+    }
+[QA 4] ```java
+enum SSType {
+    // ... (other enum constants and fields)
+
+    boolean convertsTo(JDBCType jdbcType) {
+        return GetterConversion.converts(this, jdbcType);
+    }
+
+    enum GetterConversion {
+        // ... (other enum constants and fields)
+
+        static final boolean converts(SSType fromSSType, JDBCType toJDBCType) {
+            return conversionMap.get(fromSSType.category).contains(toJDBCType.category);
+        }
+    }
+}
+``` |     boolean convertsFrom(TypeInfo typeInfo) {
+        // Special case handling for ASCII streams:
+        if (ASCII == this) {
+            // Conversion not allowed from XML to AsciiStream
+            if (SSType.XML == typeInfo.getSSType())
+                return false;
+
+            // Conversion not allowed if collation doesn't cleanly convert to ASCII character set
+            if (null!= typeInfo.getSQLCollation() &&!typeInfo.getSQLCollation().supportsAsciiConversion())
+                return false;
+        }
+
+        return typeInfo.getSSType().convertsTo(jdbcType);
+    }
+[effective] clen=66423 window=4096 chunk_ratio=0.733571 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.35it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]Prefill:  80%|████████  | 4/5 [00:03<00:01,  1.05s/it]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.30it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.23it/s]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-40: 66423 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66423 window=4096 chunk_ratio=0.467141 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.43it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.25it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.10it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.51it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.39it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-40: 66423 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66423 window=4096 chunk_ratio=0.360569 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.74it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.47it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.30it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.17it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.61it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.47it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-40: 66423 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66423 window=4096 chunk_ratio=0.253997 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.49it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.36it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.25it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.73it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.56it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-40: 66423 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66423 window=4096 chunk_ratio=0.147426 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.51it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.41it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.34it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.88it/s]Prefill: 100%|██████████| 5/5 [00:03<00:00,  1.65it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-40: 66423 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66423 window=4096 chunk_ratio=0.040854 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.73it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.55it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.49it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.45it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.05it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.77it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-40: 66423 tokens, KV cache 3.8 GB, torch.bfloat16
+[effective] clen=66423 window=3321 chunk_ratio=0.000000 degenerate=True
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.71it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.58it/s]Prefill:  60%|██████    | 3/5 [00:01<00:01,  1.54it/s]Prefill:  80%|████████  | 4/5 [00:02<00:00,  1.52it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  2.16it/s]Prefill: 100%|██████████| 5/5 [00:02<00:00,  1.84it/s]
+Chunked prefilling with 0.05 ratio, window 3321
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-40: 66423 tokens, KV cache 3.8 GB, torch.bfloat16
+Results saved at ./results/scbench_repoqa/40_qwen2.5-7b-instruct-1m_fastkvzip__gc100_scbench_repoqa_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 176.9s. Mem: 14.31/79.18 GB. [scbench_repoqa-40]
+
+[effective] clen=66423 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:01,  3.23it/s]Prefill:  40%|████      | 2/5 [00:01<00:01,  1.79it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.29it/s]Prefill:  80%|████████  | 4/5 [00:03<00:00,  1.01it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.07it/s]Prefill: 100%|██████████| 5/5 [00:04<00:00,  1.18it/s]
+# prefill qwen2.5-7b-instruct-1m scbench_repoqa-41: 66423 tokens, KV cache 3.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ```java
+/**
+ * Returns the Always Encrypted functionality setting for the data source object.
+ * 
+ * @return the Always Encrypted functionality setting for the data source object.
+ */
+String getColumnEncryptionSetting();
+``` |     String getColumnEncryptionSetting();
+[QA 1] ```java
+/**
+ * Sets the sslProtocol property for connection Set this value to specify TLS protocol keyword.
+ * 
+ * Acceptable values are: TLS, TLSv1, TLSv1.1, and TLSv1.2.
+ * 
+ * @param sslProtocol
+ *        Value for SSL Protocol to be set.
+ */
+void setSSLProtocol(String sslProtocol) {
+    // Implementation details are not provided in the snippet, but this method sets the sslProtocol internally.
+}
+``` |     void setSSLProtocol(String sslProtocol);
+[QA 2] ```java
+static long cityHash64(byte[] s, int pos, int len) {
+
+    if (len <= 32) {
+        if (len <= 16) {
+            return hashLen0to16(s, pos, len);
+        } else {
+            return hashLen17to32(s, pos, len);
+        }
+    } else if (len <= 64) {
+        return hashLen33to64(s, pos, len);
+    }
+
+    long x = fetch64(s, pos + len - 40);
+    long y = fetch64(s, pos + len - 16) + fetch64(s, pos + len - 56);
+    long z = hashLen16(fetch64(s, pos + len - 48) + len, fetch64(s, pos + len - 24));
+
+    long[] v = weakHashLen32WithSeeds(s, pos + len - 64, len, z);
+    long[] w = weakHashLen32WithSeeds(s, pos + len - 32, y + k1, x);
+    x = x * k1 + fetch64(s, pos + 0);
+
+    len = (len - 1) & (~63);
+    do {
+        x = rotate(x + y + v[0] + fetch64(s, pos + 8), 37) * k1;
+        y = rotate(y + v[1] + fetch64(s, pos + 48), 42) * k1;
+        x ^= w[1];
+        y += v[0] + fetch64(s, pos + 40);
+        z = rotate(z + w[0], 33) * k1;
+        v = weakHashLen32WithSeeds(s, pos + 0, v[1] * k1, x + w[0]);
+        w = weakHashLen32WithSeeds(s, pos + 32, z + w[1], y + fetch64(s, pos + 16));
+        {
+            long swap = z;
+            z = x;
+            x = swap;
+        }
+        pos += 64;
+        len -= 64;
+    } while (len != 0);
+
+    return hashLen16(hashLen16(v[ |     static long cityHash64WithSeeds(byte[] s, int pos, int len, long seed0, long seed1) {
+        return hashLen16(cityHash64(s, pos, len) - seed0, seed1);
+    }
+[QA 3] ```java
+static int ceilingNextPowerOfTwo(int x) {
+    // From Hacker's Delight, Chapter 3, Harry S. Warren Jr.
+    return 1 << (Integer.SIZE - Integer.numberOfLeadingZeros(x - 1));
+}
+``` |     static int ceilingNextPowerOfTwo(int x) {
+        // From Hacker's Delight, Chapter 3, Harry S. Warren Jr.
+        return 1 << (Integer.SIZE - Integer.numberOfLeadingZeros(x - 1));
+    }
+[QA 4] ```java
+/**
+ * Sets the 'AADSecurePrincipalId' connection property used for Active Directory Service Principal authentication.
+ * 
+ * @param aadSecurePrincipalId
+ *        Active Directory Service Principal Id.
+ * @deprecated Use {@link ISQLServerDataSource#setUser(String user)} instead
+ */
+@Deprecated(since = "9.4.1", forRemoval = true)
+void setAADSecurePrincipalId(String aadSecurePrincipalId);
+``` |     @Deprecated(since = "9.4.1", forRemoval = true)
+    void setAADSecurePrincipalId(String aadSecurePrincipalId);
+[effective] clen=66423 window=4096 chunk_ratio=0.733571 degenerate=False
+chunk inputs, size: 16000 (num 5)
+Prefill:   0%|          | 0/5 [00:00<?, ?it/s]Prefill:  20%|██        | 1/5 [00:00<00:02,  1.72it/s]Prefill:  40%|████      | 2/5 [00:01<00:02,  1.36it/s]Prefill:  60%|██████    | 3/5 [00:02<00:01,  1.13it/s]
