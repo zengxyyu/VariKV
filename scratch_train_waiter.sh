@@ -17,10 +17,14 @@ SELFLOCK=/tmp/vq/waiter.lock
 mkdir "$SELFLOCK" 2>/dev/null || { echo "[abort] 已有等卡器在运行（$SELFLOCK 存在）"; exit 1; }
 trap 'rmdir "$SELFLOCK" 2>/dev/null' EXIT
 L=/tmp/vq/lock; Q=/tmp/vq/jobs.txt; HOLD=/tmp/vq/jobs.hold_waiter
-BASE="--arch chead --d_kv 128 --dim 128 --epochs 40 --freeze_alpha --lam_global 1.0 \
+# 可参数化：ARCH / ALPHA_INIT / ALPHA_MAX / PREFIX 由环境变量给，默认沿用
+# 首次使用时的 chead10 配置，**老的调用方式行为不变**。
+ARCH="${ARCH:-chead}"; A_INIT="${A_INIT:-0.999}"; A_MAX="${A_MAX:-1.0}"
+PREFIX="${PREFIX:-chead10}"
+BASE="--arch $ARCH --d_kv 128 --dim 128 --epochs 40 --freeze_alpha --lam_global 1.0 \
 --lr 0.0003 --n_pairs 256 --pair_w linear --slots 8 --split_seed 42 \
 --traces scratch_ctrl_traces_v2_10 --val_frac 0.25 --scale global \
---alpha_max 1.0 --alpha_init 0.999"
+--alpha_max $A_MAX --alpha_init $A_INIT"
 HELD=""; PIDS=""
 
 cleanup() {
@@ -29,8 +33,12 @@ cleanup() {
 }
 trap 'cleanup; rmdir "$SELFLOCK" 2>/dev/null' EXIT
 
-# ① 暂停队列
-if [ -s "$Q" ]; then cp "$Q" "$HOLD"; : > "$Q"; echo "[hold] 队列暂存 $(grep -cve '^\s*$' "$HOLD") 行"; fi
+# ① 暂停队列。**NOHOLD=1 时跳过** —— 当评测队列本身就是主交付物、
+# 且在跑的作业很长（全网格一个作业 7 个 ratio x 100 样本，数小时）时，
+# 暂停队列会把交付物卡住，而训练照样拿不到卡。那种情况下只公平抢锁即可。
+if [ "${NOHOLD:-0}" != "1" ] && [ -s "$Q" ]; then
+    cp "$Q" "$HOLD"; : > "$Q"; echo "[hold] 队列暂存 $(grep -cve '^\s*$' "$HOLD") 行"
+fi
 
 occupied() {   # 该卡是否有 compute 进程
     local uuid; uuid=$(nvidia-smi --query-gpu=index,uuid --format=csv,noheader \
@@ -39,7 +47,7 @@ occupied() {   # 该卡是否有 compute 进程
 }
 
 for s in 0 1 2; do
-    out="varikv/chead10_s$s.pt"
+    out="varikv/${PREFIX}_s$s.pt"
     [ -e "$out" ] && { echo "[skip] $out 已存在"; continue; }
     placed=0
     while [ $placed -eq 0 ]; do
@@ -56,7 +64,7 @@ for s in 0 1 2; do
             echo "[launch] seed $s -> GPU$g  $(date +%H:%M:%S)"
             CUDA_VISIBLE_DEVICES=$g setsid nohup .venv/bin/python -u \
                 scratch_ctrl_train.py $BASE --seed "$s" --out "$out" \
-                > "scratch_ctrl_logs/train_chead10_s$s.log" 2>&1 &
+                > "scratch_ctrl_logs/train_${PREFIX}_s$s.log" 2>&1 &
             PIDS="$PIDS $!"
             sleep 30
             placed=1; break

@@ -55,11 +55,11 @@ class CalibScorer(nn.Module):
     #     szmr0 = MLP([z, margin, rs])     **去掉头身份** —— 若仍有效，说明存在
     #                                      与"我是哪个头"无关的普适修正律
     MODES = ("bias", "affine", "scalar", "kv", "k", "v",
-             "sz", "szr", "szm", "szmr0", "chead")
+             "sz", "szr", "szm", "szmr0", "chead", "chead0")
     # 逐 arch 的标量输入清单，delta() 与 __init__ 共用同一张表，避免两处各改各的
     SCALAR_FEATS = {"sz": ("z",), "szr": ("z", "rs"), "szm": ("z", "mg"),
                     "scalar": ("z", "mg", "rs"), "szmr0": ("z", "mg", "rs")}
-    NO_EMB = ("szmr0",)
+    NO_EMB = ("szmr0", "chead0")
     # **逐头常数臂（2026-08-21 加）**：输出与 token 无关的 `c_h`。
     # 为什么必须有它：`scale="global"` 下逐 token 残差**会破坏头内保序** ——
     # 实测三个种子最小 `ds'/ds` = −4.87/−4.41/−1.56，非单调状态 528/506/347 (共 1680)，
@@ -79,7 +79,11 @@ class CalibScorer(nn.Module):
     # `(A_h, B_h)` 已经是 stats 能给出的**全部**头级信息
     #（`μ+kσ` 是二者的确定函数、冗余）。真正的 `max_i s⁰_i` 需要重抽 trace 才拿得到，
     # 那是一条明确的后续项，不是现在可以偷偷用有偏值代替的。
-    HEAD_FEATS = {"chead": ("rs", "mgm")}
+    # `chead0` = chead **去掉头嵌入**（2026-08-20 加）。判它学的是**分数几何**
+    # 还是**层查找表**：若去掉「我是哪个头」仍有效，说明存在与头身份无关的普适
+    # 修正律，跨 backbone 的说法才站得住；若崩掉，方法是 model-specific 的校准表。
+    # 与 `szmr0` 对 `scalar` 的关系完全平行。
+    HEAD_FEATS = {"chead": ("rs", "mgm"), "chead0": ("rs", "mgm")}
 
     def __init__(self, d_kv: int, n_layers: int, n_heads_kv: int, arch: str = "affine",
                  n_slots: int = 8, d_m: int = 128, mode: str = "memoryless",
@@ -119,7 +123,7 @@ class CalibScorer(nn.Module):
         else:
             self.emb = nn.Parameter(torch.randn(n_layers, n_heads_kv, d_emb) * 0.02)
             if arch in self.HEAD_FEATS:
-                d_in = len(self.HEAD_FEATS[arch]) + d_emb
+                d_in = len(self.HEAD_FEATS[arch]) + (0 if arch in self.NO_EMB else d_emb)
             elif arch in self.SCALAR_FEATS:
                 d_in = len(self.SCALAR_FEATS[arch]) + (0 if arch in self.NO_EMB else d_emb)
             else:
@@ -205,7 +209,9 @@ class CalibScorer(nn.Module):
                 # 训练与评测都走这条式子，**与 token 子集无关** ⇒ 无口径偏移。
                 mgm = (mu_h - s0[:, :1]) / sig_g + mg[:, :1]
                 avail_h = {"rs": rs[:, :1], "mgm": mgm}
-                fh = [avail_h[k] for k in self.HEAD_FEATS[self.arch]] + [r]
+                fh = [avail_h[k] for k in self.HEAD_FEATS[self.arch]]
+                if self.arch not in self.NO_EMB:
+                    fh = fh + [r]
                 raw = self.head(torch.cat(fh, dim=-1)).expand_as(z)
             elif self.arch in self.SCALAR_FEATS:
                 avail = {"z": z, "mg": mg, "rs": rs}
