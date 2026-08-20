@@ -101,7 +101,10 @@ if __name__ == "__main__":
             ("sg125  σ_g 1.25", "varikv/sg125_scalar_s%d.pt/memoryless.pt"),
             ("chead  σ_g 1.25", "varikv/chead_s%d.pt/memoryless.pt"),
             ("chd10  σ_g .999", "varikv/chead10_s%d.pt/memoryless.pt"),
-            ("chead15 σ_g 1.5", "varikv/chead15_s%d.pt/memoryless.pt")]
+            ("chead15 σ_g 1.5", "varikv/chead15_s%d.pt/memoryless.pt"),
+            ("sg035  σ_g .349", "varikv/sg035_scalar_s%d.pt/memoryless.pt"),
+            ("sh286  σ_h 2.861", "varikv/sh286_scalar_s%d.pt/memoryless.pt"),
+            ("stat10 静态表", "varikv/stat10_s%d.pt/memoryless.pt")]
     print("**候选池内**配额移动（trace 口径，见文件头限定）\n")
     z_mb, z_rs, z_nc, *_ = analyse(_Zero(), a.traces, a.n_doc)
     if len(z_mb):
