@@ -66,12 +66,20 @@ class CalibScorer(nn.Module):
     # 最危险点全在 `A_h = σ_h/σ_g ≈ 0.003` 的低 σ 头上（放大 1/A ≈ 300×）。
     # 而头内常数平移使 `ds'/ds ≡ 1` —— **保序是构造性的，不需要任何探针**，
     # 于是等价定理的前提自动满足，该臂**可证地只做逐头配额重分配**。
-    # 头级输入（每头三个标量，全部可从 stats 得到，不看 K/V）：
-    #   rs  = log(σ_h/σ_g)        本头尺度 vs 全局尺度
-    #   mgm = mean_i (s⁰_i − τ)/σ_g   本头到全局阈值的平均距离
-    #   mgx = max_i  (s⁰_i − τ)/σ_g   本头**最好的那个 token** 离阈值多远
-    # `mgx` 是可达性分析直接指出的量：越阈与否取决于缺口 `τ − s_max,h`。
-    HEAD_FEATS = {"chead": ("rs", "mgm", "mgx")}
+    # 头级输入（每头两个标量，**都从 stats 精确算出，不对 token 集合做聚合**）：
+    #   rs  = log(σ_h/σ_g)          = log A_h
+    #   mgm = (μ_h − τ)/σ_g         = B_h
+    # **为什么不能对 token 聚合**（2026-08-21 06:40 查出并修正）：训练侧的
+    # `s0` 是 teacher trace 的**近阈值有偏子集**（n_near≈256），评测侧是**整块全部
+    # 候选**。逐 token 的 `scalar` 受影响小（网络看单个 token），但头级聚合量会
+    # 系统性偏移 —— 实测池内 `mean(mg)` 与真值差**中位 0.177 σ_g、最大 0.365 σ_g**，
+    # 相对 1.25 σ_g 的动作范围是 14%。而 `μ_h` 的无偏值 trace 本来就存着。
+    # ⇒ `mgm` 改为由 stats 精确构造，训练/评测**逐字同一个公式**。
+    # **同时删掉 `mgx`（池内 max）**：它无法从 stats 无偏恢复，而
+    # `(A_h, B_h)` 已经是 stats 能给出的**全部**头级信息
+    #（`μ+kσ` 是二者的确定函数、冗余）。真正的 `max_i s⁰_i` 需要重抽 trace 才拿得到，
+    # 那是一条明确的后续项，不是现在可以偷偷用有偏值代替的。
+    HEAD_FEATS = {"chead": ("rs", "mgm")}
 
     def __init__(self, d_kv: int, n_layers: int, n_heads_kv: int, arch: str = "affine",
                  n_slots: int = 8, d_m: int = 128, mode: str = "memoryless",
@@ -191,8 +199,12 @@ class CalibScorer(nn.Module):
                 # **逐头一个标量**：先把逐 token 的 mg 汇成头级统计量，
                 # MLP 只吃 [H, 3+d_emb]，输出 [H,1] 再广播回 [H,n]。
                 # 广播是关键：同一头内所有 token 拿到**同一个**修正 ⇒ 保序恒成立。
-                avail_h = {"rs": rs[:, :1], "mgm": mg.mean(-1, keepdim=True),
-                           "mgx": mg.max(-1, keepdim=True).values}
+                # `mgm = (μ_h − τ)/σ_g`，由 stats 精确构造：
+                #   mg = (s⁰ − τ)/σ_g ⇒ τ = s⁰ − mg·σ_g（任取一个 token 都相同）
+                #   ⇒ (μ_h − τ)/σ_g = (μ_h − s⁰₀)/σ_g + mg₀
+                # 训练与评测都走这条式子，**与 token 子集无关** ⇒ 无口径偏移。
+                mgm = (mu_h - s0[:, :1]) / sig_g + mg[:, :1]
+                avail_h = {"rs": rs[:, :1], "mgm": mgm}
                 fh = [avail_h[k] for k in self.HEAD_FEATS[self.arch]] + [r]
                 raw = self.head(torch.cat(fh, dim=-1)).expand_as(z)
             elif self.arch in self.SCALAR_FEATS:
