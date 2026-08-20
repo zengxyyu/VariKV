@@ -283,6 +283,7 @@ class LearnedControlRetainCache(RetainCache):
                     print(f"[floorcov] chunk lo={lo} frac={os.environ.get('VARIKV_COV_FRAC','1.0')}"
                           f" order={os.environ.get('VARIKV_COV_ORDER','smax')}"
                           f" band={os.environ.get('VARIKV_COV_BAND','-')}"
+                          f" seed={os.environ.get('VARIKV_COV_SEED','-')}"
                           f" req={getattr(_pq,'_fc_req',-1)}"
                           f" avail={getattr(_pq,'_fc_avail',-1)}"
                           f" n_starved={int((b0==0).sum())}/{int(b0.numel())}"

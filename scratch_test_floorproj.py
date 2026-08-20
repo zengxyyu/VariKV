@@ -405,7 +405,39 @@ def main():
     n10 += (not ok)
     print(f"    全层带 N={nstarve} 与地板 b1 逐位相同={ok}  {'OK' if ok else '**FAIL**'}")
 
-    for k in ("VARIKV_COV_BAND", "VARIKV_COV_N"):
+    # (f) `bandrand`：带内随机子集。**这一组存在的理由**：`band` 固定取
+    #     `cand[:k]`，于是「层带」与「具体哪几个头」纠缠 —— 宽带的零结果可能
+    #     来自恰好挑中的那几个头没用。随机子集配多个种子把头身份平均掉。
+    os.environ["VARIKV_COV_ORDER"] = "bandrand"
+    os.environ["VARIKV_COV_BAND"] = "2-5"; os.environ["VARIKV_COV_N"] = "4"
+    sets = []
+    for sd in ("0", "1", "2", "3", "4"):
+        os.environ["VARIKV_COV_SEED"] = sd
+        q = _run()
+        pk = torch.nonzero((q.float() - b010) > 0).flatten()
+        lay = (pk // H10).tolist()
+        sets.append(tuple(pk.tolist()))
+        ok_i = (all(2 <= x <= 5 for x in lay) and len(lay) == 4
+                and int(q.sum()) == int(b010.sum()))
+        n10 += (not ok_i)
+    # 同种子必须**逐位可复现**；不同种子必须**至少出现两个不同子集**
+    os.environ["VARIKV_COV_SEED"] = "0"
+    rep = tuple(torch.nonzero((_run().float() - b010) > 0).flatten().tolist())
+    ok_rep = rep == sets[0]
+    ok_var = len(set(sets)) >= 2
+    n10 += (not ok_rep) + (not ok_var)
+    print(f"    bandrand 5 个种子：全部 4 头且在 L2-5 内、预算守恒"
+          f"  同种子可复现={ok_rep}  子集有变化={ok_var}（{len(set(sets))} 个不同）"
+          f"  {'OK' if ok_rep and ok_var else '**FAIL**'}")
+    os.environ["VARIKV_COV_SEED"] = "0"
+    try:
+        os.environ.pop("VARIKV_COV_SEED"); _run(); raised4 = False
+    except AssertionError:
+        raised4 = True
+    n10 += (not raised4)
+    print(f"    缺 COV_SEED 抛 AssertionError={raised4}  {'OK' if raised4 else '**FAIL**'}")
+
+    for k in ("VARIKV_COV_BAND", "VARIKV_COV_N", "VARIKV_COV_SEED"):
         os.environ.pop(k, None)
     os.environ["VARIKV_COV_ORDER"] = "smax"; os.environ["VARIKV_QUOTA_FLOOR"] = "16"
     bad += n10

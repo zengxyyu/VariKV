@@ -342,9 +342,9 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
             # 「选了哪些头」也携带信息，覆盖率不是唯一变量。
             cand = torch.nonzero(below).flatten()
             _ord = os.environ.get("VARIKV_COV_ORDER", "smax")
-            assert _ord in ("smax", "index", "revindex", "band"), \
+            assert _ord in ("smax", "index", "revindex", "band", "bandrand"), \
                 f"未知 VARIKV_COV_ORDER={_ord}"
-            if _ord == "band":
+            if _ord in ("band", "bandrand"):
                 # **显式层带**：`index`/`revindex` 只能定位到「早 vs 晚」两端，且改顺序
                 # 时头数与层跨度**同时**变（`ix05` 3.9 头全在 L0 拿 +0.00 ns，`ix15`
                 # 8.9 头跨 L0–L2 拿 +25.00★ —— 两个自变量纠缠在一起，分不开）。
@@ -370,6 +370,21 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
             project_quota._fc_avail = int(cand.numel())
             if _ord == "band":
                 pick = cand[:k]
+            elif _ord == "bandrand":
+                # **带内随机子集**：`band` 固定取最小索引，于是「层带」与「具体是
+                # 哪几个头」仍然纠缠 —— 宽带（如 L2-5 有 12.27 个候选却只取 8 个）
+                # 的零结果可能来自「恰好挑中的那 8 个头没用」而非层位置。
+                # 外部复核正确指出这一点。本模式在带内**均匀随机**取 N 个，
+                # 配合多个 `VARIKV_COV_SEED` 重复，把头身份平均掉。
+                # **确定性**：种子由 (COV_SEED, Btot, 候选数) 直接构造，
+                # **不依赖调用顺序**，所以同一配置重跑逐位可复现。
+                _sd = os.environ.get("VARIKV_COV_SEED")
+                assert _sd is not None, "bandrand 必须给 VARIKV_COV_SEED"
+                _g = torch.Generator(device="cpu")
+                _g.manual_seed((int(_sd) * 1000003 + int(Btot) * 31
+                                + int(cand.numel())) % (2 ** 31 - 1))
+                perm = torch.randperm(int(cand.numel()), generator=_g)
+                pick = cand[perm[:k].to(cand.device)]
             elif _ord == "smax":
                 smax = sc.reshape(b0.numel(), -1).float().max(dim=-1).values
                 pick = cand[torch.argsort(smax[cand], descending=True)[:k]]

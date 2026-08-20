@@ -63,7 +63,9 @@ def main(path="/tmp/vq/jobs.txt"):
                     errs.append(f"表最后一维 {shp[-1]} != L*H={L*H}（{model}）")
         if tag.lstrip("_") in done:
             errs.append(f"tag 已跑完过（重复排队）")
-        if env.get("VARIKV_COV_ORDER") == "band":
+        if env.get("VARIKV_COV_ORDER") == "bandrand" and "VARIKV_COV_SEED" not in env:
+            errs.append("order=bandrand 但缺 VARIKV_COV_SEED")
+        if env.get("VARIKV_COV_ORDER") in ("band", "bandrand"):
             if "VARIKV_COV_BAND" not in env:
                 errs.append("order=band 但缺 VARIKV_COV_BAND")
             elif L is not None:
