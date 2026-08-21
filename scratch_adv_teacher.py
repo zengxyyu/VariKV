@@ -103,7 +103,8 @@ def make_task(m, ids, max_ctx, window, n_fact, rng):
                           n_tgt=sum(len(q) + len(a) for q, a in qas))
 
 
-def make_task_prefsuf(m, ids, max_ctx, window, n_fact, rng, n_decoy=3):
+def make_task_prefsuf(m, ids, max_ctx, window, n_fact, rng, n_decoy=3,
+                      fmt="list"):
     """**PrefSuf 形态**的合成任务 —— 与 `make_task` 只差「问什么」。
 
     动机（2026-08-21）：静态 `u` 表在 Retr.KV 上 +29.40★ 而在 PrefSuf 上
@@ -168,7 +169,14 @@ def make_task_prefsuf(m, ids, max_ctx, window, n_fact, rng, n_decoy=3):
         # 这里保留「分散到多个 chunk」（教师要测的就是跨 chunk 的逐头配额，
         # 全塞一块会让优势集中在单个 chunk），但把每次插入写成**列表片段**。
         for x in pool:
-            items.append(m.encode(f" '{x}',")[0].tolist())
+            # **`fmt` 是这一族里唯一被扫的变量**；抬头与问句都固定为真实版，
+            # 免得像首版那样一次改三样、事后归因不了。
+            #   list —— `" 'X',"`，贴近真实 PrefSuf 的 `dictionary = [...]`；
+            #   sent —— 整句形式。散在散文里时它自带「这是词典条目」的语义，
+            #           而裸的 `'X',` 只是噪声。哪个更好由数据判，不由我猜。
+            _t = (f" '{x}'," if fmt == "list"
+                  else f" The dictionary contains the word '{x}'. ")
+            items.append(m.encode(_t)[0].tolist())
         _q = m.encode(
             f'\nGiven prefix = "{p_}"\nsuffix = "{s_}"\n\nWhat is the word in '
             f'the dictionary that has both the prefix and the suffix?\nAnswer:'
@@ -571,6 +579,14 @@ def main():
                          "与 Retr.KV 同构）；prefsuf=给前后缀问词（与 PrefSuf "
                          "同构，含同前缀/同后缀诱饵）。**只在 corpus 不是 real: "
                          "时生效** —— real: 用数据集自带的问答。")
+    ap.add_argument("--task_fmt", default="list", choices=["list", "sent"],
+                    help="prefsuf 任务里**词条的呈现形式**（抬头与问句固定为真实版，"
+                         "这是该族里唯一被扫的变量）。list=`'X',` 列表片段；"
+                         "sent=`The dictionary contains the word 'X'.` 整句。")
+    # ⚠ `--n_recv` 曾在 2026-08-21 加 `--task` 时被我**误删**（拼接写错），
+    # 只有已判死的 pair 模式用到 `a.n_recv`，所以没炸，但那是静默破坏。
+    # 用「argparse 选项全集与改动前对拍」查出来的 —— 这类检查值得每次都做。
+    ap.add_argument("--n_recv", type=int, default=4)
     ap.add_argument("--n_don", type=int, default=4)
     ap.add_argument("--ks", default="1,4,16",
                     help="每个动作转移多少个 KV 条目。**不要只用 k=1** —— "
@@ -668,9 +684,12 @@ def main():
             meta = dict(n_fact=len(qas), pos=[], n_ans=sum(len(x[1]) for x in qas),
                         n_tgt=sum(len(x[0]) + len(x[1]) for x in qas))
         else:
-            _mk = (make_task_prefsuf if a.task == "prefsuf" else make_task)
-            ctx_ids, qas, meta = _mk(
-                m, ids, a.max_ctx, a.window, a.n_fact, rng)
+            if a.task == "prefsuf":
+                ctx_ids, qas, meta = make_task_prefsuf(
+                    m, ids, a.max_ctx, a.window, a.n_fact, rng, fmt=a.task_fmt)
+            else:
+                ctx_ids, qas, meta = make_task(
+                    m, ids, a.max_ctx, a.window, a.n_fact, rng)
         # ---- 三道守卫，与 `scratch_ctrl_teacher.py` 逐条对齐 ----
         if len(ctx_ids) < a.chunk // 2:
             print(f"doc{di} 太短 ({len(ctx_ids)})，跳过"); continue
@@ -788,12 +807,35 @@ def main():
         # 按后缀去检索，直接中止。
         _qd = meta.get("qas_decoy")
         if _qd:
+            # **2026-08-21 修正了一个判据错误。** 此前这里只在 `j0` 上比，
+            # 并把它标成「满缓存」—— 但 `m.prefill(..., chunk_ratio=a.ratio)`
+            # 出来的缓存**已经压到 ρ 了**，`j0` 是压缩后的读数。于是判据变成
+            # 「模型在 10% 缓存下分不开就判死任务」，而**那恰恰是教师要利用的
+            # headroom**，不是拒绝理由。已因此错杀过一版格式。
+            #
+            # 正确要分两问：
+            #   (A) **任务良定** —— 满缓存下 NLL(正确) < NLL(诱饵)。只有 A 才是
+            #       「模型做不做得了这个任务」，**只有 A 当闸**。
+            #   (B) **有 headroom** —— ρ 下比满缓存差。是信息，不当闸。
+            # `RetainCache` 只是掩码、KV 全在，所以 valid 置全 True 就能免费
+            # 拿到满缓存参照，不必重跑 prefill。
             _qd_t = [(torch.tensor([q_ + a_], device=m.device), len(a_))
                      for q_, a_ in _qd]
             _jd, _ = answer_nll(m, kv, _qd_t, n_seen)
-            print(f"  自检⑤ 满缓存 NLL 正确 {j0:.4f} vs 同前缀诱饵 {_jd:.4f}"
-                  f"  差 {_jd - j0:+.4f}", flush=True)
-            _ck5.append(_jd - j0)
+            _all = torch.ones_like(base_valid)
+            kv.valid = _wb(_all)
+            _jf, _ = answer_nll(m, kv, qas_t, n_seen)
+            _jdf, _ = answer_nll(m, kv, _qd_t, n_seen)
+            kv.valid = _wb(base_valid)          # 还原，后续动作都基于它
+            print(f"  自检⑤A 满缓存 NLL 正确 {_jf:.4f} vs 诱饵 {_jdf:.4f}"
+                  f"  **余量 {_jdf - _jf:+.4f}**（须 > 0：任务良定）", flush=True)
+            print(f"  自检⑤B ρ={a.ratio} NLL 正确 {j0:.4f} vs 诱饵 {_jd:.4f}"
+                  f"  余量 {_jd - j0:+.4f}；压缩损伤 {j0 - _jf:+.4f}"
+                  f"（须 > 0：有 headroom，**不当闸**）", flush=True)
+            # **⚠ 绝不能覆写 `j0`** —— 它是后面 `A = j0 − jj` 的基线，覆写会让
+            # 每一个优势标签都算错基线。累计判定用**独立变量**装满缓存余量。
+            _m5 = _jdf - _jf
+            _ck5.append(_m5)
             _bad = sum(1 for x in _ck5 if x <= 0)
             assert _bad < 2, (
                 f"**满缓存下模型没在检索**：已有 {_bad} 篇的正确答案 NLL 不低于"
