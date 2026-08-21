@@ -142,8 +142,19 @@ class LearnedControlRetainCache(RetainCache):
                 # 分量，不改变任何可辨识内容** —— 若分数确实只由差值决定，它应逐位无变化；
                 # 若有变化，说明别处（clamp/round/边界）把常数分量变成了可见的。
                 if os.environ.get("VARIKV_CENTER"):
-                    _m0 = delta.mean(dim=(0, 1, 2), keepdim=True) \
-                        if delta.dim() == 4 else delta.mean()
+                    # **⚠ 这不是性能实验，是回归检验。** 全局 Top-B 下
+                    # `TopB(s + κ·1) = TopB(s)` 精确成立（已 CPU 逐位验证），
+                    # 所以对**逐头常数**的 `c` 做中心化，推理结果**必须逐样本不变**。
+                    # 真正要解决「网络学了不可辨识方向」，得把中心化放进**训练参数化**
+                    # 重训一臂 —— 只在推理减均值不改变任何决策。
+                    # **只对逐头常数合法**：若 `delta` 随 token 变化，
+                    # `mean(dim=(0,1,2))` 留下 token 维，减掉的是**逐位置不同**的量，
+                    # 那不是规范变换，会真的改排序。所以这里硬断言。
+                    _dt = delta[:, 0] if delta.dim() == 4 else delta      # [L,H,n]
+                    assert bool((_dt.amax(-1) - _dt.amin(-1)).abs().max() < 1e-6), \
+                        "VARIKV_CENTER 只对逐头常数的 delta 合法（chead 族）；" \
+                        "token 级 delta 上做 mean(0,1,2) 会改变排序，不是规范变换"
+                    _m0 = delta.mean()
                     delta = delta - _m0
 
                 # ── `VARIKV_PRECOND=α`：按前沿密度预条件 `c_h ← c_h · ρ_h^{−α}` ──
@@ -187,7 +198,21 @@ class LearnedControlRetainCache(RetainCache):
                             _d1 = float(delta.abs().mean())
                             if _d1 > 0:
                                 delta = delta * (_d0 / _d1)     # 保幅度
-                            print(f"[precond] a={_pa} clip={_kap} rho 中位="
+                            # **保 E|Δs| 不等于排除幅度混淆**（外部复核指出，接受）：
+                            # Top-B 是非线性的，两个 E|Δs| 相同的干预仍可有完全不同的
+                            # RMS / 尾部 / 头集中度，尤其是**配额搬动量** `M_b`。
+                            # 而损伤实测是跟 `‖Δb‖` 走的 ⇒ **必须把 M_b 一起打出来**，
+                            # 否则分不清「几何变好」与「只是动得更少」。
+                            _va, _ = self.threshold(score0, ratio, level)
+                            _vb, _ = self.threshold(
+                                score0 + delta.to(score0.dtype), ratio, level)
+                            _mb = int((_va ^ _vb).sum()) // 2
+                            _fl = delta.abs().flatten().float()
+                            print(f"[precond] a={_pa} clip={_kap} **M_b={_mb}** "
+                                  f"(占保留集 {_mb / max(int(_va.sum()), 1):.4f}) "
+                                  f"RMS={float((_fl ** 2).mean() ** 0.5):.5f} "
+                                  f"p90={float(_fl.quantile(0.90)):.5f} "
+                                  f"p99={float(_fl.quantile(0.99)):.5f} rho 中位="
                                   f"{float(_rho.median()):.1f} 极差=[{float(_rho.min()):.1f},"
                                   f"{float(_rho.max()):.1f}] 被夹住={_nclip}/{_rho.numel()} "
                                   f"权重极差=[{float(_sc.min()):.3f},{float(_sc.max()):.3f}] "
