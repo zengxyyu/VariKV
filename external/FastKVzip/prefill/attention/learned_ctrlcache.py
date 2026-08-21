@@ -159,7 +159,8 @@ class LearnedControlRetainCache(RetainCache):
                                 score0 + (delta * lam).to(score0.dtype), ratio, level)
                             return int((_vm ^ _v0).sum()) // 2
 
-                        if _mb(1.0) > _tgt * _B:          # 只在超限时才动
+                        _mbf = _mb(1.0)                   # **缩放前**先算一次
+                        if _mbf > _tgt * _B:              # 只在超限时才动
                             _lo, _hi = 0.0, 1.0
                             for _ in range(8):
                                 _mid = 0.5 * (_lo + _hi)
@@ -179,8 +180,12 @@ class LearnedControlRetainCache(RetainCache):
                         # 字段名与本文件其它四条日志同一约定：`chunk lo` 是**块偏移**，
                         # 不是二分出来的 λ。λ 由 `lam=` 单独给出（外部复核曾把
                         # `lo=` 误读成二分结果 —— 缺的那两个字真的造成了误判）。
+                        # `mb_full` 必须用**缩放前**的 `_mbf`：`delta` 已经乘过 `_lo`，
+                        # 此处再调 `_mb(1.0)` 拿到的是缩放**后**的翻转数，读起来像
+                        # 「无约束就没超限」，与 lam<1 直接矛盾。首版就是这样写的。
                         print(f"[trust] chunk lo={lo} tgt={_tgt} B={_B}"
-                              f" mb_full={_mb(1.0)} cap={_tgt*_B:.0f}"
+                              f" mb_full={_mbf} cap={_tgt*_B:.0f}"
+                              f" mb_after={_mb(1.0)}"
                               f" lam={self.trust_lam[-1]:.6f}"
                               f" delta_l1={float(delta.abs().sum()):.1f}", flush=True)
                 score = score0 + delta.to(score0.dtype)
