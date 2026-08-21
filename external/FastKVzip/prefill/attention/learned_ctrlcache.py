@@ -384,6 +384,18 @@ class LearnedControlRetainCache(RetainCache):
                           f" n_starved={int((b0==0).sum())}/{int(b0.numel())}", flush=True)
                 bt = project_quota(b0, _dlt, n, _qm, L, H,
                                    sc=sc, alpha_eff=_ae)
+                if _rel:
+                    # **`got_L1/2` 只是请求量，不是实际搬动量。**（2026-08-21 补）
+                    # `project_quota` 会被裁剪 —— ρ=0.1 上 64/112 个头零配额，
+                    # 让一个空头再吐出配额是不可能的。两张表若请求量相同（RELMB
+                    # 构造性保证）但**可实现比例**不同，「少伤」就仍可能是幅度效应
+                    # 而非方向差异。这一行把实际量打出来，判据才闭合。
+                    _re = float((bt.float() - b0.float()).abs().sum()) / 2.0
+                    _rq = float(_dlt.abs().sum()) / 2.0
+                    print(f"[qreal] chunk lo={lo} 请求 L1/2={_rq:.0f}"
+                          f" **实际 L1/2={_re:.0f}** 可实现={_re / max(_rq, 1e-9):.4f}"
+                          f" 动的头={int(((bt.float() - b0.float()).abs() > 0.5).sum())}"
+                          f"/{int(b0.numel())}", flush=True)
                 if _qm == "maxlift":
                     # **这一行是 maxlift 唯一的运行时证据，缺了它这个实验读不了。**
                     # `certify` 只保证结果可达且预算守恒；它**不能**区分
