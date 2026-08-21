@@ -171,6 +171,15 @@ class LearnedControlRetainCache(RetainCache):
                             self.trust_lam.append(_lo)
                         else:
                             self.trust_lam.append(1.0)
+                        # **这一行是信赖域唯一的运行时证据。** 二分的 `_lo` 初值是
+                        # 0，只有某个 `_mid` 满足约束才上调；若最小可测 λ=1/256 就
+                        # 已超限，`_lo` 保持 0 ⇒ `delta` 整个归零 ⇒ **方法被关掉**。
+                        # 那与「约束住了但仍在动」在分数上都可能读成 +0.00，而两者
+                        # 结论完全相反（一个是止血成功，一个是没做任何干预）。
+                        print(f"[trust] lo={lo} tgt={_tgt} B={_B}"
+                              f" mb_full={_mb(1.0)} cap={_tgt*_B:.0f}"
+                              f" lam={self.trust_lam[-1]:.6f}"
+                              f" delta_l1={float(delta.abs().sum()):.1f}", flush=True)
                 score = score0 + delta.to(score0.dtype)
                 self.delta_std.append(float(delta.std()))
 
