@@ -144,3 +144,31 @@ doc118: clen=102160 保留 685429 (0.062)  基线 NLL 0.6485  答案 120 tok / t
   自检① 零动作 A = +0.000e+00（须恰为 0）✓
   chunk 模式：共 7 个 chunk，探测 [0, 3, 6]（等距覆盖首/中/尾）
     chunk0 [0,11876) B_c=83008 池 34/112 k=49
+      done  |A| 中位 0.01358
+    chunk3 [43876,59876) B_c=111834 池 36/112 k=62
+      done  |A| 中位 0.00497
+    chunk6 [91876,98064) B_c=43251 池 42/112 k=21
+      done  |A| 中位 0.00795
+[effective] clen=108005 window=4096 chunk_ratio=0.064523 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.76it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.57it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.50it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.45it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.40it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.36it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.47it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.46it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+  自检④ 保留者均分 0.8065 > 被驱逐者 0.0630 ✓
+doc119: clen=108005 保留 750892 (0.065)  基线 NLL 0.6956  答案 114 tok / target 350  事实 8 条
+  自检① 零动作 A = +0.000e+00（须恰为 0）✓
+  chunk 模式：共 7 个 chunk，探测 [0, 3, 6]（等距覆盖首/中/尾）
+    chunk0 [0,11876) B_c=85821 池 36/112 k=48
+      done  |A| 中位 0.02111
+    chunk3 [43876,59876) B_c=115623 池 34/112 k=68
+      done  |A| 中位 0.00356
+    chunk6 [91876,103909) B_c=86956 池 36/112 k=48
+      done  |A| 中位 0.00327
+Traceback (most recent call last):
+  File "/home/ubuntu/zxy/vlm-memory/scratch_adv_teacher.py", line 1068, in <module>
+    acts += [(i, j, k, "rand") for i in rnd for j in don[:1] for k in ks]
+^^^^^^
+  File "/home/ubuntu/zxy/vlm-memory/scratch_adv_teacher.py", line 1002, in main
+    if a.mode == "grad":
+               ^^^^^^^^^^
+KeyError: 'A_odd'

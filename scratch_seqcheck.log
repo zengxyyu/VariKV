@@ -1,0 +1,103 @@
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.93it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.97it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.96it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  2.02it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  2.00it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: retain
+文档 2 篇（corpus=cat, 起始 0）  L=28 H=4  ρ=0.1  k∈[1, 4, 16]
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:01<00:07,  1.09s/it]Prefill:  25%|██▌       | 2/8 [00:01<00:05,  1.14it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.25it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.29it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.30it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.28it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.73it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.39it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+  自检④ 保留者均分 0.8187 > 被驱逐者 0.0678 ✓
+doc0: clen=113157 保留 808596 (0.066)  基线 NLL 0.5809  答案 123 tok / target 356  事实 8 条
+  自检① 零动作 A = +0.000e+00（须恰为 0）✓
+  seqcheck: chunk0 绝对区间 [28,11904) B_c=88050 池 34 k=52  方向 12
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.79it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.57it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.46it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.42it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.39it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.35it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.81it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.55it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+  自检⑤ 恒等重跑基线 0.580895 vs 原基线 0.580895  差 +0.00e+00（应≈0；不为 0 则用重跑基线做 A_seq 的参照）
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.77it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.57it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.50it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.44it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.40it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.36it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.82it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.56it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.76it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.56it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.49it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.44it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.40it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.36it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.82it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.56it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.75it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.55it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.49it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.44it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.40it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.36it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.82it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.56it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.76it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.56it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.49it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.44it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.40it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.36it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.81it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.56it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+    4/12
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.78it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.57it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.50it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.44it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.40it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.36it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.81it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.56it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.78it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.57it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.50it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.44it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.40it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.36it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.81it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.56it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.78it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.57it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.49it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.44it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.40it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.36it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.82it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.56it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.61it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.37it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.38it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.36it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.34it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.31it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.80it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.52it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+    8/12
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.77it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.57it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.50it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.45it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.35it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.81it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.55it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.76it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.57it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.50it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.45it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.40it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.36it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.82it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.56it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.79it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.58it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.50it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.45it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.40it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.37it/s]Prefill:  88%|████████▊ | 7/8 [00:04<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.82it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.57it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.77it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.57it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.50it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.45it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.40it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.36it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.82it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.57it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+    12/12
+
+  === doc0 chunk0：事后 vs 序贯 ===
+    A_term 均值 -0.07182 sd 0.03457
+    A_seq  均值 -0.06864 sd 0.03477
+    Pearson +0.937  Spearman +0.615  符号一致 100.0%
+    **判据**：Spearman ≥ 0.8 且符号一致 ≥ 80% ⇒ 事后近似可用；明显更低 ⇒ 教师必须做真实序贯 rollout
+[effective] clen=107169 window=4096 chunk_ratio=0.064235 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.76it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.56it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.49it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.44it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.40it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.36it/s]
