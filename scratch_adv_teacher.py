@@ -491,8 +491,12 @@ def main():
     ap.add_argument("--n_chunk_probe", type=int, default=3,
                     help="chunk 模式下探测几个 chunk（等距覆盖首/中/尾）。"
                          "首尾之差直接回答「终态一步动作 vs 逐 chunk 序贯」。")
+    ap.add_argument("--seq_chunk", type=int, default=0,
+                    help="seqcheck 在第几个 chunk 上施加扰动（0 = 首块，下游影响最大）")
+    ap.add_argument("--n_seq", type=int, default=12,
+                    help="seqcheck 的方向数。每个方向要多跑一次完整 prefill，很贵")
     ap.add_argument("--mode", default="pair",
-                    choices=["pair", "grad", "ascent", "chunk"],
+                    choices=["pair", "grad", "ascent", "chunk", "seqcheck"],
                     help="pair=逐 (受主,施主) 对的优势；"
                          "grad=保预算随机稠密扰动 + 最小二乘反解逐头边际效用。"
                          "**首跑判决 pair 不可用**：单对挪 16 条只动 0.002 nats，"
@@ -649,6 +653,130 @@ def main():
         j_null, _ = answer_nll(m, kv, qas_t, n_seen)
         assert j_null == j0, f"零动作不复现基线：{j_null} vs {j0}"
         print(f"  自检① 零动作 A = {j0 - j_null:+.3e}（须恰为 0）✓", flush=True)
+
+        if a.mode == "seqcheck":
+            # **终态事后干预 vs 真实序贯干预的一致性检验**（2026-08-21）。
+            #
+            # 撤回 56 的直接后果：`chunk` 模式里扰动施加在**整段 prefill 之后**，
+            # 而 `prune_chunk` 是在 prefill 的 chunk 循环里调用的
+            #（`wrapper.py:311`），`prepare()` 又靠 `self.valid` 决定后续 chunk
+            # 能看到什么（`kvcache.py:337-346`）。所以真实策略在 chunk c 的动作会
+            # 改变 c+1..T 的隐状态、分数、阈值乃至后续动作；事后改 mask 不会。
+            #
+            # 这里对**同一批方向**同时测两者：
+            #   A_term : 整段 prefill 完再改 chunk c 的 mask
+            #   A_seq  : 在 prefill 过程中、`prune_chunk` 刚算出 chunk c 的 valid
+            #            时就把扰动写进去，然后让后续 chunk 照常跑
+            # 比较两者的相关与符号一致率。高度一致 ⇒ 便宜的事后近似可用；
+            # 否则教师必须真的做序贯 rollout（每个方向一次完整 prefill）。
+            offs, _c = [], 0
+            for _lo, _hi, _t in rec_s:
+                offs.append((_c, min(_c + (_hi - _lo), n_ev), _lo, _hi)); _c += _hi - _lo
+            offs = [(x, y_, z_, w_) for x, y_, z_, w_ in offs if y_ > x]
+            ci = min(a.seq_chunk, len(offs) - 1)
+            clo, chi, abs_lo, abs_hi = offs[ci]
+            cev, crt = presort_chunk(base_valid, sc, clo, chi)
+            Bc = int(base_valid[..., clo:chi].sum())
+            pool = feasible_pool(cev, crt, 1, L_c, H_c)
+            for _ in range(6):
+                k_nom = max(1, int(round(float(str(a.mb).split(",")[0]) * Bc
+                                         / max(len(pool) / 2, 1))))
+                nxt = feasible_pool(cev, crt, k_nom, L_c, H_c)
+                if len(nxt) == len(pool) or not nxt:
+                    pool = nxt or pool
+                    break
+                pool = nxt
+            k_nom = max(1, int(round(float(str(a.mb).split(",")[0]) * Bc
+                                     / max(len(pool) / 2, 1))))
+            print(f"  seqcheck: chunk{ci} 绝对区间 [{abs_lo},{abs_hi}) B_c={Bc} "
+                  f"池 {len(pool)} k={k_nom}  方向 {a.n_seq}", flush=True)
+            # **自检⑤：恒等扰动的重跑必须复现基线。** A_seq 的基线来自另一条
+            # 代码路径（重跑 prefill + 打补丁），若它本身就与 j0q 不同，后面测到的
+            # 差异里会混进路径差而不是干预效应。先用 `seg = 基线本段` 跑一次。
+            _seg0 = base_valid[..., clo:chi].clone()
+            _n0 = {"n": 0}
+            _o0 = RetainCache.prune_chunk
+
+            def _pc0(self, ratio, evict_range=tuple, level="pair"):
+                out = _o0(self, ratio, evict_range, level)
+                if _n0["n"] == ci and self.valid is not None:
+                    vv = self.valid
+                    t_ = vv[:, 0] if vv.dim() == 4 else vv
+                    w_ = min(_seg0.shape[-1], t_.shape[-1])
+                    t_[..., -w_:] = _seg0[..., -w_:].to(t_.device)
+                _n0["n"] += 1
+                return out
+
+            RetainCache.prune_chunk = _pc0
+            try:
+                kv0 = m.prefill(ctx_t, prefill_chunk_size=a.chunk, do_score=True,
+                                chunk_ratio=a.ratio, window_size=a.window, level=a.level)
+            finally:
+                RetainCache.prune_chunk = _o0
+            j0s, j0sq = answer_nll(m, kv0, qas_t, kv0._seen_tokens)
+            del kv0
+            torch.cuda.empty_cache()
+            print(f"  自检⑤ 恒等重跑基线 {j0s:.6f} vs 原基线 {j0:.6f}  "
+                  f"差 {j0s - j0:+.2e}（应≈0；不为 0 则用重跑基线做 A_seq 的参照）",
+                  flush=True)
+
+            terms, seqs = [], []
+            for it in range(a.n_seq):
+                r_ = random.Random((a.seed, di, ci, 9000 + it // 2).__hash__())
+                v, d = random_delta(base_valid, cev, crt, k_nom, r_,
+                                    pool=pool, flip=(it % 2 == 1))
+                assert int(v[..., clo:chi].sum()) == Bc
+                # ---- A_term：事后改 mask ----
+                kv.valid = _wb(v)
+                _, jq = answer_nll(m, kv, qas_t, n_seen)
+                terms.append(float((j0q - jq).mean()))
+                kv.valid = raw_valid
+                # ---- A_seq：重跑 prefill，在 chunk ci 处把扰动写进去 ----
+                seg = v[..., clo:chi].clone()
+                st_ = {"n": 0}
+                _o2 = RetainCache.prune_chunk
+
+                def _pc2(self, ratio, evict_range=tuple, level="pair"):
+                    out = _o2(self, ratio, evict_range, level)
+                    if st_["n"] == ci and self.valid is not None:
+                        vv = self.valid
+                        tgt_ = vv[:, 0] if vv.dim() == 4 else vv
+                        w_ = min(seg.shape[-1], tgt_.shape[-1])
+                        tgt_[..., -w_:] = seg[..., -w_:].to(tgt_.device)
+                    st_["n"] += 1
+                    return out
+
+                RetainCache.prune_chunk = _pc2
+                try:
+                    kv2 = m.prefill(ctx_t, prefill_chunk_size=a.chunk, do_score=True,
+                                    chunk_ratio=a.ratio, window_size=a.window,
+                                    level=a.level)
+                finally:
+                    RetainCache.prune_chunk = _o2
+                _, jq2 = answer_nll(m, kv2, qas_t, kv2._seen_tokens)
+                seqs.append(float((j0sq - jq2).mean()))   # 用同路径基线
+                del kv2
+                torch.cuda.empty_cache()
+                if (it + 1) % 4 == 0:
+                    print(f"    {it+1}/{a.n_seq}", flush=True)
+            from scipy import stats as _st
+            ta, sa = np.array(terms), np.array(seqs)
+            print(f"\n  === doc{di} chunk{ci}：事后 vs 序贯 ===")
+            print(f"    A_term 均值 {ta.mean():+.5f} sd {ta.std():.5f}")
+            print(f"    A_seq  均值 {sa.mean():+.5f} sd {sa.std():.5f}")
+            print(f"    Pearson {_st.pearsonr(ta,sa)[0]:+.3f}  "
+                  f"Spearman {_st.spearmanr(ta,sa)[0]:+.3f}  "
+                  f"符号一致 {np.mean(np.sign(ta)==np.sign(sa)):.1%}")
+            print(f"    **判据**：Spearman ≥ 0.8 且符号一致 ≥ 80% ⇒ 事后近似可用；"
+                  f"明显更低 ⇒ 教师必须做真实序贯 rollout")
+            recs.append(dict(doc=di, mode="seqcheck", chunk=ci,
+                             A_term=[float(x) for x in ta],
+                             A_seq=[float(x) for x in sa]))
+            json.dump(recs, open(os.path.join(ROOT, a.out), "w"))
+            kv.valid = raw_valid
+            del kv
+            torch.cuda.empty_cache()
+            continue
 
         if a.mode == "chunk":
             # **逐 chunk 标签**：在选定的若干个 chunk 上各解一个 112 维 `u_c`。
