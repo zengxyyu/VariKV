@@ -300,7 +300,23 @@ class LearnedControlRetainCache(RetainCache):
                 # calib_scorer.delta 逐字对齐（float() 后 std(-1) 再 clamp_min(1e-6)）。
                 _ge = abs(float(os.environ.get("VARIKV_CTRL_GAIN", "1.0")))
                 _ae = _ge * float(self.ctrl.alpha) if self.ctrl is not None else None
-                bt = project_quota(b0, self._qinj.to(b0.device), n, _qm, L, H,
+                _dlt = self._qinj.to(b0.device)
+                _rel = os.environ.get("VARIKV_QUOTA_RELMB")
+                if _rel:
+                    # **量纲对齐**：表是在探针那边按「全上下文预算」造的，而注入
+                    # 是**逐 chunk** 生效（`b0` 只覆盖本 chunk 的 evict_range）。
+                    # 直接套用会让实际搬动量差一个 chunk 数的倍数。设了这个变量就
+                    # 只取表的**方向**，把幅度重标定成 ½‖Δb‖₁ = RELMB · B_chunk。
+                    _l1 = float(_dlt.abs().sum()) / 2.0
+                    _tg = float(_rel) * float(b0.sum())
+                    if _l1 > 0:
+                        _dlt = _dlt * (_tg / _l1)
+                    _dlt = _dlt - _dlt.mean()          # 重标定后重新严格 Σ=0
+                    print(f"[qrel] chunk lo={lo} relmb={_rel}"
+                          f" B_chunk={int(b0.sum())} tgt_L1/2={_tg:.0f}"
+                          f" got_L1/2={float(_dlt.abs().sum())/2:.0f}"
+                          f" n_starved={int((b0==0).sum())}/{int(b0.numel())}", flush=True)
+                bt = project_quota(b0, _dlt, n, _qm, L, H,
                                    sc=sc, alpha_eff=_ae)
                 if _qm == "maxlift":
                     # **这一行是 maxlift 唯一的运行时证据，缺了它这个实验读不了。**

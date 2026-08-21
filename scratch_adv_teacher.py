@@ -36,8 +36,12 @@
 ────────────────────────────────────────────────────────────────────────────
 ① **零动作**（k=0）必须给出 `A == 0`（逐位），否则说明掩码写入/回滚有副作用；
 ② **预算守恒**：每个动作后 `Σ_h b_h` 必须与基线相同；
-③ **信度**：把答案 token 前后对半分别算 A，报两半的相关与符号一致率 ——
-   若两半都对不上，这个标签就不能拿来训练（本项目 `U^NLL` 那次正是栽在没测这个）。
+③ **信度**：把**问句**按奇偶交错分半，各算一次标签，报两半的相关与符号一致率。
+   **不按答案 token 位置对半**（2026-08-21 更正）—— 教师强制下后半答案条件于
+   正确前缀、对缓存依赖更弱，两半估的不是同一个潜在量，那种分法的低一致率
+   无法区分"估计量噪声大"与"真效应随位置变"。按独立事实分才是重复测量。
+   取奇/偶而非前/后，是让两半的平均问句位置相同。
+   若两半对不上，这个标签就不能拿来训练（本项目 `U^NLL` 那次正是栽在没测这个）。
 """
 import argparse
 import json
@@ -169,27 +173,41 @@ def apply_transfer(valid, score, i, j, k):
     return v, kk
 
 
-def frontier_density(valid, score, w_frac=0.02):
-    """逐头**前沿密度** `ρ_h` = 阈值 τ 附近单位分数区间内的候选条目数。
+def frontier_density(valid, score, chunks, w_frac=0.02):
+    """逐头**前沿密度** `ρ_h` = 阈值附近单位分数区间内的候选条目数，**逐 chunk 累加**。
 
-    它是把配额空间的目标翻译回分数空间的**唯一**桥梁。全局 top-B 下
+    它是把配额空间的目标翻译回分数空间的唯一桥梁。全局 top-B 下
     `b_h = n_h(τ − c_h)`，`n_h` 是该头分数的生存函数，于是（`P = Σρ`）
 
         R = ∂b/∂c = diag(ρ) − ρρᵀ/P              对称，null(R) = span(1)
 
-    已用有限差分对拍：相关 +0.967、列和恒 0、`‖R·1‖ = 3e−13`。
-    要让配额走到目标 `d`（`1ᵀd = 0`）需要解 `Rc = d`，其解是
+    已用有限差分对拍：相关 +0.967、列和恒 0、`‖R·1‖ = 3e−13`。解 `Rc = d` 得
 
-        c_h = d_h / ρ_h + κ                       κ 是规范自由度
+        c_h = d_h / ρ_h + κ                       **除以密度**
 
-    —— **除以密度**。低密度的头（早层）要很大的 `c` 才挪得动一格配额，这与
-    「L0–L2 可达率 5.0% vs L20–L27 35.9%，而 σ 只差 2.2 倍」完全一致。
+    **必须逐 chunk（2026-08-21 修正，首版是错的）**：`kvcache.py:316-318` 的
+    `prune_chunk` 只在 `score[..., evict_range]` 上调 `threshold`，所以**每个 chunk
+    有自己的 τ_c**，旧决策从不回溯。用一个混合全局 τ 去数密度，会把"分数整体
+    落在别的 chunk 阈值附近"的头误判成零密度 —— 首版据此报的「55/112 头零密度」
+    是这个错误的产物，已作废。`level="pair"` 下 τ_c 在层与头上是同一个标量，
+    所以每 chunk 一个 τ、跨 chunk 求和即可。
+
+    `chunks` 是各 chunk 在**已拼接的可驱逐区**内的 `[(off_lo, off_hi)]`。
     """
-    tau = 0.5 * (float(score[valid].min()) + float(score[~valid].max()))
-    w = w_frac * float(score.std())
     L, H, _ = valid.shape
-    return np.array([[float(((score[l, h] - tau).abs() < w).sum()) / (2 * w)
-                      for h in range(H)] for l in range(L)]).ravel()
+    rho = np.zeros(L * H)
+    w = w_frac * float(score.std())
+    taus = []
+    for lo, hi in chunks:
+        v = valid[..., lo:hi]
+        sq = score[..., lo:hi]
+        if v.numel() == 0 or not bool(v.any()) or not bool((~v).any()):
+            continue                       # 该 chunk 全保留或全驱逐 ⇒ 无前沿
+        tau = 0.5 * (float(sq[v].min()) + float(sq[~v].max()))
+        taus.append(tau)
+        rho += (((sq - tau).abs() < w).sum(-1).float().reshape(-1).cpu().numpy()
+                / (2 * w))
+    return rho, taus
 
 
 def presort(valid, score):
@@ -281,7 +299,13 @@ def report_grad(recs, a):
     from scipy import stats as st
     ALL = np.array([r["d"] for r in recs], dtype=np.float64)
     EPS = np.array([r.get("eps", -1.0) for r in recs])
-    rho = np.array(recs[0]["rho"]) if "rho" in recs[0] else None
+    DOC = np.array([r.get("doc", 0) for r in recs])
+    # **ρ 是逐篇的**（每篇自己的分数分布与逐 chunk 阈值），不能拿 recs[0] 当全体。
+    # 这里按篇平均，与「u 在多篇上合解」保持同一口径。
+    rho = None
+    if "rho" in recs[0]:
+        rho = np.mean([np.array(recs[np.where(DOC == d_)[0][0]]["rho"])
+                       for d_ in sorted(set(DOC))], axis=0)
     G = ALL.shape[1]
 
     def cv_r2(Xa, ya, lam, folds=5, seed=0):
@@ -331,6 +355,21 @@ def report_grad(recs, a):
         rel = st.spearmanr(ua[0], ua[1])[0]
         print(f"  最好 λ={lam:g}  **CV R² = {r2:+.4f}**   "
               f"奇/偶问句各解一次 u 的 Spearman {rel:+.3f}")
+        # **合解假设 u 跨篇共享**。逐篇各解一次并比对，是这个假设的直接检验；
+        # 若逐篇 R² 明显高于合解，就说明 u 依赖文档、静态表不成立。
+        ds = sorted(set(DOC[sel]))
+        if len(ds) > 1:
+            pr = []
+            for d_ in ds:
+                m_ = DOC[sel] == d_
+                if m_.sum() < 20:
+                    continue
+                Xd = Xn[m_]; yd = y[m_]
+                pr.append((d_, int(m_.sum()), cv_r2(Xd, yd, lam)))
+            if pr:
+                print("    逐篇 CV R²：" + "  ".join(
+                    f"doc{d_}(n={n_}) {r_:+.3f}" for d_, n_, r_ in pr)
+                    + f"   合解 {r2:+.3f}")
         summary.append((ep, N, r2, rel))
         if best_u is None or r2 > best_u[0]:
             best_u = (r2, ep, u)
@@ -525,12 +564,17 @@ def main():
             ev_s, rt_s = presort(base_valid, sc)
             # k_nom 由目标搬动量反推：Σ_pair k = ε·B ⇒ k_nom ≈ ε·B/(G/2)
             G = base_valid.shape[0] * base_valid.shape[1]
-            rho = frontier_density(base_valid, sc)
+            offs, _c = [], 0
+            for _lo, _hi, _t in rec_s:
+                offs.append((_c, min(_c + (_hi - _lo), n_ev))); _c += _hi - _lo
+            offs = [(x, y) for x, y in offs if y > x]
+            rho, taus = frontier_density(base_valid, sc, offs)
             mbs = [float(x) for x in str(a.mb).split(",")]
             print(f"  grad 模式：G={G} 组，每档 {a.n_dir} 个方向，ε∈{mbs}", flush=True)
-            print(f"  逐头前沿密度 ρ：中位 {np.median(rho):.1f} 极差 "
-                  f"[{rho.min():.2f}, {rho.max():.1f}] = {rho.max()/max(rho.min(),1e-9):.0f}×"
+            print(f"  逐头前沿密度 ρ（{len(taus)} 个 chunk 各自的 τ 累加）："
+                  f"中位 {np.median(rho):.1f} 极差 [{rho.min():.2f}, {rho.max():.1f}]"
                   f"  零密度头 {(rho<=0).sum()}/{G}", flush=True)
+            print(f"  各 chunk 阈值 τ_c：{['%.4f' % t for t in taus]}", flush=True)
             for mb in mbs:
                 k_nom = max(1, int(round(mb * B0 / (G / 2))))
                 print(f"  --- ε={mb:g} ⇒ 目标搬动 {mb*B0:.0f}，每对 k≈{k_nom}", flush=True)
@@ -541,14 +585,21 @@ def main():
                     jj, jjq = answer_nll(m, kv, qas_t, n_seen)
                     recs.append(dict(doc=di, mode="grad", eps=mb, d=d.tolist(),
                                      rho=[float(x) for x in rho],
+                                     taus=[float(x) for x in taus],
                                      mb=float(np.abs(d).sum() / 2),
                                      A=float((j0q - jjq).mean()),
                                      Aq=[float(x) for x in (j0q - jjq)]))
-                    if (it + 1) % 96 == 0:
+                    if (it + 1) % 64 == 0:
                         aa = np.array([r["A"] for r in recs
                                        if r.get("mode") == "grad" and r["eps"] == mb])
                         print(f"    {it+1}/{a.n_dir}  |A| 中位 "
                               f"{np.median(np.abs(aa)):.5f}", flush=True)
+                        # **增量落盘**：整轮要一两个小时，只在末尾写一次意味着
+                        # 中途完全不可读，也经不起一次崩溃。写临时文件再 replace，
+                        # 读的一方永远看到完整 json。
+                        _tmp = os.path.join(ROOT, a.out + ".part")
+                        json.dump(recs, open(_tmp, "w")); os.replace(
+                            _tmp, os.path.join(ROOT, a.out))
             kv.valid = raw_valid
             del kv
             torch.cuda.empty_cache()
