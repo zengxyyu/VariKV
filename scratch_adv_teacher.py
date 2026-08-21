@@ -145,20 +145,27 @@ def make_task_prefsuf(m, ids, max_ctx, window, n_fact, rng, n_decoy=3):
             return p_ + "".join(rng.choices(AL, k=W - 2 * K)) + s_, p_, s_
         raise RuntimeError("造词冲突过多")
 
+    qas_dec = []
     for _ in range(n_fact):
         w, p_, s_ = _w()
-        pool = [w]
+        pool, dec_p = [w], None
         for _ in range(n_decoy):
-            pool.append(_w(pre=p_)[0])       # 同前缀、异后缀
+            _d = _w(pre=p_)[0]               # 同前缀、异后缀
+            dec_p = dec_p or _d              # 留一个做自检⑤的诱饵
+            pool.append(_d)
             pool.append(_w(suf=s_)[0])       # 同后缀、异前缀
         rng.shuffle(pool)
         for x in pool:
             items.append(m.encode(
                 f" The dictionary contains the word '{x}'. ")[0].tolist())
-        qas.append((m.encode(
+        _q = m.encode(
             f"\nQuestion: Which word in the dictionary has both the prefix "
-            f"'{p_}' and the suffix '{s_}'?\nAnswer:")[0].tolist(),
-            m.encode(f" {w}")[0].tolist()))
+            f"'{p_}' and the suffix '{s_}'?\nAnswer:")[0].tolist()
+        qas.append((_q, m.encode(f" {w}")[0].tolist()))
+        # **自检⑤ 的对照**：同一个问句、答一个**同前缀异后缀**的诱饵。
+        # 它与正确答案共享前 5 个字符，只在后缀处分叉 ⇒ 两者 NLL 的差
+        # 直接度量「模型有没有真的按后缀去检索」，不需要拍阈值。
+        qas_dec.append((_q, m.encode(f" {dec_p}")[0].tolist()))
 
     lo, hi = int(0.05 * (len(ctx) - window)), int(0.90 * (len(ctx) - window))
     assert hi - lo > len(items), f"可插区间 {hi-lo} 放不下 {len(items)} 条"
@@ -166,6 +173,7 @@ def make_task_prefsuf(m, ids, max_ctx, window, n_fact, rng, n_decoy=3):
     for p_i, f_ in zip(pos, items):
         ctx[p_i:p_i] = f_
     return ctx, qas, dict(n_fact=n_fact, n_item=len(items), pos=sorted(pos),
+                          qas_decoy=qas_dec,
                           n_ans=sum(len(a) for _, a in qas),
                           n_tgt=sum(len(q) + len(a) for q, a in qas))
 
@@ -758,6 +766,24 @@ def main():
         j_null, _ = answer_nll(m, kv, qas_t, n_seen)
         assert j_null == j0, f"零动作不复现基线：{j_null} vs {j0}"
         print(f"  自检① 零动作 A = {j0 - j_null:+.3e}（须恰为 0）✓", flush=True)
+
+        # ---- 自检 ⑤：满缓存下模型到底有没有在检索（只对 prefsuf 合成任务）----
+        # 动机：若模型在**不压缩**时就做不出这个任务，那么任何配额扰动引起的
+        # NLL 变化都是噪声，教师标签整批无意义 —— 而这在下游要几小时后才看得出来。
+        # 判据**不需要阈值**：拿一个与正确答案**共享前 5 字符、只在后缀分叉**的
+        # 诱饵，问同一个问句。若 NLL(正确) 不明显低于 NLL(诱饵)，说明模型没有
+        # 按后缀去检索，直接中止。
+        _qd = meta.get("qas_decoy")
+        if _qd:
+            _qd_t = [(torch.tensor([q_ + a_], device=m.device), len(a_))
+                     for q_, a_ in _qd]
+            _jd, _ = answer_nll(m, kv, _qd_t, n_seen)
+            print(f"  自检⑤ 满缓存 NLL 正确 {j0:.4f} vs 同前缀诱饵 {_jd:.4f}"
+                  f"  差 {_jd - j0:+.4f}", flush=True)
+            assert _jd > j0, (
+                f"**满缓存下模型没在检索**：正确答案 NLL {j0:.4f} 不低于同前缀"
+                f"诱饵 {_jd:.4f}。合成任务对这个模型不可用，标签会全是噪声 —— "
+                f"中止，不要跑完 10 篇再发现。")
 
         if a.mode == "seqcheck":
             # **终态事后干预 vs 真实序贯干预的一致性检验**（2026-08-21）。
