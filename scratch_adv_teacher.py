@@ -1158,6 +1158,58 @@ def main():
         print(f"\n写出 {a.out}")
         return
 
+    if a.mode == "chunk":
+        # **2026-08-21 修**：此前 chunk 模式会一路落到下面 `pair` 专用的报表段，
+        # 在 `r["A_odd"]`（只有 pair 模式才写）上 KeyError 崩掉 —— 已确认
+        # `labc_d0` / `labm_d100` / `labrho_0.5` / `labr_ps` **全部如此**。
+        # 数据没丢（循环内每轮 `.part` + `os.replace` 增量落盘），但代价是
+        # **chunk 模式在它的整个历史里从没跑过任何收尾诊断**，其中就包括本来
+        # 能提早发现「标签不可辨识」的那些检查。这里补一个 chunk 专属报表，
+        # 并把判据写成代码而不是留给读日志的人。
+        AA = np.array([r["A"] for r in recs])
+        print(f"\n=== chunk 模式：{len(recs)} 个动作 / "
+              f"{len({r['doc'] for r in recs})} 篇 ===")
+        print(f"  A 均值 {AA.mean():+.6f}  sd {AA.std():.6f}  "
+              f"为正 {np.mean(AA > 0):.1%}")
+        print(f"  |A| 中位 {np.median(np.abs(AA)):.6f}  最大 {np.abs(AA).max():.6f}")
+        # ---- 可辨识性判据：标签里到底有没有可反解的线性成分 ----
+        # 这不是「能不能从特征预测 u」（那是另一件事），而是更前一步的
+        # 「A ≈ uᵀd 这个模型本身站不站得住」。若这里就 ≈0，任何下游的
+        # 「不可学」结论都分不清是特征没用、还是靶子是噪声。
+        X = np.array([r["d"] for r in recs], dtype=np.float64)
+        X = X - X.mean(0)
+        sx = X.std() or 1.0
+        Xn = X / sx
+        y = AA - AA.mean()
+        best = (-9.9, None)
+        for lam in (1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0):
+            rs = np.random.default_rng(0)
+            idx = rs.permutation(len(y))
+            pred = np.zeros_like(y)
+            for f_ in range(5):
+                te = idx[f_::5]
+                tr = np.setdiff1d(idx, te)
+                w = np.linalg.solve(Xn[tr].T @ Xn[tr] + lam * np.eye(Xn.shape[1]),
+                                    Xn[tr].T @ (y[tr] - y[tr].mean()))
+                pred[te] = Xn[te] @ w + y[tr].mean()
+            r2 = 1 - ((y - pred) ** 2).sum() / ((y - y.mean()) ** 2).sum()
+            if r2 > best[0]:
+                best = (r2, lam)
+        r2, lam = best
+        print(f"\n  直接反解 u 的 5 折 CV R² = {r2:+.4f}（λ={lam:g}）")
+        print(f"  参照：bulk(grad) 4 篇 1024 条 = +0.3966 λ=10；"
+              f"chunk(cat) 30 篇 14400 条 = +0.0044")
+        if r2 < 0.05 or lam >= 100.0:
+            print("  **判词：靶子不可辨识。** R² 近零或 λ 顶到上限 ⇒ 这批标签里没有")
+            print("  可反解的线性成分，**不要用它造表、也不要据此下「不可学」的结论**。")
+            print("  加样本量无效（已在 2400→14400 上验证过是平的）；要换标签形态，")
+            print("  即改用 `--mode grad`（整段扰动）。")
+        else:
+            print("  判词：靶子可辨识，可以往下造表。")
+        json.dump(recs, open(os.path.join(ROOT, a.out), "w"))
+        print(f"\n写出 {a.out}")
+        return
+
     A = np.array([r["A"] for r in recs])
     Aq = np.array([r["Aq"] for r in recs])                    # [n_act, n_q]
     h1 = np.array([r["A_odd"] for r in recs])                 # 奇数问句
