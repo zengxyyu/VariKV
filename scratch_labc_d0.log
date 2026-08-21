@@ -1,0 +1,28 @@
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.79it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.85it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.84it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.96it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.91it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: retain
+文档 5 篇（corpus=cat, 起始 0）  L=28 H=4  ρ=0.1  k∈[1, 4, 16]
+[effective] clen=113157 window=4096 chunk_ratio=0.066199 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:06,  1.02it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.21it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.31it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.31it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.28it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.73it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.41it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+  自检④ 保留者均分 0.8187 > 被驱逐者 0.0678 ✓
+doc0: clen=113157 保留 808596 (0.066)  基线 NLL 0.5809  答案 123 tok / target 356  事实 8 条
+  自检① 零动作 A = +0.000e+00（须恰为 0）✓
+  chunk 模式：共 8 个 chunk，探测 [0, 4, 7]（等距覆盖首/中/尾）
+    chunk0 [0,11876) B_c=88050 池 34/112 k=52
+      done  |A| 中位 0.07056
+    chunk4 [59876,75876) B_c=118627 池 38/112 k=62

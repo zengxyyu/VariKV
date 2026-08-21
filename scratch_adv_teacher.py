@@ -227,6 +227,31 @@ def presort(valid, score):
     return ev_s, rt_s
 
 
+def presort_chunk(valid, score, lo, hi):
+    """只在 **一个 chunk 的列区间 `[lo, hi)`** 内，逐 (层,头) 预排序。
+
+    为什么必须逐 chunk 而不是整条上下文（2026-08-21）：`kvcache.py:316-318` 的
+    `prune_chunk` **只对本 chunk 的 `evict_range` 定阈值**，结果 `cat` 到 `valid`
+    上，**旧决策从不回溯**。所以预算约束是 `Σ_h b_{c,h} = B_c`，**每个 chunk 一条**
+    —— 配额转移必须**在同一个 chunk 内**才守恒，跨 chunk 搬会破坏真实约束结构。
+
+    这同时把标签量从「每篇 112 个」提到「每篇 C×112」（C≈11 ⇒ **1232**），
+    正是 `ICLR_PLAN.md` 早就算出的独立自由度；而且它**对齐控制器的动作空间**
+    （控制器本来就是逐 chunk 动的），顺带关掉「终态一步 vs 逐 chunk 序贯」那个
+    未验项 —— 因为标签本身就变成逐 chunk 的了。
+    """
+    L, H, _ = valid.shape
+    ev_s, rt_s = {}, {}
+    for l in range(L):
+        for h in range(H):
+            seg = valid[l, h, lo:hi]
+            ev = (~seg).nonzero(as_tuple=True)[0] + lo
+            rt = seg.nonzero(as_tuple=True)[0] + lo
+            ev_s[(l, h)] = ev[torch.argsort(score[l, h][ev], descending=True)]
+            rt_s[(l, h)] = rt[torch.argsort(score[l, h][rt])]
+    return ev_s, rt_s
+
+
 def feasible_pool(ev_s, rt_s, k_nom, L, H):
     """两侧容量都 ≥ k_nom 的头。**这是采样器无偏的前提。**
 
@@ -439,6 +464,14 @@ def main():
     ap.add_argument("--level", default="pair")
     ap.add_argument("--max_ctx", type=int, default=131072)
     ap.add_argument("--n_doc", type=int, default=2)
+    ap.add_argument("--doc_start", type=int, default=0,
+                    help="文档起始下标，用来把标签生成按篇分片到多张卡上")
+    ap.add_argument("--corpus", default="cat", choices=["cat", "mix"],
+                    help="cat=上游现成的 10 篇长文（**总共只有 10 篇，是标签量的硬上限**）；"
+                         "mix=用 fineweb_10k 的 68 篇短文自拼长上下文，可造任意多条")
+    ap.add_argument("--min_chars", type=int, default=420000,
+                    help="mix 模式每条上下文的最小字符数。cat 的 10 篇是 424k–558k "
+                         "字符（约 91k–121k token），这里对齐到它的下沿")
     ap.add_argument("--n_fact", type=int, default=8,
                     help="每篇插入多少条**互不相同**的事实并各问一次。"
                          "首跑单条（答案 12–16 tok）信度只有 48.7%%（抛硬币），"
@@ -455,7 +488,11 @@ def main():
                     help="每个动作额外跑 2 次前向，量出交互项 "
                          "I = A − (g⁺ − g⁻)。**这是判断「可分性/势能表示」"
                          "成不成立的唯一办法** —— |I| ≪ |A| 才能把 A 写成 u_i − u_j。")
-    ap.add_argument("--mode", default="pair", choices=["pair", "grad", "ascent"],
+    ap.add_argument("--n_chunk_probe", type=int, default=3,
+                    help="chunk 模式下探测几个 chunk（等距覆盖首/中/尾）。"
+                         "首尾之差直接回答「终态一步动作 vs 逐 chunk 序贯」。")
+    ap.add_argument("--mode", default="pair",
+                    choices=["pair", "grad", "ascent", "chunk"],
                     help="pair=逐 (受主,施主) 对的优势；"
                          "grad=保预算随机稠密扰动 + 最小二乘反解逐头边际效用。"
                          "**首跑判决 pair 不可用**：单对挪 16 条只动 0.002 nats，"
@@ -473,12 +510,34 @@ def main():
     m = ModelKVzip(a.model, "retain", a.gate)
     L = m.config.num_hidden_layers
     H = m.config.num_key_value_heads
-    texts = [d["context"] for d in load_fineweb("fineweb_10k_cat")][:a.n_doc]
-    print(f"文档 {len(texts)} 篇  L={L} H={H}  ρ={a.ratio}  k∈{ks}", flush=True)
+    # **语料**：`cat` 是上游现成的 10 篇长文（91k–121k token）。
+    # 但 10 篇远不够当训练集 —— 逐篇解一个 `u` 就只有 10 个标签向量。
+    # `mix` 用 `fineweb_10k`（68 篇短文，8k–31k token）**自己拼**长上下文：
+    # 第 i 篇由种子 `(seed, i)` 抽 `n_cat` 篇拼到 ≥ `min_tok`，于是能造出任意多条
+    # **互不相同**的长上下文。非退化条件 `clen > window/ratio`（ρ=0.1、窗口 4096
+    # 时是 40,960）由 `min_tok` 保证，主循环里还有一道硬守卫。
+    if a.corpus == "cat":
+        texts = [d["context"] for d in load_fineweb("fineweb_10k_cat")]
+        texts = texts[a.doc_start:a.doc_start + a.n_doc]
+    else:
+        shorts = [d["context"] for d in load_fineweb("fineweb_10k")]
+        texts = []
+        for i in range(a.doc_start, a.doc_start + a.n_doc):
+            r = random.Random((a.seed, i, "mix").__hash__())
+            order = list(range(len(shorts))); r.shuffle(order)
+            buf, nc = [], 0
+            for j in order:
+                buf.append(shorts[j]); nc += len(shorts[j])
+                if nc >= a.min_chars:
+                    break
+            texts.append("\n\n".join(buf))
+    print(f"文档 {len(texts)} 篇（corpus={a.corpus}, 起始 {a.doc_start}）"
+          f"  L={L} H={H}  ρ={a.ratio}  k∈{ks}", flush=True)
 
     recs = []
     for di, txt in enumerate(texts):
         ids = m.encode(txt)[0].tolist()
+        di = a.doc_start + di            # 全局篇号：分片时不同卡的 doc 号不能撞
         rng = random.Random(a.seed * 1000 + di)
         ctx_ids, qas, meta = make_task(
             m, ids, a.max_ctx, a.window, a.n_fact, rng)
@@ -570,6 +629,8 @@ def main():
         assert _mr > _me, f"score/valid 错位：保留 {_mr:.4f} ≤ 驱逐 {_me:.4f}"
         print(f"  自检④ 保留者均分 {_mr:.4f} > 被驱逐者 {_me:.4f} ✓", flush=True)
 
+        L_c, H_c = base_valid.shape[0], base_valid.shape[1]
+        G = L_c * H_c
         j0, j0q = answer_nll(m, kv, qas_t, n_seen)
         print(f"doc{di}: clen={len(ctx_ids)} 保留 {B0} "
               f"({B0/base_valid.numel():.3f})  基线 NLL {j0:.4f}  "
@@ -588,6 +649,72 @@ def main():
         j_null, _ = answer_nll(m, kv, qas_t, n_seen)
         assert j_null == j0, f"零动作不复现基线：{j_null} vs {j0}"
         print(f"  自检① 零动作 A = {j0 - j_null:+.3e}（须恰为 0）✓", flush=True)
+
+        if a.mode == "chunk":
+            # **逐 chunk 标签**：在选定的若干个 chunk 上各解一个 112 维 `u_c`。
+            # 每条随机方向只扰动**一个** chunk 的列（其余 chunk 保持基线），于是
+            # ① 预算按 chunk 守恒（真实约束就是这样）；② 每个 chunk 得到独立的
+            # 112 维回归，不需要 N ≫ 1232 才可辨识；③ 标签量 ×C，且对齐控制器
+            # 的动作空间。
+            #
+            # 选哪些 chunk：`--n_chunk_probe` 个，**等距覆盖首/中/尾**。
+            # 首尾之差正好回答「终态一步动作 vs 逐 chunk 序贯」那个未验项 ——
+            # 若 `u_first` 与 `u_last` 高度一致，终态近似成立；否则教师必须
+            # 逐 chunk 条件化。
+            offs, _c = [], 0
+            for _lo, _hi, _t in rec_s:
+                offs.append((_c, min(_c + (_hi - _lo), n_ev))); _c += _hi - _lo
+            offs = [(x, y) for x, y in offs if y > x]
+            C = len(offs)
+            npb = min(a.n_chunk_probe, C)
+            pick = [int(round(i * (C - 1) / max(npb - 1, 1))) for i in range(npb)] \
+                   if npb > 1 else [C - 1]
+            pick = sorted(set(pick))
+            mb = float(str(a.mb).split(",")[0])
+            print(f"  chunk 模式：共 {C} 个 chunk，探测 {pick}（等距覆盖首/中/尾）",
+                  flush=True)
+            for ci in pick:
+                clo, chi = offs[ci]
+                cev, crt = presort_chunk(base_valid, sc, clo, chi)
+                Bc = int(base_valid[..., clo:chi].sum())
+                pool = feasible_pool(cev, crt, 1, L_c, H_c)
+                for _ in range(6):
+                    k_nom = max(1, int(round(mb * Bc / max(len(pool) / 2, 1))))
+                    nxt = feasible_pool(cev, crt, k_nom, L_c, H_c)
+                    if len(nxt) == len(pool) or not nxt:
+                        pool = nxt or pool
+                        break
+                    pool = nxt
+                k_nom = max(1, int(round(mb * Bc / max(len(pool) / 2, 1))))
+                if len(pool) < 4:
+                    print(f"    chunk{ci}: 可行池只有 {len(pool)}，跳过", flush=True)
+                    continue
+                print(f"    chunk{ci} [{clo},{chi}) B_c={Bc} 池 {len(pool)}/{G} "
+                      f"k={k_nom}", flush=True)
+                for it in range(a.n_dir):
+                    r_ = random.Random((a.seed, di, ci, it // 2).__hash__())
+                    v, d = random_delta(base_valid, cev, crt, k_nom, r_,
+                                        pool=pool, flip=(it % 2 == 1))
+                    assert int(v.sum()) == B0, f"预算不守恒 {int(v.sum())} vs {B0}"
+                    assert int(v[..., clo:chi].sum()) == Bc, "本 chunk 预算不守恒"
+                    kv.valid = _wb(v)
+                    _, jjq = answer_nll(m, kv, qas_t, n_seen)
+                    recs.append(dict(doc=di, mode="chunk", chunk=ci, n_chunk=C,
+                                     eps=mb, d=d.tolist(),
+                                     mb=float(np.abs(d).sum() / 2),
+                                     A=float((j0q - jjq).mean()),
+                                     Aq=[float(x) for x in (j0q - jjq)]))
+                _tmp = os.path.join(ROOT, a.out + ".part")
+                json.dump(recs, open(_tmp, "w"))
+                os.replace(_tmp, os.path.join(ROOT, a.out))
+                aa = np.array([r["A"] for r in recs
+                               if r.get("mode") == "chunk" and r["chunk"] == ci
+                               and r["doc"] == di])
+                print(f"      done  |A| 中位 {np.median(np.abs(aa)):.5f}", flush=True)
+            kv.valid = raw_valid
+            del kv
+            torch.cuda.empty_cache()
+            continue
 
         if a.mode == "ascent":
             # **最便宜也最直接的教师判决。** grad 模式给的 CV R² 说的是

@@ -1,0 +1,100 @@
+tag: _fastkvzip__trlogps05_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.80it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.85it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.84it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.93it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.90it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/chead10_s0.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.4K
+['scbench_prefix_suffix']
+
+scbench_prefix_suffix loaded, #data: 100
+set generation length: 128 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~10 samples
+[effective] clen=112577 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.52it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.42it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.18it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.04s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.25s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.58s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.36s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-0: 112577 tokens, KV cache 6.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] _TmwCWPliaoDImvXiOvic+KJB | _TmwCWPliaoDImvXiOvic+KJB
+[QA 1] The word in the dictionary that has both the prefix `+hVce` and the suffix `rOtsm` is `+hVce--_DsdvGHJSvDSxrOtsm`. | +hVce--_DsdvGHJSvDSxrOtsm
+[QA 2] The word in the dictionary that has both the prefix "LBlPU" and the suffix "zVdkS" is:
+
+**LBlPUsjuZYtqz** | LBlPUIsjuZYbsHkx^fkUzVdkS
+[QA 3] The word in the dictionary that has both the prefix "RviB-" and the suffix "mszHq" is:
+
+`RviB-YiaAUgc_nSFCgaamszHq` | RviB-YiaAUgc_nSFCgaamszHq
+[QA 4] kTqWXSWpGAlpNJNdeLUymkfXA | kTqWXSWpGAlpNJNdeLUymkfXA
+[effective] clen=112577 window=4096 chunk_ratio=0.481121 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][trust] chunk lo=28 tgt=0.01 B=639943 mb_full=434969 cap=6399 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.60it/s][trust] chunk lo=11904 tgt=0.01 B=862168 mb_full=589955 cap=8622 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.38it/s][trust] chunk lo=27904 tgt=0.01 B=862168 mb_full=588232 cap=8622 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.22it/s][trust] chunk lo=43904 tgt=0.01 B=862168 mb_full=584717 cap=8622 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.08it/s][trust] chunk lo=59904 tgt=0.01 B=862168 mb_full=581262 cap=8622 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.05s/it][trust] chunk lo=75904 tgt=0.01 B=862168 mb_full=576937 cap=8622 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.17s/it][trust] chunk lo=91904 tgt=0.01 B=862168 mb_full=575578 cap=8622 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.29s/it][trust] chunk lo=107904 tgt=0.01 B=32599 mb_full=21649 cap=326 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.07it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.02it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-0: 112577 tokens, KV cache 6.5 GB, torch.bfloat16
+Results saved at ./results/scbench_prefix_suffix/0_qwen2.5-7b-instruct-1m_fastkvzip__trlogps05_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 31.0s. Mem: 14.31/79.18 GB. [scbench_prefix_suffix-0]
+
+[effective] clen=112308 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.28it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.00s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.74s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.57s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.31s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-1: 112308 tokens, KV cache 6.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The word in the dictionary that has both the prefix "oiYQO" and the suffix "^JFrX" is `oiYQO+Ed^OZBZDIgE_+NXUTN^F`. | oiYQOeACcZgq+WnQ_Wbd^JFrX
+[QA 1] The word in the dictionary that has both the prefix "GEsSt" and the suffix "yfHyg" is **"GEsStfHKHFqtftduiE-^yfHyg"**. | GEsStfHKHFqtftduiE-^yfHyg
+[QA 2] The word in the dictionary that has both the prefix "JrjYQ" and the suffix "sScsy" is:
+
+`JrjYQSpPrF+iJtXVvGz-sScsy` | JrjYQSPPrF+iJtXVvGz-sScsy
+[QA 3] The word in the dictionary that has both the prefix "FGZnW" and the suffix "LIHbb" is:
+
+`FGZnWIwURsgrwiaKNcCeLIHbb`. | FGZnWIwURsgrwiaKNcCeLIHbb
+[QA 4] The word in the dictionary that has both the prefix "ajyPS" and the suffix "QncHl" is `ajyPSOvCuYBrKiQncHl`. | ajyPSooYdnOiAYs_wuvYQncHl
+[effective] clen=112308 window=4096 chunk_ratio=0.481074 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][trust] chunk lo=28 tgt=0.01 B=639881 mb_full=434513 cap=6399 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.71it/s][trust] chunk lo=11904 tgt=0.01 B=862083 mb_full=589868 cap=8621 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.41it/s][trust] chunk lo=27904 tgt=0.01 B=862083 mb_full=587103 cap=8621 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.22it/s][trust] chunk lo=43904 tgt=0.01 B=862083 mb_full=584605 cap=8621 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.07it/s][trust] chunk lo=59904 tgt=0.01 B=862083 mb_full=581299 cap=8621 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  62%|██████▎   | 5/8 [00:04<00:03,  1.05s/it][trust] chunk lo=75904 tgt=0.01 B=862083 mb_full=577110 cap=8621 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.17s/it][trust] chunk lo=91904 tgt=0.01 B=862083 mb_full=575850 cap=8621 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  88%|████████▊ | 7/8 [00:07<00:01,  1.30s/it][trust] chunk lo=107904 tgt=0.01 B=18102 mb_full=12009 cap=181 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.07it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.02it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-1: 112308 tokens, KV cache 6.4 GB, torch.bfloat16
+Results saved at ./results/scbench_prefix_suffix/1_qwen2.5-7b-instruct-1m_fastkvzip__trlogps05_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 34.2s. Mem: 14.31/79.18 GB. [scbench_prefix_suffix-1]
+
+[effective] clen=112528 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.26it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.00s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.49s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.75s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.58s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.32s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_prefix_suffix-2: 112528 tokens, KV cache 6.5 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] NR_FSqIPV | NR_FSRzmgGPPXKazZQyxDqIPV
+[QA 1] IFOLKw_YHYtYQYLmLAIL-VAvU | IFOLKw_YHYtYQYLmLAIL-VAvU
+[QA 2] ++FefHSabauRun+RzVjObjTSnbjTSn | ++FefHSabauRun+RzVjObjTSn
+[QA 3] -QEcUApJVQBTuaNNyNZaqNdi | -FQEcUApJVQBTuaNNyNZaqNdi
+[QA 4] drKrlPAUcsPqXsYTMXXIGHEhUy | drKrlHKEl^+mOCXLvwhLWgrik
+[effective] clen=112528 window=4096 chunk_ratio=0.481113 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][trust] chunk lo=28 tgt=0.01 B=639932 mb_full=434972 cap=6399 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.69it/s][trust] chunk lo=11904 tgt=0.01 B=862152 mb_full=590047 cap=8622 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.40it/s][trust] chunk lo=27904 tgt=0.01 B=862152 mb_full=588074 cap=8622 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.22it/s]

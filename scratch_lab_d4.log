@@ -1,0 +1,44 @@
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.80it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.85it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.83it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.96it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.91it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: retain
+文档 4 篇（corpus=cat, 起始 4）  L=28 H=4  ρ=0.1  k∈[1, 4, 16]
+[effective] clen=119630 window=4096 chunk_ratio=0.068093 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:06,  1.05it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.22it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.31it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.31it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.30it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.28it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.52it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.36it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+  自检④ 保留者均分 0.8018 > 被驱逐者 0.0605 ✓
+doc4: clen=119630 保留 881089 (0.068)  基线 NLL 0.6762  答案 118 tok / target 351  事实 8 条
+  自检① 零动作 A = +0.000e+00（须恰为 0）✓
+  grad 模式：G=112 组，每档 256 个方向，ε∈[0.01]
+  逐头前沿密度 ρ（8 个 chunk 各自的 τ 累加）：中位 0.0 极差 [0.00, 180291.7]  零密度头 57/112
+  各 chunk 阈值 τ_c：['0.5770', '0.5657', '0.5697', '0.6372', '0.5949', '0.6195', '0.6174', '0.5321']
+  --- ε=0.01 目标搬动 8811，每对 k=464，**两侧可行池 38/112**（池外列恒 0、系数不可辨识）
+    64/256  |A| 中位 0.02701
+    128/256  |A| 中位 0.02807
+    192/256  |A| 中位 0.02923
+    256/256  |A| 中位 0.02844
+[effective] clen=108211 window=4096 chunk_ratio=0.064593 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.55it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.48it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.43it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.39it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.44it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.44it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+  自检④ 保留者均分 0.8229 > 被驱逐者 0.0692 ✓
+doc5: clen=108211 保留 753200 (0.065)  基线 NLL 0.6849  答案 121 tok / target 354  事实 8 条
+  自检① 零动作 A = +0.000e+00（须恰为 0）✓
+  grad 模式：G=112 组，每档 256 个方向，ε∈[0.01]
+  逐头前沿密度 ρ（7 个 chunk 各自的 τ 累加）：中位 0.0 极差 [0.00, 186275.4]  零密度头 59/112
+  各 chunk 阈值 τ_c：['0.6342', '0.6177', '0.6305', '0.6139', '0.6274', '0.6433', '0.6796']
+  --- ε=0.01 目标搬动 7532，每对 k=443，**两侧可行池 34/112**（池外列恒 0、系数不可辨识）
