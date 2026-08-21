@@ -33,13 +33,16 @@ grab() {
             if occupied "$g"; then rmdir "$L/$g"; continue; fi
             HELD="$HELD $g"; echo "$g"; return
         done
-        sleep 60
+        # 评测 worker 有 **8 个实例**在轮询，本脚本只有 1 个 —— 外层等 60 秒会长期
+        # 饿死。降到 5 秒只是提高抢锁频率，**安全性不变**：真正的保护是
+        # `mkdir` 的原子性 + 拿到锁后那 20 秒二次确认，两者都没动。
+        sleep 5
     done
 }
 
 TR=scratch_ctrl_traces_r03
 if [ ! -f "$TR/doc009.pt" ]; then
-    G=$(grab)
+    grab; G=$GRABBED
     echo "[teacher] ρ=0.3 -> GPU$G  $(date +%H:%M:%S)"
     CUDA_VISIBLE_DEVICES=$G .venv/bin/python -u scratch_ctrl_teacher.py \
         --ratio 0.3 --n_long 10 --n_short 0 --out "$TR" \
@@ -58,7 +61,7 @@ PIDS=""
 for s in 0 1 2; do
     out="varikv/chr03_s$s.pt"
     [ -f "$out/memoryless.pt" ] && { echo "[skip] $out"; continue; }
-    G=$(grab)
+    grab; G=$GRABBED
     echo "[train] seed $s -> GPU$G  $(date +%H:%M:%S)"
     CUDA_VISIBLE_DEVICES=$G setsid nohup .venv/bin/python -u scratch_ctrl_train.py \
         $BASE --seed "$s" --out "$out" > "scratch_ctrl_logs/train_chr03_s$s.log" 2>&1 &

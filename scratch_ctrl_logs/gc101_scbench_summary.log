@@ -1,0 +1,150 @@
+tag: _fastkvzip__gc101_scbench_summary_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.78it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.82it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.81it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.92it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.87it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/chead10_s1.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.4K
+['scbench_summary']
+
+scbench_summary loaded, #data: 70
+set generation length: 256 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~70 samples
+[effective] clen=102424 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.53it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.44it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.18it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.03s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.24s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.48s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.25s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_summary-0: 102424 tokens, KV cache 5.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper explores the structural properties of order-divisor graphs associated with finite groups, providing insights into their girth, degree, size, and the implications of these parameters for cyclic and dihedral groups, as well as conditions under which these graphs form star or path graphs. | The key contribution of the paper "Some Properties of Order-Divisor Graphs of Finite Groups" is providing a comprehensive analysis of the structural properties of order-divisor graphs associated with finite groups, with a particular focus on the girth, degree of vertices, and size of these graphs for cyclic groups and dihedral groups.
+[QA 1] The paper presents efficient FPGA implementations of the tweakable enciphering schemes FAST and AEZ, demonstrating that FAST outperforms other disk encryption schemes, making it a strong candidate for future disk encryption standards and hardware implementations. | The key contribution of the paper "Fast Low Level Disk Encryption Using FPGAs" is that it presents efficient FPGA implementations of the FAST and AEZ tweakable enciphering schemes, which are promising candidates for low-level disk encryption, and shows that the FAST implementations outperform the IEEE standards XCB and EME2 as well as the AEZ implementation in terms of throughput and area requirements, making FAST a strong contender for adoption by disk manufacturers and standardization bodies.
+[QA 2] The paper presents an initial analysis of XRISM's first-light X-ray observations of the supernova remnant N132D, revealing detailed velocity structures and thermal properties of its hot plasma, including the detection of Fe Lyα emission redshifted by 890 km/s, which indicates the presence of high-velocity Fe-rich ejecta on the far side of the remnant. | The key contribution of this paper is presenting the first high-resolution X-ray spectroscopic analysis of the supernova remnant N132D in the 1.6-10 keV band using the XRISM first light observation data, revealing the velocity structure and thermal properties of the hot plasma components.
+[QA 3] The paper presents improved upper bounds on the number of reticulation events required to display multiple phylogenetic trees in a network, advancing our understanding of the complexity in reconstructing realistic evolutionary histories. | The key contribution of the paper "Bounding the number of reticulation events for displaying multiple trees in a phylogenetic network" is presenting several non-trivial upper bounds on the minimum number of reticulations (reticulation number) required for a phylogenetic network to display multiple given phylogenetic trees, improving upon the previously known trivial upper bound.
+[QA 4] The paper presents a detailed analysis of power corrections, including mass and renormalon-induced corrections, to quasi-distribution amplitudes of heavy mesons, providing insights necessary for improving the accuracy of lattice QCD calculations of heavy meson properties. | The key contribution of this paper is investigating the impact of mass and $\Lambda_\mathrm{QCD}^2/(P^z)^2$ corrections when relating the quasi-distribution amplitudes (quasi-DAs) of a heavy meson to its lightcone distribution amplitudes (LCDAs) within the large-momentum effective theory (LaMET) framework.
+[effective] clen=102424 window=4096 chunk_ratio=0.739586 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.67it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.36it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.20s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.12s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-0: 102424 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102424 window=4096 chunk_ratio=0.479172 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.42it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.24it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.09it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.03s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.15s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.02it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.06it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-0: 102424 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102424 window=4096 chunk_ratio=0.375006 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.46it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.29it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.16it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.05it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.05s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.13it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.15it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-0: 102424 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102424 window=4096 chunk_ratio=0.270840 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.49it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.35it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.14it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.25it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-0: 102424 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102424 window=4096 chunk_ratio=0.166675 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.52it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.42it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.33it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.19it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.43it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.38it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-0: 102424 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102424 window=4096 chunk_ratio=0.062509 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.55it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.48it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.43it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.39it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.66it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.53it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-0: 102424 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102424 window=4096 chunk_ratio=0.010426 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.56it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.51it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.48it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.47it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.45it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.81it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.62it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-0: 102424 tokens, KV cache 5.9 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/0_qwen2.5-7b-instruct-1m_fastkvzip__gc101_scbench_summary_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 132.2s. Mem: 14.31/79.18 GB. [scbench_summary-0]
+
+[effective] clen=103475 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.32it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.80it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.49s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.21s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-1: 103475 tokens, KV cache 5.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper proposes a systematic measurement method to determine the electron spin dephasing time of nitrogen-vacancy (NV) center ensembles in diamond, providing a comprehensive understanding of dephasing sources and enabling optimization of NV-based quantum sensing applications. | The key contribution of this paper is proposing a systematic method to characterize and distinguish various dephasing sources (strain, electric field noise, dipolar coupling with spin baths like 13C, P1 centers, and NV-NV interactions) in nitrogen-vacancy (NV) center ensembles in diamond for optimizing NV-based quantum sensing applications like magnetometry.
+[QA 1] The key contribution of the paper is establishing that the value of a two-player zero-sum game played on a percolation configuration of $\mathbb{Z}^2$ characterizes the critical parameter $p_c$ of oriented percolation, being 1 if and only if $p \geq p_c$. | The key contribution of this paper is characterizing the critical parameter p_c of oriented percolation on Z^2 through the value of a zero-sum game defined on the percolation configuration. Specifically, the authors define a local game where two players move a token on the non-oriented edges of Z^2, collecting costs based on the open/closed status of the edges. They show that the value of this game is 1 if and only if the percolation parameter p exceeds p_c, the critical value for the existence of infinite open paths in oriented percolation. The paper establishes this result and studies properties of the value function, such as its continuity at p_c and its behavior for small p.
+[QA 2] The paper presents a detailed analysis of quasinormal modes for massive scalar perturbations in Kerr black holes near the extremal limit, deriving analytic expressions for frequencies of zero-damping modes and revealing bifurcation points where fundamental modes transition from damped to non-zero damping modes. | The key contribution of this paper is the discovery of an exceptional point in the parameter space of massive scalar perturbations around near-extremal Kerr black holes, where two quasi-normal mode frequencies become degenerate and exhibit non-trivial holonomy when encircled adiabatically.
+[QA 3] The paper proposes a method for generating chiral cat states in a spinning resonator by leveraging the Sagnac-Fizeau effect, which induces different frequency detunings for clockwise and counterclockwise traveling modes, allowing for the separate generation of cat states and coherent states in these modes. | The key contribution of this paper is proposing a scheme to generate chiral Schrödinger cat states in a cavity QED system consisting of a spinning resonator coupled to a two-level atom, where the chirality arises from the Sagnac-Fizeau effect that leads to different quantum state evolutions for the clockwise and counterclockwise propagating modes in the resonator.
+[QA 4] The paper proposes a transparent prototype-based model for set classification on the Grassmann manifold that learns subspace prototypes and relevance factors to capture class characteristics, offering improved performance, explainability, and computational efficiency compared to transformer-based models. | The key contribution of this paper is proposing a new prototype-based classifier called Adaptive Chordal Distance and Subspace-based LVQ (AChorDS-LVQ) for set classification tasks. The novelty lies in introducing an adaptive chordal distance measure that enables the classifier to learn subspace prototypes capturing the characteristics of different classes, as well as relevance factors weighting the importance of different canonical correlations. Importantly, AChorDS-LVQ provides intrinsic interpretability by quantifying the influence of each input element (e.g. pixel, word) on the classifier's predictions.
+[effective] clen=103475 window=4096 chunk_ratio=0.739696 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.37it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.04s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.40s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.24s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.14s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-1: 103475 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=103475 window=4096 chunk_ratio=0.479392 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.43it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.24it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.03s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.15s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.01s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.05it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-1: 103475 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=103475 window=4096 chunk_ratio=0.375270 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.46it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.16it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.05it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.10it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.13it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-1: 103475 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=103475 window=4096 chunk_ratio=0.271149 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.49it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.35it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.14it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.23it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.24it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-1: 103475 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=103475 window=4096 chunk_ratio=0.167027 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.52it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.42it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.33it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.26it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.19it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.40it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.37it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-1: 103475 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=103475 window=4096 chunk_ratio=0.062906 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.56it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.49it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.44it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.40it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.36it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.63it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.52it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-1: 103475 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=103475 window=4096 chunk_ratio=0.010845 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.57it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.52it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.49it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.47it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.45it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.76it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.61it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-1: 103475 tokens, KV cache 5.9 GB, torch.bfloat16
+Results saved at ./results/scbench_summary/1_qwen2.5-7b-instruct-1m_fastkvzip__gc101_scbench_summary_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 135.0s. Mem: 14.31/79.18 GB. [scbench_summary-1]
+
+[effective] clen=101383 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.26it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.78it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.29it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.45s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.20s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_summary-2: 101383 tokens, KV cache 5.8 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper provides a nearly complete characterization of the parameterized complexity landscape for the Two-Sets Cut-Uncut problem, identifying conditions for fixed-parameter tractability, slicewise polynomial algorithms, and excluding polynomial kernels for various graph parameters. | Here are the key contributions of the paper summarized in one sentence:
+
+The paper provides a near-complete characterization of the parameterized complexity landscape of the Two-Sets Cut-Uncut problem with respect to various graph parameters, establishing fixed-parameter tractability, XP algorithms, and ruling out polynomial kernels for many parameters.
+[QA 1] The paper provides a comprehensive analysis of the conformal limit in a QED-inspired model with a vector-like interaction, revealing two critical exponents that generalize previous results and offer insights into conformal breaking and chiral symmetry dynamics. | The key contribution of this paper is that it finds two critical exponents governing the ultraviolet behavior of the fermion propagator in a QED-inspired model solved using the Dyson-Schwinger equations with a bare vertex and bare gauge boson propagator. This provides an example of interwoven cycles, beyond the Efimov limit cycle, arising within a truncated quantum field theory model, akin to what is seen in the quantum few-body problem with zero-range interactions.
+[QA 2] The key contribution of the paper is proposing HyGen, a novel hybrid MARL framework that integrates online and offline learning to enhance multi-task generalization by effectively extracting and refining general skills from offline datasets and learning policies that can apply these skills to unseen tasks. | The key contribution of this paper is proposing HyGen, a novel hybrid multi-agent reinforcement learning framework that integrates online and offline learning to achieve effective multi-task generalization and training efficiency. HyGen first discovers general skills from multi-task offline datasets using unsupervised learning, and then refines these skills and learns generalizable policies through hybrid training with both offline data and online environment interactions. This allows HyGen to effectively generalize to unseen tasks without additional fine-tuning, outperforming existing online and offline multi-task MARL methods on the StarCraft Multi-Agent Challenge benchmarks.
+[QA 3] The paper demonstrates that the field of meromorphic functions on neighborhoods of rational curves with positive self-intersection is isomorphic to the field of rational functions in one or two variables, suggesting that such fields cannot serve as effective invariants for classifying these neighborhoods. | The key contribution of this paper is proving that if F is a smooth connected complex surface containing a smooth rational curve C with positive self-intersection, then the field of meromorphic functions on F is isomorphic to the field of rational functions in one or two variables over the complex numbers.
+[QA 4] The key contribution of the paper is the development of AlphaViT, AlphaViD, and AlphaVDA — game-playing AI agents that use Vision Transformers to adapt a single model to play multiple board games of varying sizes across different environments, overcoming the limitations of previous AI frameworks like AlphaZero. | The key contribution of this paper is proposing AlphaViT, AlphaViD, and AlphaVDA, which are game-playing AI agents based on the AlphaZero framework but utilizing Vision Transformers (ViT) instead of residual blocks, enabling them to handle different board sizes and play multiple games using a single model.
+[effective] clen=101383 window=4096 chunk_ratio=0.739474 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.36it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.41s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.17s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.11s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-2: 101383 tokens, KV cache 5.8 GB, torch.bfloat16
+[effective] clen=101383 window=4096 chunk_ratio=0.478949 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.43it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.24it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.09it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.03s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.15s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.07it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-2: 101383 tokens, KV cache 5.8 GB, torch.bfloat16
+[effective] clen=101383 window=4096 chunk_ratio=0.374739 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.74it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.46it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.17it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.06it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.17it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.17it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-2: 101383 tokens, KV cache 5.8 GB, torch.bfloat16
+[effective] clen=101383 window=4096 chunk_ratio=0.270528 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.48it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.35it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.31it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.27it/s]

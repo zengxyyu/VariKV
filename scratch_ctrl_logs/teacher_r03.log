@@ -1,0 +1,109 @@
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.76it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.78it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.78it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.91it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.86it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: retain
+训练文档 10 篇（regime=custom），长度 103372-122021
+[effective] clen=112585 window=4096 chunk_ratio=0.273572 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:06,  1.02it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:05,  1.17it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.19it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.16it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.10it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:01,  1.03it/s]Prefill:  88%|████████▊ | 7/8 [00:06<00:01,  1.03s/it]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.33it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.16it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+Local window 4096
+[effective] clen=112585 window=4096 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.29it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.80it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.01it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.22s/it]Prefill:  75%|███████▌  | 6/8 [00:06<00:02,  1.47s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.72s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.56s/it]Prefill: 100%|██████████| 8/8 [00:10<00:00,  1.30s/it]
+doc0: 8 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_r03/doc000.pt
+[effective] clen=106609 window=4096 chunk_ratio=0.272031 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.48it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.35it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.13it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.19it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+Local window 4096
+[effective] clen=106609 window=4096 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.26it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.77it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.29it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.22s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.58s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.25s/it]
+doc1: 7 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_r03/doc001.pt
+[effective] clen=103116 window=4096 chunk_ratio=0.271044 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.48it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.35it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.25it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.25it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+Local window 4096
+[effective] clen=103116 window=4096 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.27it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.79it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.29it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.01it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.23s/it]Prefill:  86%|████████▌ | 6/7 [00:06<00:01,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.49s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.22s/it]
+doc2: 7 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_r03/doc002.pt
+[effective] clen=104922 window=4096 chunk_ratio=0.271563 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.48it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.35it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.18it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.22it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+Local window 4096
+[effective] clen=104922 window=4096 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.21it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.76it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.28it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.00it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.23s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.48s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.53s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.24s/it]
+doc3: 7 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_r03/doc003.pt
+[effective] clen=119063 window=4096 chunk_ratio=0.275061 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.75it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.48it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.33it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.23it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.14it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:01,  1.06it/s]Prefill:  88%|████████▊ | 7/8 [00:06<00:01,  1.02s/it]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.14it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.16it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+Local window 4096
+[effective] clen=119063 window=4096 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.26it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.00it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.74s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.38s/it]
+doc4: 8 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_r03/doc004.pt
+[effective] clen=107641 window=4096 chunk_ratio=0.272310 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.47it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.34it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.14it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.05it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.09it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.17it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+Local window 4096
+[effective] clen=107641 window=4096 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.19it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.77it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.29it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.00it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.23s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.48s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.61s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.27s/it]
+doc5: 7 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_r03/doc005.pt
+[effective] clen=121765 window=4096 chunk_ratio=0.275633 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.77it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.49it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.35it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.24it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.14it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:01,  1.05it/s]Prefill:  88%|████████▊ | 7/8 [00:06<00:01,  1.02s/it]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.06it/s]Prefill: 100%|██████████| 8/8 [00:07<00:00,  1.13it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+Local window 4096
+[effective] clen=121765 window=4096 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.20it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.00it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.73s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.81s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.41s/it]
+doc6: 8 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_r03/doc006.pt
+[effective] clen=103145 window=4096 chunk_ratio=0.271053 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.48it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.35it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.14it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.06it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.24it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.24it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+Local window 4096
+[effective] clen=103145 window=4096 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.22it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.78it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.29it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.00it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.23s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.48s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.50s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.22s/it]
+doc7: 7 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_r03/doc007.pt
+[effective] clen=108242 window=4096 chunk_ratio=0.272469 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.76it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.49it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.35it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.24it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.14it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.05it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.08it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.16it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+Local window 4096
+[effective] clen=108242 window=4096 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:01,  3.18it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:02,  1.77it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.29it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.00it/s]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.23s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.48s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.62s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.28s/it]
+doc8: 7 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_r03/doc008.pt
+[effective] clen=120102 window=4096 chunk_ratio=0.275284 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.68it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.46it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.33it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.23it/s]Prefill:  62%|██████▎   | 5/8 [00:04<00:02,  1.14it/s]Prefill:  75%|███████▌  | 6/8 [00:05<00:01,  1.05it/s]Prefill:  88%|████████▊ | 7/8 [00:06<00:01,  1.03s/it]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.11it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.15it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+Local window 4096
+[effective] clen=120102 window=4096 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.21it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.00it/s]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.23s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.48s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.74s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.76s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.39s/it]
+doc9: 8 次驱逐 → /home/ubuntu/zxy/vlm-memory/scratch_ctrl_traces_r03/doc009.pt
+
+【每篇文档的驱逐次数分布】{7: 6, 8: 4}
+  均值 7.40　P(≥2) 100%　P(≥3) 100%　P(≥4) 100%
