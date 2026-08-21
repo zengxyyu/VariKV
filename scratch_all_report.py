@@ -449,7 +449,14 @@ def main():
                     best, bsig = _src[r][0], True
             _sel[r] = (best, bsig, 1)
         if _sel:
-            rows.append((name, full, "sel-orc", _sel, d))
+            # **插到本 panel 的 `scalar` 行正下方**，而不是追加到末尾：
+            # 它是由 `scalar` 与 `gm1` 拼出来的，挨着源行才读得出来是怎么来的。
+            _ins = len(rows)
+            for _i in range(len(rows) - 1, -1, -1):
+                if rows[_i][4] == d and rows[_i][2] == "scalar":
+                    _ins = _i + 1
+                    break
+            rows.insert(_ins, (name, full, "sel-orc", _sel, d))
     W = 15
     _buf = []
     def print(*a, **k):                    # noqa: A001  仅在本函数内遮蔽
