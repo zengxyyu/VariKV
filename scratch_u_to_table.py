@@ -38,7 +38,9 @@ def fit_u(recs, lam=None, folds=5, seed=0):
             pred[te] = Xn[te] @ w + y[tr].mean()
         return 1 - ((y - pred) ** 2).sum() / ((y - y.mean()) ** 2).sum()
 
-    lams = [lam] if lam else [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0]
+    # **网格延到 1e5**（2026-08-21）：原来只到 100，而 psyn 教师的最优 λ 是
+    # 1000，于是既选错了 λ，又让「λ 顶到上限」被误读成「没信号」。
+    lams = [lam] if lam else [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0, 1e3, 1e4, 1e5]
     r2s = [cv(l_) for l_ in lams]
     i = int(np.argmax(r2s)); lam = lams[i]
     u = np.linalg.solve(Xn.T @ Xn + lam * np.eye(Xn.shape[1]),

@@ -56,13 +56,70 @@ def gate1(recs, n_doc=10, n_dir=256):
     return ok
 
 
+LAMS = [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0, 1e3, 1e4, 1e5]
+
+
+def _fit(recs, lams=LAMS):
+    """岭回归反解 u，λ 由 5 折 CV 选。**网格延到 1e5** —— 原来只到 100，
+    psyn 的最优 λ 是 1000，于是「λ 顶到上限」被误当成「没信号」。"""
+    X = np.array([r["d"] for r in recs], float)
+    y = np.array([r["A"] for r in recs], float)
+    X = X - X.mean(0)
+    sx = X.std() or 1.0
+    Xn = X / sx
+    best = (-9.0, None, None)
+    for l_ in lams:
+        rs = np.random.default_rng(0)
+        idx = rs.permutation(len(y))
+        pred = np.zeros_like(y)
+        for f in range(5):
+            te = idx[f::5]
+            tr = np.setdiff1d(idx, te)
+            w = np.linalg.solve(Xn[tr].T @ Xn[tr] + l_ * np.eye(Xn.shape[1]),
+                                Xn[tr].T @ (y[tr] - y[tr].mean()))
+            pred[te] = Xn[te] @ w + y[tr].mean()
+        r2 = 1 - ((y - pred) ** 2).sum() / ((y - y.mean()) ** 2).sum()
+        if r2 > best[0]:
+            u = np.linalg.solve(Xn.T @ Xn + l_ * np.eye(Xn.shape[1]),
+                                Xn.T @ (y - y.mean())) / sx
+            best = (r2, l_, u - u.mean())
+    return best
+
+
 def gate2(recs):
-    from scratch_u_to_table import fit_u
-    u, r2, lam = fit_u(recs)
-    ok = r2 >= 0.05 and lam < 100.0
-    print(f"闸② 可辨识：CV R²={r2:+.4f}（需 ≥0.05）  λ={lam:g}（需 <100）"
-          f"  ‖u‖₂={np.linalg.norm(u):.5f}  参照 kv 教师 +0.3966/λ=10"
-          f" ⇒ {'过' if ok else '**不过**'}")
+    """**2026-08-21 重写：原判据错了两处。**
+
+    错一：拿 `λ < 100` 当「有信号」的代理。λ=100 只是原网格的**上端**；
+          延长到 1e5 后 psyn 的最优 λ 是 **1000、是内点极值**，R²=+0.0939。
+          正确的写法是「最优 λ 必须是**内点**」——端点意味着网格没盖住。
+    错二：把 `‖u‖₂` 小当问题。`build_delta` 会把 u 归一化成
+          `½‖Δb‖₁ = mb·B`，**只有方向进表**，范数不可辨识。
+
+    另加一条**不当闸的登记量**：逐篇 u 的两两 Spearman。静态表的前提是方向
+    跨文档可迁移，这个量直接测它。kv 教师是 **+0.1630（6/6 为正）**，
+    是已知能拿 +29.40 的水平；低于它很多就该**先登记失败预测再去实测**。
+    """
+    from scipy.stats import spearmanr
+    r2, lam, u = _fit(recs)
+    interior = lam not in (LAMS[0], LAMS[-1])
+    ok = r2 >= 0.05 and interior
+    print(f"闸② 可辨识：CV R²={r2:+.4f}（需 ≥0.05）  最优 λ={lam:g}"
+          f"（需内点，实为{'内点' if interior else '**端点**'}）"
+          f"  参照 kv 教师 R²=+0.3966/λ=10 ⇒ {'过' if ok else '**不过**'}")
+    docs = sorted({x["doc"] for x in recs})
+    us = [_fit([x for x in recs if x["doc"] == d])[2] for d in docs
+          if len([x for x in recs if x["doc"] == d]) >= 100]
+    if len(us) >= 2:
+        ss = [spearmanr(us[i], us[j]).statistic
+              for i in range(len(us)) for j in range(i + 1, len(us))]
+        npos = sum(1 for x in ss if x > 0)
+        print(f"  ⚠ 登记量（**不当闸**）逐篇 u 两两 Spearman："
+              f"{len(us)} 篇 {len(ss)} 对，均值 {np.mean(ss):+.4f}，"
+              f"为正 {npos}/{len(ss)}　参照 kv 教师 +0.1630（6/6）")
+        if np.mean(ss) < 0.10:
+            print("  ⇒ **先登记预测：方向跨文档迁移性远低于 kv 教师，"
+                  "静态表大概率不成立。** 仍然建表评测，由实测裁决 —— "
+                  "kv 表当初也只有 +0.163 却拿到 +29.40，所以不能只凭这个量判死。")
     return ok, u, r2
 
 
