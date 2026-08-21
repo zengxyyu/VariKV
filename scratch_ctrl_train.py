@@ -38,6 +38,7 @@
 """
 import argparse
 import glob
+import hashlib
 import os
 import random
 import sys
@@ -209,6 +210,11 @@ def main():
     ap.add_argument("--n_pairs", type=int, default=256)
     ap.add_argument("--seed", type=int, default=0,
                     help="只控制参数初始化、pair 采样、训练顺序")
+    ap.add_argument("--n_docs", type=int, default=0,
+                    help="只取排序后的前 N 篇；**0 = 全取（默认，与历史行为逐字等价）**。"
+                         "存在的理由见 main() 里的注释：篇数一变 split_seed 的划分全变，"
+                         "而 trace 目录的内容历史上真的变过。"
+                         "有内容级校验需求时优先用 `varikv_v2.py --data`。")
     ap.add_argument("--split_seed", type=int, default=42,
                     help="**与 --seed 分开**：只决定 train/val 的文档划分。\n合在一起的话，跨种子跨度里会同时混进优化方差与划分方差——而只有 2 篇验证\n文档时，划分方差很可能是主导项，跨种子的差就没法归因了。")
     ap.add_argument("--val_frac", type=float, default=0.25)
@@ -248,6 +254,25 @@ def main():
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     files = sorted(glob.glob(os.path.join(ROOT, a.traces, "doc*.pt")))
     assert files, f"没有 trace，先跑 scratch_ctrl_teacher.py（{a.traces}）"
+    # **篇数上限（2026-08-21 加）。默认 0 = 全取，与此前逐字等价。**
+    #
+    # 为什么需要它：`--split_seed` 是对**当前文件列表**做 shuffle，
+    # **篇数一变，训练集/验证集全变**。历史上 v2（10 篇）与 v3（30 篇）的差别
+    # 就不是靠任何开关，而是 `scratch_ctrl_traces_v2/` 在 2026-08-14 当天
+    # 从 10 篇扩到 30 篇 —— v2 的 ckpt 存于 14:00，`doc010-029` 是 14:10 才加的。
+    # 照原命令重跑会得到**另一份数据上的另一次实验，而且看不出任何异常**。
+    # `varikv_v2.py` 早就用 `--data` 修了这一点，本脚本一直没跟上。
+    _n_all = len(files)
+    if a.n_docs > 0:
+        assert _n_all >= a.n_docs, f"要 {a.n_docs} 篇，目录里只有 {_n_all} 篇"
+        files = files[:a.n_docs]
+    # **把实际用到的文件指纹存进 ckpt** —— 即使用了默认的「全取」，
+    # 事后也能审出当时到底读了哪些文件、有没有被扩容过。
+    _fp = hashlib.sha256("\n".join(
+        f"{os.path.basename(f)}:{os.path.getsize(f)}" for f in files
+    ).encode()).hexdigest()[:16]
+    print(f"trace={a.traces}  目录 {_n_all} 篇，实用 {len(files)} 篇"
+          f"（--n_docs {a.n_docs}），指纹 {_fp}", flush=True)
     random.Random(a.split_seed).shuffle(files)   # 划分只由 split_seed 决定
     n_val = max(1, int(len(files) * a.val_frac))
     val_f, tr_f = files[:n_val], files[n_val:]
