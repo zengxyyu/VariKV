@@ -169,6 +169,29 @@ def apply_transfer(valid, score, i, j, k):
     return v, kk
 
 
+def frontier_density(valid, score, w_frac=0.02):
+    """逐头**前沿密度** `ρ_h` = 阈值 τ 附近单位分数区间内的候选条目数。
+
+    它是把配额空间的目标翻译回分数空间的**唯一**桥梁。全局 top-B 下
+    `b_h = n_h(τ − c_h)`，`n_h` 是该头分数的生存函数，于是（`P = Σρ`）
+
+        R = ∂b/∂c = diag(ρ) − ρρᵀ/P              对称，null(R) = span(1)
+
+    已用有限差分对拍：相关 +0.967、列和恒 0、`‖R·1‖ = 3e−13`。
+    要让配额走到目标 `d`（`1ᵀd = 0`）需要解 `Rc = d`，其解是
+
+        c_h = d_h / ρ_h + κ                       κ 是规范自由度
+
+    —— **除以密度**。低密度的头（早层）要很大的 `c` 才挪得动一格配额，这与
+    「L0–L2 可达率 5.0% vs L20–L27 35.9%，而 σ 只差 2.2 倍」完全一致。
+    """
+    tau = 0.5 * (float(score[valid].min()) + float(score[~valid].max()))
+    w = w_frac * float(score.std())
+    L, H, _ = valid.shape
+    return np.array([[float(((score[l, h] - tau).abs() < w).sum()) / (2 * w)
+                      for h in range(H)] for l in range(L)]).ravel()
+
+
 def presort(valid, score):
     """每个 (层,头) 预排一次序：被驱逐者按分数**降序**、保留者按分数**升序**。
 
@@ -240,35 +263,26 @@ def pick_actions(valid, score, n_recv, n_don, rng):
 
 
 def report_grad(recs, a):
-    """从 N 个保预算随机方向反解逐头边际效用，并用**留出方向**判定势能表示。
+    """从保预算随机方向反解逐头边际效用 `u`，用**留出方向**判定一阶结构。
 
-    模型：  A(Δb) = ⟨u, Δb⟩ + ½ Δbᵀ H Δb + 噪声
-    只保留一阶项做岭回归，`u` 就是 ∂J/∂b_h —— 正是 `c_h` 要拟合的那个势能。
+    模型 `A(Δb) = uᵀΔb + ½Δbᵀ H Δb + 噪声`，只拟一阶项，`u = ∂J/∂b_h`。
 
-    **可识别性**：所有方向都满足 `Σ_h Δb_h = 0`，所以 `u` 只在**加常数**的意义下
-    可识别（与 §四之五 已确立的 gauge 自由度是同一件事）。输出一律中心化。
+    **可识别性**：所有方向满足 `1ᵀΔb = 0`，所以 `u` 只在加常数意义下可识别
+    （与 §四之五 的 gauge 自由度同构）。设计矩阵各行和为 0 ⇒ `1 ∈ null(X)` ⇒
+    岭解落在行空间里、自动 `⊥ 1`；再显式中心化只是把这一点写明。
 
-    **判据 = 留出方向上的 R²**，不是训练集 R²（112 个参数拟 N 个点必然过拟合）。
-    它同时是可分性检验：若 A 能写成势能 `⟨u,Δb⟩`，交叉验证 R² 就高；剩下的部分
-    是曲率/交互。这比 `I = A − (g⁺−g⁻)` 强 —— 后者是三次前向之差，方差更大。
+    **CV 单位是「方向」**：一个方向的 M 个问句先平均成一个 `A`，然后按方向分折。
+    把同一方向的问句拆到 train/val 两边会泄漏。
 
-    **两个对照**：打乱 y 的 R²（应 ≤0）、以及只用截距的 R²（恒 0）。
+    **判据只到局部一阶可预测性。** `R²=0.7` 只能说「在所采样的扰动分布下，线性的
+    逐头配额势能解释了 70% 的留出效用方差」，**不能**说 `J(b) = Σ_h J_h(b_h)`，
+    也不能说全局可分。
     """
     from scipy import stats as st
-    X = np.array([r["d"] for r in recs], dtype=np.float64)
-    y = np.array([r["A"] for r in recs])
-    Aq = np.array([r["Aq"] for r in recs])
-    N, G = X.shape
-    X = X - X.mean(0)                       # 列中心化；行和恒为 0 不影响
-    sx = X.std() or 1.0
-    Xn = X / sx
-    print(f"\n=== grad 模式：{N} 个方向 × {G} 组 ===")
-    print(f"  |A| 中位 {np.median(np.abs(y)):.5f}  A 均值 {y.mean():+.5f} "
-          f"sd {y.std():.5f}  为正 {np.mean(y>0):.1%}")
-    print(f"  搬动量 ½‖Δb‖₁ 中位 {np.median([r['mb'] for r in recs]):.0f}")
-    if N < 2 * G:
-        print(f"  ⚠ N={N} < 2G={2*G}：岭回归仍可解，但留出 R² 会偏低，"
-              f"读到接近 0 时不能直接判死")
+    ALL = np.array([r["d"] for r in recs], dtype=np.float64)
+    EPS = np.array([r.get("eps", -1.0) for r in recs])
+    rho = np.array(recs[0]["rho"]) if "rho" in recs[0] else None
+    G = ALL.shape[1]
 
     def cv_r2(Xa, ya, lam, folds=5, seed=0):
         rs = np.random.default_rng(seed); idx = rs.permutation(len(ya))
@@ -278,39 +292,72 @@ def report_grad(recs, a):
             Xt, yt = Xa[tr], ya[tr] - ya[tr].mean()
             w = np.linalg.solve(Xt.T @ Xt + lam * np.eye(Xa.shape[1]), Xt.T @ yt)
             pred[te] = Xa[te] @ w + ya[tr].mean()
-        ss = ((ya - pred) ** 2).sum(); st_ = ((ya - ya.mean()) ** 2).sum()
-        return 1 - ss / st_
+        return 1 - ((ya - pred) ** 2).sum() / ((ya - ya.mean()) ** 2).sum()
 
-    print(f"\n  --- 留出方向上的 R²（势能表示 A ≈ ⟨u,Δb⟩ 成不成立）---")
-    best = (-9, None)
-    for lam in [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0]:
-        r2 = cv_r2(Xn, y, lam)
-        rs = np.random.default_rng(1)
-        r2s = cv_r2(Xn, rs.permutation(y), lam)          # 打乱对照
-        print(f"    λ={lam:<7g} CV R² = {r2:+.4f}   打乱对照 {r2s:+.4f}")
-        if r2 > best[0]:
-            best = (r2, lam)
-    r2, lam = best
-    yc = y - y.mean()
-    u = np.linalg.solve(Xn.T @ Xn + lam * np.eye(G), Xn.T @ yc) / sx
-    u = u - u.mean()
-    print(f"\n  最好 λ={lam:g}  CV R² = {r2:+.4f}")
-    print(f"  ⇒ **判据（工程 go/no-go，不是定理）**：CV R² ≥ 0.20 才说明这批标签"
-          f"含可学的一阶结构；\n    ≥ 0.50 则势能表示 c_h 足够，无需 pairwise 控制器。")
-    print(f"  逐头边际效用 u（已中心化）：sd {u.std():.3e}  "
-          f"极差 [{u.min():+.3e}, {u.max():+.3e}]")
+    best_u, summary = None, []
+    for ep in sorted(set(EPS)):
+        sel = EPS == ep
+        X = ALL[sel]; y = np.array([r["A"] for r in recs])[sel]
+        Aq = np.array([r["Aq"] for r in recs])[sel]
+        N = len(y)
+        X = X - X.mean(0); sx = X.std() or 1.0; Xn = X / sx
+        print(f"\n════ ε={ep:g}：{N} 个方向 × {G} 组 ════")
+        print(f"  |A| 中位 {np.median(np.abs(y)):.5f}  A 均值 {y.mean():+.5f} "
+              f"sd {y.std():.5f}  为正 {np.mean(y>0):.1%}")
+        print(f"  实际搬动 ½‖Δb‖₁ 中位 {np.median([r['mb'] for r in np.array(recs)[sel]]):.0f}")
+        # 设计覆盖：饿死头永远做不了施主 ⇒ 那些列只有单边支撑，系数不可辨
+        pos = (ALL[sel] > 0).sum(0); neg = (ALL[sel] < 0).sum(0)
+        one = int(((pos == 0) | (neg == 0)).sum())
+        print(f"  设计覆盖：单边支撑的列 {one}/{G}"
+              f"（这些头的系数与截距混淆，不要单独解读）"
+              f"  每列非零方向数中位 {np.median(pos+neg):.0f}")
+        if N < 2 * G:
+            print(f"  ⚠ N={N} < 2G={2*G}：留出 R² 会偏低，读到接近 0 不能直接判死")
+        bb = (-9, None)
+        for lam in [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0]:
+            r2 = cv_r2(Xn, y, lam)
+            r2s = cv_r2(Xn, np.random.default_rng(1).permutation(y), lam)
+            print(f"    λ={lam:<7g} CV R² = {r2:+.4f}   打乱对照 {r2s:+.4f}")
+            if r2 > bb[0]:
+                bb = (r2, lam)
+        r2, lam = bb
+        u = np.linalg.solve(Xn.T @ Xn + lam * np.eye(G), Xn.T @ (y - y.mean())) / sx
+        u -= u.mean()
+        ua = []
+        for sl in (slice(1, None, 2), slice(0, None, 2)):
+            yh = Aq[:, sl].mean(1); yh = yh - yh.mean()
+            v_ = np.linalg.solve(Xn.T @ Xn + lam * np.eye(G), Xn.T @ yh) / sx
+            ua.append(v_ - v_.mean())
+        rel = st.spearmanr(ua[0], ua[1])[0]
+        print(f"  最好 λ={lam:g}  **CV R² = {r2:+.4f}**   "
+              f"奇/偶问句各解一次 u 的 Spearman {rel:+.3f}")
+        summary.append((ep, N, r2, rel))
+        if best_u is None or r2 > best_u[0]:
+            best_u = (r2, ep, u)
 
-    # 信度：把问句奇偶交错分半，各自重跑一次拟合，比两个 u
-    ua, ub = [], []
-    for sl in (slice(1, None, 2), slice(0, None, 2)):
-        yh = Aq[:, sl].mean(1); yh = yh - yh.mean()
-        ua.append(np.linalg.solve(Xn.T @ Xn + lam * np.eye(G), Xn.T @ yh) / sx)
-    ua, ub = ua[0] - ua[0].mean(), ua[1] - ua[1].mean()
-    print(f"\n  --- 信度：奇/偶问句各解一次 u，比两者 ---")
-    print(f"    Pearson {st.pearsonr(ua,ub)[0]:+.3f}  "
-          f"Spearman {st.spearmanr(ua,ub)[0]:+.3f}  "
-          f"符号一致 {np.mean(np.sign(ua)==np.sign(ub)):.1%}")
-    print(f"    （对比：逐对模式下这三个数是 −0.250 / −0.167 / 58.3%）")
+    print(f"\n════ R²(ε) 汇总 ════")
+    for ep, N, r2, rel in summary:
+        print(f"  ε={ep:<8g} N={N:<5d} CV R² {r2:+.4f}   u 的奇偶信度 {rel:+.3f}")
+    print(f"  读法：小 ε 高、大 ε 低 ⇒ 局部势能存在但曲率随搬动量增长；"
+          f"全部 ≈0 ⇒ 该工作点无可学的一阶结构")
+    print(f"  **判据（工程 go/no-go，不是定理）**：CV R² ≥ 0.20 才值得训控制器；"
+          f"≥ 0.50 则势能参数化足够")
+
+    r2, ep, u = best_u
+    if rho is not None:
+        ok = rho > 0
+        print(f"\n════ 从配额空间翻译回分数空间 ════")
+        print(f"  全局 top-B 下 R = ∂b/∂c = diag(ρ) − ρρᵀ/P（对称，null = span(1)，"
+              f"有限差分对拍 r=+0.967）")
+        print(f"  要让配额走到 d 需解 Rc = d ⇒ **c_h = d_h/ρ_h + κ，除以密度**。")
+        print(f"  所以控制器要拟合的**不是** u 本身：")
+        print(f"    ρ 与 |u| 的 Spearman {st.spearmanr(rho[ok], np.abs(u[ok]))[0]:+.3f}")
+        c_t = np.where(ok, u / np.where(ok, rho, 1), 0.0); c_t -= c_t[ok].mean()
+        print(f"    u 的极差   [{u.min():+.3e}, {u.max():+.3e}]")
+        print(f"    u/ρ 的极差 [{c_t.min():+.3e}, {c_t.max():+.3e}]"
+              f"   两者 Spearman {st.spearmanr(u[ok], c_t[ok])[0]:+.3f}")
+        print(f"    ⇒ 若这个相关明显小于 1，说明「学 u 直接当 c」与「学 u/ρ」是"
+              f"两个不同的目标，密度不是可忽略的常数。")
 
 
 # ────────────────────────────── 主流程 ──────────────────────────────
@@ -347,9 +394,10 @@ def main():
                          "与问句噪声同量级（符号一致 58.3%%、逐动作可分 2.8%%），"
                          "且 |A| 不随 k 增长 ⇒ 已在地板上，加大 k 无用。")
     ap.add_argument("--n_dir", type=int, default=384, help="grad 模式的随机方向数")
-    ap.add_argument("--mb", type=float, default=0.01,
-                    help="grad 模式每个方向的搬动量 ½‖Δb‖₁ / B。默认 0.01 与"
-                         "信赖域中剂量一致。")
+    ap.add_argument("--mb", default="0.0025,0.01,0.04",
+                    help="grad 模式的搬动量 ½‖Δb‖₁ / B，**逗号分隔可多个**。"
+                         "太小则信噪比差，太大则二阶项 ½Δbᵀ H Δb 主导、线性模型"
+                         "R² 自然低 —— 所以要看 R²(ε) 而不是单点。默认三档跨 16×。")
     ap.add_argument("--out", default="scratch_adv_probe.json")
     a = ap.parse_args()
     ks = [int(x) for x in a.ks.split(",")]
@@ -477,23 +525,30 @@ def main():
             ev_s, rt_s = presort(base_valid, sc)
             # k_nom 由目标搬动量反推：Σ_pair k = ε·B ⇒ k_nom ≈ ε·B/(G/2)
             G = base_valid.shape[0] * base_valid.shape[1]
-            k_nom = max(1, int(round(a.mb * B0 / (G / 2))))
-            print(f"  grad 模式：G={G} 组，{a.n_dir} 个方向，"
-                  f"目标搬动 ½‖Δb‖₁={a.mb:.4f}·B={a.mb*B0:.0f} ⇒ 每对 k≈{k_nom}",
-                  flush=True)
-            for it in range(a.n_dir):
-                v, d = random_delta(base_valid, ev_s, rt_s, k_nom, rng)
-                assert int(v.sum()) == B0, f"预算不守恒 {int(v.sum())} vs {B0}"
-                kv.valid = _wb(v)
-                jj, jjq = answer_nll(m, kv, qas_t, n_seen)
-                recs.append(dict(doc=di, mode="grad", d=d.tolist(),
-                                 mb=float(np.abs(d).sum() / 2),
-                                 A=float((j0q - jjq).mean()),
-                                 Aq=[float(x) for x in (j0q - jjq)]))
-                if (it + 1) % 64 == 0:
-                    aa = np.array([r["A"] for r in recs if r.get("mode") == "grad"])
-                    print(f"    {it+1}/{a.n_dir}  |A| 中位 {np.median(np.abs(aa)):.5f}",
-                          flush=True)
+            rho = frontier_density(base_valid, sc)
+            mbs = [float(x) for x in str(a.mb).split(",")]
+            print(f"  grad 模式：G={G} 组，每档 {a.n_dir} 个方向，ε∈{mbs}", flush=True)
+            print(f"  逐头前沿密度 ρ：中位 {np.median(rho):.1f} 极差 "
+                  f"[{rho.min():.2f}, {rho.max():.1f}] = {rho.max()/max(rho.min(),1e-9):.0f}×"
+                  f"  零密度头 {(rho<=0).sum()}/{G}", flush=True)
+            for mb in mbs:
+                k_nom = max(1, int(round(mb * B0 / (G / 2))))
+                print(f"  --- ε={mb:g} ⇒ 目标搬动 {mb*B0:.0f}，每对 k≈{k_nom}", flush=True)
+                for it in range(a.n_dir):
+                    v, d = random_delta(base_valid, ev_s, rt_s, k_nom, rng)
+                    assert int(v.sum()) == B0, f"预算不守恒 {int(v.sum())} vs {B0}"
+                    kv.valid = _wb(v)
+                    jj, jjq = answer_nll(m, kv, qas_t, n_seen)
+                    recs.append(dict(doc=di, mode="grad", eps=mb, d=d.tolist(),
+                                     rho=[float(x) for x in rho],
+                                     mb=float(np.abs(d).sum() / 2),
+                                     A=float((j0q - jjq).mean()),
+                                     Aq=[float(x) for x in (j0q - jjq)]))
+                    if (it + 1) % 96 == 0:
+                        aa = np.array([r["A"] for r in recs
+                                       if r.get("mode") == "grad" and r["eps"] == mb])
+                        print(f"    {it+1}/{a.n_dir}  |A| 中位 "
+                              f"{np.median(np.abs(aa)):.5f}", flush=True)
             kv.valid = raw_valid
             del kv
             torch.cuda.empty_cache()
