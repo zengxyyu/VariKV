@@ -218,6 +218,25 @@ class LearnedControlRetainCache(RetainCache):
                                   f"权重极差=[{float(_sc.min()):.3f},{float(_sc.max()):.3f}] "
                                   f"E|ds|={_d0:.5f}->{float(delta.abs().mean()):.5f}",
                                   flush=True)
+                else:
+                    # **无预条件时也要打印 `M_b`**（2026-08-21）。此前它只在
+                    # `_pa != 0` 分支里算，于是预条件的判据「几何变好 vs 只是
+                    # 动得更少」**在结构上就无法判定** —— 对照那一侧没有这个字段。
+                    # 两次 threshold 相对一次前向可忽略。
+                    if os.environ.get("VARIKV_LOG_MB", "1") != "0":
+                        with torch.no_grad():
+                            _va0, _ = self.threshold(score0, ratio, level)
+                            _vb0, _ = self.threshold(
+                                score0 + delta.to(score0.dtype), ratio, level)
+                            _mb0 = int((_va0 ^ _vb0).sum()) // 2
+                            _fl0 = delta.abs().flatten().float()
+                            print(f"[precond] a=0 **M_b={_mb0}** (占保留集 "
+                                  f"{_mb0 / max(int(_va0.sum()), 1):.4f}) "
+                                  f"RMS={float((_fl0 ** 2).mean() ** 0.5):.5f} "
+                                  f"p90={float(_fl0.quantile(0.90)):.5f} "
+                                  f"p99={float(_fl0.quantile(0.99)):.5f} "
+                                  f"E|ds|={float(delta.abs().mean()):.5f}",
+                                  flush=True)
                 score = score0 + delta.to(score0.dtype)
                 self.delta_std.append(float(delta.std()))
 
