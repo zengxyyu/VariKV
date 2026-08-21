@@ -177,6 +177,10 @@ GM1_R = {0.05: "005", 0.1: "01", 0.2: "02", 0.3: "03", 0.4: "04",
          0.5: "05", 0.75: "75"}
 
 
+# `sel-orc` 里缺 `−1` 候选的格 —— 打印时标 `†`（见 _sel 构造处的注释）。
+SEL_TWOWAY = set()
+
+
 def gm1_sfx(d, r):
     p_, s_ = GM1_P.get(d), GM1_R.get(r)
     if not p_ or not s_:
@@ -440,9 +444,16 @@ def main():
                 _by[_a] = _g
         _sc, _gm = _by.get("scalar", {}), _by.get("gm1", {})
         _sel = {}
+        # **同一行两种含义的陷阱**：`gm1`（= `scalar` 加 `CTRL_GAIN=-1`）只在
+        # Retr.KV / PrefSuf / MultiHop 三个 panel 上跑过（21 格）。其余 8 个 panel
+        # 的 `sel-orc` 里**根本没有 −1 这个候选**，于是它退化成「scalar vs 不动」
+        # 的**二选一**，与三个 panel 上的三选一不可比。不标出来，读者会把那里的
+        # 0.00 读成「三个动作都没用」，而真相是「第三个动作没测过」。
         for r in RAT[1:]:
             if r not in _sc and r not in _gm:
                 continue
+            if r not in _gm:
+                SEL_TWOWAY.add((d, r))
             best, bsig = 0.0, False
             for _src in (_sc, _gm):
                 if r in _src and _src[r][1] and _src[r][0] > best:
@@ -497,6 +508,8 @@ def main():
                 # 每格都印 `(1)` 只是噪声。n≥2 时印 `±跨种子标准差(n)`。
                 body = "%+.2f" % m if ns < 2 else "%+.2f±%.2f" % (m, sd or 0.0)
                 tail = ("★" if sig else "") + deg + (f"({ns})" if ns >= 2 else "")
+                if a_ == "sel-orc" and (name_d, r) in SEL_TWOWAY:
+                    tail += "\u2020"            # † = 该格没跑过 −1，只是二选一
                 line += f" {body + tail:>{W}} |"
         print(line)
     print("|" + "|".join(["-" * 16, "-" * 7, "-" * 9]
