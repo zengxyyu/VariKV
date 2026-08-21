@@ -103,6 +103,72 @@ def make_task(m, ids, max_ctx, window, n_fact, rng):
                           n_tgt=sum(len(q) + len(a) for q, a in qas))
 
 
+def make_task_prefsuf(m, ids, max_ctx, window, n_fact, rng, n_decoy=3):
+    """**PrefSuf 形态**的合成任务 —— 与 `make_task` 只差「问什么」。
+
+    动机（2026-08-21）：静态 `u` 表在 Retr.KV 上 +29.40★ 而在 PrefSuf 上
+    @0.3/@0.4 掉 −14 分，逐 panel 拟 `Δ = a·headroom + b` 显示 PrefSuf 带一个
+    **−10.31 的恒定损伤**。假说是「表与任务形态不匹配」。要测它有两条路：
+
+      · `--corpus real:scbench_prefix_suffix` —— 用 PrefSuf 自己的数据。
+        **同分布 + 需要真实标注 ⇒ 方法命题严格变弱**（见 `EVAL_PROTOCOL.md`）。
+      · **本函数** —— 保住 fineweb-edu 语料（与全部下游评测集**零重叠**）与
+        零标注，**只改查询结构**。可部署性不受损。
+
+    「只改结构就够了」有现成证据：Retr.KV 的真实上下文是 `{"uuid": "uuid"}`
+    的 JSON 字典、**完全没有散文**，而 cat 教师是 fineweb 散文插合成事实 ——
+    **上下文分布完全不同、任务结构完全相同，照样迁移出 +29.40**。
+    ⇒ 可迁移的是查询/检索结构，不是表面分布。
+
+    与真实 PrefSuf 对齐的三点（读了 `load_scbench("scbench_prefix_suffix")[0]`）：
+      1. 词长 25、前后缀各 5，字母表含 `+ - _ ^`；
+      2. **必须有诱饵**：真实任务的难点是大量词只匹配一端。只插 n_fact 个目标
+         会退化成「找那串乱码」，测不到合取匹配。故每个目标配 `n_decoy` 个
+         同前缀异后缀 + `n_decoy` 个同后缀异前缀；
+      3. **刻意的简化**：真实指令写「若有多个匹配返回最后那个」；这里用 `used`
+         保证 `(前缀,后缀)` 全局唯一 ⇒ 答案唯一，**不测位置敏感那一维**。
+         这是已知的不忠实之处，判读时要带上。
+    """
+    import string
+    ctx = list(ids[-max_ctx:])
+    AL = string.ascii_letters + string.digits + "+-_^"
+    W, K = 25, 5
+    used, items, qas = set(), [], []
+
+    def _w(pre=None, suf=None):
+        for _ in range(1000):
+            p_ = pre or "".join(rng.choices(AL, k=K))
+            s_ = suf or "".join(rng.choices(AL, k=K))
+            if (p_, s_) in used:
+                continue
+            used.add((p_, s_))
+            return p_ + "".join(rng.choices(AL, k=W - 2 * K)) + s_, p_, s_
+        raise RuntimeError("造词冲突过多")
+
+    for _ in range(n_fact):
+        w, p_, s_ = _w()
+        pool = [w]
+        for _ in range(n_decoy):
+            pool.append(_w(pre=p_)[0])       # 同前缀、异后缀
+            pool.append(_w(suf=s_)[0])       # 同后缀、异前缀
+        rng.shuffle(pool)
+        for x in pool:
+            items.append(m.encode(
+                f" The dictionary contains the word '{x}'. ")[0].tolist())
+        qas.append((m.encode(
+            f"\nQuestion: Which word in the dictionary has both the prefix "
+            f"'{p_}' and the suffix '{s_}'?\nAnswer:")[0].tolist(),
+            m.encode(f" {w}")[0].tolist()))
+
+    lo, hi = int(0.05 * (len(ctx) - window)), int(0.90 * (len(ctx) - window))
+    assert hi - lo > len(items), f"可插区间 {hi-lo} 放不下 {len(items)} 条"
+    pos = sorted(rng.sample(range(lo, hi), len(items)), reverse=True)
+    for p_i, f_ in zip(pos, items):
+        ctx[p_i:p_i] = f_
+    return ctx, qas, dict(n_fact=n_fact, n_item=len(items), pos=sorted(pos),
+                          n_ans=sum(len(a) for _, a in qas),
+                          n_tgt=sum(len(q) + len(a) for q, a in qas))
+
 # ────────────────────────────── 效用 J ──────────────────────────────
 @torch.no_grad()
 def answer_nll(m, kv, qas_t, n_seen):
@@ -479,7 +545,12 @@ def main():
                     help="每篇插入多少条**互不相同**的事实并各问一次。"
                          "首跑单条（答案 12–16 tok）信度只有 48.7%%（抛硬币），"
                          "噪声 ∝ 1/√T ⇒ 这是最直接的放大办法。")
-    ap.add_argument("--n_recv", type=int, default=4)
+
+    ap.add_argument("--task", default="kv", choices=["kv", "prefsuf"],
+                    help="合成任务的**查询结构**。kv=给键问值（现有那张表用的，"
+                         "与 Retr.KV 同构）；prefsuf=给前后缀问词（与 PrefSuf "
+                         "同构，含同前缀/同后缀诱饵）。**只在 corpus 不是 real: "
+                         "时生效** —— real: 用数据集自带的问答。")
     ap.add_argument("--n_don", type=int, default=4)
     ap.add_argument("--ks", default="1,4,16",
                     help="每个动作转移多少个 KV 条目。**不要只用 k=1** —— "
@@ -576,7 +647,8 @@ def main():
             meta = dict(n_fact=len(qas), pos=[], n_ans=sum(len(x[1]) for x in qas),
                         n_tgt=sum(len(x[0]) + len(x[1]) for x in qas))
         else:
-            ctx_ids, qas, meta = make_task(
+            _mk = (make_task_prefsuf if a.task == "prefsuf" else make_task)
+            ctx_ids, qas, meta = _mk(
                 m, ids, a.max_ctx, a.window, a.n_fact, rng)
         # ---- 三道守卫，与 `scratch_ctrl_teacher.py` 逐条对齐 ----
         if len(ctx_ids) < a.chunk // 2:
