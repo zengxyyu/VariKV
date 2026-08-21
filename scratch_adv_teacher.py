@@ -377,10 +377,13 @@ def report_grad(recs, a):
     print(f"\n════ R²(ε) 汇总 ════")
     for ep, N, r2, rel in summary:
         print(f"  ε={ep:<8g} N={N:<5d} CV R² {r2:+.4f}   u 的奇偶信度 {rel:+.3f}")
-    print(f"  读法：小 ε 高、大 ε 低 ⇒ 局部势能存在但曲率随搬动量增长；"
-          f"全部 ≈0 ⇒ 该工作点无可学的一阶结构")
-    print(f"  **判据（工程 go/no-go，不是定理）**：CV R² ≥ 0.20 才值得训控制器；"
-          f"≥ 0.50 则势能参数化足够")
+    print(f"  读法：小 ε 高、大 ε 低**与**「局部线性 + 高阶项随扰动半径增长」相容，"
+          f"但**不等于证明曲率** —— 异方差噪声、可行方向分布随 ε 变化、饱和"
+          f"都能产生同样的单调下降；全部 ≈0 才是「无可学的一阶结构」")
+    print(f"  **判据（工程 go/no-go，不是定理）**：CV R² ≥ 0.20 才值得往下走。")
+    print(f"  ⚠ R² 高**不**证明现有 CHead 参数化足够：它说的是 A ≈ uᵀΔb 在"
+          f"**配额空间**局部线性，而 CHead 输出的是分数平移 c，中间还隔着"
+          f"Δb ≈ Rc 这一层几何。两者是不同的命题。")
 
     r2, ep, u = best_u
     if rho is not None:
@@ -426,7 +429,7 @@ def main():
                     help="每个动作额外跑 2 次前向，量出交互项 "
                          "I = A − (g⁺ − g⁻)。**这是判断「可分性/势能表示」"
                          "成不成立的唯一办法** —— |I| ≪ |A| 才能把 A 写成 u_i − u_j。")
-    ap.add_argument("--mode", default="pair", choices=["pair", "grad"],
+    ap.add_argument("--mode", default="pair", choices=["pair", "grad", "ascent"],
                     help="pair=逐 (受主,施主) 对的优势；"
                          "grad=保预算随机稠密扰动 + 最小二乘反解逐头边际效用。"
                          "**首跑判决 pair 不可用**：单对挪 16 条只动 0.002 nats，"
@@ -560,6 +563,108 @@ def main():
         assert j_null == j0, f"零动作不复现基线：{j_null} vs {j0}"
         print(f"  自检① 零动作 A = {j0 - j_null:+.3e}（须恰为 0）✓", flush=True)
 
+        if a.mode == "ascent":
+            # **最便宜也最直接的教师判决。** grad 模式给的 CV R² 说的是
+            # 「A 能被 uᵀΔb 预测」，那是**相关性**；这里问的是**因果**：
+            # 真沿着 Πu 搬预算，任务效用是不是真的涨。
+            #
+            # 量级预测（先写下再测）：随机保预算方向上 E[uᵀd]=0，实测均值被曲率
+            # 压到 −0.84 sd；而对齐方向的一阶项是 ‖u‖‖d‖ = √(G−1)·sd(uᵀd)，
+            # 在 R²≈0.7 时 sd(uᵀd)≈0.84·sd(A) ⇒ 对齐收益应达 **约 7 sd**，
+            # 即比随机方向的曲率惩罚大一个量级。测不到这个量级就说明 u 不可用。
+            #
+            # **必须留出**：拟合与检验用不相交的随机方向，否则是自证。
+            ev_s, rt_s = presort(base_valid, sc)
+            G = base_valid.shape[0] * base_valid.shape[1]
+            mb = float(str(a.mb).split(",")[0])
+            k_nom = max(1, int(round(mb * B0 / (G / 2))))
+            print(f"  ascent 模式：G={G}  拟合 {a.n_dir} 方向 @ε={mb:g}"
+                  f"（每对 k≈{k_nom}）", flush=True)
+            fit = []
+            for it in range(a.n_dir):
+                v, d = random_delta(base_valid, ev_s, rt_s, k_nom, rng)
+                kv.valid = _wb(v)
+                _, jjq = answer_nll(m, kv, qas_t, n_seen)
+                fit.append(dict(d=d.tolist(), A=float((j0q - jjq).mean())))
+                if (it + 1) % 64 == 0:
+                    print(f"    拟合 {it+1}/{a.n_dir}", flush=True)
+            X = np.array([r["d"] for r in fit], float)
+            y = np.array([r["A"] for r in fit])
+            Xc = X - X.mean(0); sx = Xc.std() or 1.0
+            lam = 10.0
+            u = np.linalg.solve((Xc/sx).T @ (Xc/sx) + lam*np.eye(G),
+                                (Xc/sx).T @ (y - y.mean())) / sx
+            u -= u.mean()
+            print(f"  u 解出：sd {u.std():.3e}  极差 [{u.min():+.3e}, {u.max():+.3e}]",
+                  flush=True)
+
+            def realize(dvec):
+                """把实数目标 `dvec` 变成**可行且严格保预算**的整数动作。
+
+                按 `dvec` 排序，正的当受主、负的当施主，逐对撮合并取
+                `min(需求, 可驱逐, 可移除)` —— 与 `random_delta` 同一构造，
+                所以 `Σ Δb = 0` 仍是构造性的，不靠事后修补。
+                """
+                v = base_valid.clone(); got = np.zeros(G, dtype=np.int64)
+                order = np.argsort(-dvec)
+                pos = [int(g) for g in order if dvec[g] > 0]
+                neg = [int(g) for g in order[::-1] if dvec[g] < 0]
+                want_p = np.round(np.abs(dvec)).astype(int)
+                pi = ni = 0
+                while pi < len(pos) and ni < len(neg):
+                    i_, j_ = pos[pi], neg[ni]
+                    ii, jj_ = (i_ // base_valid.shape[1], i_ % base_valid.shape[1]), \
+                              (j_ // base_valid.shape[1], j_ % base_valid.shape[1])
+                    need = min(want_p[i_] - got[i_], want_p[j_] + got[j_])
+                    kk = int(min(need, len(ev_s[ii]) - int(got[i_]),
+                                 len(rt_s[jj_]) - int(-got[j_])))
+                    if kk <= 0:
+                        # 判断**是哪一侧堵住**再前进，否则受主耗尽时会一路推进施主
+                        # 指针直到用完，静默少搬一大截（欠交付不会报错，只会让
+                        # 「上升方向没效果」变成一个假阴性）。
+                        i_room = min(want_p[i_] - got[i_],
+                                     len(ev_s[ii]) - int(got[i_]))
+                        if i_room <= 0:
+                            pi += 1
+                        else:
+                            ni += 1
+                        continue
+                    off_i, off_j = int(got[i_]), int(-got[j_])
+                    v[ii[0], ii[1], ev_s[ii][off_i:off_i+kk]] = True
+                    v[jj_[0], jj_[1], rt_s[jj_][off_j:off_j+kk]] = False
+                    got[i_] += kk; got[j_] -= kk
+                    if got[i_] >= want_p[i_]: pi += 1
+                    if -got[j_] >= want_p[j_]: ni += 1
+                assert got.sum() == 0, f"预算不守恒 {got.sum()}"
+                return v, got
+
+            tgt = mb * B0
+            res = {}
+            for nm, vec in (("+Πu", u), ("−Πu", -u)):
+                dv = vec / (np.abs(vec).sum() / 2 + 1e-30) * tgt
+                v, got = realize(dv)
+                assert int(v.sum()) == B0
+                kv.valid = _wb(v)
+                _, jjq = answer_nll(m, kv, qas_t, n_seen)
+                res[nm] = (float((j0q - jjq).mean()), float(np.abs(got).sum() / 2))
+            sd = float(y.std())
+            print(f"\n  === doc{di} 上升方向实测（留出拟合，n_fit={a.n_dir}）===")
+            print(f"    随机方向  A 均值 {y.mean():+.5f}  sd {sd:.5f}"
+                  f"  为正 {np.mean(y>0):.1%}")
+            for nm in ("+Πu", "−Πu"):
+                v_, mv = res[nm]
+                print(f"    {nm:4s}      A = {v_:+.5f}"
+                      f"  = {(v_ - y.mean())/max(sd,1e-12):+.2f} sd"
+                      f"   实际搬动 {mv:.0f}/{tgt:.0f}")
+            print(f"    **反对称性检验**：A(+Πu) 与 A(−Πu) 应一正一负且量级相近；"
+                  f"同号 ⇒ 曲率主导，一阶项没抓到")
+            recs.append(dict(doc=di, mode="ascent", eps=mb, n_fit=a.n_dir,
+                             rand_mean=float(y.mean()), rand_sd=sd,
+                             A_plus=res["+Πu"][0], A_minus=res["−Πu"][0],
+                             u=[float(x) for x in u]))
+            json.dump(recs, open(os.path.join(ROOT, a.out), "w"))
+            kv.valid = raw_valid; del kv; torch.cuda.empty_cache(); continue
+
         if a.mode == "grad":
             ev_s, rt_s = presort(base_valid, sc)
             # k_nom 由目标搬动量反推：Σ_pair k = ε·B ⇒ k_nom ≈ ε·B/(G/2)
@@ -646,6 +751,21 @@ def main():
 
     if not recs:
         print("没有任何动作被评估"); return
+    if a.mode == "ascent":
+        aa = [r for r in recs if r.get("mode") == "ascent"]
+        print(f"\n════ ascent 汇总（{len(aa)} 篇）════")
+        for r in aa:
+            z1 = (r["A_plus"] - r["rand_mean"]) / max(r["rand_sd"], 1e-12)
+            z2 = (r["A_minus"] - r["rand_mean"]) / max(r["rand_sd"], 1e-12)
+            print(f"  doc{r['doc']}: 随机 {r['rand_mean']:+.5f}±{r['rand_sd']:.5f}"
+                  f"   +Πu {r['A_plus']:+.5f} ({z1:+.2f} sd)"
+                  f"   −Πu {r['A_minus']:+.5f} ({z2:+.2f} sd)")
+        print(f"  预测：一阶项若真实，+Πu 应达 **约 +7 sd**、−Πu 对称为负。"
+              f"读到 ≈0 或同号 ⇒ 回归拟到的不是可用的上升方向。")
+        json.dump(recs, open(os.path.join(ROOT, a.out), "w"))
+        print(f"\n写出 {a.out}")
+        return
+
     if a.mode == "grad":
         report_grad(recs, a)
         json.dump(recs, open(os.path.join(ROOT, a.out), "w"))

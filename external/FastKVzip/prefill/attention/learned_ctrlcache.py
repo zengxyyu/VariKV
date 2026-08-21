@@ -176,7 +176,10 @@ class LearnedControlRetainCache(RetainCache):
                         # 已超限，`_lo` 保持 0 ⇒ `delta` 整个归零 ⇒ **方法被关掉**。
                         # 那与「约束住了但仍在动」在分数上都可能读成 +0.00，而两者
                         # 结论完全相反（一个是止血成功，一个是没做任何干预）。
-                        print(f"[trust] lo={lo} tgt={_tgt} B={_B}"
+                        # 字段名与本文件其它四条日志同一约定：`chunk lo` 是**块偏移**，
+                        # 不是二分出来的 λ。λ 由 `lam=` 单独给出（外部复核曾把
+                        # `lo=` 误读成二分结果 —— 缺的那两个字真的造成了误判）。
+                        print(f"[trust] chunk lo={lo} tgt={_tgt} B={_B}"
                               f" mb_full={_mb(1.0)} cap={_tgt*_B:.0f}"
                               f" lam={self.trust_lam[-1]:.6f}"
                               f" delta_l1={float(delta.abs().sum()):.1f}", flush=True)
