@@ -16,6 +16,7 @@
 import argparse
 import contextlib
 import io
+import functools
 import json
 import re
 import os
@@ -186,9 +187,24 @@ def cen_sfx(d, K, r):
 _M = contextlib.redirect_stdout(io.StringIO())
 
 
-def per_sample(data, suffix, ratio):
+@functools.lru_cache(maxsize=None)
+def _answers(data):
+    """`parse_answer` 会把整个数据集的答案重新解析一遍，而 `per_sample`
+    每格都调它一次 —— 全表要调几千次。按数据集缓存。"""
     with _M:
-        ANSW, SUBT = parse_answer(data)
+        return parse_answer(data)
+
+
+@functools.lru_cache(maxsize=None)
+def per_sample(data, suffix, ratio):
+    """逐样本分数。**已缓存** —— 同一个 (panel, tag, ratio) 在一次生成里会被
+    读很多遍：逐格完整性门对每个种子 × 每个 ratio × 每个候选模板各试一次，
+    仅这一项就是主循环的几十倍。
+
+    ⚠ 返回的 dict 被缓存**共享**，调用方**不得就地修改**。
+    现有调用方只做 `set()` / 索引 / `len()`，都是只读的。
+    """
+    ANSW, SUBT = _answers(data)
     out, i = {}, 0
     while True:
         f = f"results/{data}/{i}_qwen2.5-7b-instruct-1m_fastkvzip{suffix}/output-pair.json"
@@ -225,21 +241,33 @@ def cell(base, arm):
     return m, (lo > 0 or hi < 0), len(c)
 
 
-def _seed_ps(d, tpls, S, r):
+def _seed_ps(d, tpls, S, r, want=None):
     """按顺序试多个 tag 模板，返回第一个非空的逐样本结果。
 
     一条臂的数据可能分散在不同批次的 tag 里（例如 scalar 的过夜扫描 `_sc11_s*`
     不含 scbench_kv 的 ρ=0.1，那一格只存在于更早的 `_d10scalar_s*`）。
     **按顺序取第一个有数据的**，而不是合并——避免同一 (panel,ratio) 混批。
     """
+    # `want` = 该 ratio 下基线的样本数。给了就**优先返回条数吻合的模板**。
+    #
+    # ⚠ 为什么必须这样：旧版返回「第一个非空」，于是一个**跑到一半**的新 tag
+    # 会把一份**跑满**的旧 tag 挡住，逐格完整性检查再把它剔掉 ——
+    # **整个种子就这么悄悄消失了**（2026-08-21 03:40 实测：Retr.KV@0.1 的
+    # `chd10` 显示 `(2)` 而不是 `(3)`，因为 seed 1 的网格作业才 84/100，
+    # 而它 100/100 的旧 tag `_chd10s1` 从没被试到）。
+    first = {}
     for t in tpls:
         # 模板可含 `{d}` —— 走 qrun.sh 的全网格必须每 panel 一个 tag，
         # 否则 11 个 panel 会写进同一个 `${TAG#_}.log`、互相覆盖，
         # 完成判定与审计都失效。老模板不含 `{d}`，format 多给一个键无害。
         x = per_sample(d, t.format(S=S, d=d), r)
-        if x:
+        if not x:
+            continue
+        if want is None or len(x) == want:
             return x
-    return {}
+        if not first:
+            first = x                      # 都不吻合时回退到第一个非空，
+    return first                           # 让逐格检查去判它、而不是在这里静默丢
 
 
 def main():
@@ -323,7 +351,7 @@ def main():
                         for S in (0, 1, 2):
                             for _r in RAT:
                                 _nb = len(B.get(_r) or {})
-                                if _nb and len(_seed_ps(d, _tpl, S, _r)) == _nb:
+                                if _nb and len(_seed_ps(d, _tpl, S, _r, _nb)) == _nb:
                                     seeds.append(S)
                                     break
                     seed_tpl = _tpl
@@ -346,7 +374,7 @@ def main():
                 if seeds is not None:                    # 多种子：逐种子算再平均
                     ms = []
                     for S in seeds:
-                        _ps = _seed_ps(d, seed_tpl, S, r)
+                        _ps = _seed_ps(d, seed_tpl, S, r, len(B[r]))
                         # **逐格完整性**：该种子在这个 ratio 上的样本数必须与基线
                         # 相等。跑到一半的作业会给出偏斜的交集（本项目已被坑过：
                         # 38/100 时 Math.Find 读到 −3.95★，满量后是 −2.33 不显著）。

@@ -30,14 +30,24 @@ TPL = {"v2": "_g8v2", "v3": "_g8v3",
 SEEDED = {"v2c", "scalar", "kv", "sgs", "chead", "chd10"}
 
 
-def _resolve(arm, ds, S, r):
-    """按顺序试模板，返回第一个非空的逐样本结果。"""
+def _resolve(arm, ds, S, r, want=None):
+    """按顺序试模板；给了 `want` 就**优先返回条数吻合的**。
+
+    与 `scratch_all_report.py:_seed_ps` 同规则 —— 两边必须一致，
+    否则复核会把「生成器用了回退、复核用了半截数据」误报成不一致。
+    旧版返回第一个非空，会让跑到一半的新 tag 挡住跑满的旧 tag。
+    """
     t = TPL[arm]
+    first = {}
     for tpl in ((t,) if isinstance(t, str) else t):
         o = read_scores(ds, tpl.format(S=S, d=ds), r, strict=False)
-        if o:
+        if not o:
+            continue
+        if want is None or len(o) == want:
             return o
-    return {}
+        if not first:
+            first = o
+    return first
 RAT = [0.75, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05, 0.02]
 
 # 解析表格
@@ -70,7 +80,7 @@ for panel, arm, cells in rows:
         if arm in SEEDED:
             ms = []
             for S in (0, 1, 2):
-                o = _resolve(arm, ds, S, r)
+                o = _resolve(arm, ds, S, r, len(base))
                 if len(set(o) & set(base)) >= 5 and len(o) == len(base):
                     ms.append(paired(o, base)[0])
             if not ms:
@@ -79,7 +89,7 @@ for panel, arm, cells in rows:
             m_new = float(np.mean(ms))
             n_new = len(ms)
         else:
-            o = _resolve(arm, ds, 0, r)
+            o = _resolve(arm, ds, 0, r, len(base))
             if len(set(o) & set(base)) < 5:
                 skipped += 1
                 continue
