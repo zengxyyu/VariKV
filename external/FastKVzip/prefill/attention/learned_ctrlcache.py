@@ -55,6 +55,7 @@ class LearnedControlRetainCache(RetainCache):
         self._gen = torch.Generator(device="cpu").manual_seed(seed)
         # 诊断
         self.flip_frac, self.retain_delta, self.delta_std = [], [], []
+        self.trust_lam = []          # 信赖域实际用到的 λ，供事后诊断
         # 训练用采集缓冲（train_mode 时填）
         self.trace = []
 
@@ -133,6 +134,43 @@ class LearnedControlRetainCache(RetainCache):
                 _g = float(os.environ.get("VARIKV_CTRL_GAIN", "1.0"))
                 if _g != 1.0:
                     delta = delta * _g
+                # **`VARIKV_TRUST_MB`：配额移动量的信赖域（2026-08-21 加）。**
+                #
+                # 动机是实测的：Δ 的变异 **86% 来自「弄坏」项**，而弄坏量与
+                # 「方法改了多少」正相关（Spearman(nz,|down|)=+0.410）；且方法
+                # **在最不该动的地方动得最多**（headroom<0 时改 66.6% 的样本，
+                # headroom>15 时只改 25.6%）。所以给搬动量设一个上界。
+                #
+                # 与 `CTRL_GAIN` 的区别：`GAIN` 是**固定**倍数、要人预先知道该用多少；
+                # 这里是**自适应**的 —— 只在这一个 chunk 真的想搬太多时才压，
+                # 且**只用基线分数与自己的提议**，不需要标签，**可部署**。
+                #
+                # 实现：二分 λ∈[0,1]，令 ½‖Δb‖₁ ≤ tgt·B。`threshold` 是纯 topk，
+                # 8 次二分的额外开销相对一次 prefill 可忽略。
+                _tr = os.environ.get("VARIKV_TRUST_MB")
+                if _tr is not None:
+                    _tgt = float(_tr)
+                    with torch.no_grad():
+                        _v0, _ = self.threshold(score0, ratio, level)
+                        _B = max(int(_v0.sum()), 1)
+
+                        def _mb(lam):
+                            _vm, _ = self.threshold(
+                                score0 + (delta * lam).to(score0.dtype), ratio, level)
+                            return int((_vm ^ _v0).sum()) // 2
+
+                        if _mb(1.0) > _tgt * _B:          # 只在超限时才动
+                            _lo, _hi = 0.0, 1.0
+                            for _ in range(8):
+                                _mid = 0.5 * (_lo + _hi)
+                                if _mb(_mid) > _tgt * _B:
+                                    _hi = _mid
+                                else:
+                                    _lo = _mid
+                            delta = delta * _lo
+                            self.trust_lam.append(_lo)
+                        else:
+                            self.trust_lam.append(1.0)
                 score = score0 + delta.to(score0.dtype)
                 self.delta_std.append(float(delta.std()))
 
