@@ -1737,4 +1737,248 @@ Results saved at ./results/scbench_kv/58_qwen2.5-7b-instruct-1m_fastkvzip__tr000
 
 [effective] clen=169283 window=512 chunk_ratio=1.000000 degenerate=False
 chunk inputs, size: 16000 (num 11)
-Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:04,  2.31it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:07,  1.28it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:08,  1.06s/it]Prefill:  36%|███▋      | 4/11 [00:04<00:09,  1.35s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:09,  1.66s/it]Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.98s/it]Prefill:  64%|██████▎   | 7/11 [00:12<00:09,  2.31s/it]Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.65s/it]Prefill:  82%|████████▏ | 9/11 [00:19<00:06,  3.00s/it]
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:04,  2.31it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:07,  1.28it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:08,  1.06s/it]Prefill:  36%|███▋      | 4/11 [00:04<00:09,  1.35s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:09,  1.66s/it]Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.98s/it]Prefill:  64%|██████▎   | 7/11 [00:12<00:09,  2.31s/it]Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.65s/it]Prefill:  82%|████████▏ | 9/11 [00:19<00:06,  3.00s/it]Prefill:  91%|█████████ | 10/11 [00:23<00:03,  3.37s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  3.40s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  2.48s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-59: 169283 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 38c520a0-9b25-4b12-a9e6-f996e701c970 | 38c520a0-9b25-4b12-a9e6-f996e701c970
+[QA 1] The value associated with the key "49bb9c73-ac5e-434f-b201-d97a62b40f66" is "33fa4147-1789-481e-843b-f075d9a1cbac". | 33fa4147-1789-481e-843b-f075d9a1cbac
+[QA 2] The value associated with the key "b34c09e5-0d40-4a02-bdf2-fee7d099cc0d" is "6287b242-c2f5-4f05-8d23-ab860a6a9c33". | 6287b242-c2f5-4f05-8d23-ab860a6a9c33
+[QA 3] The value associated with the key "4b2a5961-9349-466d-9c9d-9b2e3e0662d6" is "b8b349f4-bcb3-4418-b9b0-22fbf8568bfc". | b8b349f4-bcb3-4418-b9b0-22fbf8568bfc
+[QA 4] 65478831-1cfc-4f52-a31e-9fbaf4455487 | 65478831-1cfc-4f52-a31e-9fbaf4455487
+[effective] clen=169283 window=4096 chunk_ratio=0.743801 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][trust] chunk lo=28 tgt=0.002 B=989337 mb_full=339614 cap=1979 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:   9%|▉         | 1/11 [00:00<00:08,  1.19it/s][trust] chunk lo=11904 tgt=0.002 B=1332890 mb_full=456015 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  18%|█▊        | 2/11 [00:02<00:09,  1.07s/it][trust] chunk lo=27904 tgt=0.002 B=1332890 mb_full=454788 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  27%|██▋       | 3/11 [00:03<00:10,  1.28s/it][trust] chunk lo=43904 tgt=0.002 B=1332890 mb_full=457285 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  36%|███▋      | 4/11 [00:05<00:10,  1.48s/it][trust] chunk lo=59904 tgt=0.002 B=1332890 mb_full=457003 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  45%|████▌     | 5/11 [00:07<00:10,  1.71s/it][trust] chunk lo=75904 tgt=0.002 B=1332890 mb_full=456191 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.94s/it][trust] chunk lo=91904 tgt=0.002 B=1332890 mb_full=455695 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  64%|██████▎   | 7/11 [00:12<00:08,  2.19s/it][trust] chunk lo=107904 tgt=0.002 B=1332890 mb_full=455254 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.44s/it][trust] chunk lo=123904 tgt=0.002 B=1332890 mb_full=454629 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  82%|████████▏ | 9/11 [00:18<00:05,  2.71s/it][trust] chunk lo=139904 tgt=0.002 B=1332890 mb_full=454280 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  91%|█████████ | 10/11 [00:22<00:02,  2.98s/it][trust] chunk lo=155904 tgt=0.002 B=775658 mb_full=264181 cap=1551 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.78s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.25s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-59: 169283 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/59_qwen2.5-7b-instruct-1m_fastkvzip__tr0002r075_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 116.3s. Mem: 14.31/79.18 GB. [scbench_kv-59]
+
+[effective] clen=169180 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:04,  2.32it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.30it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:08,  1.06s/it]Prefill:  36%|███▋      | 4/11 [00:04<00:09,  1.36s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:09,  1.66s/it]Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.97s/it]Prefill:  64%|██████▎   | 7/11 [00:12<00:09,  2.30s/it]Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.65s/it]Prefill:  82%|████████▏ | 9/11 [00:19<00:06,  3.01s/it]Prefill:  91%|█████████ | 10/11 [00:23<00:03,  3.38s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  3.40s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  2.48s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-60: 169180 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 992825d6-77a0-48ec-b4c2-74881f2eee90 | 5e227e06-bb7e-4927-99d7-6b3dcf07c156
+[QA 1] The value associated with the key "ee01b921-f7d2-4b4f-8ba1-51473f69653a" is "e4eb150c-bf7a-4c75-bb5d-3b975f617f5d". | e4eb150c-bf7a-4c75-bb5d-3b975f617f5d
+[QA 2] The value associated with the key "bc818017-ed6f-42d8-bcf6-b4069e263aa1" is "3c0a8730-2935-4618-8119-2e4754e4e19c". | 3c0a8730-2935-4618-8119-2e4754e4e19c
+[QA 3] "5f5a9a00-45a1-4dcf-bf3d-75a50ca1cc6b" | 5f5a9a00-45a1-4dcf-b439-6986254af6af
+[QA 4] The value associated with the key "d4601d6d-4e8d-4bcd-9579-01cd1feb4796" is "c97ef611-e4cc-4766-8a36-1dc815ddd4d3". | c97ef611-e4cc-4766-8a36-1dc815ddd4d3
+[effective] clen=169180 window=4096 chunk_ratio=0.743797 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][trust] chunk lo=28 tgt=0.002 B=989332 mb_full=339620 cap=1979 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:   9%|▉         | 1/11 [00:00<00:08,  1.21it/s][trust] chunk lo=11904 tgt=0.002 B=1332078 mb_full=456550 cap=2664 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  18%|█▊        | 2/11 [00:02<00:09,  1.07s/it][trust] chunk lo=27904 tgt=0.002 B=1332883 mb_full=456286 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  27%|██▋       | 3/11 [00:03<00:10,  1.27s/it][trust] chunk lo=43904 tgt=0.002 B=1332883 mb_full=454536 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  36%|███▋      | 4/11 [00:05<00:10,  1.48s/it][trust] chunk lo=59904 tgt=0.002 B=1332883 mb_full=457024 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  45%|████▌     | 5/11 [00:07<00:10,  1.70s/it][trust] chunk lo=75904 tgt=0.002 B=1332883 mb_full=456234 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.94s/it][trust] chunk lo=91904 tgt=0.002 B=1332883 mb_full=455760 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  64%|██████▎   | 7/11 [00:12<00:08,  2.19s/it][trust] chunk lo=107904 tgt=0.002 B=1332883 mb_full=455383 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.44s/it][trust] chunk lo=123904 tgt=0.002 B=1332883 mb_full=454679 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  82%|████████▏ | 9/11 [00:18<00:05,  2.71s/it][trust] chunk lo=139904 tgt=0.002 B=1332883 mb_full=454297 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  91%|█████████ | 10/11 [00:22<00:02,  2.98s/it][trust] chunk lo=155904 tgt=0.002 B=767073 mb_full=261122 cap=1534 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.77s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.25s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-60: 169180 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/60_qwen2.5-7b-instruct-1m_fastkvzip__tr0002r075_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 115.1s. Mem: 14.31/79.18 GB. [scbench_kv-60]
+
+[effective] clen=169146 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:04,  2.31it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.29it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:08,  1.06s/it]Prefill:  36%|███▋      | 4/11 [00:04<00:09,  1.35s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:09,  1.66s/it]Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.97s/it]Prefill:  64%|██████▎   | 7/11 [00:12<00:09,  2.31s/it]Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.65s/it]Prefill:  82%|████████▏ | 9/11 [00:19<00:06,  3.00s/it]Prefill:  91%|█████████ | 10/11 [00:23<00:03,  3.37s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  3.40s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  2.48s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-61: 169146 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "ecdd32eb-d531-4338-bdfa-e10513c92f62" is "86ea56bc-bff3-4ea0-afec-9369371d1201". | 86ea56bc-bff3-4ea0-afec-9369371d1201
+[QA 1] 5a501a3a-e75d-410d-a8bb-5aa67554a971 | 5a501a3a-e75d-410d-a8bb-5aa67554a971
+[QA 2] The value associated with the key "e8f127b7-6d42-4d3f-9918-969a8adb75f9" is "2f2e85c3-8290-4d16-8bd2-89945c6d1a66". | 2f2e85c3-8290-4d16-8bd2-89945c6d1a66
+[QA 3] 0ecac498-a370-4e66-b5b7-f8d31e637a06 | 0ecac498-a370-4e66-b5b7-f8d31e637a06
+[QA 4] The value associated with the key "c7c8a71d-80fe-4dbe-931e-44b7cc62a0eb" is "23bffee1-58bc-4909-ac3d-45b55267ca21". | 23bffee1-58bc-4909-ac3d-45b55267ca21
+[effective] clen=169146 window=4096 chunk_ratio=0.743796 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][trust] chunk lo=28 tgt=0.002 B=989330 mb_full=339559 cap=1979 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:   9%|▉         | 1/11 [00:00<00:08,  1.21it/s][trust] chunk lo=11904 tgt=0.002 B=1332881 mb_full=456026 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  18%|█▊        | 2/11 [00:02<00:09,  1.07s/it][trust] chunk lo=27904 tgt=0.002 B=1332881 mb_full=457904 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  27%|██▋       | 3/11 [00:03<00:10,  1.27s/it][trust] chunk lo=43904 tgt=0.002 B=1332114 mb_full=454970 cap=2664 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  36%|███▋      | 4/11 [00:05<00:10,  1.49s/it][trust] chunk lo=59904 tgt=0.002 B=1332881 mb_full=456983 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  45%|████▌     | 5/11 [00:07<00:10,  1.71s/it][trust] chunk lo=75904 tgt=0.002 B=1332881 mb_full=456211 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.94s/it][trust] chunk lo=91904 tgt=0.002 B=1332881 mb_full=455566 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  64%|██████▎   | 7/11 [00:12<00:08,  2.19s/it][trust] chunk lo=107904 tgt=0.002 B=1332784 mb_full=455130 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.45s/it][trust] chunk lo=123904 tgt=0.002 B=1332881 mb_full=454349 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  82%|████████▏ | 9/11 [00:18<00:05,  2.71s/it][trust] chunk lo=139904 tgt=0.002 B=1332881 mb_full=453959 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  91%|█████████ | 10/11 [00:22<00:02,  2.98s/it][trust] chunk lo=155904 tgt=0.002 B=764240 mb_full=260031 cap=1528 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.77s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.25s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-61: 169146 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/61_qwen2.5-7b-instruct-1m_fastkvzip__tr0002r075_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 120.1s. Mem: 14.31/79.18 GB. [scbench_kv-61]
+
+[effective] clen=168908 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:04,  2.33it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.30it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:08,  1.06s/it]Prefill:  36%|███▋      | 4/11 [00:04<00:09,  1.35s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:09,  1.65s/it]Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.98s/it]Prefill:  64%|██████▎   | 7/11 [00:12<00:09,  2.31s/it]Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.65s/it]Prefill:  82%|████████▏ | 9/11 [00:19<00:06,  3.01s/it]Prefill:  91%|█████████ | 10/11 [00:23<00:03,  3.38s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  3.38s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  2.47s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-62: 168908 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "98a8fd59-f913-41f6-9478-dedf77b470de" is "feb6ee47-450e-4e61-b512-fecff1800232". | feb6ee47-450e-4e61-b512-fecff1800232
+[QA 1] 337a072b-dee8-4f57-9ca2-140d20caf372 | c2cd8d3a-f3be-4fa9-bc8e-6a17c9e7c39e
+[QA 2] 735ed332-b2d3-493b-b6ea-7e907150005c | 735ed332-b2d3-493b-b6ea-7e907150005c
+[QA 3] The value associated with the key "0ac62824-adda-41a5-8811-8cc524a189cc" is "fcffd233-54bc-47bd-b56f-b6f35ff4f553". | fcffd233-54bc-47bd-b56f-b6f35ff4f553
+[QA 4] The value associated with the key "5fb96022-16c2-45e7-b8dd-4e1beb9d442b" is "d364ad72-2534-451d-9c7e-248a3ad5470c". | d364ad72-2534-451d-9c7e-248a3ad5470c
+[effective] clen=168908 window=4096 chunk_ratio=0.743787 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][trust] chunk lo=28 tgt=0.002 B=989318 mb_full=339594 cap=1979 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:   9%|▉         | 1/11 [00:00<00:08,  1.18it/s][trust] chunk lo=11904 tgt=0.002 B=1332865 mb_full=456097 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  18%|█▊        | 2/11 [00:02<00:09,  1.07s/it][trust] chunk lo=27904 tgt=0.002 B=1332865 mb_full=457826 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  27%|██▋       | 3/11 [00:03<00:10,  1.27s/it][trust] chunk lo=43904 tgt=0.002 B=1332865 mb_full=457599 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  36%|███▋      | 4/11 [00:05<00:10,  1.48s/it][trust] chunk lo=59904 tgt=0.002 B=1332865 mb_full=456965 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  45%|████▌     | 5/11 [00:07<00:10,  1.70s/it][trust] chunk lo=75904 tgt=0.002 B=1332865 mb_full=456160 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.94s/it][trust] chunk lo=91904 tgt=0.002 B=1332865 mb_full=455812 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  64%|██████▎   | 7/11 [00:12<00:08,  2.19s/it][trust] chunk lo=107904 tgt=0.002 B=1332865 mb_full=455265 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.45s/it][trust] chunk lo=123904 tgt=0.002 B=1332865 mb_full=454609 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  82%|████████▏ | 9/11 [00:18<00:05,  2.71s/it][trust] chunk lo=139904 tgt=0.002 B=1332865 mb_full=454196 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  91%|█████████ | 10/11 [00:22<00:02,  2.99s/it][trust] chunk lo=155904 tgt=0.002 B=744404 mb_full=253545 cap=1489 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.75s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.25s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-62: 168908 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/62_qwen2.5-7b-instruct-1m_fastkvzip__tr0002r075_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 106.6s. Mem: 14.31/79.18 GB. [scbench_kv-62]
+
+[effective] clen=169278 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:04,  2.30it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.29it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:08,  1.06s/it]Prefill:  36%|███▋      | 4/11 [00:04<00:09,  1.35s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:09,  1.65s/it]Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.97s/it]Prefill:  64%|██████▎   | 7/11 [00:12<00:09,  2.31s/it]Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.65s/it]Prefill:  82%|████████▏ | 9/11 [00:19<00:05,  3.00s/it]Prefill:  91%|█████████ | 10/11 [00:23<00:03,  3.37s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  3.41s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  2.48s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-63: 169278 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "9bf533c3-5136-4911-8640-5a6004764930" is "d7821ff4-6afc-415e-8d78-78de57737c2d". | d7821ff4-6afc-415e-8d78-78de57737c2d
+[QA 1] The value associated with the key "98a76e4e-3a5b-4f3e-94da-3d4b33cbab2e" is "88a8712d-d884-4adb-8aff-927156777786". | 88a8712d-d884-4adb-8aff-927156777786
+[QA 2] The value associated with the specified key `40720c0b-c60d-433b-bbbb-7e10e853305c` is `18567863-ebf6-416c-820b-cf985e85b840`. | 18567863-ebf6-416c-820b-cf985e85b840
+[QA 3] The value associated with the specified key "8e585669-be99-42d7-9a4c-fb1606140b62" is "49740b9a-8b57-4584-9984-9a14bda502f9". | 49740b9a-8b57-4584-9984-9a14bda502f9
+[QA 4] "75ed093b-78da-4c04-8c98-28108cd8c138" | 75ed093b-78da-4c04-8c98-28108cd8c138
+[effective] clen=169278 window=4096 chunk_ratio=0.743801 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][trust] chunk lo=28 tgt=0.002 B=989337 mb_full=339567 cap=1979 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:   9%|▉         | 1/11 [00:00<00:08,  1.19it/s][trust] chunk lo=11904 tgt=0.002 B=1332889 mb_full=456138 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  18%|█▊        | 2/11 [00:02<00:09,  1.07s/it][trust] chunk lo=27904 tgt=0.002 B=1332889 mb_full=454737 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  27%|██▋       | 3/11 [00:03<00:10,  1.27s/it][trust] chunk lo=43904 tgt=0.002 B=1332577 mb_full=457723 cap=2665 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  36%|███▋      | 4/11 [00:05<00:10,  1.49s/it][trust] chunk lo=59904 tgt=0.002 B=1332889 mb_full=456947 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  45%|████▌     | 5/11 [00:07<00:10,  1.71s/it][trust] chunk lo=75904 tgt=0.002 B=1332889 mb_full=456164 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.94s/it][trust] chunk lo=91904 tgt=0.002 B=1332889 mb_full=455754 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  64%|██████▎   | 7/11 [00:12<00:08,  2.19s/it][trust] chunk lo=107904 tgt=0.002 B=1332889 mb_full=455371 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.44s/it][trust] chunk lo=123904 tgt=0.002 B=1332889 mb_full=454728 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  82%|████████▏ | 9/11 [00:18<00:05,  2.71s/it][trust] chunk lo=139904 tgt=0.002 B=1332889 mb_full=454078 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  91%|█████████ | 10/11 [00:22<00:02,  2.98s/it][trust] chunk lo=155904 tgt=0.002 B=775241 mb_full=264033 cap=1550 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.78s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.25s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-63: 169278 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/63_qwen2.5-7b-instruct-1m_fastkvzip__tr0002r075_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 119.6s. Mem: 14.31/79.18 GB. [scbench_kv-63]
+
+[effective] clen=169068 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:04,  2.31it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:07,  1.29it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:08,  1.06s/it]Prefill:  36%|███▋      | 4/11 [00:04<00:09,  1.35s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:09,  1.66s/it]Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.98s/it]Prefill:  64%|██████▎   | 7/11 [00:12<00:09,  2.31s/it]Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.65s/it]Prefill:  82%|████████▏ | 9/11 [00:19<00:06,  3.01s/it]Prefill:  91%|█████████ | 10/11 [00:23<00:03,  3.38s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  3.41s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  2.48s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-64: 169068 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key `5fb0fa24-d5ca-4ed2-820c-556235662d25` is `39d57d2c-478c-499e-a298-39aaa637499c`. | 39d57d2c-478c-499e-a298-39aaa637499c
+[QA 1] The value associated with the key "1a8c1491-2f91-4517-b56d-3d0fc053c3e8" is "e6fe04dd-3a51-4ef7-badf-e4a78c7b4bc1". | e6fe04dd-3a51-4ef7-badf-e4a78c7b4bc1
+[QA 2] The value associated with the key "68f5f7aa-0759-458f-9f70-af0fabaa3079" is "9076e32f-549f-4ddf-b3e2-0bf876eace32". | 9076e32f-549f-4ddf-b3e2-0bf876eace32
+[QA 3] The value associated with the key "975f8b31-3add-4309-ad42-7fba416edfde" is "35e3d5a6-578a-4599-a45a-8768bbf109f7". | 35e3d5a6-578a-4599-a45a-8768bbf109f7
+[QA 4] The value associated with the key "ab81fbed-7039-4c73-ad21-a1e68be7dffe" is "77dc0b96-1acc-4ade-b2be-5d024de99e07". | 77dc0b96-1acc-4ade-b2be-5d024de99e07
+[effective] clen=169068 window=4096 chunk_ratio=0.743793 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][trust] chunk lo=28 tgt=0.002 B=989326 mb_full=339599 cap=1979 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:   9%|▉         | 1/11 [00:00<00:08,  1.19it/s][trust] chunk lo=11904 tgt=0.002 B=1332875 mb_full=456067 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  18%|█▊        | 2/11 [00:02<00:09,  1.07s/it][trust] chunk lo=27904 tgt=0.002 B=1332875 mb_full=457884 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  27%|██▋       | 3/11 [00:03<00:10,  1.28s/it][trust] chunk lo=43904 tgt=0.002 B=1332875 mb_full=454435 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  36%|███▋      | 4/11 [00:05<00:10,  1.48s/it][trust] chunk lo=59904 tgt=0.002 B=1332875 mb_full=457039 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  45%|████▌     | 5/11 [00:07<00:10,  1.71s/it][trust] chunk lo=75904 tgt=0.002 B=1332875 mb_full=456329 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.94s/it][trust] chunk lo=91904 tgt=0.002 B=1332875 mb_full=455759 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  64%|██████▎   | 7/11 [00:12<00:08,  2.19s/it][trust] chunk lo=107904 tgt=0.002 B=1332875 mb_full=455329 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.45s/it][trust] chunk lo=123904 tgt=0.002 B=1332875 mb_full=454459 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  82%|████████▏ | 9/11 [00:18<00:05,  2.71s/it][trust] chunk lo=139904 tgt=0.002 B=1332751 mb_full=454120 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  91%|█████████ | 10/11 [00:22<00:02,  2.98s/it][trust] chunk lo=155904 tgt=0.002 B=757739 mb_full=257988 cap=1515 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.77s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.25s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-64: 169068 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/64_qwen2.5-7b-instruct-1m_fastkvzip__tr0002r075_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 122.3s. Mem: 14.31/79.18 GB. [scbench_kv-64]
+
+[effective] clen=169335 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:04,  2.32it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:07,  1.28it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:08,  1.06s/it]Prefill:  36%|███▋      | 4/11 [00:04<00:09,  1.35s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:09,  1.65s/it]Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.97s/it]Prefill:  64%|██████▎   | 7/11 [00:12<00:09,  2.29s/it]Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.64s/it]Prefill:  82%|████████▏ | 9/11 [00:19<00:05,  3.00s/it]Prefill:  91%|█████████ | 10/11 [00:23<00:03,  3.37s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  3.40s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  2.47s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-65: 169335 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "a917d644-e31d-4724-a5f5-f70fc34f6da8" is "aa24d79d-6e9d-4ed8-bfea-e9ff586fa119". | aa24d79d-6e9d-4ed8-bfea-e9ff586fa119
+[QA 1] The value associated with the key "15245576-1096-436e-9ee9-eeb79879234e" is "79782cb2-629c-49ea-a028-70b3e6baa030". | 79782cb2-629c-49ea-a028-70b3e6baa030
+[QA 2] The value associated with the key "2f62a352-3a6a-4569-abf2-8e851bc21f1c" is "59b300b9-d5bc-4ddb-971e-cdadc3744a97". | 59b300b9-d5bc-4ddb-971e-cdadc3744a97
+[QA 3] The value associated with the specified key "2ee73c1f-5ede-44a0-af0b-1e7f354f09d9" is "d63d34a8-2c4a-4e17-8c7c-2b4c2e79e835". | d63d34a8-2c4a-4e17-8c7c-2b4c2e79e835
+[QA 4] The value associated with the key "783f7831-f66c-48d9-b7a6-c684e7e6908d" is "19350ede-89f2-4bda-af97-9de8a1642e75". | 19350ede-89f2-4bda-af97-9de8a1642e75
+[effective] clen=169335 window=4096 chunk_ratio=0.743803 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][trust] chunk lo=28 tgt=0.002 B=989340 mb_full=339586 cap=1979 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:   9%|▉         | 1/11 [00:00<00:08,  1.19it/s][trust] chunk lo=11904 tgt=0.002 B=1332893 mb_full=456188 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  18%|█▊        | 2/11 [00:02<00:09,  1.06s/it][trust] chunk lo=27904 tgt=0.002 B=1332779 mb_full=454924 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  27%|██▋       | 3/11 [00:03<00:10,  1.27s/it][trust] chunk lo=43904 tgt=0.002 B=1332893 mb_full=457464 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  36%|███▋      | 4/11 [00:05<00:10,  1.48s/it][trust] chunk lo=59904 tgt=0.002 B=1332892 mb_full=456896 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  45%|████▌     | 5/11 [00:07<00:10,  1.70s/it][trust] chunk lo=75904 tgt=0.002 B=1332893 mb_full=456102 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.93s/it][trust] chunk lo=91904 tgt=0.002 B=1332893 mb_full=455796 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  64%|██████▎   | 7/11 [00:12<00:08,  2.18s/it][trust] chunk lo=107904 tgt=0.002 B=1332893 mb_full=455257 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.44s/it][trust] chunk lo=123904 tgt=0.002 B=1332893 mb_full=454333 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  82%|████████▏ | 9/11 [00:18<00:05,  2.71s/it][trust] chunk lo=139904 tgt=0.002 B=1332893 mb_full=454110 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  91%|█████████ | 10/11 [00:22<00:02,  2.98s/it][trust] chunk lo=155904 tgt=0.002 B=779992 mb_full=265593 cap=1560 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.78s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.25s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-65: 169335 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/65_qwen2.5-7b-instruct-1m_fastkvzip__tr0002r075_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 126.6s. Mem: 14.31/79.18 GB. [scbench_kv-65]
+
+[effective] clen=169106 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:04,  2.43it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.30it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:08,  1.06s/it]Prefill:  36%|███▋      | 4/11 [00:04<00:09,  1.35s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:09,  1.65s/it]Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.96s/it]Prefill:  64%|██████▎   | 7/11 [00:12<00:09,  2.29s/it]Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.63s/it]Prefill:  82%|████████▏ | 9/11 [00:19<00:05,  2.98s/it]Prefill:  91%|█████████ | 10/11 [00:23<00:03,  3.34s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  3.37s/it]Prefill: 100%|██████████| 11/11 [00:27<00:00,  2.46s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-66: 169106 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "4188c22c-cae7-4c35-8f12-4babf32206df" is "db8ea32d-a238-45bb-9392-a60946f060e1". | db8ea32d-a238-45bb-9392-a60946f060e1
+[QA 1] The value associated with the key "298934c6-9381-4657-883a-bab953c569f7" is "d2dd535b-1002-4350-a78d-8be70c38aa7c". | d2dd535b-1002-4350-a78d-8be70c38aa7c
+[QA 2] The value associated with the key "eefb4959-87dc-4236-8746-e007e9d33379" is "49464c9f-62a0-4d42-9565-1d2ee7822674". | 49464c9f-62a0-4d42-9565-1d2ee7822674
+[QA 3] The value associated with the key "7243abb7-09c1-4235-bdee-26615f96b10e" is "3616dc27-2a4d-496e-b8a8-98dcc71ded3e". | 3616dc27-2a4d-496e-b8a8-98dcc71ded3e
+[QA 4] The value associated with the key "d782e9c6-09ee-48e1-8f7d-6694dd96827d" is "0ee0aeb5-dfa1-4cf3-98ec-9e20104c749e". | 0ee0aeb5-dfa1-4cf3-98ec-9e20104c749e
+[effective] clen=169106 window=4096 chunk_ratio=0.743794 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][trust] chunk lo=28 tgt=0.002 B=989328 mb_full=339593 cap=1979 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:   9%|▉         | 1/11 [00:00<00:08,  1.20it/s][trust] chunk lo=11904 tgt=0.002 B=1332878 mb_full=456202 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  18%|█▊        | 2/11 [00:02<00:09,  1.05s/it][trust] chunk lo=27904 tgt=0.002 B=1332356 mb_full=458012 cap=2665 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  27%|██▋       | 3/11 [00:03<00:10,  1.26s/it][trust] chunk lo=43904 tgt=0.002 B=1332878 mb_full=455368 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  36%|███▋      | 4/11 [00:05<00:10,  1.47s/it][trust] chunk lo=59904 tgt=0.002 B=1332878 mb_full=456977 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  45%|████▌     | 5/11 [00:07<00:10,  1.69s/it][trust] chunk lo=75904 tgt=0.002 B=1332878 mb_full=456246 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.92s/it][trust] chunk lo=91904 tgt=0.002 B=1332878 mb_full=455833 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  64%|██████▎   | 7/11 [00:12<00:08,  2.17s/it][trust] chunk lo=107904 tgt=0.002 B=1332878 mb_full=455132 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.42s/it][trust] chunk lo=123904 tgt=0.002 B=1332878 mb_full=454419 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  82%|████████▏ | 9/11 [00:18<00:05,  2.68s/it][trust] chunk lo=139904 tgt=0.002 B=1332878 mb_full=453966 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  91%|█████████ | 10/11 [00:22<00:02,  2.95s/it][trust] chunk lo=155904 tgt=0.002 B=760906 mb_full=258899 cap=1522 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.74s/it]Prefill: 100%|██████████| 11/11 [00:24<00:00,  2.23s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-66: 169106 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/66_qwen2.5-7b-instruct-1m_fastkvzip__tr0002r075_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 123.6s. Mem: 14.31/79.18 GB. [scbench_kv-66]
+
+[effective] clen=169102 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:04,  2.36it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.32it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:08,  1.05s/it]Prefill:  36%|███▋      | 4/11 [00:04<00:09,  1.34s/it]Prefill:  45%|████▌     | 5/11 [00:06<00:09,  1.64s/it]Prefill:  55%|█████▍    | 6/11 [00:09<00:09,  1.96s/it]Prefill:  64%|██████▎   | 7/11 [00:12<00:09,  2.29s/it]Prefill:  73%|███████▎  | 8/11 [00:15<00:07,  2.62s/it]Prefill:  82%|████████▏ | 9/11 [00:19<00:05,  2.98s/it]Prefill:  91%|█████████ | 10/11 [00:23<00:03,  3.34s/it]Prefill: 100%|██████████| 11/11 [00:26<00:00,  3.37s/it]Prefill: 100%|██████████| 11/11 [00:26<00:00,  2.45s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-67: 169102 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "166007b6-f36e-4d30-80d0-0649be522ddf" is "61dc6dcd-4eab-4f4a-b70c-e2de6e573c5d". | 61dc6dcd-4eab-4f4a-b70c-e2de6e573c5d
+[QA 1] The value associated with the key "dd08ece5-b829-45e7-a331-b4b6008d8884" is "55f635cb-e567-4111-8c5e-59cef5f3fe4b". | 55f635cb-e567-4111-8c5e-59cef5f3fe4b
+[QA 2] The value associated with the key "5753009e-b509-4857-b40a-6777b56ccfd0" is "1280ff76-b6ae-4467-8ffe-e7ff680a01fc". | 1280ff76-b6ae-4467-8ffe-e7ff680a01fc
+[QA 3] The value associated with the key "15fdc35a-c91d-494d-a8b7-9cbe37c40da9" is "50bc93bf-f157-4708-91ac-2b19b4a0d6e5". | 50bc93bf-f157-4708-91ac-2b19b4a0d6e5
+[QA 4] The value associated with the key "753dff8a-a293-4fe3-9d23-6a4ccb8f7030" is "e202f025-059c-44e8-88f9-52401a15d7b7". | e202f025-059c-44e8-88f9-52401a15d7b7
+[effective] clen=169102 window=4096 chunk_ratio=0.743794 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][trust] chunk lo=28 tgt=0.002 B=989328 mb_full=339563 cap=1979 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:   9%|▉         | 1/11 [00:00<00:08,  1.22it/s][trust] chunk lo=11904 tgt=0.002 B=1332878 mb_full=456090 cap=2666 mb_after=0 lam=0.000000 delta_l1=0.0
+Prefill:  18%|█▊        | 2/11 [00:02<00:09,  1.06s/it]

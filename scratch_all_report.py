@@ -425,6 +425,31 @@ def main():
                     got[r] = (c[0], c[1], 1)      # 单 ckpt ⇒ 种子数 1
                     agg[a_][r].append(c[0])
             rows.append((name, full, a_, got, d))
+
+        # ── 派生行 `sel-orc`：**逐格 oracle 三选一**（不是一次运行）─────────────
+        # 用户容易把它和 `gm1` 混淆，这里写死区别：
+        #   `gm1`     = 一条**真实跑过**的臂：`VARIKV_CTRL_GAIN=-1`，**所有格一律反号**。
+        #   `sel-orc` = **拼出来的**：逐格在 {scalar(g=+1), 基线(g=0), gm1(g=−1)} 里
+        #               取最好的那个。它**不是**可部署方法 —— 「该挑哪个」实测与
+        #               headroom 最相关（§零之三），而 headroom 需要满缓存分数、
+        #               **要标签**。所以这一行是**上界**，报告时必须标 oracle。
+        # 只把**显著为正**的候选算进来，否则取 0（= 不动），与 §零之三 同口径。
+        _by = {}
+        for _n, _f, _a, _g, _dd in rows:
+            if _dd == d:
+                _by[_a] = _g
+        _sc, _gm = _by.get("scalar", {}), _by.get("gm1", {})
+        _sel = {}
+        for r in RAT[1:]:
+            if r not in _sc and r not in _gm:
+                continue
+            best, bsig = 0.0, False
+            for _src in (_sc, _gm):
+                if r in _src and _src[r][1] and _src[r][0] > best:
+                    best, bsig = _src[r][0], True
+            _sel[r] = (best, bsig, 1)
+        if _sel:
+            rows.append((name, full, "sel-orc", _sel, d))
     W = 15
     _buf = []
     def print(*a, **k):                    # noqa: A001  仅在本函数内遮蔽
