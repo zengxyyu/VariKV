@@ -1,0 +1,57 @@
+tag: _fastkvzip__gsgs0_scbench_summary_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.73it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.80it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.76it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.90it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.85it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/sg_scalar_s0.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.5K
+['scbench_summary']
+
+scbench_summary loaded, #data: 70
+set generation length: 256 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~70 samples
+[effective] clen=102424 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.57it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.44it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.19it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.03s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.24s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.48s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.47s/it]Prefill: 100%|██████████| 7/7 [00:08<00:00,  1.24s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_summary-0: 102424 tokens, KV cache 5.9 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The paper explores the structural properties of order-divisor graphs associated with finite groups, providing insights into their girth, degree, size, and the implications of these parameters for cyclic and dihedral groups, as well as conditions under which these graphs form star or path graphs. | The key contribution of the paper "Some Properties of Order-Divisor Graphs of Finite Groups" is providing a comprehensive analysis of the structural properties of order-divisor graphs associated with finite groups, with a particular focus on the girth, degree of vertices, and size of these graphs for cyclic groups and dihedral groups.
+[QA 1] The paper presents efficient FPGA implementations of the tweakable enciphering schemes FAST and AEZ, demonstrating that FAST outperforms other disk encryption schemes, making it a strong candidate for future disk encryption standards and hardware implementations. | The key contribution of the paper "Fast Low Level Disk Encryption Using FPGAs" is that it presents efficient FPGA implementations of the FAST and AEZ tweakable enciphering schemes, which are promising candidates for low-level disk encryption, and shows that the FAST implementations outperform the IEEE standards XCB and EME2 as well as the AEZ implementation in terms of throughput and area requirements, making FAST a strong contender for adoption by disk manufacturers and standardization bodies.
+[QA 2] The paper presents an initial analysis of XRISM's first-light X-ray observations of the supernova remnant N132D, revealing detailed velocity structures and thermal properties of its hot plasma, including the detection of Fe Lyα emission redshifted by 890 km/s, which indicates the presence of high-velocity Fe-rich ejecta on the far side of the remnant. | The key contribution of this paper is presenting the first high-resolution X-ray spectroscopic analysis of the supernova remnant N132D in the 1.6-10 keV band using the XRISM first light observation data, revealing the velocity structure and thermal properties of the hot plasma components.
+[QA 3] The paper presents improved upper bounds on the number of reticulation events required to display multiple phylogenetic trees in a network, advancing our understanding of the complexity in reconstructing realistic evolutionary histories. | The key contribution of the paper "Bounding the number of reticulation events for displaying multiple trees in a phylogenetic network" is presenting several non-trivial upper bounds on the minimum number of reticulations (reticulation number) required for a phylogenetic network to display multiple given phylogenetic trees, improving upon the previously known trivial upper bound.
+[QA 4] The paper presents a detailed analysis of power corrections, including mass and renormalon-induced corrections, to quasi-distribution amplitudes of heavy mesons, providing insights necessary for improving the accuracy of lattice QCD calculations of heavy meson properties. | The key contribution of this paper is investigating the impact of mass and $\Lambda_\mathrm{QCD}^2/(P^z)^2$ corrections when relating the quasi-distribution amplitudes (quasi-DAs) of a heavy meson to its lightcone distribution amplitudes (LCDAs) within the large-momentum effective theory (LaMET) framework.
+[effective] clen=102424 window=4096 chunk_ratio=0.739586 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.70it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.37it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.13it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:03,  1.05s/it]Prefill:  71%|███████▏  | 5/7 [00:05<00:02,  1.21s/it]Prefill:  86%|████████▌ | 6/7 [00:07<00:01,  1.39s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.19s/it]Prefill: 100%|██████████| 7/7 [00:07<00:00,  1.12s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-0: 102424 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102424 window=4096 chunk_ratio=0.479172 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.43it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.25it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.10it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:02,  1.02s/it]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.14s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.03it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.07it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-0: 102424 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102424 window=4096 chunk_ratio=0.375006 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.45it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.17it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.06it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:01,  1.04s/it]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.14it/s]Prefill: 100%|██████████| 7/7 [00:06<00:00,  1.16it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-0: 102424 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102424 window=4096 chunk_ratio=0.270840 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.75it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.50it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.36it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.25it/s]Prefill:  71%|███████▏  | 5/7 [00:04<00:01,  1.15it/s]Prefill:  86%|████████▌ | 6/7 [00:05<00:00,  1.07it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.28it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.26it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_summary-0: 102424 tokens, KV cache 5.9 GB, torch.bfloat16
+[effective] clen=102424 window=4096 chunk_ratio=0.166675 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.72it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.51it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:02,  1.42it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.34it/s]

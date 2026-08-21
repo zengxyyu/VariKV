@@ -53,7 +53,8 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(ROOT, "external/FastKVzip/prefill"))
 
 from model import ModelKVzip                                        # noqa: E402
-from data.load import load_fineweb                                  # noqa: E402
+from data.load import load_fineweb
+from attention.kvcache import RetainCache                                  # noqa: E402
 
 
 # ────────────────────────────── 任务构造 ──────────────────────────────
@@ -223,8 +224,25 @@ def main():
         q_t = torch.tensor([q_ids], device=m.device)
         a_t = torch.tensor([ans_ids], device=m.device)
 
-        kv = m.prefill(ctx_t, prefill_chunk_size=a.chunk, do_score=True,
-                       chunk_ratio=a.ratio, window_size=a.window, level=a.level)
+        # **分数必须在驱逐发生时录下来**（与 `scratch_ctrl_teacher.py` 同一手法）。
+        # 真机首跑证明：预填结束后 `kv.score` 只剩最后一段（实测 4096 = window），
+        # 拿不到全长；而 `prune_chunk` 里 `torch.stack(self.score,0)[..., lo:hi]`
+        # 正好是该 chunk 驱逐区间的分数，逐块拼起来与 `valid` 对齐。
+        rec_s = []
+        _orig_pc = RetainCache.prune_chunk
+
+        def _pc(self, ratio, evict_range=tuple, level="pair"):
+            lo, hi = evict_range
+            sc_ = torch.stack(self.score, 0)[..., lo:hi]
+            rec_s.append((lo, hi, (sc_[:, 0] if sc_.dim() == 4 else sc_).float().cpu()))
+            return _orig_pc(self, ratio, evict_range, level)
+
+        RetainCache.prune_chunk = _pc
+        try:
+            kv = m.prefill(ctx_t, prefill_chunk_size=a.chunk, do_score=True,
+                           chunk_ratio=a.ratio, window_size=a.window, level=a.level)
+        finally:
+            RetainCache.prune_chunk = _orig_pc
         n_seen = kv._seen_tokens
         raw_valid = kv.valid                                # 形状见下
         if raw_valid is None:
@@ -243,10 +261,32 @@ def main():
         assert raw_valid.dim() in (3, 4), vshape
         base_valid = (raw_valid[:, 0] if raw_valid.dim() == 4 else raw_valid).clone()
         n_ev = base_valid.shape[-1]                          # 实际被驱逐区长度
-        sc = torch.stack(kv.score, 0)
-        sc = (sc[:, 0] if sc.dim() == 4 else sc).float()
-        sc = sc[..., kv.start_idx:kv.start_idx + n_ev].contiguous()
-        assert sc.shape == base_valid.shape, (sc.shape, base_valid.shape, vshape)
+        # 逐块拼分数。`valid` 覆盖 [start_idx, end_idx)（真机实测 112877 =
+        # end−start），而各 chunk 的 evict_range 连续铺满这个区间，所以按 lo 排序
+        # 拼接后与 `valid` 逐位对齐。**若区间不连续这里会形状不符而中止，不会静默错位。**
+        assert rec_s, "prune_chunk 一次都没触发"
+        rec_s.sort(key=lambda x: x[0])
+        sc = torch.cat([t for _, _, t in rec_s], dim=-1).to(base_valid.device)
+        cov = sum(hi - lo for lo, hi, _ in rec_s)
+        # 真机实测：`valid` 覆盖 [start,end) 全上下文（112877），而各 chunk 的
+        # evict_range 只铺到 108781 —— 差值**恰为 4096 = window_size**。
+        # 末尾这段是**永远保留的局部窗口**，从不进驱逐决策，因此
+        # **不能参与转移**（拿它当施主等于动一个方法根本控制不了的集合）。
+        # 处理方式：把 valid 与 score 都截到可驱逐区，并断言尾部确实全 True。
+        tail = n_ev - cov
+        assert tail >= 0 and cov == sum(hi - lo for lo, hi, _ in rec_s), (cov, n_ev)
+        if tail:
+            assert bool(base_valid[..., cov:].all()), \
+                f"尾部 {tail} 列不是全保留，局部窗口假设不成立"
+            assert tail == a.window or tail == a.window - kv.start_idx, \
+                f"尾部长度 {tail} 既不等于 window={a.window} 也不等于 window−sink"
+            base_valid = base_valid[..., :cov].contiguous()
+            n_ev = cov
+        assert sc.shape[-1] == n_ev, (sc.shape, n_ev)
+        assert sc.shape == base_valid.shape, (
+            f"score/valid 形状不匹配 sc={tuple(sc.shape)} valid={tuple(base_valid.shape)} "
+            f"raw_valid={vshape} score_raw={tuple(kv.score.shape) if torch.is_tensor(kv.score) else ('list', len(kv.score), tuple(kv.score[0].shape))} "
+            f"start={kv.start_idx} end={kv.end_idx} n_ev={n_ev}")
         B0 = int(base_valid.sum())
 
         # ---- 自检④：score 与 valid 的对齐 ----
@@ -264,8 +304,14 @@ def main():
               f"答案 {len(ans_ids)} tok", flush=True)
 
         # ---- 自检 ①：零动作必须逐位复现基线 ----
-        kv.valid = (base_valid[:, None] if raw_valid.dim() == 4
-                    else base_valid).clone()
+        def _wb(vv):
+            """把可驱逐区掩码写回完整形状：尾部局部窗口恒 True，batch 轴按需补。"""
+            full = raw_valid.clone()
+            tgt = full[:, 0] if full.dim() == 4 else full
+            tgt[..., :n_ev] = vv.to(tgt.device)
+            return full
+
+        kv.valid = _wb(base_valid)
         j_null, _, _ = answer_nll(m, kv, q_t, a_t, n_seen)
         assert j_null == j0, f"零动作不复现基线：{j_null} vs {j0}"
         print(f"  自检① 零动作 A = {j0 - j_null:+.3e}（须恰为 0）✓", flush=True)
@@ -281,7 +327,7 @@ def main():
             if kk == 0:
                 continue
             assert int(v.sum()) == B0, f"预算不守恒 {int(v.sum())} vs {B0}"  # 自检②
-            kv.valid = v[:, None] if raw_valid.dim() == 4 else v
+            kv.valid = _wb(v)
             jj, ja, jb = answer_nll(m, kv, q_t, a_t, n_seen, halves=True)
             rec = dict(doc=di, recv=list(i), don=list(j), k=kk, tag=tag,
                        A=j0 - jj,                  # J = −NLL ⇒ A = NLL0 − NLL'
@@ -295,10 +341,10 @@ def main():
                 # 所以 `A ≈ g⁺−g⁻` 是**近似**，可分性必须测不能假设。
                 # 两次额外前向即可量出 I：
                 v_add, _ = apply_one_side(base_valid, sc, i, kk, True)
-                kv.valid = v_add[:, None] if raw_valid.dim() == 4 else v_add
+                kv.valid = _wb(v_add)
                 j_add, _, _ = answer_nll(m, kv, q_t, a_t, n_seen)
                 v_rem, _ = apply_one_side(base_valid, sc, j, kk, False)
-                kv.valid = v_rem[:, None] if raw_valid.dim() == 4 else v_rem
+                kv.valid = _wb(v_rem)
                 j_rem, _, _ = answer_nll(m, kv, q_t, a_t, n_seen)
                 gp = j0 - j_add          # 加 i 的收益（NLL 降多少）
                 gm = j_rem - j0          # 减 j 的代价（NLL 升多少）
