@@ -1,0 +1,28 @@
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.06it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.11it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.10it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.19it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.15it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: retain
+文档 3 篇（corpus=cat, 起始 5）  L=28 H=4  ρ=0.1  k∈[1, 4, 16]
+[effective] clen=108211 window=4096 chunk_ratio=0.064593 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:05,  1.03it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:04,  1.22it/s]Prefill:  43%|████▎     | 3/7 [00:02<00:03,  1.30it/s]Prefill:  57%|█████▋    | 4/7 [00:03<00:02,  1.33it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.33it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.32it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.41it/s]Prefill: 100%|██████████| 7/7 [00:05<00:00,  1.33it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+  自检④ 保留者均分 0.8229 > 被驱逐者 0.0692 ✓
+doc5: clen=108211 保留 753200 (0.065)  基线 NLL 0.6849  答案 121 tok / target 354  事实 8 条
+  自检① 零动作 A = +0.000e+00（须恰为 0）✓
+  chunk 模式：共 7 个 chunk，探测 [0, 3, 6]（等距覆盖首/中/尾）
+    chunk0 [0,11876) B_c=85914 池 34/112 k=51
+      done  |A| 中位 0.00254
+    chunk3 [43876,59876) B_c=115749 池 36/112 k=64
