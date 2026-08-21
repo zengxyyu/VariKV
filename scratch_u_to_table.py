@@ -125,7 +125,7 @@ def main():
     d = build_delta(u, a.mb, B, a.alloc, a.topk)
     print(f"  B≈{B:.0f}  Δb: ½‖·‖₁={np.abs(d).sum()/2:.0f} "
           f"Σ={d.sum():+.3e} 极差 [{d.min():+.1f}, {d.max():+.1f}] "
-          f"非零 {(np.abs(d)>0.5).sum()}/{len(d)}")
+          f"实际搬动的头 {(np.abs(d)>0.5).sum()}/{len(d)}" f"（判据 |db_h|>0.5 条；**不是字面非零** —— 保预算的中心化让每项都非零，字面计数恒为 112、毫无信息）")
     np.save(os.path.join(ROOT, a.out), d.astype(np.float32))
     print(f"写出 {a.out}（注入用 VARIKV_QUOTA_INJECT，project_quota 保预算）")
 
