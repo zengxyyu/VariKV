@@ -10107,6 +10107,11 @@ KeyError 跳过了**。
 ‖u‖₂ = 0.00004** —— 与所有 chunk 运行同一个退化形态，比 bulk 的 +0.3966 低 18 倍。
 **它造不出表。**
 
+**产物已从工作区删除**（`scratch_labr_ps.json` 3.2 MB / `.log`，连同错模式的
+启动脚本 `labr.sh` / `wlabr.sh` —— 后两个留着是**footgun**，会把错的再跑一遍）。
+两个文件都曾被 git 跟踪，所以上面那组数字仍可追溯：
+`git show e9ca872:scratch_labr_ps.json`。
+
 **动手前核对过的三件事**（`grps.sh` 注释里也写了一份）：
 
 1. `real:` 分支在 mode 分支**之前**设定 `ctx_ids/qas` ⇒ `grad + real:` 走得通；
