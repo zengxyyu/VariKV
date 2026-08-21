@@ -1,0 +1,280 @@
+tag: _fastkvzip__pc05kv01_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.81it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.87it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.85it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.97it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.93it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/chead10_s0.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.4K
+['scbench_kv']
+
+scbench_kv loaded, #data: 100
+set generation length: 96 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~100 samples
+[effective] clen=169035 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.56it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.45it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.19it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:07,  1.03s/it]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.25s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.48s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.73s/it]Prefill:  73%|███████▎  | 8/11 [00:12<00:05,  1.99s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.26s/it]Prefill:  91%|█████████ | 10/11 [00:18<00:02,  2.54s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.55s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.88s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_kv-0: 169035 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] "cb59052b-9128-4979-9c0e-e1de4adcf73b" | cb59052b-9128-4979-9c0e-e1de4adcf73b
+[QA 1] "a9ee6345-2331-4914-b32b-25a780931d45" | a9ee6345-2331-4914-b32b-25a780931d45
+[QA 2] 5e6b7b90-710d-4953-9b18-3e96b2cadbf2 | 5e6b7b90-710d-4953-9b18-3e96b2cadbf2
+[QA 3] 3b2dd49b-7437-4432-ac24-06fb8f7f862e | 3b2dd49b-7437-4432-ac24-06fb8f7f862e
+[QA 4] 89545afe-fded-413c-aa0e-f8bb3e5fd45e | 96945afe-fded-413c-aa0e-f8bb3e5fd45e
+[effective] clen=169035 window=4096 chunk_ratio=0.077650 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][precond] a=0.5 clip=8.0 **M_b=737** (占保留集 0.0071) RMS=0.20329 p90=0.28243 p99=0.28269 rho 中位=1.0 极差=[1.0,38034.7] 被夹住=37/112 权重极差=[0.176,1.407] E|ds|=0.16810->0.16810
+Prefill:   9%|▉         | 1/11 [00:00<00:06,  1.52it/s][precond] a=0.5 clip=8.0 **M_b=997** (占保留集 0.0072) RMS=0.20039 p90=0.27326 p99=0.27343 rho 中位=1.0 极差=[1.0,53096.1] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16912->0.16912
+Prefill:  18%|█▊        | 2/11 [00:01<00:06,  1.47it/s][precond] a=0.5 clip=8.0 **M_b=1242** (占保留集 0.0089) RMS=0.20058 p90=0.27847 p99=0.27871 rho 中位=1.0 极差=[1.0,53320.2] 被夹住=35/112 权重极差=[0.172,1.376] E|ds|=0.16684->0.16684
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.43it/s][precond] a=0.5 clip=8.0 **M_b=1028** (占保留集 0.0074) RMS=0.19804 p90=0.27355 p99=0.27382 rho 中位=1.0 极差=[1.0,54946.6] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16506->0.16506
+Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.39it/s][precond] a=0.5 clip=8.0 **M_b=995** (占保留集 0.0072) RMS=0.19506 p90=0.26796 p99=0.26824 rho 中位=1.0 极差=[1.0,52707.3] 被夹住=31/112 权重极差=[0.165,1.320] E|ds|=0.16386->0.16386
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.34it/s][precond] a=0.5 clip=8.0 **M_b=813** (占保留集 0.0058) RMS=0.19692 p90=0.27492 p99=0.27516 rho 中位=1.0 极差=[1.0,49369.4] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16324->0.16324
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.31it/s][precond] a=0.5 clip=8.0 **M_b=1080** (占保留集 0.0078) RMS=0.19425 p90=0.26832 p99=0.26855 rho 中位=1.0 极差=[1.0,56932.2] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16285->0.16285
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.27it/s][precond] a=0.5 clip=8.0 **M_b=1353** (占保留集 0.0097) RMS=0.19671 p90=0.27676 p99=0.27695 rho 中位=1.0 极差=[1.0,52287.9] 被夹住=35/112 权重极差=[0.172,1.376] E|ds|=0.16292->0.16292
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.23it/s][precond] a=0.5 clip=8.0 **M_b=1216** (占保留集 0.0087) RMS=0.19548 p90=0.27412 p99=0.27434 rho 中位=1.0 极差=[1.0,54456.3] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16284->0.16284
+Prefill:  82%|████████▏ | 9/11 [00:07<00:01,  1.20it/s][precond] a=0.5 clip=8.0 **M_b=865** (占保留集 0.0062) RMS=0.19600 p90=0.27484 p99=0.27510 rho 中位=1.0 极差=[1.0,54349.8] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16326->0.16326
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.16it/s][precond] a=0.5 clip=8.0 **M_b=716** (占保留集 0.0091) RMS=0.19422 p90=0.27002 p99=0.27026 rho 中位=1.0 极差=[1.0,26174.7] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16289->0.16289
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.32it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.30it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-0: 169035 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/0_qwen2.5-7b-instruct-1m_fastkvzip__pc05kv01_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 47.2s. Mem: 14.31/79.18 GB. [scbench_kv-0]
+
+[effective] clen=169258 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.31it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:04,  1.81it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.30it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.22s/it]Prefill:  55%|█████▍    | 6/11 [00:06<00:07,  1.47s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.72s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  1.98s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.26s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.53s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.55s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.85s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-1: 169258 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 80366cd3-760e-4193-89b2-75bf4ec9a379 | 0ed60ced-6a69-433a-bcfe-866961b5ec56
+[QA 1] The value associated with the key "e31db3bf-f7f9-4e64-88c6-3f328cf100a2" is "e8cd115-38f0-432a-95d3-8937a5dac440". | f30e9d8c-2c54-411c-be68-3797f744b894
+[QA 2] 8588d1d9-e16b-4120-9b73-9a6ce4fa677b | b0825e78-9c71-49fe-a098-943ca5717468
+[QA 3] 7d2a5a7c-c5a4-426d-a43d-26cbeba14739 | 013def22-9d39-4a05-aadf-fee440544640
+[QA 4] The value associated with the key "98c17468-ae59-4bc3-96a0-210359b3558b" is "787a1d95-562b-4f1f-8568-08c4e4a9f519". | 787a1d95-562b-4f1f-8568-08c4e4a9f519
+[effective] clen=169258 window=4096 chunk_ratio=0.077680 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][precond] a=0.5 clip=8.0 **M_b=765** (占保留集 0.0074) RMS=0.20529 p90=0.28845 p99=0.28876 rho 中位=1.0 极差=[1.0,35657.5] 被夹住=39/112 权重极差=[0.180,1.438] E|ds|=0.16801->0.16801
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.71it/s][precond] a=0.5 clip=8.0 **M_b=954** (占保留集 0.0069) RMS=0.19911 p90=0.27074 p99=0.27091 rho 中位=1.0 极差=[1.0,56646.7] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16872->0.16872
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.54it/s][precond] a=0.5 clip=8.0 **M_b=955** (占保留集 0.0069) RMS=0.19545 p90=0.26555 p99=0.26580 rho 中位=1.0 极差=[1.0,56752.7] 被夹住=30/112 权重极差=[0.163,1.306] E|ds|=0.16613->0.16613
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.47it/s][precond] a=0.5 clip=8.0 **M_b=1098** (占保留集 0.0079) RMS=0.19686 p90=0.27110 p99=0.27136 rho 中位=1.0 极差=[1.0,50697.5] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16478->0.16478
+Prefill:  36%|███▋      | 4/11 [00:02<00:04,  1.41it/s][precond] a=0.5 clip=8.0 **M_b=1249** (占保留集 0.0090) RMS=0.19661 p90=0.27353 p99=0.27384 rho 中位=1.0 极差=[1.0,51052.8] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16298->0.16298
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.36it/s][precond] a=0.5 clip=8.0 **M_b=975** (占保留集 0.0070) RMS=0.19322 p90=0.26539 p99=0.26563 rho 中位=1.0 极差=[1.0,52951.2] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16246->0.16246
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.32it/s][precond] a=0.5 clip=8.0 **M_b=1197** (占保留集 0.0086) RMS=0.19725 p90=0.27539 p99=0.27562 rho 中位=1.0 极差=[1.0,56086.2] 被夹住=36/112 权重极差=[0.174,1.391] E|ds|=0.16360->0.16360
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.28it/s][precond] a=0.5 clip=8.0 **M_b=1254** (占保留集 0.0090) RMS=0.19614 p90=0.27496 p99=0.27515 rho 中位=1.0 极差=[1.0,50490.7] 被夹住=35/112 权重极差=[0.172,1.376] E|ds|=0.16293->0.16293
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.24it/s][precond] a=0.5 clip=8.0 **M_b=1176** (占保留集 0.0084) RMS=0.19462 p90=0.27157 p99=0.27175 rho 中位=1.0 极差=[1.0,52087.7] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16272->0.16272
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.20it/s][precond] a=0.5 clip=8.0 **M_b=1309** (占保留集 0.0094) RMS=0.19646 p90=0.27557 p99=0.27584 rho 中位=1.0 极差=[1.0,49201.0] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16341->0.16341
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.17it/s][precond] a=0.5 clip=8.0 **M_b=580** (占保留集 0.0072) RMS=0.19579 p90=0.27127 p99=0.27167 rho 中位=1.0 极差=[1.0,28536.2] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16508->0.16508
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.32it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-1: 169258 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/1_qwen2.5-7b-instruct-1m_fastkvzip__pc05kv01_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 57.7s. Mem: 14.31/79.18 GB. [scbench_kv-1]
+
+[effective] clen=169016 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.27it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.78it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.29it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.00it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.23s/it]Prefill:  55%|█████▍    | 6/11 [00:07<00:07,  1.47s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.73s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  1.99s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.26s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.54s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.55s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.86s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-2: 169016 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 585377b2-b0ca-41bc-8c88-28c9d1c070d1 | 585377b2-b0ca-41bc-8c88-28c9d1c070d1
+[QA 1] 6f6687eb-fc98-469d-8255-a3e3c00e2478 | 6f6687eb-fc98-469d-8255-a3e3c00e2478
+[QA 2] The value associated with the key "70d1b207-d1e8-4591-95b8-9c85aceb8956" is "fdb85cea-f0d6-4a71-a3eb-9fe18225b29e". | fdb85cea-f0d6-4a71-a3eb-9fe18225b29e
+[QA 3] The value associated with the key "f735fdd4-899d-49a2-a1cc-77a473d10180" is "80fe18a9-a7a3-4a16-bc38-8c1918c919e1". | 80fe18a9-a7a3-4a16-bc38-8c1918c919e1
+[QA 4] The value associated with the key "1bad9c84-2cad-4b8c-acc0-452e1cb5bd46" is "e60f2296-28ce-4975-b278-b47a5efca236". | e60f2296-28ce-4975-b278-b47a5efca236
+[effective] clen=169016 window=4096 chunk_ratio=0.077647 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][precond] a=0.5 clip=8.0 **M_b=607** (占保留集 0.0059) RMS=0.20161 p90=0.27627 p99=0.27654 rho 中位=1.0 极差=[1.0,38532.0] 被夹住=36/112 权重极差=[0.174,1.391] E|ds|=0.16800->0.16800
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.73it/s][precond] a=0.5 clip=8.0 **M_b=967** (占保留集 0.0069) RMS=0.20031 p90=0.27311 p99=0.27328 rho 中位=1.0 极差=[1.0,52379.0] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16911->0.16911
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.54it/s][precond] a=0.5 clip=8.0 **M_b=944** (占保留集 0.0068) RMS=0.19656 p90=0.26795 p99=0.26820 rho 中位=1.0 极差=[1.0,52878.1] 被夹住=31/112 权重极差=[0.165,1.320] E|ds|=0.16682->0.16682
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.46it/s][precond] a=0.5 clip=8.0 **M_b=931** (占保留集 0.0067) RMS=0.19704 p90=0.26962 p99=0.26989 rho 中位=1.0 极差=[1.0,53625.6] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16551->0.16551
+Prefill:  36%|███▋      | 4/11 [00:02<00:04,  1.41it/s][precond] a=0.5 clip=8.0 **M_b=1046** (占保留集 0.0075) RMS=0.19601 p90=0.27041 p99=0.27069 rho 中位=1.0 极差=[1.0,51871.1] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16407->0.16407
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.36it/s][precond] a=0.5 clip=8.0 **M_b=1000** (占保留集 0.0072) RMS=0.19477 p90=0.26823 p99=0.26847 rho 中位=1.0 极差=[1.0,54704.9] 被夹住=31/112 权重极差=[0.165,1.320] E|ds|=0.16348->0.16348
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.32it/s][precond] a=0.5 clip=8.0 **M_b=1098** (占保留集 0.0079) RMS=0.19663 p90=0.27310 p99=0.27334 rho 中位=1.0 极差=[1.0,50716.1] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16330->0.16330
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.28it/s][precond] a=0.5 clip=8.0 **M_b=1122** (占保留集 0.0081) RMS=0.19460 p90=0.27074 p99=0.27102 rho 中位=1.0 极差=[1.0,50788.7] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16276->0.16276
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.24it/s][precond] a=0.5 clip=8.0 **M_b=1062** (占保留集 0.0076) RMS=0.19471 p90=0.27072 p99=0.27102 rho 中位=1.0 极差=[1.0,52362.8] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16334->0.16334
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.20it/s][precond] a=0.5 clip=8.0 **M_b=1175** (占保留集 0.0084) RMS=0.19653 p90=0.27460 p99=0.27490 rho 中位=1.0 极差=[1.0,54259.4] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16464->0.16464
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.17it/s][precond] a=0.5 clip=8.0 **M_b=518** (占保留集 0.0066) RMS=0.19235 p90=0.26306 p99=0.26336 rho 中位=1.0 极差=[1.0,28021.2] 被夹住=30/112 权重极差=[0.163,1.306] E|ds|=0.16412->0.16412
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.32it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.32it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-2: 169016 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/2_qwen2.5-7b-instruct-1m_fastkvzip__pc05kv01_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 54.5s. Mem: 14.31/79.18 GB. [scbench_kv-2]
+
+[effective] clen=169238 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.28it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.77it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.29it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.22s/it]Prefill:  55%|█████▍    | 6/11 [00:06<00:07,  1.47s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.72s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  1.99s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.26s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.54s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.55s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.85s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-3: 169238 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "d1b6c52f-b33a-46c3-825f-97271c920fbe" is "a88e1610-dc9c-4198-9f4b-e58034b762e0". | a88e1610-dc9c-4198-9f4b-e58034b762e0
+[QA 1] The value associated with the key "7f31b45e-585c-4b0b-a982-6d45ed8e5001" is "de97beb4-683e-4e0a-bf3d-ca7263232d0d". | de97beb4-683e-4e0a-bf3d-ca7263232d0d
+[QA 2] The value associated with the key "eb53b100-9a4e-4af6-b356-c808de36eb89" is "4bdf8896-5ec3-49b9-b371-34719c51880b". | cf9b468a-6c15-4d2b-a25e-a37e6ad78412
+[QA 3] The value associated with the key "df4cbcd4-8d5f-47a8-8c86-58737f6bb6e8" is "b0cca966-d62c-4279-a85e-2358fb2eda55". | b0cca966-d62c-4279-a85e-2358fb2eda55
+[QA 4] The value associated with the key "f1123b6a-f860-4b45-9aab-956f535836ed" is "927d0b70-5935-46d5-aacc-cb3b51bd5680". | 927d0b70-5935-46d5-aacc-cb3b51bd5680
+[effective] clen=169238 window=4096 chunk_ratio=0.077677 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][precond] a=0.5 clip=8.0 **M_b=592** (占保留集 0.0057) RMS=0.20004 p90=0.27319 p99=0.27344 rho 中位=1.0 极差=[1.0,38140.0] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16797->0.16797
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.72it/s][precond] a=0.5 clip=8.0 **M_b=939** (占保留集 0.0067) RMS=0.19905 p90=0.27012 p99=0.27029 rho 中位=1.0 极差=[1.0,54700.4] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16864->0.16864
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.54it/s][precond] a=0.5 clip=8.0 **M_b=887** (占保留集 0.0064) RMS=0.19734 p90=0.27072 p99=0.27095 rho 中位=1.0 极差=[1.0,47635.2] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16652->0.16652
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.46it/s][precond] a=0.5 clip=8.0 **M_b=1302** (占保留集 0.0094) RMS=0.19944 p90=0.27796 p99=0.27823 rho 中位=1.0 极差=[1.0,52844.2] 被夹住=36/112 权重极差=[0.174,1.391] E|ds|=0.16454->0.16454
+Prefill:  36%|███▋      | 4/11 [00:02<00:04,  1.40it/s][precond] a=0.5 clip=8.0 **M_b=1005** (占保留集 0.0072) RMS=0.19501 p90=0.26830 p99=0.26856 rho 中位=1.0 极差=[1.0,56117.0] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16365->0.16365
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.35it/s][precond] a=0.5 clip=8.0 **M_b=1018** (占保留集 0.0073) RMS=0.19457 p90=0.26743 p99=0.26766 rho 中位=1.0 极差=[1.0,58121.3] 被夹住=31/112 权重极差=[0.165,1.320] E|ds|=0.16296->0.16296
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.31it/s][precond] a=0.5 clip=8.0 **M_b=1096** (占保留集 0.0079) RMS=0.19653 p90=0.27377 p99=0.27401 rho 中位=1.0 极差=[1.0,50468.3] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16326->0.16326
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.27it/s][precond] a=0.5 clip=8.0 **M_b=1073** (占保留集 0.0077) RMS=0.19319 p90=0.26868 p99=0.26892 rho 中位=1.0 极差=[1.0,51936.3] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16223->0.16223
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.23it/s][precond] a=0.5 clip=8.0 **M_b=1164** (占保留集 0.0084) RMS=0.19538 p90=0.27265 p99=0.27285 rho 中位=1.0 极差=[1.0,57144.7] 被夹住=35/112 权重极差=[0.172,1.376] E|ds|=0.16242->0.16242
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.20it/s][precond] a=0.5 clip=8.0 **M_b=1147** (占保留集 0.0082) RMS=0.19449 p90=0.26973 p99=0.27000 rho 中位=1.0 极差=[1.0,54471.6] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16355->0.16355
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.16it/s][precond] a=0.5 clip=8.0 **M_b=473** (占保留集 0.0059) RMS=0.18956 p90=0.25695 p99=0.25728 rho 中位=1.0 极差=[1.0,31300.7] 被夹住=27/112 权重极差=[0.158,1.267] E|ds|=0.16345->0.16345
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-3: 169238 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/3_qwen2.5-7b-instruct-1m_fastkvzip__pc05kv01_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 61.7s. Mem: 14.31/79.18 GB. [scbench_kv-3]
+
+[effective] clen=169084 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.24it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.79it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.29it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.23s/it]Prefill:  55%|█████▍    | 6/11 [00:06<00:07,  1.47s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.73s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  1.99s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.26s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.54s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.55s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.86s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-4: 169084 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "7417448a-4068-4d28-94ef-771e02c0146d" is "1d042ac4-2e84-4df9-b08b-f3d58ad0ef60". | 1d042ac4-2e84-4df9-b08b-f3d58ad0ef60
+[QA 1] "bcf7df24-480c-4a94-9fae-8d21ca049bdb" | bcf7df24-480c-4a94-9fae-8d21ca049bdb
+[QA 2] The value associated with the key "f5ed6a68-3b3d-4e99-bfe7-297413c5a321" is "398d3b4c-8aca-4719-927a-b7aa995e662c". | 398d3b4c-8aca-4719-927a-b7aa995e662c
+[QA 3] The value associated with the key "27b7b1e7-926d-470f-ab08-8b34eed64184" is "aaaa9457-6cfb-442a-b053-8cb1e8ce02ef". | aaaa9457-6cfb-442a-b053-8cb1e8ce02ef
+[QA 4] 7673761a-b81f-4b9e-a806-b92430c0d187 | 7673761a-b81f-4b9e-a806-b92430c0d187
+[effective] clen=169084 window=4096 chunk_ratio=0.077657 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][precond] a=0.5 clip=8.0 **M_b=474** (占保留集 0.0046) RMS=0.19798 p90=0.26947 p99=0.26973 rho 中位=1.0 极差=[1.0,40030.7] 被夹住=31/112 权重极差=[0.165,1.320] E|ds|=0.16791->0.16791
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.70it/s][precond] a=0.5 clip=8.0 **M_b=809** (占保留集 0.0058) RMS=0.19999 p90=0.27335 p99=0.27352 rho 中位=1.0 极差=[1.0,55208.3] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16863->0.16863
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.52it/s][precond] a=0.5 clip=8.0 **M_b=1026** (占保留集 0.0074) RMS=0.19739 p90=0.27051 p99=0.27074 rho 中位=1.0 极差=[1.0,51139.2] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16633->0.16633
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.45it/s][precond] a=0.5 clip=8.0 **M_b=1040** (占保留集 0.0075) RMS=0.19630 p90=0.26935 p99=0.26965 rho 中位=1.0 极差=[1.0,55809.7] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16422->0.16422
+Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.40it/s][precond] a=0.5 clip=8.0 **M_b=1012** (占保留集 0.0073) RMS=0.19490 p90=0.26814 p99=0.26844 rho 中位=1.0 极差=[1.0,53121.3] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16352->0.16352
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.35it/s][precond] a=0.5 clip=8.0 **M_b=1069** (占保留集 0.0077) RMS=0.19423 p90=0.26744 p99=0.26766 rho 中位=1.0 极差=[1.0,58270.0] 被夹住=31/112 权重极差=[0.165,1.320] E|ds|=0.16299->0.16299
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.31it/s][precond] a=0.5 clip=8.0 **M_b=998** (占保留集 0.0072) RMS=0.19388 p90=0.26653 p99=0.26672 rho 中位=1.0 极差=[1.0,54540.2] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16305->0.16305
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.27it/s][precond] a=0.5 clip=8.0 **M_b=1377** (占保留集 0.0099) RMS=0.19588 p90=0.27477 p99=0.27491 rho 中位=1.0 极差=[1.0,52522.8] 被夹住=35/112 权重极差=[0.172,1.376] E|ds|=0.16263->0.16263
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.23it/s][precond] a=0.5 clip=8.0 **M_b=1214** (占保留集 0.0087) RMS=0.19542 p90=0.27299 p99=0.27313 rho 中位=1.0 极差=[1.0,51805.6] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16248->0.16248
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.20it/s][precond] a=0.5 clip=8.0 **M_b=1290** (占保留集 0.0093) RMS=0.19548 p90=0.27296 p99=0.27324 rho 中位=1.0 极差=[1.0,54603.9] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16325->0.16325
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.16it/s][precond] a=0.5 clip=8.0 **M_b=614** (占保留集 0.0077) RMS=0.19491 p90=0.27121 p99=0.27149 rho 中位=1.0 极差=[1.0,33543.4] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16392->0.16392
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.32it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-4: 169084 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/4_qwen2.5-7b-instruct-1m_fastkvzip__pc05kv01_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 59.0s. Mem: 14.31/79.18 GB. [scbench_kv-4]
+
+[effective] clen=169080 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.30it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:04,  1.80it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.30it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.22s/it]Prefill:  55%|█████▍    | 6/11 [00:06<00:07,  1.47s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.72s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  1.99s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.26s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.54s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.55s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.85s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-5: 169080 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 30369b2b-a9ff-4762-9b05-4e896fbf19b8 | b1f768af-4793-466a-9ebb-6a6becdde93e
+[QA 1] "0e219138-c8a0-46c1-8605-158586ec4e92" | 4204a3f3-3618-4173-acff-ed0ce5886bd5
+[QA 2] "ccc6d6ff-e9ef-43a2-817a-6defd3026665" | ccc6d6ff-e9ef-43a2-817a-6defd3026665
+[QA 3] 674eaf60-e025-42bd-97ab-0c7c0d8468ca | dfcab065-c85a-483f-9d7e-ec224ac1ccd6
+[QA 4] The value associated with the key "8c8eeb4a-0d3f-4514-9ab8-7ce22476e956" is "3c23ac38-7bc9-4533-896b-3e06ff4203ff". | 3c23ac38-7bc9-4533-896b-3e06ff4203ff
+[effective] clen=169080 window=4096 chunk_ratio=0.077656 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][precond] a=0.5 clip=8.0 **M_b=495** (占保留集 0.0048) RMS=0.19957 p90=0.27237 p99=0.27264 rho 中位=1.0 极差=[1.0,38642.1] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16813->0.16813
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.71it/s][precond] a=0.5 clip=8.0 **M_b=777** (占保留集 0.0056) RMS=0.19763 p90=0.26518 p99=0.26533 rho 中位=1.0 极差=[1.0,54850.4] 被夹住=30/112 权重极差=[0.163,1.306] E|ds|=0.16918->0.16918
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.53it/s][precond] a=0.5 clip=8.0 **M_b=1092** (占保留集 0.0078) RMS=0.19852 p90=0.27293 p99=0.27319 rho 中位=1.0 极差=[1.0,52596.0] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16652->0.16652
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.45it/s][precond] a=0.5 clip=8.0 **M_b=947** (占保留集 0.0068) RMS=0.19574 p90=0.26744 p99=0.26772 rho 中位=1.0 极差=[1.0,51644.7] 被夹住=31/112 权重极差=[0.165,1.320] E|ds|=0.16500->0.16500
+Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.40it/s][precond] a=0.5 clip=8.0 **M_b=1002** (占保留集 0.0072) RMS=0.19510 p90=0.26800 p99=0.26830 rho 中位=1.0 极差=[1.0,55287.1] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16355->0.16355
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.35it/s][precond] a=0.5 clip=8.0 **M_b=1004** (占保留集 0.0072) RMS=0.19468 p90=0.26820 p99=0.26849 rho 中位=1.0 极差=[1.0,53333.9] 被夹住=31/112 权重极差=[0.165,1.320] E|ds|=0.16341->0.16341
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.31it/s][precond] a=0.5 clip=8.0 **M_b=1133** (占保留集 0.0081) RMS=0.19619 p90=0.27376 p99=0.27402 rho 中位=1.0 极差=[1.0,48871.3] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16309->0.16309
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.27it/s][precond] a=0.5 clip=8.0 **M_b=1166** (占保留集 0.0084) RMS=0.19525 p90=0.27349 p99=0.27378 rho 中位=1.0 极差=[1.0,52442.2] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16241->0.16241
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.23it/s][precond] a=0.5 clip=8.0 **M_b=1222** (占保留集 0.0088) RMS=0.19682 p90=0.27616 p99=0.27642 rho 中位=1.0 极差=[1.0,53112.1] 被夹住=35/112 权重极差=[0.172,1.376] E|ds|=0.16306->0.16306
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.20it/s][precond] a=0.5 clip=8.0 **M_b=1155** (占保留集 0.0083) RMS=0.19595 p90=0.27312 p99=0.27340 rho 中位=1.0 极差=[1.0,55016.1] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16402->0.16402
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.16it/s][precond] a=0.5 clip=8.0 **M_b=694** (占保留集 0.0088) RMS=0.19617 p90=0.27465 p99=0.27498 rho 中位=1.0 极差=[1.0,30391.7] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16337->0.16337
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.32it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-5: 169080 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/5_qwen2.5-7b-instruct-1m_fastkvzip__pc05kv01_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 49.8s. Mem: 14.31/79.18 GB. [scbench_kv-5]
+
+[effective] clen=169175 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.29it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:04,  1.80it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.29it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.23s/it]Prefill:  55%|█████▍    | 6/11 [00:06<00:07,  1.47s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.73s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  1.99s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.26s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.54s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.56s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.86s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-6: 169175 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] "17fa887f-16fc-4cb5-bd97-186984e0c86f" | 200ddf0c-49fd-469d-ba84-6f5eb804fb34
+[QA 1] 71c5672f-efd2-46c0-af41-557775f22a45 | eb8f628a-b727-4fdd-b344-7b568ee167f1
+[QA 2] "035562e4-a78e-4318-a8f4-8329d6fb6ba2" | 4aad53bf-5811-40f4-865f-17f85ff0902b
+[QA 3] "7d017cb6-6f9b-4183-8b2d-902b7151b285": "371ea88e-e7a0-47ff-b7d7-1db9fb2920b4" | d71460c2-4672-429b-bd64-33aca22780eb
+[QA 4] "88cc7a9c-36b2-4463-bb81-e94720eb5560" | 26d23cd4-5162-4557-8360-d94042e13ffb
+[effective] clen=169175 window=4096 chunk_ratio=0.077669 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][precond] a=0.5 clip=8.0 **M_b=664** (占保留集 0.0064) RMS=0.20045 p90=0.27522 p99=0.27554 rho 中位=1.0 极差=[1.0,37627.7] 被夹住=35/112 权重极差=[0.172,1.376] E|ds|=0.16725->0.16725
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.72it/s][precond] a=0.5 clip=8.0 **M_b=819** (占保留集 0.0059) RMS=0.19721 p90=0.26558 p99=0.26575 rho 中位=1.0 极差=[1.0,55061.9] 被夹住=30/112 权重极差=[0.163,1.306] E|ds|=0.16871->0.16871
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.54it/s][precond] a=0.5 clip=8.0 **M_b=943** (占保留集 0.0068) RMS=0.19640 p90=0.26799 p99=0.26823 rho 中位=1.0 极差=[1.0,53632.2] 被夹住=31/112 权重极差=[0.165,1.320] E|ds|=0.16624->0.16624
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.46it/s][precond] a=0.5 clip=8.0 **M_b=1074** (占保留集 0.0077) RMS=0.19789 p90=0.27292 p99=0.27320 rho 中位=1.0 极差=[1.0,53174.0] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16483->0.16483
+Prefill:  36%|███▋      | 4/11 [00:02<00:04,  1.41it/s][precond] a=0.5 clip=8.0 **M_b=926** (占保留集 0.0067) RMS=0.19547 p90=0.26871 p99=0.26899 rho 中位=1.0 极差=[1.0,56593.3] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16404->0.16404
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.36it/s][precond] a=0.5 clip=8.0 **M_b=1084** (占保留集 0.0078) RMS=0.19616 p90=0.27192 p99=0.27213 rho 中位=1.0 极差=[1.0,56045.9] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16337->0.16337
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.32it/s][precond] a=0.5 clip=8.0 **M_b=1227** (占保留集 0.0088) RMS=0.19716 p90=0.27454 p99=0.27479 rho 中位=1.0 极差=[1.0,56409.5] 被夹住=36/112 权重极差=[0.174,1.391] E|ds|=0.16298->0.16298
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.28it/s][precond] a=0.5 clip=8.0 **M_b=1279** (占保留集 0.0092) RMS=0.19762 p90=0.27750 p99=0.27771 rho 中位=1.0 极差=[1.0,51087.1] 被夹住=35/112 权重极差=[0.172,1.376] E|ds|=0.16342->0.16342
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.24it/s][precond] a=0.5 clip=8.0 **M_b=1134** (占保留集 0.0081) RMS=0.19504 p90=0.27208 p99=0.27229 rho 中位=1.0 极差=[1.0,51476.8] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16308->0.16308
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.20it/s][precond] a=0.5 clip=8.0 **M_b=1333** (占保留集 0.0096) RMS=0.19543 p90=0.27319 p99=0.27351 rho 中位=1.0 极差=[1.0,53382.5] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16307->0.16307
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.17it/s][precond] a=0.5 clip=8.0 **M_b=600** (占保留集 0.0075) RMS=0.19266 p90=0.26496 p99=0.26527 rho 中位=1.0 极差=[1.0,30336.8] 被夹住=30/112 权重极差=[0.163,1.306] E|ds|=0.16338->0.16338
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.32it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-6: 169175 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/6_qwen2.5-7b-instruct-1m_fastkvzip__pc05kv01_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 54.5s. Mem: 14.31/79.18 GB. [scbench_kv-6]
+
+[effective] clen=169154 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.28it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.80it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.29it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.23s/it]Prefill:  55%|█████▍    | 6/11 [00:06<00:07,  1.47s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.73s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  2.00s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.27s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.54s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.56s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.86s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-7: 169154 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] 816d87f3-4e79-4fe7-8745-0c996e3b50b6 | 1e2449c9-a619-4fad-9876-9870639ceac0
+[QA 1] The value associated with the key "9046ad2b-6e32-4e4b-bb14-bae4bb0686a6" is "487d4331-9b1c-4117-b5c9-5550268b9dfc". | 487d4331-9b1c-4117-b5c9-5550268b9dfc
+[QA 2] The value associated with the key "bd66a656-3d65-441d-a3f1-fa35c7307770" is "42e3870b-c805-40de-ba8a-f8f1a17627c4". | dbff500c-c853-4cff-a41b-303badbd1fdd
+[QA 3] The value associated with the key "a04acdbf-89ee-4ca1-bff8-70a7d4a49f3b" is "d453be0b-ac52-4c5a-b0ab-7cece28f3dcd". | d453be0b-ac52-4c5a-b0ab-7cece28f3dcd
+[QA 4] The value associated with the key "4c9f6089-81a5-4eae-b987-8b225d741b24" is "34d25e3a-a073-46f4-a7b4-d0f57bb1d745". | 34d25e3a-a073-46f4-a7b4-d0f57bb1d745
+[effective] clen=169154 window=4096 chunk_ratio=0.077666 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][precond] a=0.5 clip=8.0 **M_b=620** (占保留集 0.0060) RMS=0.20055 p90=0.27665 p99=0.27696 rho 中位=1.0 极差=[1.0,38754.1] 被夹住=35/112 权重极差=[0.172,1.376] E|ds|=0.16735->0.16735
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.71it/s][precond] a=0.5 clip=8.0 **M_b=925** (占保留集 0.0066) RMS=0.19799 p90=0.26757 p99=0.26773 rho 中位=1.0 极差=[1.0,49941.1] 被夹住=31/112 权重极差=[0.165,1.320] E|ds|=0.16847->0.16847
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.53it/s][precond] a=0.5 clip=8.0 **M_b=1025** (占保留集 0.0074) RMS=0.19890 p90=0.27319 p99=0.27345 rho 中位=1.0 极差=[1.0,50529.7] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16705->0.16705
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.45it/s][precond] a=0.5 clip=8.0 **M_b=1007** (占保留集 0.0072) RMS=0.19696 p90=0.27052 p99=0.27078 rho 中位=1.0 极差=[1.0,52681.2] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16495->0.16495
+Prefill:  36%|███▋      | 4/11 [00:02<00:05,  1.40it/s][precond] a=0.5 clip=8.0 **M_b=1094** (占保留集 0.0079) RMS=0.19739 p90=0.27320 p99=0.27350 rho 中位=1.0 极差=[1.0,53044.6] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16380->0.16380
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.35it/s][precond] a=0.5 clip=8.0 **M_b=1083** (占保留集 0.0078) RMS=0.19601 p90=0.27186 p99=0.27208 rho 中位=1.0 极差=[1.0,49360.2] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16340->0.16340
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.31it/s][precond] a=0.5 clip=8.0 **M_b=1164** (占保留集 0.0084) RMS=0.19657 p90=0.27398 p99=0.27422 rho 中位=1.0 极差=[1.0,52589.5] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16314->0.16314
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.27it/s][precond] a=0.5 clip=8.0 **M_b=1391** (占保留集 0.0100) RMS=0.19865 p90=0.28046 p99=0.28063 rho 中位=1.0 极差=[1.0,54054.4] 被夹住=37/112 权重极差=[0.176,1.407] E|ds|=0.16330->0.16330
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.23it/s][precond] a=0.5 clip=8.0 **M_b=1158** (占保留集 0.0083) RMS=0.19534 p90=0.27357 p99=0.27376 rho 中位=1.0 极差=[1.0,54220.3] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16250->0.16250
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.20it/s][precond] a=0.5 clip=8.0 **M_b=1262** (占保留集 0.0091) RMS=0.19662 p90=0.27538 p99=0.27567 rho 中位=1.0 极差=[1.0,56547.8] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16370->0.16370
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.16it/s][precond] a=0.5 clip=8.0 **M_b=693** (占保留集 0.0087) RMS=0.19480 p90=0.27089 p99=0.27118 rho 中位=1.0 极差=[1.0,30422.8] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16328->0.16328
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_kv-7: 169154 tokens, KV cache 9.7 GB, torch.bfloat16
+Results saved at ./results/scbench_kv/7_qwen2.5-7b-instruct-1m_fastkvzip__pc05kv01_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 58.5s. Mem: 14.31/79.18 GB. [scbench_kv-7]
+
+[effective] clen=169034 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s]Prefill:   9%|▉         | 1/11 [00:00<00:03,  3.30it/s]Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.78it/s]Prefill:  27%|██▋       | 3/11 [00:02<00:06,  1.29it/s]Prefill:  36%|███▋      | 4/11 [00:03<00:06,  1.01it/s]Prefill:  45%|████▌     | 5/11 [00:05<00:07,  1.22s/it]Prefill:  55%|█████▍    | 6/11 [00:06<00:07,  1.47s/it]Prefill:  64%|██████▎   | 7/11 [00:09<00:06,  1.72s/it]Prefill:  73%|███████▎  | 8/11 [00:11<00:05,  1.99s/it]Prefill:  82%|████████▏ | 9/11 [00:14<00:04,  2.26s/it]Prefill:  91%|█████████ | 10/11 [00:17<00:02,  2.53s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  2.55s/it]Prefill: 100%|██████████| 11/11 [00:20<00:00,  1.85s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_kv-8: 169034 tokens, KV cache 9.7 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] The value associated with the key "6abb6780-ea5a-476c-8e48-50a9403c06c1" is "6eb6673d-a9b7-43a9-920a-c7536f0be030". | 98cc87c3-61b9-49c3-8603-416c0ce2dc34
+[QA 1] c5d23f42-6152-41a6-ba08-e916a4d39e26 | c5d23f42-6152-41a6-ba08-e916a4d39e26
+[QA 2] The value associated with the key "ef537731-d870-4c8a-ba6c-ceb68fc67f15" is "878529e1-18f3-481f-bd8d-f00288aeafd7". | 878529e1-18f3-481f-bd8d-f00288aeafd7
+[QA 3] 460c4710-fe17-4b89-8b6b-e03606e72ed2 | 460c4710-fe17-4b89-8b6b-e03606e72ed2
+[QA 4] The value associated with the key "ed2bf54e-9209-4f52-b430-9c5f6036aaca" is "06db1582-5fe6-443c-aa20-e9f38652b3ee". | 098e2480-8497-4451-8f7a-81d1d6518b2e
+[effective] clen=169034 window=4096 chunk_ratio=0.077650 degenerate=False
+chunk inputs, size: 16000 (num 11)
+Prefill:   0%|          | 0/11 [00:00<?, ?it/s][precond] a=0.5 clip=8.0 **M_b=569** (占保留集 0.0055) RMS=0.20042 p90=0.27545 p99=0.27577 rho 中位=1.0 极差=[1.0,33436.6] 被夹住=35/112 权重极差=[0.172,1.376] E|ds|=0.16743->0.16743
+Prefill:   9%|▉         | 1/11 [00:00<00:05,  1.72it/s][precond] a=0.5 clip=8.0 **M_b=939** (占保留集 0.0067) RMS=0.19905 p90=0.27040 p99=0.27057 rho 中位=1.0 极差=[1.0,55343.3] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16882->0.16882
+Prefill:  18%|█▊        | 2/11 [00:01<00:05,  1.53it/s][precond] a=0.5 clip=8.0 **M_b=984** (占保留集 0.0071) RMS=0.19727 p90=0.26999 p99=0.27028 rho 中位=1.0 极差=[1.0,50162.2] 被夹住=32/112 权重极差=[0.167,1.333] E|ds|=0.16634->0.16634
+Prefill:  27%|██▋       | 3/11 [00:02<00:05,  1.46it/s][precond] a=0.5 clip=8.0 **M_b=964** (占保留集 0.0069) RMS=0.19561 p90=0.26771 p99=0.26797 rho 中位=1.0 极差=[1.0,50175.0] 被夹住=31/112 权重极差=[0.165,1.320] E|ds|=0.16461->0.16461
+Prefill:  36%|███▋      | 4/11 [00:02<00:04,  1.41it/s][precond] a=0.5 clip=8.0 **M_b=1058** (占保留集 0.0076) RMS=0.19575 p90=0.27029 p99=0.27056 rho 中位=1.0 极差=[1.0,54107.5] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16327->0.16327
+Prefill:  45%|████▌     | 5/11 [00:03<00:04,  1.36it/s][precond] a=0.5 clip=8.0 **M_b=1139** (占保留集 0.0082) RMS=0.19718 p90=0.27486 p99=0.27508 rho 中位=1.0 极差=[1.0,56496.6] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16350->0.16350
+Prefill:  55%|█████▍    | 6/11 [00:04<00:03,  1.31it/s][precond] a=0.5 clip=8.0 **M_b=1028** (占保留集 0.0074) RMS=0.19566 p90=0.27206 p99=0.27224 rho 中位=1.0 极差=[1.0,57597.0] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16305->0.16305
+Prefill:  64%|██████▎   | 7/11 [00:05<00:03,  1.27it/s][precond] a=0.5 clip=8.0 **M_b=1293** (占保留集 0.0093) RMS=0.19562 p90=0.27453 p99=0.27473 rho 中位=1.0 极差=[1.0,56403.8] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16245->0.16245
+Prefill:  73%|███████▎  | 8/11 [00:06<00:02,  1.24it/s][precond] a=0.5 clip=8.0 **M_b=1256** (占保留集 0.0090) RMS=0.19496 p90=0.27257 p99=0.27275 rho 中位=1.0 极差=[1.0,55724.3] 被夹住=33/112 权重极差=[0.168,1.347] E|ds|=0.16280->0.16280
+Prefill:  82%|████████▏ | 9/11 [00:06<00:01,  1.20it/s][precond] a=0.5 clip=8.0 **M_b=1370** (占保留集 0.0098) RMS=0.19604 p90=0.27448 p99=0.27467 rho 中位=1.0 极差=[1.0,54850.9] 被夹住=34/112 权重极差=[0.170,1.362] E|ds|=0.16335->0.16335
+Prefill:  91%|█████████ | 10/11 [00:07<00:00,  1.16it/s][precond] a=0.5 clip=8.0 **M_b=606** (占保留集 0.0077) RMS=0.19327 p90=0.26719 p99=0.26744 rho 中位=1.0 极差=[1.0,30262.7] 被夹住=31/112 权重极差=[0.165,1.320] E|ds|=0.16320->0.16320
+Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.32it/s]Prefill: 100%|██████████| 11/11 [00:08<00:00,  1.31it/s]
