@@ -42,7 +42,7 @@ print("meta ->", {k: v for k, v in meta.items() if k not in ("pos", "qas_decoy")
 print(f"上下文长度 {len(ids)} -> {len(ctx)}")
 
 txt = "".join(chr(c) if 32 <= c < 127 else "?" for c in ctx)
-words = re.findall(r"contains the word '([^']+)'", txt)
+words = re.findall(r"'([A-Za-z0-9+\-_^]{25})',", txt)
 print(f"插入词 {len(words)} 个（应为 {N_FACT * (1 + 2 * N_DECOY)}）")
 assert len(words) == N_FACT * (1 + 2 * N_DECOY), "插入词数不对"
 assert all(len(w) == 25 for w in words), "词长不是 25"
@@ -51,7 +51,7 @@ qtxt = ["".join(chr(c) if 32 <= c < 127 else "?" for c in q) for q, _ in qas]
 atxt = ["".join(chr(c) if 32 <= c < 127 else "?" for c in a).strip() for _, a in qas]
 ok = True
 for qi, (q, ans) in enumerate(zip(qtxt, atxt)):
-    mm = re.search(r"prefix '([^']+)' and the suffix '([^']+)'", q)
+    mm = re.search(r'prefix = "([^"]+)".*?suffix = "([^"]+)"', q)
     p_, s_ = mm.group(1), mm.group(2)
     both = [w for w in words if w.startswith(p_) and w.endswith(s_)]
     same_p = [w for w in words if w.startswith(p_)]
@@ -66,7 +66,7 @@ for qi, (q, ans) in enumerate(zip(qtxt, atxt)):
 # ④ 自检⑤ 的诱饵：必须与正确答案同前缀、异后缀，且真的在插入词里
 dec_ok = True
 for qi, (q, ans) in enumerate(zip(qtxt, atxt)):
-    mm = re.search(r"prefix '([^']+)' and the suffix '([^']+)'", q)
+    mm = re.search(r'prefix = "([^"]+)".*?suffix = "([^"]+)"', q)
     p_, s_ = mm.group(1), mm.group(2)
     dq, da = qas_dec[qi]
     dqs = "".join(chr(c) if 32 <= c < 127 else "?" for c in dq)
@@ -83,5 +83,6 @@ print("\n判词：" + ("四条判据全过 —— 答案唯一、诱饵按 1+n_d
                     if ok else "**有 FAIL，不要跑 GPU**"))
 print(f"\n样例问句： {qtxt[0].strip()}")
 print(f"样例答案： {atxt[0]}")
-print(f"样例诱饵（同前缀）： "
-      f"{[w for w in words if w.startswith(qtxt[0].split(chr(39))[1])][:4]}")
+_m0 = re.search(r'prefix = "([^"]+)"', qtxt[0])
+print(f"样例诱饵（同前缀，前 4 个）： "
+      f"{[w for w in words if w.startswith(_m0.group(1))][:4]}")
