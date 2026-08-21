@@ -58,48 +58,81 @@ from attention.kvcache import RetainCache                                  # noq
 
 
 # ────────────────────────────── 任务构造 ──────────────────────────────
-def make_task(m, ids, max_ctx, window, n_dup, rng):
-    """插入合成事实，返回 (上下文 ids, 问句 ids, 答案 ids, meta)。
+def make_task(m, ids, max_ctx, window, n_fact, rng):
+    """插入 `n_fact` 条**互不相同**的合成事实，返回 (上下文, target, 答案掩码, meta)。
 
-    与 `scratch_ctrl_teacher.make_retrieval` **同构**（同样的 key/val 格式、
-    同样的插入区间与倒序插入），差别只有一处：这里把**问句**与**答案**分开返回，
-    因为 J 只在答案 token 上算 NLL —— 问句是条件不是预测目标。
+    与 `scratch_ctrl_teacher.make_retrieval` 同构（同样的 key/val 格式、同样的
+    插入区间与倒序插入），两处差别：
+
+    ① **多事实多问句**。首跑实测：单条事实的答案只有 12–16 个 token，
+       信度检验的符号一致率 **48.7%（抛硬币）**。但那个 48.7% **不证明真效应
+       为零** —— 前半/后半答案 token 不是同一潜在量的重复测量（教师强制下后
+       半条件于已给出的答案前缀，对缓存的依赖本来就更弱），所以它只说明
+       **单问句估计量方差过大**。要估的其实是对未来查询的期望：
+
+           Ā_{i←j} = E_{q∼Q(x)} [ J(q, S') − J(q, S) ]
+
+       因此靠**多个互不相同的问句**求平均，而不是把一个答案拉长。
+    ② **返回 `qid`（每个 target 位置属于哪个问句）而不是二值掩码**。所有问答
+       拼成一条 target 走**一次**前向 —— 若每条事实各跑一次前向，每个动作的
+       成本会乘以 `n_fact`，那是负担不起的。有了 `qid` 就能算**逐问句** NLL，
+       信度检验才能按「问句」而不是按「token 位置」对半分。
+
+    **代价（必须记住）**：拼在一条 target 里 ⇒ 第 m 个问句条件于前 m−1 组问答。
+    所以 M 个问句不是独立样本，有效 M 小于名义值，且存在顺序效应。信度检验
+    因此取**奇数问句 vs 偶数问句**（交错），让两半的平均位置尽量相同。
     """
     ctx = list(ids[-max_ctx:])
     hx = "0123456789abcdef"
-    key = "".join(rng.choices(hx, k=16))
-    val = "".join(rng.choices(hx, k=16))
-    fact = m.encode(f" The secret key {key} maps to the value {val}. ")[0].tolist()
-    q_ids = m.encode(f"\nQuestion: What value does the secret key {key} "
+    facts, tgt, qid = [], [], []
+    for qi in range(n_fact):
+        key = "".join(rng.choices(hx, k=16))
+        val = "".join(rng.choices(hx, k=16))
+        facts.append((key, val,
+                      m.encode(f" The secret key {key} maps to the value {val}. ")[0].tolist()))
+        q = m.encode(f"\nQuestion: What value does the secret key {key} "
                      f"map to?\nAnswer:")[0].tolist()
-    a_ids = m.encode(f" {val}")[0].tolist()
+        a = m.encode(f" {val}")[0].tolist()
+        tgt += q + a
+        qid += [-1] * len(q) + [qi] * len(a)
+    # 插入点分散在可驱逐区（末尾 window 恒保留，插那里等于没驱逐）；倒序插以免下标失效
     lo, hi = int(0.05 * (len(ctx) - window)), int(0.90 * (len(ctx) - window))
-    pos = sorted(rng.sample(range(lo, hi), n_dup), reverse=True)
-    for p_ in pos:
-        ctx[p_:p_] = fact
-    return ctx, q_ids, a_ids, dict(key=key, val=val, pos=sorted(pos), n_dup=n_dup)
+    pos = sorted(rng.sample(range(lo, hi), n_fact), reverse=True)
+    for p_, (_, _, f_) in zip(pos, facts):
+        ctx[p_:p_] = f_
+    assert len(tgt) == len(qid) and sum(x >= 0 for x in qid) > 0
+    return ctx, tgt, qid, dict(n_fact=n_fact, pos=sorted(pos),
+                               n_ans=int(sum(x >= 0 for x in qid)), n_tgt=len(tgt))
 
 
 # ────────────────────────────── 效用 J ──────────────────────────────
 @torch.no_grad()
-def answer_nll(m, kv, q_t, a_t, n_seen, halves=False):
-    """→ 答案 token 的平均 NLL（越小越好）。`halves=True` 时另返回前/后半。
+def answer_nll(m, kv, t_t, qid_t, n_q, n_seen):
+    """→ `(全局平均 NLL, 逐问句平均 NLL 向量[n_q])`，越小越好。
 
-    **必须回滚**：`m.model(...)` 会把 query/answer 的 K/V 追加进 cache，
+    问句 token 不进损失 —— 它是条件不是预测目标（`qid = −1`）。
+    **逐问句**而不是逐 token 求平均：每个问句等权，答案长度的随机波动不会
+    让某一条事实主导，且 bootstrap 可以直接对「问句」重采样。
+
+    **必须回滚**：`m.model(...)` 会把 target 的 K/V 追加进 cache，
     不回滚则下一个动作看到的上下文已被污染（`teacher_state` 的注释记过这个坑）。
+
+    对齐：预测 `inp[t]` 用 `logits[t-1]`，所以取 `logits[:-1]` 对 `inp[1:]`。
     """
-    inp = torch.cat([q_t, a_t], dim=1)
-    out = m.model(inp, past_key_values=kv, use_cache=True)
+    out = m.model(t_t, past_key_values=kv, use_cache=True)
     kv.slice(n_seen)                                   # 回滚到纯上下文
-    n_a = a_t.shape[1]
-    # 预测第 t 个 token 的 logits 在位置 t−1；答案占 inp 的最后 n_a 个位置
-    lg = out.logits[0, -n_a - 1:-1].float()
-    tg = a_t[0]
-    nll = F.cross_entropy(lg, tg, reduction="none")    # [n_a]
-    if not halves:
-        return float(nll.mean()), None, None
-    h = n_a // 2
-    return float(nll.mean()), float(nll[:h].mean()), float(nll[h:].mean())
+    lg = out.logits[0, :-1].float()                    # 预测 inp[1:]
+    tg = t_t[0, 1:]
+    qq = qid_t[1:]                                     # 与 tg 对齐
+    mk = qq >= 0
+    nll = F.cross_entropy(lg, tg, reduction="none")[mk]
+    qs = qq[mk]
+    tot = torch.zeros(n_q, device=nll.device, dtype=nll.dtype).index_add_(0, qs, nll)
+    cnt = torch.zeros(n_q, device=nll.device, dtype=nll.dtype).index_add_(
+        0, qs, torch.ones_like(nll))
+    assert (cnt > 0).all(), f"有问句没有答案 token: {cnt.tolist()}"
+    per = (tot / cnt).cpu().numpy()
+    return float(per.mean()), per
 
 
 # ────────────────────────────── 动作构造 ──────────────────────────────
@@ -185,10 +218,17 @@ def main():
     ap.add_argument("--level", default="pair")
     ap.add_argument("--max_ctx", type=int, default=131072)
     ap.add_argument("--n_doc", type=int, default=2)
-    ap.add_argument("--n_dup", type=int, default=1)
+    ap.add_argument("--n_fact", type=int, default=8,
+                    help="每篇插入多少条**互不相同**的事实并各问一次。"
+                         "首跑单条（答案 12–16 tok）信度只有 48.7%%（抛硬币），"
+                         "噪声 ∝ 1/√T ⇒ 这是最直接的放大办法。")
     ap.add_argument("--n_recv", type=int, default=4)
     ap.add_argument("--n_don", type=int, default=4)
-    ap.add_argument("--ks", default="1,4")
+    ap.add_argument("--ks", default="1,4,16",
+                    help="每个动作转移多少个 KV 条目。**不要只用 k=1** —— "
+                         "真实控制器每头挪动的量级是几十到几百条，k=1 既最接近"
+                         "数值地板、又不对应任何实际决策粒度；报表会打印 |A| 随 k "
+                         "的曲线，若不随 k 增长就说明触到了地板。")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--interaction", action="store_true",
                     help="每个动作额外跑 2 次前向，量出交互项 "
@@ -208,8 +248,8 @@ def main():
     for di, txt in enumerate(texts):
         ids = m.encode(txt)[0].tolist()
         rng = random.Random(a.seed * 1000 + di)
-        ctx_ids, q_ids, ans_ids, meta = make_task(
-            m, ids, a.max_ctx, a.window, a.n_dup, rng)
+        ctx_ids, tgt_ids, qid, meta = make_task(
+            m, ids, a.max_ctx, a.window, a.n_fact, rng)
         # ---- 三道守卫，与 `scratch_ctrl_teacher.py` 逐条对齐 ----
         if len(ctx_ids) < a.chunk // 2:
             print(f"doc{di} 太短 ({len(ctx_ids)})，跳过"); continue
@@ -221,8 +261,9 @@ def main():
                   f"{a.window/a.ratio:.0f}，chunk_ratio 会塌缩到 0，跳过")
             continue
         ctx_t = torch.tensor([ctx_ids], device=m.device)
-        q_t = torch.tensor([q_ids], device=m.device)
-        a_t = torch.tensor([ans_ids], device=m.device)
+        t_t = torch.tensor([tgt_ids], device=m.device)
+        qid_t = torch.tensor(qid, device=m.device)
+        n_q = a.n_fact
 
         # **分数必须在驱逐发生时录下来**（与 `scratch_ctrl_teacher.py` 同一手法）。
         # 真机首跑证明：预填结束后 `kv.score` 只剩最后一段（实测 4096 = window），
@@ -298,10 +339,11 @@ def main():
         assert _mr > _me, f"score/valid 错位：保留 {_mr:.4f} ≤ 驱逐 {_me:.4f}"
         print(f"  自检④ 保留者均分 {_mr:.4f} > 被驱逐者 {_me:.4f} ✓", flush=True)
 
-        j0, j0a, j0b = answer_nll(m, kv, q_t, a_t, n_seen, halves=True)
+        j0, j0q = answer_nll(m, kv, t_t, qid_t, n_q, n_seen)
         print(f"doc{di}: clen={len(ctx_ids)} 保留 {B0} "
               f"({B0/base_valid.numel():.3f})  基线 NLL {j0:.4f}  "
-              f"答案 {len(ans_ids)} tok", flush=True)
+              f"答案 {meta['n_ans']} tok / target {meta['n_tgt']}  "
+              f"事实 {meta['n_fact']} 条", flush=True)
 
         # ---- 自检 ①：零动作必须逐位复现基线 ----
         def _wb(vv):
@@ -312,7 +354,7 @@ def main():
             return full
 
         kv.valid = _wb(base_valid)
-        j_null, _, _ = answer_nll(m, kv, q_t, a_t, n_seen)
+        j_null, _ = answer_nll(m, kv, t_t, qid_t, n_q, n_seen)
         assert j_null == j0, f"零动作不复现基线：{j_null} vs {j0}"
         print(f"  自检① 零动作 A = {j0 - j_null:+.3e}（须恰为 0）✓", flush=True)
 
@@ -328,10 +370,11 @@ def main():
                 continue
             assert int(v.sum()) == B0, f"预算不守恒 {int(v.sum())} vs {B0}"  # 自检②
             kv.valid = _wb(v)
-            jj, ja, jb = answer_nll(m, kv, q_t, a_t, n_seen, halves=True)
+            jj, jjq = answer_nll(m, kv, t_t, qid_t, n_q, n_seen)
+            Aq = (j0q - jjq)            # J = −NLL ⇒ A = NLL0 − NLL'，逐问句
             rec = dict(doc=di, recv=list(i), don=list(j), k=kk, tag=tag,
-                       A=j0 - jj,                  # J = −NLL ⇒ A = NLL0 − NLL'
-                       A_h1=j0a - ja, A_h2=j0b - jb)
+                       A=float(Aq.mean()), Aq=[float(x) for x in Aq],
+                       A_odd=float(Aq[1::2].mean()), A_even=float(Aq[0::2].mean()))
             if a.interaction:
                 # **交互项 I_ij** —— 外部评审的核心数学批评：
                 #     A_{i←j} = J(S∪{i}\{j}) − J(S)
@@ -342,13 +385,13 @@ def main():
                 # 两次额外前向即可量出 I：
                 v_add, _ = apply_one_side(base_valid, sc, i, kk, True)
                 kv.valid = _wb(v_add)
-                j_add, _, _ = answer_nll(m, kv, q_t, a_t, n_seen)
+                j_add, _ = answer_nll(m, kv, t_t, qid_t, n_q, n_seen)
                 v_rem, _ = apply_one_side(base_valid, sc, j, kk, False)
                 kv.valid = _wb(v_rem)
-                j_rem, _, _ = answer_nll(m, kv, q_t, a_t, n_seen)
+                j_rem, _ = answer_nll(m, kv, t_t, qid_t, n_q, n_seen)
                 gp = j0 - j_add          # 加 i 的收益（NLL 降多少）
                 gm = j_rem - j0          # 减 j 的代价（NLL 升多少）
-                rec.update(gp=gp, gm=gm, I=(j0 - jj) - (gp - gm))
+                rec.update(gp=gp, gm=gm, I=float(Aq.mean()) - (gp - gm))
             recs.append(rec)
         kv.valid = raw_valid
         del kv
@@ -357,17 +400,52 @@ def main():
     if not recs:
         print("没有任何动作被评估"); return
     A = np.array([r["A"] for r in recs])
-    h1 = np.array([r["A_h1"] for r in recs]); h2 = np.array([r["A_h2"] for r in recs])
+    Aq = np.array([r["Aq"] for r in recs])                    # [n_act, n_q]
+    h1 = np.array([r["A_odd"] for r in recs])                 # 奇数问句
+    h2 = np.array([r["A_even"] for r in recs])                # 偶数问句
     from scipy import stats as st
     print(f"\n=== {len(A)} 个动作 ===")
     print(f"  A 均值 {A.mean():+.5f}  sd {A.std():.5f}  为正 {np.mean(A>0):.1%}")
     print(f"  |A| 中位 {np.median(np.abs(A)):.5f}  最大 {np.abs(A).max():.5f}")
-    print(f"\n=== 自检③ 信度（答案 token 前后半各算一次 A）===")
-    print(f"  Pearson  {st.pearsonr(h1,h2)[0]:+.3f}   Spearman {st.spearmanr(h1,h2)[0]:+.3f}")
+
+    # ---- 对照：|A| 是否随 k 增长。这同时是**数值噪声地板**的检验 ----
+    # 掩码相同 ⇒ 前向逐位相同（自检①测到 A 恰为 0），所以没有"重复测量抖动"；
+    # 但掩码不同会改变 flash-attn 的归约长度，仍有 rounding 差。若 |A| 在 k=1
+    # 与 k=16 上一样大，说明测到的是地板而不是效应。
+    print(f"\n=== |A| 随 k（若不增长 ⇒ 触到数值/离散地板，k=1 不可用）===")
+    for kk in sorted({r["k"] for r in recs}):
+        sub = np.array([r["A"] for r in recs if r["k"] == kk])
+        print(f"  k={kk:<4d} n={len(sub):<4d} |A| 中位 {np.median(np.abs(sub)):.5f}"
+              f"  均值 {sub.mean():+.5f}")
+
+    # ---- 自检③：信度。**按问句奇偶交错对半**，不是按 token 位置 ----
+    # 为什么不按 token 位置：前半/后半答案 token 不是同一潜在量的重复测量
+    # （教师强制下后半条件于答案前缀，对缓存依赖更弱），所以那种分法的低一致率
+    # 无法区分"估计量噪声大"与"真效应本来就随位置变"。按**独立事实**分则两半
+    # 估的是同一个 Ā = E_q[·]，才是真正的重复测量。取奇/偶而非前/后，是为了让
+    # 两半的平均问句位置相同，抵消拼接带来的顺序效应。
+    print(f"\n=== 自检③ 信度（奇数问句 A vs 偶数问句 A，n_q={Aq.shape[1]}）===")
+    r_half = st.pearsonr(h1, h2)[0]
+    r_sb = 2 * r_half / (1 + r_half) if r_half > -1 else float("nan")
+    print(f"  Pearson  {r_half:+.3f}   Spearman {st.spearmanr(h1,h2)[0]:+.3f}")
+    print(f"  Spearman-Brown 校正到全量 {Aq.shape[1]} 问句: r = {r_sb:+.3f}")
     nz = (h1 != 0) & (h2 != 0)
-    print(f"  符号一致率 {np.mean(np.sign(h1[nz])==np.sign(h2[nz])):.1%}"
-          f"（n={nz.sum()}）")
-    print(f"  ⇒ 若显著低于 ~70%，这个标签**噪声主导，不能拿来训练**")
+    print(f"  符号一致率 {np.mean(np.sign(h1[nz])==np.sign(h2[nz])):.1%}（n={nz.sum()}）")
+
+    # ---- 逐动作 bootstrap（对**问句**重采样）----
+    rs = np.random.default_rng(0)
+    nq = Aq.shape[1]
+    bs = Aq[:, rs.integers(0, nq, size=(2000, nq))].mean(-1)   # [n_act, 2000]
+    lo, hi = np.percentile(bs, [2.5, 97.5], axis=1)
+    pos, neg = (lo > 0), (hi < 0)
+    print(f"\n=== 逐动作 95% bootstrap CI（重采样问句，2000 次）===")
+    print(f"  有益 (CI 下界>0) {pos.sum()}/{len(A)} = {pos.mean():.1%}")
+    print(f"  有害 (CI 上界<0) {neg.sum()}/{len(A)} = {neg.mean():.1%}")
+    print(f"  不可分 (0∈CI)   {(~pos & ~neg).sum()}/{len(A)} = {(~pos & ~neg).mean():.1%}")
+    print(f"  ⇒ 判据：**可分比例 ≥ 50% 且信度 r_sb ≥ 0.6、符号一致 ≥ 75%** 才可训练；")
+    print(f"    否则标签噪声主导。注意反过来不成立 —— 低一致率只说明**这个估计量**")
+    print(f"    方差过大，不说明真优势为零。")
+
     if a.interaction and "I" in recs[0]:
         I = np.array([r["I"] for r in recs])
         GP = np.array([r["gp"] for r in recs]); GM = np.array([r["gm"] for r in recs])
