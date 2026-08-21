@@ -14,21 +14,16 @@ import numpy as np
 sys.path.insert(0, ".")
 from scratch_read_scores import read_scores          # noqa: E402
 
-PANEL = [("scbench_kv", "Retr.KV"), ("scbench_prefix_suffix", "Retr.PrefSuf"),
-         ("scbench_vt", "Retr.MultiHop"), ("scbench_many_shot", "ICL.ManyShot"),
-         ("scbench_qa_eng", "En.QA"), ("gsm", "GSM8K")]
-RAT = [0.1, 0.2, 0.3, 0.4, 0.5, 0.75]
-# 静态 u 表的 tag：{panel: {ratio: tag}}
-UTAB = {
-    "scbench_kv": {0.1: "_uq01r01", 0.2: "_uq01r02", 0.3: "_uq01r03", 0.5: "_uq01r05"},
-    "scbench_prefix_suffix": {0.1: "_uq01psr01", 0.2: "_uq01psr02", 0.3: "_uq01psr03",
-                              0.4: "_uq01psr04", 0.5: "_uq01psr05", 0.75: "_uq01psr075"},
-    "scbench_vt": {0.1: "_uq01vt01", 0.2: "_uq01vt02", 0.3: "_uq01vt03",
-                   0.4: "_uq01vt04", 0.5: "_uq01vt05", 0.75: "_uq01vt075"},
-    "scbench_many_shot": {0.2: "_uq01ms02"},
-    "scbench_qa_eng": {0.2: "_uq01qa02"},
-    "gsm": {0.2: "_uq01gsm02"},
-}
+# **panel / ratio / tag 全部从 `scratch_grid_spec` 派生**（2026-08-21 改）。
+# 此前这里手抄了一份 `{panel: {ratio: tag}}`，而排队脚本另抄一份 ==> 新排的格
+# 跑完也不会进表：KV@0.4 / @0.75 与 GSM8K@0.1 就这样在表外躺了一轮，
+# 磁盘上有 32 格而表里只列 19 格。CLAUDE.md 早写过「选项列表要从源头派生，
+# 不要手抄第二份」，这里补上。
+from scratch_grid_spec import PANELS, RATIOS, NAME, tag as _mktag   # noqa: E402
+
+PANEL = [(d, NAME[d]) for d, _, _, _, _ in PANELS]
+RAT = [r for r, _ in RATIOS]
+UTAB = {d: {r: _mktag(d, r) for r in RAT} for d, _, _, _, _ in PANELS}
 CTRL = [("取负 −u @Retr.KV", "scbench_kv", 0.1, "_uqneg01r01"),
         ("取负 −u @Retr.KV", "scbench_kv", 0.5, "_uqneg01r05"),
         ("置换 @Retr.KV", "scbench_kv", 0.1, "_uqperm01r01"),

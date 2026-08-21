@@ -22,31 +22,17 @@ Q = "/tmp/vq/jobs.txt"
 MODEL = "Qwen/Qwen2.5-7B-Instruct-1M"
 CKPT = "../../../varikv/chead10_s0.pt/memoryless.pt"
 
-# (dataset, tag 短码, 满量, 族)  —— 族序即优先级
-PANELS = [
-    # ① Retrieval：与教师同构，最该先判
-    ("scbench_repoqa",        "rq",  88, "retrieval"),
-    ("scbench_kv",            "r",  100, "retrieval"),
-    ("scbench_prefix_suffix", "psr", 100, "retrieval"),
-    # ② Contextual QA
-    ("scbench_choice_eng",    "ce",  18, "qa"),
-    ("scbench_qa_eng",        "qa",  20, "qa"),
-    ("gsm",                   "gsm", 100, "qa"),
-    ("squad",                 "sq",  100, "qa"),
-    # ③ Redundancy：与教师最远
-    ("scbench_mf",            "mf",  100, "redund"),
-    ("scbench_summary",       "sm",   70, "redund"),
-    ("scbench_many_shot",     "ms",   54, "redund"),
-    ("scbench_vt",            "vt",   90, "redund"),
-]
-RATIOS = [(0.1, "01"), (0.2, "02"), (0.3, "03"),
-          (0.4, "04"), (0.5, "05"), (0.75, "075")]
-# 成本序（同族内先跑便宜的：样本少或上下文短的）—— 单位是粗略的相对量
-COST = {"scbench_repoqa": 88 * 72, "scbench_kv": 100 * 169,
-        "scbench_prefix_suffix": 100 * 113, "scbench_choice_eng": 18 * 119,
-        "scbench_qa_eng": 20 * 122, "gsm": 100 * 1, "squad": 100 * 1,
-        "scbench_mf": 100 * 150, "scbench_summary": 70 * 118,
-        "scbench_many_shot": 54 * 26, "scbench_vt": 90 * 125}
+# **全部从 `scratch_grid_spec` 派生** —— 此前这里与 `scratch_utab_report.py`
+# 各抄一份清单，排出去的新格跑完不进表（KV@0.4/@0.75、GSM8K@0.1 躺了一轮）。
+from scratch_grid_spec import PANELS as _P, RATIOS, NUM, FAM, tag as _mktag  # noqa: E402
+
+PANELS = [(d, c, NUM[d], FAM[d]) for d, c, _, _, _ in _P]
+# 成本序（同族内先跑便宜的）：样本数 x 上下文 ktoken 的粗略乘积
+_CTX = {"scbench_repoqa": 72, "scbench_kv": 169, "scbench_prefix_suffix": 113,
+        "scbench_choice_eng": 119, "scbench_qa_eng": 122, "gsm": 1, "squad": 1,
+        "scbench_mf": 150, "scbench_summary": 118, "scbench_many_shot": 26,
+        "scbench_vt": 125}
+COST = {d: NUM[d] * _CTX[d] for d, _, _, _, _ in _P}
 
 
 def have_result(ds, tag):
@@ -78,7 +64,7 @@ def main():
         fam_rows.sort(key=lambda p: COST[p[0]])
         for ds, code, num, _ in fam_rows:
             for r, rc in RATIOS:
-                tag = f"{pre}{code}{rc}"
+                tag = _mktag(ds, r, pre)
                 if have_result(ds, tag):
                     skip_done.append(tag); continue
                 if f" {tag} " in existing:
