@@ -1,5 +1,5 @@
 Replace qwen2.5 attention with gating
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.09it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.13it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.12it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.21it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.18it/s]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.32it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.35it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.36it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.50it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.44it/s]
 
 Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
 load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
@@ -16,13 +16,35 @@ KV type: retain
 文档 3 篇  L=28 H=4  ρ=0.1  k∈[1, 4, 16]
 [effective] clen=113148 window=4096 chunk_ratio=0.066196 degenerate=False
 chunk inputs, size: 16000 (num 8)
-Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:06,  1.04it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.22it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.29it/s]Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.31it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.31it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.29it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.26it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.71it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.41it/s]
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:01<00:12,  1.75s/it]Prefill:  25%|██▌       | 2/8 [00:03<00:10,  1.79s/it]Prefill:  38%|███▊      | 3/8 [00:05<00:09,  1.80s/it]Prefill:  50%|█████     | 4/8 [00:07<00:07,  1.83s/it]Prefill:  62%|██████▎   | 5/8 [00:09<00:05,  1.87s/it]Prefill:  75%|███████▌  | 6/8 [00:11<00:03,  1.90s/it]Prefill:  88%|████████▊ | 7/8 [00:13<00:01,  1.94s/it]Prefill: 100%|██████████| 8/8 [00:13<00:00,  1.49s/it]Prefill: 100%|██████████| 8/8 [00:13<00:00,  1.71s/it]
 Chunked prefilling with 0.10 ratio, window 4096
 Local window 4096
   自检④ 保留者均分 0.8187 > 被驱逐者 0.0677 ✓
 doc0: clen=113148 保留 808496 (0.066)  基线 NLL 0.4554  答案 116 tok / target 347  事实 8 条
   自检① 零动作 A = +0.000e+00（须恰为 0）✓
-  ascent 模式：G=112  拟合 256 方向 @ε=0.01（每对 k≈144）
+  ascent 模式：G=112  两侧可行池 38  拟合 256 方向 @ε=0.01（每对 k=279）
     拟合 64/256
     拟合 128/256
     拟合 192/256
+    拟合 256/256
+  u 解出：sd 1.399e-05  极差 [-2.701e-05, +7.984e-05]
+    +Πu: 实现度 cos(目标,实得)=+1.0000  L1 实得/目标=1.000
+    −Πu: 实现度 cos(目标,实得)=+0.9931  L1 实得/目标=0.950
+
+  === doc0 上升方向实测（留出拟合，n_fit=256）===
+    随机方向  A 均值 -0.08470  sd 0.04058  为正 1.6%
+    +Πu       A = +0.09365  = +4.39 sd   搬动 8083/8085   cos +1.0000
+    −Πu       A = -0.10157  = -0.42 sd   搬动 7683/8085   cos +0.9931
+    **一阶量** A(+Πu) − A(−Πu) = +0.19522（≈2uᵀd，不受采样偏置与曲率影响）
+    **二阶量** A(+Πu) + A(−Πu) = -0.00792（≈dᵀHd）
+    **反对称性检验**：A(+Πu) 与 A(−Πu) 应一正一负且量级相近；同号 ⇒ 曲率主导，一阶项没抓到
+[effective] clen=107174 window=4096 chunk_ratio=0.064237 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.73it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.54it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.47it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.42it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.38it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.47it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.45it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+  自检④ 保留者均分 0.8077 > 被驱逐者 0.0642 ✓
+doc1: clen=107174 保留 741588 (0.064)  基线 NLL 0.6320  答案 120 tok / target 349  事实 8 条
+  自检① 零动作 A = +0.000e+00（须恰为 0）✓
+  ascent 模式：G=112  两侧可行池 38  拟合 256 方向 @ε=0.01（每对 k=256）
+    拟合 64/256

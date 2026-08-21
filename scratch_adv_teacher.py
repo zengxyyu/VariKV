@@ -227,29 +227,55 @@ def presort(valid, score):
     return ev_s, rt_s
 
 
-def random_delta(valid, ev_s, rt_s, k_nom, rng):
+def feasible_pool(ev_s, rt_s, k_nom, L, H):
+    """两侧容量都 ≥ k_nom 的头。**这是采样器无偏的前提。**
+
+    2026-08-21 实测：不做这个限制时采样器有严重一阶偏置 —— `‖d̄‖₂/‖d‖₂ = 0.37–0.40`
+    （无偏应约 `1/√N ≈ 0.06`），`uᵀd̄` 占随机方向 A 均值的 **36%–190%**。
+    根因正是可行性截断：饿死头 `b_h = 0` 当施主时 `kk = 0`、当受主时满额，
+    于是它在有效扰动集合里天然 `E[d_h] > 0`；接近满配额的头则相反。
+    后果是「随机扰动均值为负」**不能**归因于曲率 —— 它主要是一阶采样偏置。
+
+    限制到两侧都够的头之后 `kk ≡ k_nom`，于是 `d` 在池内恰好是 ±k_nom，
+    **由洗牌对称性 `E[d] = 0` 精确成立**。代价：池外的头列恒为 0、系数不可辨识
+    —— 但那正是原先「单边支撑、不可解读」的那批列，明写出来比混在里面强。
+    """
+    pool = [l * H + h for l in range(L) for h in range(H)
+            if len(ev_s[(l, h)]) >= k_nom and len(rt_s[(l, h)]) >= k_nom]
+    if len(pool) % 2:
+        pool = pool[:-1]
+    return pool
+
+
+def random_delta(valid, ev_s, rt_s, k_nom, rng, pool=None, flip=False):
     """一个**严格保预算**的随机配额扰动。
 
-    把全部 G 个 (层,头) 随机两两配对，每对里前者当受主 (+k)、后者当施主 (−k)，
-    `k = min(k_nom, 可驱逐数, 可移除数)` 逐对取，所以 `Σ_h Δb_h = 0` **按构造成立**
-    （不是靠事后修正凑的 —— 凑法在可行性截断后很难保证整数守恒）。
+    在 `pool`（两侧容量都够的头）内随机两两配对，每对前者 +k_nom、后者 −k_nom，
+    所以 `Σ_h Δb_h = 0` 与 `kk ≡ k_nom` **都按构造成立**，不靠事后修正。
+    `flip=True` 交换收/施角色，给出**严格反对称**的对偶方向（antithetic），
+    成对使用可让样本均值精确为零并降方差。
 
     为什么要**稠密**扰动而不是逐对：单对挪 16 条只改答案 NLL 约 0.002 nats，
-    与问句噪声同量级（实测符号一致 58.3%、可分 2.8%）。同时动 G/2 对能把 |A|
-    抬高一到两个量级，再用最小二乘从 N 个方向反解出逐头边际效用。
+    与问句噪声同量级（实测符号一致 58.3%、可分 2.8%）。同时动 |pool|/2 对能把
+    |A| 抬高一到两个量级，再用最小二乘从 N 个方向反解逐头边际效用。
     """
     L, H, _ = valid.shape
-    gs = list(range(L * H)); rng.shuffle(gs)
+    if pool is None:
+        pool = feasible_pool(ev_s, rt_s, k_nom, L, H)
+    gs = list(pool)
+    rng.shuffle(gs)
     v = valid.clone()
     d = np.zeros(L * H, dtype=np.int64)
-    for a_, b_ in zip(gs[0::2], gs[1::2]):
+    recv, don = (gs[1::2], gs[0::2]) if flip else (gs[0::2], gs[1::2])
+    for a_, b_ in zip(recv, don):
         i, j = (a_ // H, a_ % H), (b_ // H, b_ % H)
         kk = int(min(k_nom, len(ev_s[i]), len(rt_s[j])))
         if kk == 0:
             continue
         v[i[0], i[1], ev_s[i][:kk]] = True
         v[j[0], j[1], rt_s[j][:kk]] = False
-        d[a_] += kk; d[b_] -= kk
+        d[a_] += kk
+        d[b_] -= kk
     assert d.sum() == 0, f"预算不守恒 {d.sum()}"
     return v, d
 
@@ -576,13 +602,28 @@ def main():
             # **必须留出**：拟合与检验用不相交的随机方向，否则是自证。
             ev_s, rt_s = presort(base_valid, sc)
             G = base_valid.shape[0] * base_valid.shape[1]
+            L_, H_ = base_valid.shape[0], base_valid.shape[1]
             mb = float(str(a.mb).split(",")[0])
-            k_nom = max(1, int(round(mb * B0 / (G / 2))))
-            print(f"  ascent 模式：G={G}  拟合 {a.n_dir} 方向 @ε={mb:g}"
-                  f"（每对 k≈{k_nom}）", flush=True)
+            # `k_nom` 与池互相依赖：池按 k_nom 筛，k_nom 又按池大小定。迭代到不动点，
+            # 否则用大池算出的 k_nom 配上收缩后的小池会**系统性欠交付**（首跑实测
+            # 池 38 / k=279 ⇒ 实际搬动 5301 而目标 8085，少 34%）。
+            pool = feasible_pool(ev_s, rt_s, 1, L_, H_)
+            for _ in range(6):
+                k_nom = max(1, int(round(mb * B0 / max(len(pool) / 2, 1))))
+                nxt = feasible_pool(ev_s, rt_s, k_nom, L_, H_)
+                if len(nxt) == len(pool) or not nxt:
+                    pool = nxt or pool
+                    break
+                pool = nxt
+            k_nom = max(1, int(round(mb * B0 / max(len(pool) / 2, 1))))
+            in_pool = np.zeros(G, dtype=bool); in_pool[pool] = True
+            print(f"  ascent 模式：G={G}  两侧可行池 {len(pool)}  拟合 {a.n_dir} 方向"
+                  f" @ε={mb:g}（每对 k={k_nom}）", flush=True)
             fit = []
             for it in range(a.n_dir):
-                v, d = random_delta(base_valid, ev_s, rt_s, k_nom, rng)
+                r_ = random.Random((a.seed, di, int(mb * 1e6), it // 2).__hash__())
+                v, d = random_delta(base_valid, ev_s, rt_s, k_nom, r_,
+                                    pool=pool, flip=(it % 2 == 1))
                 kv.valid = _wb(v)
                 _, jjq = answer_nll(m, kv, qas_t, n_seen)
                 fit.append(dict(d=d.tolist(), A=float((j0q - jjq).mean())))
@@ -639,35 +680,55 @@ def main():
                 return v, got
 
             tgt = mb * B0
+            u_p = np.where(in_pool, u, 0.0)          # 池外头动不了，别把预算派给它们
+            u_p = u_p - u_p[in_pool].mean() if in_pool.any() else u_p
+            u_p = np.where(in_pool, u_p, 0.0)
             res = {}
-            for nm, vec in (("+Πu", u), ("−Πu", -u)):
+            for nm, vec in (("+Πu", u_p), ("−Πu", -u_p)):
                 dv = vec / (np.abs(vec).sum() / 2 + 1e-30) * tgt
                 v, got = realize(dv)
                 assert int(v.sum()) == B0
                 kv.valid = _wb(v)
                 _, jjq = answer_nll(m, kv, qas_t, n_seen)
-                res[nm] = (float((j0q - jjq).mean()), float(np.abs(got).sum() / 2))
+                # **可行整数化会扭曲方向，必须记下来。** 守恒通过 ≠ 实现了想测的方向：
+                # 目标 (100,100,−100,−100) 若第一个受主没空间，可能落成
+                # (0,100,−100,0) —— 依然守恒、依然翻上=翻下，方向却变了。
+                # 缺这条日志时，`+Πu` 失败就分不清是 u 不对还是整数化扭歪了。
+                gf = got.astype(float)
+                cos = float(gf @ dv / (np.linalg.norm(gf) * np.linalg.norm(dv) + 1e-30))
+                res[nm] = (float((j0q - jjq).mean()), float(np.abs(got).sum() / 2), cos)
+                print(f"    {nm}: 实现度 cos(目标,实得)={cos:+.4f}  "
+                      f"L1 实得/目标={np.abs(got).sum()/2/tgt:.3f}", flush=True)
             sd = float(y.std())
             print(f"\n  === doc{di} 上升方向实测（留出拟合，n_fit={a.n_dir}）===")
             print(f"    随机方向  A 均值 {y.mean():+.5f}  sd {sd:.5f}"
                   f"  为正 {np.mean(y>0):.1%}")
             for nm in ("+Πu", "−Πu"):
-                v_, mv = res[nm]
+                v_, mv, cs_ = res[nm]
                 print(f"    {nm:4s}      A = {v_:+.5f}"
                       f"  = {(v_ - y.mean())/max(sd,1e-12):+.2f} sd"
-                      f"   实际搬动 {mv:.0f}/{tgt:.0f}")
+                      f"   搬动 {mv:.0f}/{tgt:.0f}   cos {cs_:+.4f}")
+            print(f"    **一阶量** A(+Πu) − A(−Πu) = "
+                  f"{res['+Πu'][0] - res['−Πu'][0]:+.5f}"
+                  f"（≈2uᵀd，不受采样偏置与曲率影响）")
+            print(f"    **二阶量** A(+Πu) + A(−Πu) = "
+                  f"{res['+Πu'][0] + res['−Πu'][0]:+.5f}（≈dᵀHd）")
             print(f"    **反对称性检验**：A(+Πu) 与 A(−Πu) 应一正一负且量级相近；"
                   f"同号 ⇒ 曲率主导，一阶项没抓到")
             recs.append(dict(doc=di, mode="ascent", eps=mb, n_fit=a.n_dir,
                              rand_mean=float(y.mean()), rand_sd=sd,
                              A_plus=res["+Πu"][0], A_minus=res["−Πu"][0],
+                             cos_plus=res["+Πu"][2], cos_minus=res["−Πu"][2],
+                             mv_plus=res["+Πu"][1], mv_minus=res["−Πu"][1],
+                             n_pool=len(pool), rand_bias=float(u @ np.array(
+                                 [r["d"] for r in fit], float).mean(0)),
                              u=[float(x) for x in u]))
             json.dump(recs, open(os.path.join(ROOT, a.out), "w"))
             kv.valid = raw_valid; del kv; torch.cuda.empty_cache(); continue
 
         if a.mode == "grad":
             ev_s, rt_s = presort(base_valid, sc)
-            # k_nom 由目标搬动量反推：Σ_pair k = ε·B ⇒ k_nom ≈ ε·B/(G/2)
+            # k_nom 由目标搬动量反推：Σ_pair k = ε·B ⇒ k_nom ≈ ε·B/(|pool|/2)
             G = base_valid.shape[0] * base_valid.shape[1]
             offs, _c = [], 0
             for _lo, _hi, _t in rec_s:
@@ -675,16 +736,35 @@ def main():
             offs = [(x, y) for x, y in offs if y > x]
             rho, taus = frontier_density(base_valid, sc, offs)
             mbs = [float(x) for x in str(a.mb).split(",")]
+            L_, H_ = base_valid.shape[0], base_valid.shape[1]
             print(f"  grad 模式：G={G} 组，每档 {a.n_dir} 个方向，ε∈{mbs}", flush=True)
             print(f"  逐头前沿密度 ρ（{len(taus)} 个 chunk 各自的 τ 累加）："
                   f"中位 {np.median(rho):.1f} 极差 [{rho.min():.2f}, {rho.max():.1f}]"
                   f"  零密度头 {(rho<=0).sum()}/{G}", flush=True)
             print(f"  各 chunk 阈值 τ_c：{['%.4f' % t for t in taus]}", flush=True)
             for mb in mbs:
-                k_nom = max(1, int(round(mb * B0 / (G / 2))))
-                print(f"  --- ε={mb:g} ⇒ 目标搬动 {mb*B0:.0f}，每对 k≈{k_nom}", flush=True)
+                # `k_nom` 与池互相依赖：池按 k_nom 筛，k_nom 又按池大小定。迭代到不动点，
+                # 否则用大池算出的 k_nom 配上收缩后的小池会**系统性欠交付**（首跑实测
+                # 池 38 / k=279 ⇒ 实际搬动 5301 而目标 8085，少 34%）。
+                pool = feasible_pool(ev_s, rt_s, 1, L_, H_)
+                for _ in range(6):
+                    k_nom = max(1, int(round(mb * B0 / max(len(pool) / 2, 1))))
+                    nxt = feasible_pool(ev_s, rt_s, k_nom, L_, H_)
+                    if len(nxt) == len(pool) or not nxt:
+                        pool = nxt or pool
+                        break
+                    pool = nxt
+                k_nom = max(1, int(round(mb * B0 / max(len(pool) / 2, 1))))
+                print(f"  --- ε={mb:g} 目标搬动 {mb*B0:.0f}，每对 k={k_nom}，"
+                      f"**两侧可行池 {len(pool)}/{G}**（池外列恒 0、系数不可辨识）",
+                      flush=True)
                 for it in range(a.n_dir):
-                    v, d = random_delta(base_valid, ev_s, rt_s, k_nom, rng)
+                    # 成对反对称：第 2t 与 2t+1 次用**同一个种子**重建 RNG，于是拿到
+                    # 同一个配对，只交换收/施角色 ⇒ 两者严格 d 与 −d，样本均值精确为
+                    # 0。（用两个不同的 rng 是错的：配对不同就不是对偶方向。）
+                    r_ = random.Random((a.seed, di, int(mb * 1e6), it // 2).__hash__())
+                    v, d = random_delta(base_valid, ev_s, rt_s, k_nom, r_,
+                                        pool=pool, flip=(it % 2 == 1))
                     assert int(v.sum()) == B0, f"预算不守恒 {int(v.sum())} vs {B0}"
                     kv.valid = _wb(v)
                     jj, jjq = answer_nll(m, kv, qas_t, n_seen)
