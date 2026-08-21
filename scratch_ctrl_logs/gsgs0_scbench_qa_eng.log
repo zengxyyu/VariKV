@@ -25,3 +25,78 @@ Start evaluation with 0~20 samples
 chunk inputs, size: 16000 (num 6)
 Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.57it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.44it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.19it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.03s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.24s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.28s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.11s/it]
 The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-0: 87984 tokens, KV cache 5.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Based on the information provided, Annalisa, Seb, Peyton, and Gannonmarie are mentioned as Mrs. Bronwyn's children. Peyton, however, is not Mrs. Bronwyn's child since he is referred to as a friend or acquaintance who came by train that evening, and there is no indication suggesting he is related to her. | "Peyton"
+[QA 1] Mr. Bronwyn was accompanied by his uncle at the lighthouse in a storm at last. | "Annalisa
+[QA 2] The text does not explicitly mention the name of the Bronwyns' summer home. However, based on the context, it can be inferred that the Bronwyns' summer home is likely referred to as "Finlay" where they hosted guests and had various activities like picnics and gatherings. | the Hebrides
+[QA 3] Based on the information provided in the text, Pete takes approximately ten years to complete the painting of Mrs. Bronwyn. This inference is drawn from Pete's reflection that she has been "painting" or working on the memory of Mrs. Bronwyn for a prolonged period, mentioning that she has been doing so "all these years." | "about 10 years"
+[QA 4] Cael is the final to perish among Mrs. Bronwyn, Mrs. Deandra, Rosemarie, and Cael. | "Mrs. Deandra"
+[effective] clen=87984 window=4096 chunk_ratio=0.737793 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.69it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.36it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.13it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.04s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.10s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.03s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-0: 87984 tokens, KV cache 5.0 GB, torch.bfloat16
+[effective] clen=87984 window=4096 chunk_ratio=0.475586 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.73it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.43it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.25it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.10it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:01,  1.02s/it]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.10it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.14it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-0: 87984 tokens, KV cache 5.0 GB, torch.bfloat16
+[effective] clen=87984 window=4096 chunk_ratio=0.370704 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.72it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.46it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.30it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.17it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:00,  1.06it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.21it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.22it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-0: 87984 tokens, KV cache 5.0 GB, torch.bfloat16
+[effective] clen=87984 window=4096 chunk_ratio=0.265821 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.71it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.48it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.35it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.24it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:00,  1.15it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.32it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.31it/s]
+Chunked prefilling with 0.30 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-0: 87984 tokens, KV cache 5.0 GB, torch.bfloat16
+[effective] clen=87984 window=4096 chunk_ratio=0.160938 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.74it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.52it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.42it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.34it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.27it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.48it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.43it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-0: 87984 tokens, KV cache 5.0 GB, torch.bfloat16
+[effective] clen=87984 window=4096 chunk_ratio=0.056056 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.73it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.55it/s]Prefill:  50%|█████     | 3/6 [00:01<00:02,  1.48it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.44it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.40it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.67it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.57it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-0: 87984 tokens, KV cache 5.0 GB, torch.bfloat16
+[effective] clen=87984 window=4096 chunk_ratio=0.003614 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.74it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.57it/s]Prefill:  50%|█████     | 3/6 [00:01<00:01,  1.52it/s]Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.49it/s]Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.48it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.79it/s]Prefill: 100%|██████████| 6/6 [00:03<00:00,  1.65it/s]
+Chunked prefilling with 0.05 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-0: 87984 tokens, KV cache 5.0 GB, torch.bfloat16
+Results saved at ./results/scbench_qa_eng/0_qwen2.5-7b-instruct-1m_fastkvzip__gsgs0_scbench_qa_eng_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 150.3s. Mem: 14.31/79.18 GB. [scbench_qa_eng-0]
+
+[effective] clen=90424 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.31it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.80it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.30it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.01it/s]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.32s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.09s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-1: 90424 tokens, KV cache 5.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Kiran is taken to an inn after Brennan is murdered. | Mr. Johnny
+[QA 1] The professor at Ingolstadt who first teaches Kiran the methods of modern science is M. Harriet. | Lyle
+[QA 2] The monster kills five people: Rosetta, Allyson, Ariella, Raiden, and the narrator's creator. | "three"
+[QA 3] Kiran first has a conversation with his monster in his laboratory on the remote island in the northern highlands of Scotland, after he has nearly completed the creation of the female monster. | In a hut on a glacier near Montanvert
+[QA 4] Lillie is obsessed with the fate and wellbeing of Joey, the unfortunate guest who is ill and surrounded by peril on their journey. | "reaching the most northern extremity"
+[QA 5] Lillie meets Kiran after he has recounted his horrific tale to her, encompassed by peril on a voyage through treacherous ice-covered seas. Kiran is gravely ill and near death, yet still expresses his determination to fulfill his mission of destroying the monster he created. Lillie shows him compassion and tries to fill him with hope as he faces his final moments. | Lillie finds Kiran on the northern ice and nurses him back to health.
+[QA 6] The monster learns to speak by closely observing the cottagers and listening to their conversations. Over time, he discovers that certain sounds and words bring about specific reactions, leading him to infer the meanings of these sounds and eventually learn to pronounce words like "fire," "milk," "bread," and "wood." He also learns the names of the cottagers, such as "father," "Agatha," "sister," and "Felix," through this process of observation | By listening to Felix teach Safie his language
+[effective] clen=90424 window=4096 chunk_ratio=0.738138 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.72it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.36it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.13it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.05s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.22s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.18s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.07s/it]
+Chunked prefilling with 0.75 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-1: 90424 tokens, KV cache 5.2 GB, torch.bfloat16
+[effective] clen=90424 window=4096 chunk_ratio=0.476277 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.72it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.42it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.24it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.09it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:01,  1.03s/it]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.02it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.09it/s]
+Chunked prefilling with 0.50 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-1: 90424 tokens, KV cache 5.2 GB, torch.bfloat16
+[effective] clen=90424 window=4096 chunk_ratio=0.371532 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.72it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.45it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.29it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.17it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:00,  1.06it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.12it/s]Prefill: 100%|██████████| 6/6 [00:05<00:00,  1.18it/s]
+Chunked prefilling with 0.40 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-1: 90424 tokens, KV cache 5.2 GB, torch.bfloat16
+[effective] clen=90424 window=4096 chunk_ratio=0.266787 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.72it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.49it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.35it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.24it/s]Prefill:  83%|████████▎ | 5/6 [00:04<00:00,  1.14it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.23it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.27it/s]

@@ -209,8 +209,15 @@ def main():
         rng = random.Random(a.seed * 1000 + di)
         ctx_ids, q_ids, ans_ids, meta = make_task(
             m, ids, a.max_ctx, a.window, a.n_dup, rng)
+        # ---- 三道守卫，与 `scratch_ctrl_teacher.py` 逐条对齐 ----
+        if len(ctx_ids) < a.chunk // 2:
+            print(f"doc{di} 太短 ({len(ctx_ids)})，跳过"); continue
         if a.ratio * len(ctx_ids) <= a.window:
-            print(f"doc{di}: clen={len(ctx_ids)} 会塌缩到 chunk_ratio=0，跳过")
+            # wrapper.py:273-275 在 ratio·clen < window 时把 chunk_ratio 置 0，
+            # `_threshold(·,0)` 取 thres=max ⇒ valid 恒为全 False：保留集等于
+            # 局部窗口、与分数无关。此时任何配额转移都是构造性无操作。
+            print(f"doc{di}: clen={len(ctx_ids)} ≤ window/ratio="
+                  f"{a.window/a.ratio:.0f}，chunk_ratio 会塌缩到 0，跳过")
             continue
         ctx_t = torch.tensor([ctx_ids], device=m.device)
         q_t = torch.tensor([q_ids], device=m.device)
@@ -220,6 +227,11 @@ def main():
                        chunk_ratio=a.ratio, window_size=a.window, level=a.level)
         n_seen = kv._seen_tokens
         raw_valid = kv.valid                                # 形状见下
+        if raw_valid is None:
+            # `prune_chunk` 一次都没被调用 ⇒ 没有驱逐决策可控。教师那边对应
+            # 「doc 没有触发驱逐，跳过」。不拦会在下一行 .clone() 抛 AttributeError。
+            print(f"doc{di}: 没有触发驱逐（valid is None），跳过")
+            del kv; torch.cuda.empty_cache(); continue
         # **两处必须实测而非假设，第二遍复查各抓到一个 bug：**
         # ① `self.valid` 是 `threshold(score)` 的输出，而 score 是 [L,B,H,n]
         #    ⇒ valid 也是 **[L,B,H,n]**（B=1），不是 [L,H,n]。按后者索引会取错头。
@@ -236,6 +248,15 @@ def main():
         sc = sc[..., kv.start_idx:kv.start_idx + n_ev].contiguous()
         assert sc.shape == base_valid.shape, (sc.shape, base_valid.shape, vshape)
         B0 = int(base_valid.sum())
+
+        # ---- 自检④：score 与 valid 的对齐 ----
+        # `valid` 由 `prune_chunk` 逐块 `torch.cat` 而成，覆盖 [start_idx,
+        # start_idx+n_ev)；若这个区间假设错了，`sc` 与 `valid` 会整体错位，
+        # 而错位**不会报错**——只会让「最好的被驱逐者/最差的保留者」全选错。
+        # 保留者的分数必须系统性高于被驱逐者，否则立刻中止。
+        _mr = float(sc[base_valid].mean()); _me = float(sc[~base_valid].mean())
+        assert _mr > _me, f"score/valid 错位：保留 {_mr:.4f} ≤ 驱逐 {_me:.4f}"
+        print(f"  自检④ 保留者均分 {_mr:.4f} > 被驱逐者 {_me:.4f} ✓", flush=True)
 
         j0, j0a, j0b = answer_nll(m, kv, q_t, a_t, n_seen, halves=True)
         print(f"doc{di}: clen={len(ctx_ids)} 保留 {B0} "
