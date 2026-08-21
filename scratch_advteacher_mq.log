@@ -1,0 +1,65 @@
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.73it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.80it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.82it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.92it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.87it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: retain
+文档 2 篇  L=28 H=4  ρ=0.1  k∈[1, 4, 16]
+[effective] clen=113149 window=4096 chunk_ratio=0.066196 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:06,  1.05it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.24it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.31it/s]Prefill:  50%|█████     | 4/8 [00:03<00:02,  1.34it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.34it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.32it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.30it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.76it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.44it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+  自检④ 保留者均分 0.8184 > 被驱逐者 0.0676 ✓
+doc0: clen=113149 保留 808504 (0.066)  基线 NLL 0.5909  答案 113 tok / target 348  事实 8 条
+  自检① 零动作 A = +0.000e+00（须恰为 0）✓
+[effective] clen=107176 window=4096 chunk_ratio=0.064237 degenerate=False
+chunk inputs, size: 16000 (num 7)
+Prefill:   0%|          | 0/7 [00:00<?, ?it/s]Prefill:  14%|█▍        | 1/7 [00:00<00:03,  1.76it/s]Prefill:  29%|██▊       | 2/7 [00:01<00:03,  1.57it/s]Prefill:  43%|████▎     | 3/7 [00:01<00:02,  1.50it/s]Prefill:  57%|█████▋    | 4/7 [00:02<00:02,  1.45it/s]Prefill:  71%|███████▏  | 5/7 [00:03<00:01,  1.41it/s]Prefill:  86%|████████▌ | 6/7 [00:04<00:00,  1.37it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.50it/s]Prefill: 100%|██████████| 7/7 [00:04<00:00,  1.48it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+  自检④ 保留者均分 0.8079 > 被驱逐者 0.0643 ✓
+doc1: clen=107176 保留 741609 (0.064)  基线 NLL 0.4828  答案 116 tok / target 351  事实 8 条
+  自检① 零动作 A = +0.000e+00（须恰为 0）✓
+
+=== 72 个动作 ===
+  A 均值 +0.00103  sd 0.00337  为正 77.8%
+  |A| 中位 0.00217  最大 0.01204
+
+=== |A| 随 k（若不增长 ⇒ 触到数值/离散地板，k=1 不可用）===
+  k=1    n=24   |A| 中位 0.00186  均值 +0.00130
+  k=4    n=24   |A| 中位 0.00270  均值 +0.00189
+  k=16   n=24   |A| 中位 0.00166  均值 -0.00011
+
+=== 自检③ 信度（奇数问句 A vs 偶数问句 A，n_q=8）===
+  Pearson  -0.250   Spearman -0.167
+  Spearman-Brown 校正到全量 8 问句: r = -0.665
+  符号一致率 58.3%（n=72）
+
+=== 逐动作 95% bootstrap CI（重采样问句，2000 次）===
+  有益 (CI 下界>0) 2/72 = 2.8%
+  有害 (CI 上界<0) 1/72 = 1.4%
+  不可分 (0∈CI)   69/72 = 95.8%
+  ⇒ 判据：**可分比例 ≥ 50% 且信度 r_sb ≥ 0.6、符号一致 ≥ 75%** 才可训练；
+    否则标签噪声主导。注意反过来不成立 —— 低一致率只说明**这个估计量**
+    方差过大，不说明真优势为零。
+
+=== 交互项 I = A − (g⁺ − g⁻)：可分性/势能表示成不成立 ===
+  |A| 中位 0.00217   |I| 中位 0.00138   **|I|/|A| 中位 0.637**
+  近似 (g⁺−g⁻) 与精确 A：Pearson +0.702  Spearman +0.467  符号一致 79.2%
+  ⇒ |I|/|A| 远小于 1 且符号一致率高 ⇒ 可写成势能 u_i−u_j；否则**不能**
+
+=== 启发式受主 vs 随机受主（对照）===
+  启发式 A 均值 +0.00130 (n=54)
+  随机   A 均值 +0.00019 (n=18)
+
+写出 scratch_adv_probe_mq.json
