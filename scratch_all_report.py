@@ -166,6 +166,22 @@ CEN = {
 for d in ("gsm", "squad", "scbench_qa_eng", "scbench_choice_eng",
           "scbench_summary", "scbench_mf", "scbench_many_shot"):
     CEN[d] = {16: f"__cen16_{d}{_C}16", 1024: f"__cen1024_{d}{_C}1024"}
+
+
+# ── `gm1`（g=−1，反号臂）的 tag：同时依赖 panel 与 ratio ────────────────────
+# 目录实测形如 `__kv02gm1_chunk16k_w4096_ctrlmmemo8_scalar`。
+# **后缀是 `_scalar`**：这批扫描跑在 `scalar` ckpt 上，与 `chd10`（`_chead`）
+# 是两个架构，表里两行**不可直接相减**。
+GM1_P = {"scbench_kv": "kv", "scbench_prefix_suffix": "ps", "scbench_vt": "vt"}
+GM1_R = {0.05: "005", 0.1: "01", 0.2: "02", 0.3: "03", 0.4: "04",
+         0.5: "05", 0.75: "75"}
+
+
+def gm1_sfx(d, r):
+    p_, s_ = GM1_P.get(d), GM1_R.get(r)
+    if not p_ or not s_:
+        return None
+    return f"__{p_}{s_}gm1_chunk16k_w4096_ctrlmmemo8_scalar"
 # 另外两批：`_c23*` 覆盖 ratio 0.3/0.2（6 panel），`_r05c*` 覆盖 0.05/0.1（5 panel）。
 # 同一 (panel, K) 的不同 ratio 散在不同 tag 里，所以取值时要按 ratio 找对应那批。
 CEN23 = {d: {16: f"__c2316_{d}{_C}16", 1024: f"__c231024_{d}{_C}1024"}
@@ -295,6 +311,11 @@ def main():
             ("scalar", ("SEEDS",
                         ("__sc11_s{S}_chunk16k_w4096_ctrlmmemo8_scalar",
                          "__d10scalar_s{S}_chunk16k_w4096_ctrlmstat8_scalar"), None)),
+            # `gm1` = **把学到的修正整体反号**（`VARIKV_CTRL_GAIN=-1`，同一个
+            # `scalar` ckpt，只改推理时的增益、不重训）。tag 同时依赖 panel 与
+            # ratio，所以走 `sfx is None` 那条逐 ratio 分支。
+            # **⚠ 它跑在 `scalar` 上，不是 `chead`** —— 与 `chd10` 行不可直接相减。
+            ("gm1", None),
             ("kv", ("SEEDS", ("__d10kv_s{S}_chunk16k_w4096_ctrlmstat8_kv",
                               "__pskv_s{S}_chunk16k_w4096_ctrlmmemo8_kv"), None)),
             ("v3", lambda d: "__g8v3_chunk16k_w4096_ctrlmmemo8"),
@@ -356,6 +377,12 @@ def main():
                                     break
                     seed_tpl = _tpl
                     A = {}
+                elif sfx is None and a_ == "gm1":        # 反号臂：逐 (panel, ratio) 找 tag
+                    A = {}
+                    for r in RAT:
+                        t = gm1_sfx(d, r)
+                        if t:
+                            A[r] = per_sample(d, t, r)
                 elif sfx is None:                        # 质心：逐 ratio 找 tag
                     K = 16 if a_ == "cen16" else 1024
                     A = {}
