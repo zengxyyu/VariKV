@@ -1,0 +1,123 @@
+tag: _fastkvzip__uqneg01vt02_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.76it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.79it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.78it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.88it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.84it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/chead10_s0.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.4K
+['scbench_vt']
+
+scbench_vt loaded, #data: 90
+set generation length: 96 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~90 samples
+[effective] clen=124534 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.60it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.45it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:04,  1.18it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.04s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.26s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:03,  1.51s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.76s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.91s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.49s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_vt-0: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] CTLFS VVUTI PZHIE HQXNY CPVLP | CTLFS, VVUTI, QBORE, IHQFY, JWJQC
+[QA 1] NHPIA QBORE USYVS IHQFY JWJQC | NHPIA, DSITT, ROLJC, JIAXN, CPVLP
+[QA 2] VAR DJHTA UJCKV HQXNY LZJRW JWJQC | DJHTA, HNZYZ, BRWEV, SDGAU, UGDVG
+[QA 3] PZHIE UGDVG AFCBD | PZHIE, UJCKV, HQTDP, USYVS, AFCBD
+[QA 4] VAR TMTZY VAR BRWEV VAR UGDVG VAR DSITT VAR IJTOJ | KFWJP, TMTZY, HQXNY, LZJRW, IJTOJ
+[effective] clen=124534 window=4096 chunk_ratio=0.172793 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][qrel] chunk lo=28 relmb=0.01 B_chunk=229832 tgt_L1/2=2298 got_L1/2=2298 n_starved=0/112
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.49it/s][qrel] chunk lo=11904 relmb=0.01 B_chunk=309643 tgt_L1/2=3096 got_L1/2=3096 n_starved=1/112
+Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.42it/s][qrel] chunk lo=27904 relmb=0.01 B_chunk=309643 tgt_L1/2=3096 got_L1/2=3096 n_starved=0/112
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.35it/s][qrel] chunk lo=43904 relmb=0.01 B_chunk=309643 tgt_L1/2=3096 got_L1/2=3096 n_starved=0/112
+Prefill:  50%|█████     | 4/8 [00:03<00:03,  1.28it/s][qrel] chunk lo=59904 relmb=0.01 B_chunk=309072 tgt_L1/2=3091 got_L1/2=3091 n_starved=0/112
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.21it/s][qrel] chunk lo=75904 relmb=0.01 B_chunk=309643 tgt_L1/2=3096 got_L1/2=3096 n_starved=1/112
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.15it/s][qrel] chunk lo=91904 relmb=0.01 B_chunk=309643 tgt_L1/2=3096 got_L1/2=3096 n_starved=1/112
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.09it/s][qrel] chunk lo=107904 relmb=0.01 B_chunk=243108 tgt_L1/2=2431 got_L1/2=2431 n_starved=1/112
+Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.13it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.19it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-0: 124534 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/0_qwen2.5-7b-instruct-1m_fastkvzip__uqneg01vt02_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 30.7s. Mem: 14.31/79.18 GB. [scbench_vt-0]
+
+[effective] clen=124531 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.28it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.78it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.28it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.01s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:02,  1.50s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.76s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.92s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.46s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-1: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] NJXBK ORAIW KDHDD MFWHK PBKUT | NJXBK, ORAIW, KDHDD, MFWHK, TGSRO
+[QA 1] VIJLB YHUFS SCBVZ DNQDC DXBAT | VIJLB, YHUFS, THZTJ, SCBVZ, DNQDC
+[QA 2] VAR CBCYN | CBCYN, YXRHR, AQIQY, ACOIE, CDUDB
+[QA 3] SYDOT DXBAT DNQDC | SYDOT, PXYGE, CWXUU, ANYZV, DXBAT
+[QA 4] JXYCR THZTJ SCBVZ | JXYCR, OQWFT, MYHHN, PLESR, PBKUT
+[effective] clen=124531 window=4096 chunk_ratio=0.172792 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][qrel] chunk lo=28 relmb=0.01 B_chunk=229831 tgt_L1/2=2298 got_L1/2=2298 n_starved=0/112
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.69it/s][qrel] chunk lo=11904 relmb=0.01 B_chunk=309642 tgt_L1/2=3096 got_L1/2=3096 n_starved=0/112
+Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.47it/s][qrel] chunk lo=27904 relmb=0.01 B_chunk=309642 tgt_L1/2=3096 got_L1/2=3096 n_starved=0/112
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.37it/s][qrel] chunk lo=43904 relmb=0.01 B_chunk=309642 tgt_L1/2=3096 got_L1/2=3096 n_starved=0/112
+Prefill:  50%|█████     | 4/8 [00:02<00:03,  1.29it/s][qrel] chunk lo=59904 relmb=0.01 B_chunk=309642 tgt_L1/2=3096 got_L1/2=3096 n_starved=0/112
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.22it/s][qrel] chunk lo=75904 relmb=0.01 B_chunk=309642 tgt_L1/2=3096 got_L1/2=3096 n_starved=0/112
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.15it/s][qrel] chunk lo=91904 relmb=0.01 B_chunk=309642 tgt_L1/2=3096 got_L1/2=3096 n_starved=1/112
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.09it/s][qrel] chunk lo=107904 relmb=0.01 B_chunk=243049 tgt_L1/2=2430 got_L1/2=2430 n_starved=1/112
+Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.12it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.20it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-1: 124531 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/1_qwen2.5-7b-instruct-1m_fastkvzip__uqneg01vt02_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 27.6s. Mem: 14.31/79.18 GB. [scbench_vt-1]
+
+[effective] clen=124541 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.21it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.76it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.27it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.01s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.25s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:03,  1.50s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.77s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.93s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.46s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-2: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] QNIKX YLIUH | QNIKX, YLIUH, NHEAI, GCZFF, WERUM
+[QA 1] RUAEL VAR QUNEA VAR ATPAG VAR JUDMU VAR WERUM | RUAEL, YIHEY, XCYEF, ZYTNQ, ATPAG
+[QA 2] VAR DYWLR VAR NDNRD VAR ZWASC VAR DCTEM VAR WERUM | DYWLR, GQKFQ, NDNRD, ZWASC, DCTEM
+[QA 3] VAR PNJOK  
+VAR NDNRD  
+VAR DCTEM  
+VAR WERUM  
+VAR JUDMU | PNJOK, QCCYW, OAECB, ZZFAG, JUDMU
+[QA 4] QCCYW ZWASC ATPAG JUDMU WERUM | ECOUQ, QUNEA, ALDRD, VPYPB, LANFQ
+[effective] clen=124541 window=4096 chunk_ratio=0.172794 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][qrel] chunk lo=28 relmb=0.01 B_chunk=229834 tgt_L1/2=2298 got_L1/2=2298 n_starved=0/112
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.70it/s][qrel] chunk lo=11904 relmb=0.01 B_chunk=309646 tgt_L1/2=3096 got_L1/2=3096 n_starved=1/112
+Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.47it/s][qrel] chunk lo=27904 relmb=0.01 B_chunk=309646 tgt_L1/2=3096 got_L1/2=3096 n_starved=1/112
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.37it/s][qrel] chunk lo=43904 relmb=0.01 B_chunk=309440 tgt_L1/2=3094 got_L1/2=3094 n_starved=0/112
+Prefill:  50%|█████     | 4/8 [00:02<00:03,  1.29it/s][qrel] chunk lo=59904 relmb=0.01 B_chunk=309646 tgt_L1/2=3096 got_L1/2=3096 n_starved=0/112
+Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.22it/s][qrel] chunk lo=75904 relmb=0.01 B_chunk=309646 tgt_L1/2=3096 got_L1/2=3096 n_starved=0/112
+Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.15it/s][qrel] chunk lo=91904 relmb=0.01 B_chunk=309646 tgt_L1/2=3096 got_L1/2=3096 n_starved=0/112
+Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.09it/s][qrel] chunk lo=107904 relmb=0.01 B_chunk=243246 tgt_L1/2=2432 got_L1/2=2432 n_starved=1/112
+Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.12it/s]Prefill: 100%|██████████| 8/8 [00:06<00:00,  1.19it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_vt-2: 124541 tokens, KV cache 7.1 GB, torch.bfloat16
+Results saved at ./results/scbench_vt/2_qwen2.5-7b-instruct-1m_fastkvzip__uqneg01vt02_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 31.8s. Mem: 14.31/79.18 GB. [scbench_vt-2]
+
+[effective] clen=124539 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.24it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.76it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.27it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.01s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.25s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:03,  1.50s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.77s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.92s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.46s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_vt-3: 124539 tokens, KV cache 7.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] ZWCPJ PJJHP RPULT GIFCQ | ZWCPJ, PJJHP, BYOYO, XMGDS, EFXGQ
+[QA 1] SLOYB GSSZH YISRC | SLOYB, GSSZH, RPULT, SMWTW, GIFCQ
+[QA 2] YMXZC CEFWN GIFCQ | YMXZC, VWULN, RVSOL, YTIBQ, CEFWN
+[QA 3] IABIJ GIFCQ YISRC FOQCT ANOBX | TFKIQ, MOFDF, IABIJ, EXUWV, YISRC
+[QA 4] ASOZB BYOYO EXUWV YISRC FOQCT | ASOZB, MUMDN, CTPON, ANOBX, FOQCT
+[effective] clen=124539 window=4096 chunk_ratio=0.172794 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][qrel] chunk lo=28 relmb=0.01 B_chunk=229834 tgt_L1/2=2298 got_L1/2=2298 n_starved=0/112
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.69it/s][qrel] chunk lo=11904 relmb=0.01 B_chunk=309645 tgt_L1/2=3096 got_L1/2=3096 n_starved=0/112
+Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.47it/s][qrel] chunk lo=27904 relmb=0.01 B_chunk=309645 tgt_L1/2=3096 got_L1/2=3096 n_starved=0/112
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.37it/s][qrel] chunk lo=43904 relmb=0.01 B_chunk=309519 tgt_L1/2=3095 got_L1/2=3095 n_starved=0/112
+Prefill:  50%|█████     | 4/8 [00:02<00:03,  1.29it/s]
