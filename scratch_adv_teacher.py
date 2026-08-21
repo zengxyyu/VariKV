@@ -102,6 +102,27 @@ def answer_nll(m, kv, q_t, a_t, n_seen, halves=False):
 
 
 # ────────────────────────────── 动作构造 ──────────────────────────────
+def apply_one_side(valid, score, g, k, add):
+    """只动一侧：`add=True` 给 g 加 k 个最好的被驱逐者，否则减 k 个最差的保留者。
+
+    **预算故意不守恒** —— 它只用来做分解项 `J(S∪{i})` / `J(S\\{j})`，
+    以便量出交互项 `I_ij`，不作为动作本身。
+    """
+    v = valid.clone()
+    l, h = g
+    if add:
+        ev = (~v[l, h]).nonzero(as_tuple=True)[0]
+        kk = int(min(k, len(ev)))
+        if kk:
+            v[l, h, ev[torch.argsort(score[l, h][ev], descending=True)[:kk]]] = True
+    else:
+        rt = v[l, h].nonzero(as_tuple=True)[0]
+        kk = int(min(k, len(rt)))
+        if kk:
+            v[l, h, rt[torch.argsort(score[l, h][rt])[:kk]]] = False
+    return v, kk
+
+
 def apply_transfer(valid, score, i, j, k):
     """在 `valid` 的副本上执行「从 j 拿 k 个给 i」。
 
@@ -168,6 +189,10 @@ def main():
     ap.add_argument("--n_don", type=int, default=4)
     ap.add_argument("--ks", default="1,4")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--interaction", action="store_true",
+                    help="每个动作额外跑 2 次前向，量出交互项 "
+                         "I = A − (g⁺ − g⁻)。**这是判断「可分性/势能表示」"
+                         "成不成立的唯一办法** —— |I| ≪ |A| 才能把 A 写成 u_i − u_j。")
     ap.add_argument("--out", default="scratch_adv_probe.json")
     a = ap.parse_args()
     ks = [int(x) for x in a.ks.split(",")]
@@ -237,9 +262,27 @@ def main():
             assert int(v.sum()) == B0, f"预算不守恒 {int(v.sum())} vs {B0}"  # 自检②
             kv.valid = v[:, None] if raw_valid.dim() == 4 else v
             jj, ja, jb = answer_nll(m, kv, q_t, a_t, n_seen, halves=True)
-            recs.append(dict(doc=di, recv=list(i), don=list(j), k=kk, tag=tag,
-                             A=j0 - jj,            # J = −NLL ⇒ A = NLL0 − NLL'
-                             A_h1=j0a - ja, A_h2=j0b - jb))
+            rec = dict(doc=di, recv=list(i), don=list(j), k=kk, tag=tag,
+                       A=j0 - jj,                  # J = −NLL ⇒ A = NLL0 − NLL'
+                       A_h1=j0a - ja, A_h2=j0b - jb)
+            if a.interaction:
+                # **交互项 I_ij** —— 外部评审的核心数学批评：
+                #     A_{i←j} = J(S∪{i}\{j}) − J(S)
+                #             = [J(S∪{i})−J(S)] + [J(S∪{i}\{j})−J(S∪{i})]
+                # 第二项条件于「i 已加入」，与条件于 S 的 −g⁻_j **一般不等**，
+                # 因为 softmax 分母同时被两侧改动：Z → Z + e^{qk_i} − e^{qk_j}。
+                # 所以 `A ≈ g⁺−g⁻` 是**近似**，可分性必须测不能假设。
+                # 两次额外前向即可量出 I：
+                v_add, _ = apply_one_side(base_valid, sc, i, kk, True)
+                kv.valid = v_add[:, None] if raw_valid.dim() == 4 else v_add
+                j_add, _, _ = answer_nll(m, kv, q_t, a_t, n_seen)
+                v_rem, _ = apply_one_side(base_valid, sc, j, kk, False)
+                kv.valid = v_rem[:, None] if raw_valid.dim() == 4 else v_rem
+                j_rem, _, _ = answer_nll(m, kv, q_t, a_t, n_seen)
+                gp = j0 - j_add          # 加 i 的收益（NLL 降多少）
+                gm = j_rem - j0          # 减 j 的代价（NLL 升多少）
+                rec.update(gp=gp, gm=gm, I=(j0 - jj) - (gp - gm))
+            recs.append(rec)
         kv.valid = raw_valid
         del kv
         torch.cuda.empty_cache()
@@ -258,6 +301,17 @@ def main():
     print(f"  符号一致率 {np.mean(np.sign(h1[nz])==np.sign(h2[nz])):.1%}"
           f"（n={nz.sum()}）")
     print(f"  ⇒ 若显著低于 ~70%，这个标签**噪声主导，不能拿来训练**")
+    if a.interaction and "I" in recs[0]:
+        I = np.array([r["I"] for r in recs])
+        GP = np.array([r["gp"] for r in recs]); GM = np.array([r["gm"] for r in recs])
+        appr = GP - GM
+        print(f"\n=== 交互项 I = A − (g⁺ − g⁻)：可分性/势能表示成不成立 ===")
+        print(f"  |A| 中位 {np.median(np.abs(A)):.5f}   |I| 中位 {np.median(np.abs(I)):.5f}"
+              f"   **|I|/|A| 中位 {np.median(np.abs(I))/max(np.median(np.abs(A)),1e-12):.3f}**")
+        print(f"  近似 (g⁺−g⁻) 与精确 A：Pearson {st.pearsonr(appr,A)[0]:+.3f}  "
+              f"Spearman {st.spearmanr(appr,A)[0]:+.3f}  "
+              f"符号一致 {np.mean(np.sign(appr)==np.sign(A)):.1%}")
+        print(f"  ⇒ |I|/|A| 远小于 1 且符号一致率高 ⇒ 可写成势能 u_i−u_j；否则**不能**")
     hp = [r for r in recs if r["tag"] == "heur"]; rp = [r for r in recs if r["tag"] == "rand"]
     if hp and rp:
         print(f"\n=== 启发式受主 vs 随机受主（对照）===")

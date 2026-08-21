@@ -1,0 +1,148 @@
+tag: _fastkvzip__gsgs0_gsm_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.77it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.80it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.80it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.91it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.86it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/sg_scalar_s0.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.5K
+['gsm']
+
+gsm loaded, #data: 100
+set generation length: 512 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~100 samples
+[effective] clen=77 window=1 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.37it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  2.37it/s]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m gsm-0: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how many cups of feed Wendi needs to give her chickens in the final meal of the day, we first calculate the total amount of feed each chicken should receive daily. Since each chicken gets 3 cups of feed per day and there are 20 chickens, the total daily feed requirement is \(20 \times 3 = 60\) cups.
+
+Next, we know that Wendi has already given her chickens 15 cups in the morning and 25 cups in the afternoon, which totals \(15 + 25 = 40\) cups. To find out how much more feed is needed for the final meal, we subtract the amount already given from the total daily requirement: \(60 - 40 = 20\) cups.
+
+Therefore, the answer is: The answer is 20 cups of feed. | If each chicken eats 3 cups of feed per day, then for 20 chickens they would need 3*20=<<3*20=60>>60 cups of feed per day.
+If she feeds the flock 15 cups of feed in the morning, and 25 cups in the afternoon, then the final meal would require 60-15-25=<<60-15-25=20>>20 cups of chicken feed.
+#### 20
+[effective] clen=77 window=1 chunk_ratio=0.746711 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  9.10it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00,  9.09it/s]
+Chunked prefilling with 0.75 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-0: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=77 window=1 chunk_ratio=0.493421 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.52it/s]
+Chunked prefilling with 0.50 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-0: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=77 window=1 chunk_ratio=0.392105 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.77it/s]
+Chunked prefilling with 0.40 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-0: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=77 window=1 chunk_ratio=0.290789 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.74it/s]
+Chunked prefilling with 0.30 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-0: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=77 window=1 chunk_ratio=0.189474 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.73it/s]
+Chunked prefilling with 0.20 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-0: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=77 window=1 chunk_ratio=0.088158 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.81it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-0: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=77 window=1 chunk_ratio=0.037500 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.83it/s]
+Chunked prefilling with 0.05 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-0: 77 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/0_qwen2.5-7b-instruct-1m_fastkvzip__gsgs0_gsm_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 42.0s. Mem: 14.31/79.18 GB. [gsm-0]
+
+[effective] clen=88 window=1 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 17.75it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-1: 88 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how far John is from home after 4 hours, we need to calculate the total distance he has traveled away from home and subtract the distance he has covered towards home.
+
+First, let's calculate the distance John initially drove:
+\[ \text{Distance} = \text{Speed} \times \text{Time} = 60 \, \text{mph} \times 3 \, \text{hours} = 180 \, \text{miles} \]
+
+Next, we calculate the distance John covers during his return trip:
+- For the first 2 hours in standstill traffic, he doesn't cover any distance.
+- For the next 0.5 hours (30 minutes) at 30 mph:
+\[ \text{Distance} = 30 \, \text{mph} \times 0.5 \, \text{hours} = 15 \, \text{miles} \]
+- For the remaining time, which is \(4 - 2 - 0.5 = 1.5\) hours, at 80 mph:
+\[ \text{Distance} = 80 \, \text{mph} \times 1.5 \, \text{hours} = 120 \, \text{miles} \]
+
+Adding these distances together gives the total distance John has covered towards home:
+\[ 15 \, \text{miles} + 120 \, \text{miles} = 135 \, \text{miles} \]
+
+Since John initially drove 180 miles away from home, the distance he is from home at the end of those 4 hours is:
+\[ 180 \, \text{miles} - 135 \, \text{miles} = 45 \, \text{miles} \]
+
+The answer is John is 45 miles from home at the end of those 4 hours. | When he turned around he was 3*60=<<3*60=180>>180 miles from home
+He was only able to drive 4-2=<<4-2=2>>2 hours in the first four hours
+In half an hour he goes 30*.5=<<30*.5=15>>15 miles
+He then drives another 2-.5=<<2-.5=1.5>>1.5 hours
+In that time he goes 80*1.5=<<80*1.5=120>>120 miles
+So he drove 120+15=<<120+15=135>>135 miles
+So he is 180-135=<<180-135=45>>45 miles away from home
+#### 45
+[effective] clen=88 window=1 chunk_ratio=0.747126 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.68it/s]
+Chunked prefilling with 0.75 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-1: 88 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=88 window=1 chunk_ratio=0.494253 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.88it/s]
+Chunked prefilling with 0.50 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-1: 88 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=88 window=1 chunk_ratio=0.393103 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.80it/s]
+Chunked prefilling with 0.40 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-1: 88 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=88 window=1 chunk_ratio=0.291954 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.72it/s]
+Chunked prefilling with 0.30 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-1: 88 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=88 window=1 chunk_ratio=0.190805 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.98it/s]
+Chunked prefilling with 0.20 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-1: 88 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=88 window=1 chunk_ratio=0.089655 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.75it/s]
+Chunked prefilling with 0.10 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-1: 88 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=88 window=1 chunk_ratio=0.039080 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.94it/s]
+Chunked prefilling with 0.05 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-1: 88 tokens, KV cache 0.0 GB, torch.bfloat16
+Results saved at ./results/gsm/1_qwen2.5-7b-instruct-1m_fastkvzip__gsgs0_gsm_chunk16k_w4096_ctrlmmemo8_scalar/output-pair.json
+## Time: 75.3s. Mem: 14.31/79.18 GB. [gsm-1]
+
+[effective] clen=97 window=1 chunk_ratio=1.000000 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.16it/s]
+# prefill qwen2.5-7b-instruct-1m gsm-2: 97 tokens, KV cache 0.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] To determine how far outside the reach of the dragon's flames Polly could stand while holding the gemstone, we need to consider the increased throwing distance provided by the sapphire gemstone. Normally, Polly can throw the gold javelin for 400 feet. When holding the gemstone, she can throw it three times farther. Therefore, the throwing distance becomes \(400 \text{ feet} \times 3 = 1200 \text{ feet}\). Since the dragon's flames reach out 1000 feet, Polly could stand 1200 feet away from the dragon and still be able to hit it with the gold javelin. The answer is: The answer is 1200 feet. | With the gemstone, Polly could throw the javelin 3 times farther than 400 feet, for a distance of 3*400=<<3*400=1200>>1200 feet.
+1200 feet is beyond the 1000-foot reach of the dragon's flames by a distance of 1200-1000=<<1200-1000=200>>200 feet.
+#### 200
+[effective] clen=97 window=1 chunk_ratio=0.747396 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 19.04it/s]
+Chunked prefilling with 0.75 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-2: 97 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=97 window=1 chunk_ratio=0.494792 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.90it/s]
+Chunked prefilling with 0.50 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-2: 97 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=97 window=1 chunk_ratio=0.393750 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.94it/s]
+Chunked prefilling with 0.40 ratio, window 1
+# prefill qwen2.5-7b-instruct-1m gsm-2: 97 tokens, KV cache 0.0 GB, torch.bfloat16
+[effective] clen=97 window=1 chunk_ratio=0.292708 degenerate=False
+Prefill:   0%|          | 0/1 [00:00<?, ?it/s]Prefill: 100%|██████████| 1/1 [00:00<00:00, 18.82it/s]
