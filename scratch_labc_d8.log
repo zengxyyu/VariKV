@@ -26,3 +26,28 @@ doc8: clen=108804 保留 759840 (0.065)  基线 NLL 0.8515  答案 117 tok / tar
     chunk0 [0,11876) B_c=86181 池 36/112 k=48
       done  |A| 中位 0.00930
     chunk3 [43876,59876) B_c=116108 池 36/112 k=65
+      done  |A| 中位 0.00737
+    chunk6 [91876,104708) B_c=93119 池 34/112 k=55
+      done  |A| 中位 0.00913
+[effective] clen=120671 window=4096 chunk_ratio=0.068377 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:03,  1.77it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.56it/s]Prefill:  38%|███▊      | 3/8 [00:01<00:03,  1.49it/s]Prefill:  50%|█████     | 4/8 [00:02<00:02,  1.44it/s]Prefill:  62%|██████▎   | 5/8 [00:03<00:02,  1.40it/s]Prefill:  75%|███████▌  | 6/8 [00:04<00:01,  1.35it/s]Prefill:  88%|████████▊ | 7/8 [00:05<00:00,  1.32it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.52it/s]Prefill: 100%|██████████| 8/8 [00:05<00:00,  1.46it/s]
+Chunked prefilling with 0.10 ratio, window 4096
+Local window 4096
+  自检④ 保留者均分 0.8052 > 被驱逐者 0.0672 ✓
+doc9: clen=120671 保留 892752 (0.068)  基线 NLL 0.7000  答案 118 tok / target 353  事实 8 条
+  自检① 零动作 A = +0.000e+00（须恰为 0）✓
+  chunk 模式：共 8 个 chunk，探测 [0, 4, 7]（等距覆盖首/中/尾）
+    chunk0 [0,11876) B_c=90948 池 38/112 k=48
+      done  |A| 中位 0.00507
+    chunk4 [59876,75876) B_c=122531 池 36/112 k=68
+      done  |A| 中位 0.06385
+    chunk7 [107876,116575) B_c=66618 池 36/112 k=37
+      done  |A| 中位 0.00610
+Traceback (most recent call last):
+  File "/home/ubuntu/zxy/vlm-memory/scratch_adv_teacher.py", line 1050, in <module>
+    main()
+  File "/home/ubuntu/zxy/vlm-memory/scratch_adv_teacher.py", line 984, in main
+    h1 = np.array([r["A_odd"] for r in recs])                 # 奇数问句
+                   ~^^^^^^^^^
+KeyError: 'A_odd'
