@@ -691,6 +691,23 @@ def main():
                     continue
                 print(f"    chunk{ci} [{clo},{chi}) B_c={Bc} 池 {len(pool)}/{G} "
                       f"k={k_nom}", flush=True)
+                # **同时吐出 `chead` 需要的逐头特征**，让这条链自足：
+                #   rs = log(σ_h/σ_g)   mgm = (μ_h − τ)/σ_g
+                # 定义逐字对齐 `calib_scorer.py:200-211`。不吐的话，只有 v2 trace
+                # 覆盖的那 10 篇能做可学性检验，而「n=10 太薄」正是那个负结果最大
+                # 的软肋；`mix` 语料造出来的篇没有 trace，必须自带特征。
+                sq = sc[..., clo:chi]
+                vq = base_valid[..., clo:chi]
+                _tau = 0.5 * (float(sq[vq].min()) + float(sq[~vq].max())) \
+                    if bool(vq.any()) and bool((~vq).any()) else float(sq.mean())
+                _sg = float(sq.std())
+                _mu = sq.mean(-1).reshape(-1).cpu().numpy()
+                _sh = sq.std(-1).reshape(-1).cpu().numpy()
+                feat = dict(tau=_tau, sig_g=_sg,
+                            rs=[float(np.log(max(x, 1e-9) / max(_sg, 1e-9))) for x in _sh],
+                            mgm=[float((x - _tau) / max(_sg, 1e-9)) for x in _mu],
+                            bh=[int(x) for x in vq.sum(-1).reshape(-1).cpu().numpy()],
+                            pool=[int(x) for x in pool])
                 for it in range(a.n_dir):
                     r_ = random.Random((a.seed, di, ci, it // 2).__hash__())
                     v, d = random_delta(base_valid, cev, crt, k_nom, r_,
@@ -701,6 +718,7 @@ def main():
                     _, jjq = answer_nll(m, kv, qas_t, n_seen)
                     recs.append(dict(doc=di, mode="chunk", chunk=ci, n_chunk=C,
                                      eps=mb, d=d.tolist(),
+                                     **({"feat": feat} if it == 0 else {}),
                                      mb=float(np.abs(d).sum() / 2),
                                      A=float((j0q - jjq).mean()),
                                      Aq=[float(x) for x in (j0q - jjq)]))
