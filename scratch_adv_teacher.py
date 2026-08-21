@@ -466,9 +466,12 @@ def main():
     ap.add_argument("--n_doc", type=int, default=2)
     ap.add_argument("--doc_start", type=int, default=0,
                     help="文档起始下标，用来把标签生成按篇分片到多张卡上")
-    ap.add_argument("--corpus", default="cat", choices=["cat", "mix"],
-                    help="cat=上游现成的 10 篇长文（**总共只有 10 篇，是标签量的硬上限**）；"
-                         "mix=用 fineweb_10k 的 68 篇短文自拼长上下文，可造任意多条")
+    ap.add_argument("--corpus", default="cat",
+                    help="cat=上游 10 篇长文（标签量硬上限）；mix=自拼长上下文；"
+                         "**real:<dataset>=直接用该评测集自己的上下文与问答当教师**"
+                         "（例 real:scbench_prefix_suffix）——判「表的有效 panel 是否"
+                         "由教师任务形态决定」用这一支，**评测须用留出样本**。"
+                         "⚠ real 模式下每条样本自带 **5** 个问答，`--n_fact` 会被截到 5")
     ap.add_argument("--min_chars", type=int, default=420000,
                     help="mix 模式每条上下文的最小字符数。cat 的 10 篇是 424k–558k "
                          "字符（约 91k–121k token），这里对齐到它的下沿")
@@ -520,7 +523,29 @@ def main():
     # 第 i 篇由种子 `(seed, i)` 抽 `n_cat` 篇拼到 ≥ `min_tok`，于是能造出任意多条
     # **互不相同**的长上下文。非退化条件 `clen > window/ratio`（ρ=0.1、窗口 4096
     # 时是 40,960）由 `min_tok` 保证，主循环里还有一道硬守卫。
-    if a.corpus == "cat":
+    if a.corpus.startswith("real:"):
+        # **用真实评测数据集自己的上下文与问答当教师**（2026-08-21）。
+        #
+        # 动机：静态 `u` 表在 Retr.KV@0.1 拿 +29.40★ 而在 PrefSuf@0.2 是 −6.40★，
+        # 最可能的解释是表在 `make_task` 的 **key→value 合成事实**上标定，那就是
+        # Retr.KV 的任务形态。要判它，最干净的不是再造一个合成前后缀任务
+        #（那会同时改针尖格式与上下文内容，**两个变量**），而是**直接用目标 panel
+        # 自己的数据**：SCBench 的样本本来就带 `question` / `answers` **列表**，
+        # 与本脚本的多问句结构逐项对应，不需要任何合成。
+        #
+        # **留出**：标定用前 `n_doc` 条，评测必须用 `--idx n_doc` 之后的样本，
+        # 否则就是在测试集上标定。调用方负责，脚本这里只打印提醒。
+        from data.load import load_scbench
+        _ds = a.corpus.split(":", 1)[1]
+        _all = load_scbench(_ds)
+        _sel = _all[a.doc_start:a.doc_start + a.n_doc]
+        texts = [x["context"] for x in _sel]
+        real_qa = [list(zip(x["question"], x["answers"])) for x in _sel]
+        print(f"**真实数据教师**：{_ds} 样本 [{a.doc_start},{a.doc_start+a.n_doc})，"
+              f"每条自带 {len(real_qa[0])} 个问答。"
+              f"\n⚠ 评测必须用 `--idx {a.doc_start + a.n_doc}` 之后的样本，"
+              f"否则是在测试集上标定。", flush=True)
+    elif a.corpus == "cat":
         texts = [d["context"] for d in load_fineweb("fineweb_10k_cat")]
         texts = texts[a.doc_start:a.doc_start + a.n_doc]
     else:
@@ -543,8 +568,16 @@ def main():
         ids = m.encode(txt)[0].tolist()
         di = a.doc_start + di            # 全局篇号：分片时不同卡的 doc 号不能撞
         rng = random.Random(a.seed * 1000 + di)
-        ctx_ids, qas, meta = make_task(
-            m, ids, a.max_ctx, a.window, a.n_fact, rng)
+        if a.corpus.startswith("real:"):
+            # 真实数据：不插合成事实，上下文原样，问答取数据集自带的前 n_fact 个
+            ctx_ids = list(ids[-a.max_ctx:])
+            qas = [(m.encode(q)[0].tolist(), m.encode(" " + str(an))[0].tolist())
+                   for q, an in real_qa[di - a.doc_start][:a.n_fact]]
+            meta = dict(n_fact=len(qas), pos=[], n_ans=sum(len(x[1]) for x in qas),
+                        n_tgt=sum(len(x[0]) + len(x[1]) for x in qas))
+        else:
+            ctx_ids, qas, meta = make_task(
+                m, ids, a.max_ctx, a.window, a.n_fact, rng)
         # ---- 三道守卫，与 `scratch_ctrl_teacher.py` 逐条对齐 ----
         if len(ctx_ids) < a.chunk // 2:
             print(f"doc{di} 太短 ({len(ctx_ids)})，跳过"); continue
