@@ -134,60 +134,65 @@ class LearnedControlRetainCache(RetainCache):
                 _g = float(os.environ.get("VARIKV_CTRL_GAIN", "1.0"))
                 if _g != 1.0:
                     delta = delta * _g
-                # **`VARIKV_TRUST_MB`：配额移动量的信赖域（2026-08-21 加）。**
+
+                # ── `VARIKV_CENTER`：跨头中心化 `c_h ← c_h − mean(c)`（2026-08-21）──
+                # 全局 Top-B 下**给所有头加同一常数对决策恒等**（已验证的规范自由度），
+                # 所以网络在那个方向上花的容量是**不可辨识**的。`RESULTS_ABLATION.md`
+                # 4087 行早已标注「值得单开一臂（未做）」。这里补上：**只去掉不可辨识
+                # 分量，不改变任何可辨识内容** —— 若分数确实只由差值决定，它应逐位无变化；
+                # 若有变化，说明别处（clamp/round/边界）把常数分量变成了可见的。
+                if os.environ.get("VARIKV_CENTER"):
+                    _m0 = delta.mean(dim=(0, 1, 2), keepdim=True) \
+                        if delta.dim() == 4 else delta.mean()
+                    delta = delta - _m0
+
+                # ── `VARIKV_PRECOND=α`：按前沿密度预条件 `c_h ← c_h · ρ_h^{−α}` ──
+                # （2026-08-21）依据是已验证的雅可比 `R = ∂b/∂c = diag(ρ) − ρρᵀ/P`
+                # （与有限差分相关 +0.967），其逆是 `c_h = d_h/ρ_h + κ` —— **除以密度**。
                 #
-                # 动机是实测的：Δ 的变异 **86% 来自「弄坏」项**，而弄坏量与
-                # 「方法改了多少」正相关（Spearman(nz,|down|)=+0.410）；且方法
-                # **在最不该动的地方动得最多**（headroom<0 时改 66.6% 的样本，
-                # headroom>15 时只改 25.6%）。所以给搬动量设一个上界。
+                # 为什么值得试：`ρ_h` **从不进训练梯度**（训练损失是 trace 上的成对
+                # 排序，不经过配额；见 `RESULTS_ABLATION.md` 4087 行），所以它是控制器
+                # 没见过、而推理时**免费可得**（只需分数与阈值、不需要标签）的信息。
                 #
-                # 与 `CTRL_GAIN` 的区别：`GAIN` 是**固定**倍数、要人预先知道该用多少；
-                # 这里是**自适应**的 —— 只在这一个 chunk 真的想搬太多时才压，
-                # 且**只用基线分数与自己的提议**，不需要标签，**可部署**。
+                # **为什么是 α 而不是直接除**：CPU 预检发现 `ρ` 跨头差 **10⁵ 倍**，
+                # 纯 `1/ρ` 会把全部动作压到单个最低密度头上（逐层放大 3.40/0/0/0）。
+                # 精确逆映射只在「把网络输出**当成目标配额 d**」时才是 `1/ρ`；这里是
+                # 对已有的 `c` 做重加权，必须有界。`α=0` 退回原样、`α=1` 是完全逆映射，
+                # 中间连续插值，并把重加权夹在 `[1/κ, κ]`。
                 #
-                # 实现：二分 λ∈[0,1]，令 ½‖Δb‖₁ ≤ tgt·B。`threshold` 是纯 topk，
-                # 8 次二分的额外开销相对一次 prefill 可忽略。
-                _tr = os.environ.get("VARIKV_TRUST_MB")
-                if _tr is not None:
-                    _tgt = float(_tr)
+                # **保幅度**：重标定使 `E|Δs|` 与预条件前相同 ⇒ 与幅度扫描解耦
+                #（单纯放大已测有害：`g=2` 在两个 panel 上都显著变差）。
+                _pa = float(os.environ.get("VARIKV_PRECOND", "0") or 0)
+                if _pa != 0.0:
+                    _kap = float(os.environ.get("VARIKV_PRECOND_CLIP", "8"))
+                    _w = float(os.environ.get("VARIKV_PRECOND_W", "0.02"))
                     with torch.no_grad():
-                        _v0, _ = self.threshold(score0, ratio, level)
-                        _B = max(int(_v0.sum()), 1)
-
-                        def _mb(lam):
-                            _vm, _ = self.threshold(
-                                score0 + (delta * lam).to(score0.dtype), ratio, level)
-                            return int((_vm ^ _v0).sum()) // 2
-
-                        _mbf = _mb(1.0)                   # **缩放前**先算一次
-                        if _mbf > _tgt * _B:              # 只在超限时才动
-                            _lo, _hi = 0.0, 1.0
-                            for _ in range(8):
-                                _mid = 0.5 * (_lo + _hi)
-                                if _mb(_mid) > _tgt * _B:
-                                    _hi = _mid
-                                else:
-                                    _lo = _mid
-                            delta = delta * _lo
-                            self.trust_lam.append(_lo)
-                        else:
-                            self.trust_lam.append(1.0)
-                        # **这一行是信赖域唯一的运行时证据。** 二分的 `_lo` 初值是
-                        # 0，只有某个 `_mid` 满足约束才上调；若最小可测 λ=1/256 就
-                        # 已超限，`_lo` 保持 0 ⇒ `delta` 整个归零 ⇒ **方法被关掉**。
-                        # 那与「约束住了但仍在动」在分数上都可能读成 +0.00，而两者
-                        # 结论完全相反（一个是止血成功，一个是没做任何干预）。
-                        # 字段名与本文件其它四条日志同一约定：`chunk lo` 是**块偏移**，
-                        # 不是二分出来的 λ。λ 由 `lam=` 单独给出（外部复核曾把
-                        # `lo=` 误读成二分结果 —— 缺的那两个字真的造成了误判）。
-                        # `mb_full` 必须用**缩放前**的 `_mbf`：`delta` 已经乘过 `_lo`，
-                        # 此处再调 `_mb(1.0)` 拿到的是缩放**后**的翻转数，读起来像
-                        # 「无约束就没超限」，与 lam<1 直接矛盾。首版就是这样写的。
-                        print(f"[trust] chunk lo={lo} tgt={_tgt} B={_B}"
-                              f" mb_full={_mbf} cap={_tgt*_B:.0f}"
-                              f" mb_after={_mb(1.0)}"
-                              f" lam={self.trust_lam[-1]:.6f}"
-                              f" delta_l1={float(delta.abs().sum()):.1f}", flush=True)
+                        _s2 = score0[:, 0] if score0.dim() == 4 else score0   # [L,H,n]
+                        _v2, _ = self.threshold(score0, ratio, level)
+                        _vv = _v2[:, 0] if _v2.dim() == 4 else _v2
+                        if bool(_vv.any()) and bool((~_vv).any()):
+                            _tau = 0.5 * (float(_s2[_vv].min()) + float(_s2[~_vv].max()))
+                            _ww = max(_w, 1e-6) * float(_s2.std())
+                            _rho = ((_s2 - _tau).abs() < _ww).sum(-1).float() / (2 * _ww)
+                            _rho = _rho.clamp_min(1.0)
+                            _sc = (_rho / _rho.median()).pow(-_pa)
+                            _nclip = int(((_sc > _kap) | (_sc < 1.0 / _kap)).sum())
+                            _sc = _sc.clamp(1.0 / _kap, _kap)
+                            _sc = _sc / _sc.mean()
+                            _d0 = float(delta.abs().mean())
+                            _shape = ((_sc.shape[0], 1, _sc.shape[1], 1)
+                                      if delta.dim() == 4 else
+                                      (_sc.shape[0], _sc.shape[1], 1))
+                            delta = delta * _sc.reshape(_shape).to(delta.dtype)
+                            _d1 = float(delta.abs().mean())
+                            if _d1 > 0:
+                                delta = delta * (_d0 / _d1)     # 保幅度
+                            print(f"[precond] a={_pa} clip={_kap} rho 中位="
+                                  f"{float(_rho.median()):.1f} 极差=[{float(_rho.min()):.1f},"
+                                  f"{float(_rho.max()):.1f}] 被夹住={_nclip}/{_rho.numel()} "
+                                  f"权重极差=[{float(_sc.min()):.3f},{float(_sc.max()):.3f}] "
+                                  f"E|ds|={_d0:.5f}->{float(delta.abs().mean()):.5f}",
+                                  flush=True)
                 score = score0 + delta.to(score0.dtype)
                 self.delta_std.append(float(delta.std()))
 

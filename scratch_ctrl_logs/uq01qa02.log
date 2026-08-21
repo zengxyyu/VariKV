@@ -1,0 +1,162 @@
+tag: _fastkvzip__uq01qa02_chunk16k_w4096
+Replace qwen2.5 attention with gating
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  2.73it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  2.81it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  2.81it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.94it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.88it/s]
+
+Load Qwen/Qwen2.5-7B-Instruct-1M with torch.bfloat16
+load gate qwen2.5-7b-instruct-1m/q7_dim16_sink16.pt (Weight(
+  index=27, output_dim=16, nhead=4, ngroup=7
+  k_base shape: torch.Size([4, 1, 16, 16])
+  b shape: torch.Size([4, 1, 7])
+  
+  (q_proj): Linear(in_features=3584, out_features=448, bias=True)
+  (k_proj): Linear(in_features=3584, out_features=64, bias=False)
+  (q_norm): Qwen3RMSNorm((16,), eps=1e-06)
+  (k_norm): Qwen3RMSNorm((16,), eps=1e-06)
+))
+KV type: control_learned
+[CtrlM] ../../../varikv/chead10_s0.pt/memoryless.pt mode=memoryless slots=8 typed=None alpha=0.9990 params=4.4K
+['scbench_qa_eng']
+
+scbench_qa_eng loaded, #data: 20
+set generation length: 96 (see utils/func.py)
+================================================================================ 
+Start evaluation with 0~20 samples
+[effective] clen=87984 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.53it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.42it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.17it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.05s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.26s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.30s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.13s/it]
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-0: 87984 tokens, KV cache 5.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Based on the information provided, Annalisa, Seb, Peyton, and Gannonmarie are mentioned as Mrs. Bronwyn's children. Peyton, however, is not Mrs. Bronwyn's child since he is referred to as a friend or acquaintance who came by train that evening, and there is no indication suggesting he is related to her. | "Peyton"
+[QA 1] Mr. Bronwyn was accompanied by his uncle at the lighthouse in a storm at last. | "Annalisa
+[QA 2] The text does not explicitly mention the name of the Bronwyns' summer home. However, based on the context, it can be inferred that the Bronwyns' summer home is likely referred to as "Finlay" where they hosted guests and had various activities like picnics and gatherings. | the Hebrides
+[QA 3] Based on the information provided in the text, Pete takes approximately ten years to complete the painting of Mrs. Bronwyn. This inference is drawn from Pete's reflection that she has been "painting" or working on the memory of Mrs. Bronwyn for a prolonged period, mentioning that she has been doing so "all these years." | "about 10 years"
+[QA 4] Cael is the final to perish among Mrs. Bronwyn, Mrs. Deandra, Rosemarie, and Cael. | "Mrs. Deandra"
+[effective] clen=87984 window=4096 chunk_ratio=0.160938 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s][qrel] chunk lo=28 relmb=0.01 B_chunk=214065 tgt_L1/2=2141 got_L1/2=2141 n_starved=46/112
+Prefill:  17%|█▋        | 1/6 [00:00<00:03,  1.49it/s][qrel] chunk lo=11904 relmb=0.01 B_chunk=288400 tgt_L1/2=2884 got_L1/2=2884 n_starved=45/112
+Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.43it/s][qrel] chunk lo=27904 relmb=0.01 B_chunk=288400 tgt_L1/2=2884 got_L1/2=2884 n_starved=46/112
+Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.35it/s][qrel] chunk lo=43904 relmb=0.01 B_chunk=288400 tgt_L1/2=2884 got_L1/2=2884 n_starved=45/112
+Prefill:  67%|██████▋   | 4/6 [00:03<00:01,  1.29it/s][qrel] chunk lo=59904 relmb=0.01 B_chunk=288400 tgt_L1/2=2884 got_L1/2=2884 n_starved=45/112
+Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.23it/s][qrel] chunk lo=75904 relmb=0.01 B_chunk=144416 tgt_L1/2=1444 got_L1/2=1444 n_starved=44/112
+Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.44it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.38it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-0: 87984 tokens, KV cache 5.0 GB, torch.bfloat16
+Results saved at ./results/scbench_qa_eng/0_qwen2.5-7b-instruct-1m_fastkvzip__uq01qa02_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 31.1s. Mem: 14.31/79.18 GB. [scbench_qa_eng-0]
+
+[effective] clen=90424 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.28it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.79it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.28it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.00s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.24s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.34s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.11s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-1: 90424 tokens, KV cache 5.2 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Kiran is taken to an inn after Brennan is murdered. | Mr. Johnny
+[QA 1] The professor at Ingolstadt who first teaches Kiran the methods of modern science is M. Harriet. | Lyle
+[QA 2] The monster kills five people: Rosetta, Allyson, Ariella, Raiden, and the narrator's creator. | "three"
+[QA 3] Kiran first has a conversation with his monster in his laboratory on the remote island in the northern highlands of Scotland, after he has nearly completed the creation of the female monster. | In a hut on a glacier near Montanvert
+[QA 4] Lillie is obsessed with the fate and wellbeing of Joey, the unfortunate guest who is ill and surrounded by peril on their journey. | "reaching the most northern extremity"
+[QA 5] Lillie meets Kiran after he has recounted his horrific tale to her, encompassed by peril on a voyage through treacherous ice-covered seas. Kiran is gravely ill and near death, yet still expresses his determination to fulfill his mission of destroying the monster he created. Lillie shows him compassion and tries to fill him with hope as he faces his final moments. | Lillie finds Kiran on the northern ice and nurses him back to health.
+[QA 6] The monster learns to speak by closely observing the cottagers and listening to their conversations. Over time, he discovers that certain sounds and words bring about specific reactions, leading him to infer the meanings of these sounds and eventually learn to pronounce words like "fire," "milk," "bread," and "wood." He also learns the names of the cottagers, such as "father," "Agatha," "sister," and "Felix," through this process of observation | By listening to Felix teach Safie his language
+[effective] clen=90424 window=4096 chunk_ratio=0.162042 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s][qrel] chunk lo=28 relmb=0.01 B_chunk=215533 tgt_L1/2=2155 got_L1/2=2155 n_starved=46/112
+Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.68it/s][qrel] chunk lo=11904 relmb=0.01 B_chunk=290379 tgt_L1/2=2904 got_L1/2=2904 n_starved=43/112
+Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.47it/s][qrel] chunk lo=27904 relmb=0.01 B_chunk=290379 tgt_L1/2=2904 got_L1/2=2904 n_starved=41/112
+Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.37it/s][qrel] chunk lo=43904 relmb=0.01 B_chunk=290379 tgt_L1/2=2904 got_L1/2=2904 n_starved=42/112
+Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.30it/s][qrel] chunk lo=59904 relmb=0.01 B_chunk=290379 tgt_L1/2=2904 got_L1/2=2904 n_starved=42/112
+Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.23it/s][qrel] chunk lo=75904 relmb=0.01 B_chunk=189689 tgt_L1/2=1897 got_L1/2=1897 n_starved=43/112
+Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.35it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.35it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-1: 90424 tokens, KV cache 5.2 GB, torch.bfloat16
+Results saved at ./results/scbench_qa_eng/1_qwen2.5-7b-instruct-1m_fastkvzip__uq01qa02_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 29.8s. Mem: 14.31/79.18 GB. [scbench_qa_eng-1]
+
+[effective] clen=94789 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.25it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.78it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.28it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.01s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.24s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.45s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.16s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-2: 94789 tokens, KV cache 5.4 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] After his dates with Skylar Abraham and his meeting with Gareth Chantelle both end poorly, Viola feels depressed, lonely, and increasingly desperate. He continues to drink heavily, gets into an argument with his younger sister Mckenna, and contemplates running away. He considers hitchhiking to the West, leaving his family, and starting a new life away from the familiar surroundings and people who have disappointed him. His plans are interrupted when Mckenna decides to join | Chong Hwa
+[QA 1] Viola wonders about the fate of the ducks in Central Park, specifically where they go when the lagoon freezes over. | The ducks in the lagoon
+[QA 2] Viola bought a red hunting hat during the team's trip to Malaysia. | A red hunting hat
+[QA 3] Once back in Malaysia, the first person Viola tries to invite for a drink is **old Shelby Carina**. | A cab driver
+[QA 4] The name of the school Viola is attending at the beginning of his story is Chong Hwa. | Chong Hwa
+[effective] clen=94789 window=4096 chunk_ratio=0.163869 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s][qrel] chunk lo=28 relmb=0.01 B_chunk=217963 tgt_L1/2=2180 got_L1/2=2180 n_starved=43/112
+Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.71it/s][qrel] chunk lo=11904 relmb=0.01 B_chunk=293652 tgt_L1/2=2937 got_L1/2=2937 n_starved=42/112
+Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.48it/s][qrel] chunk lo=27904 relmb=0.01 B_chunk=293652 tgt_L1/2=2937 got_L1/2=2937 n_starved=44/112
+Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.38it/s][qrel] chunk lo=43904 relmb=0.01 B_chunk=293652 tgt_L1/2=2937 got_L1/2=2937 n_starved=42/112
+Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.30it/s][qrel] chunk lo=59904 relmb=0.01 B_chunk=293652 tgt_L1/2=2937 got_L1/2=2937 n_starved=42/112
+Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.23it/s][qrel] chunk lo=75904 relmb=0.01 B_chunk=271940 tgt_L1/2=2719 got_L1/2=2719 n_starved=42/112
+Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.20it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.27it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-2: 94789 tokens, KV cache 5.4 GB, torch.bfloat16
+Results saved at ./results/scbench_qa_eng/2_qwen2.5-7b-instruct-1m_fastkvzip__uq01qa02_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 25.9s. Mem: 14.31/79.18 GB. [scbench_qa_eng-2]
+
+[effective] clen=89720 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.31it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.78it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.28it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.01s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.24s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.33s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.10s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-3: 89720 tokens, KV cache 5.1 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Based on the information provided in the text, Kallie's profession is not explicitly stated. However, it can be inferred that he is likely involved in the literary or publishing industry given his role as an editor and his involvement with a review of the Arts. | Writer
+[QA 1] Henley Kallie participated in boxing at Princeton, specifically becoming the middleweight boxing champion of Princeton. | Boxing
+[QA 2] Perla mentioned being injured in "the war," but specific details about which war are not provided in the text. | World War I
+[QA 3] Perla goes fishing with Cece. | CECE
+[QA 4] Perla picks up Amari at a cafe and takes her dancing. | AMARI
+[effective] clen=89720 window=4096 chunk_ratio=0.161730 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s][qrel] chunk lo=28 relmb=0.01 B_chunk=215118 tgt_L1/2=2151 got_L1/2=2151 n_starved=48/112
+Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.70it/s][qrel] chunk lo=11904 relmb=0.01 B_chunk=289819 tgt_L1/2=2898 got_L1/2=2898 n_starved=43/112
+Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.48it/s][qrel] chunk lo=27904 relmb=0.01 B_chunk=289819 tgt_L1/2=2898 got_L1/2=2898 n_starved=42/112
+Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.38it/s][qrel] chunk lo=43904 relmb=0.01 B_chunk=289819 tgt_L1/2=2898 got_L1/2=2898 n_starved=44/112
+Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.30it/s][qrel] chunk lo=59904 relmb=0.01 B_chunk=289819 tgt_L1/2=2898 got_L1/2=2898 n_starved=46/112
+Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.23it/s][qrel] chunk lo=75904 relmb=0.01 B_chunk=176572 tgt_L1/2=1766 got_L1/2=1766 n_starved=43/112
+Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.37it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.36it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-3: 89720 tokens, KV cache 5.1 GB, torch.bfloat16
+Results saved at ./results/scbench_qa_eng/3_qwen2.5-7b-instruct-1m_fastkvzip__uq01qa02_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 20.0s. Mem: 14.31/79.18 GB. [scbench_qa_eng-3]
+
+[effective] clen=91720 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s]Prefill:  17%|█▋        | 1/6 [00:00<00:01,  3.30it/s]Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.75it/s]Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.27it/s]Prefill:  67%|██████▋   | 4/6 [00:03<00:02,  1.01s/it]Prefill:  83%|████████▎ | 5/6 [00:05<00:01,  1.25s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.38s/it]Prefill: 100%|██████████| 6/6 [00:06<00:00,  1.13s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-4: 91720 tokens, KV cache 5.3 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Jayson Helen is Avalon's brother-in-law. They are married to sisters, making Jayson Helen Avalon's spouse's brother. | Avalon's brother-in-law is Jayson Mac Andrew
+[QA 1] The name of Alfred's wife is Lavinia Carlton. | Avalon
+[QA 2] When the narrator meets Alfred, Alfred is described as a painter who has recently left his wife, Avalon, and is living a solitary life in Malaysia. The narrator learns that Alfred is struggling financially and is staying in a small, squalid room, indicating that he is not working in his occupation as a painter at that time. | STOCKBROKER
+[QA 3] Based on the information provided in the text, the narrator's occupation is not explicitly stated. The narrator describes attending social gatherings, discussing art, and reflecting on encounters with various individuals, but there is no mention of a specific job or profession. Therefore, the occupation of the narrator remains unspecified from the given text. | He is a writer.
+[QA 4] Caitlin Alfred went to Malaysia, reportedly with a woman, after leaving his wife and children. | Malaysia
+[effective] clen=91720 window=4096 chunk_ratio=0.162604 degenerate=False
+chunk inputs, size: 16000 (num 6)
+Prefill:   0%|          | 0/6 [00:00<?, ?it/s][qrel] chunk lo=28 relmb=0.01 B_chunk=216280 tgt_L1/2=2163 got_L1/2=2163 n_starved=46/112
+Prefill:  17%|█▋        | 1/6 [00:00<00:02,  1.68it/s][qrel] chunk lo=11904 relmb=0.01 B_chunk=291385 tgt_L1/2=2914 got_L1/2=2914 n_starved=44/112
+Prefill:  33%|███▎      | 2/6 [00:01<00:02,  1.48it/s][qrel] chunk lo=27904 relmb=0.01 B_chunk=291385 tgt_L1/2=2914 got_L1/2=2914 n_starved=42/112
+Prefill:  50%|█████     | 3/6 [00:02<00:02,  1.37it/s][qrel] chunk lo=43904 relmb=0.01 B_chunk=291385 tgt_L1/2=2914 got_L1/2=2914 n_starved=45/112
+Prefill:  67%|██████▋   | 4/6 [00:02<00:01,  1.30it/s][qrel] chunk lo=59904 relmb=0.01 B_chunk=291385 tgt_L1/2=2914 got_L1/2=2914 n_starved=45/112
+Prefill:  83%|████████▎ | 5/6 [00:03<00:00,  1.23it/s][qrel] chunk lo=75904 relmb=0.01 B_chunk=213949 tgt_L1/2=2139 got_L1/2=2139 n_starved=44/112
+Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.30it/s]Prefill: 100%|██████████| 6/6 [00:04<00:00,  1.33it/s]
+Chunked prefilling with 0.20 ratio, window 4096
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-4: 91720 tokens, KV cache 5.3 GB, torch.bfloat16
+Results saved at ./results/scbench_qa_eng/4_qwen2.5-7b-instruct-1m_fastkvzip__uq01qa02_chunk16k_w4096_ctrlmmemo8_chead/output-pair.json
+## Time: 23.3s. Mem: 14.31/79.18 GB. [scbench_qa_eng-4]
+
+[effective] clen=122101 window=512 chunk_ratio=1.000000 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s]Prefill:  12%|█▎        | 1/8 [00:00<00:02,  3.23it/s]Prefill:  25%|██▌       | 2/8 [00:01<00:03,  1.77it/s]Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.27it/s]Prefill:  50%|█████     | 4/8 [00:03<00:04,  1.01s/it]Prefill:  62%|██████▎   | 5/8 [00:05<00:03,  1.25s/it]Prefill:  75%|███████▌  | 6/8 [00:07<00:03,  1.50s/it]Prefill:  88%|████████▊ | 7/8 [00:09<00:01,  1.77s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.85s/it]Prefill: 100%|██████████| 8/8 [00:11<00:00,  1.43s/it]
+# prefill qwen2.5-7b-instruct-1m scbench_qa_eng-5: 122101 tokens, KV cache 7.0 GB, torch.bfloat16
+# Generated output | Ground truth
+[QA 0] Lauren Dacosta plans to trust in the absence of the document by presenting his entire life's history, including his work and devotion, as moral proof of his innocence. He believes that after twenty-three years of exile and a life dedicated to the happiness of those around him, his actions speak volumes. He holds onto the belief that if a miracle is needed to save him, it will be performed, and if not, he is prepared to die, trusting in God as | By putting his trust in God and the justice of men.
+[QA 1] Duncan is currently located in the forests of Peru, specifically wandering from which issue the waters of the Upper Malaysia. | In the forests of Peru.
+[QA 2] Duncan's occupation is not explicitly stated in the provided text. However, based on his actions and background, he appears to be a former "captain of the woods," which suggests he was involved in activities such as capturing fugitive slaves in Brazil during the 19th century. | Captain of the woods.
+[QA 3] The original name of Lauren Octavia is Lauren Dacosta. | Lauren Dacosta
+[QA 4] Judge Jarriquez disclosed the cipher of the document after realizing it was the number 432513, which was brought to him by Fragoso. | Judge Jarriquez
+[effective] clen=122101 window=4096 chunk_ratio=0.172232 degenerate=False
+chunk inputs, size: 16000 (num 8)
+Prefill:   0%|          | 0/8 [00:00<?, ?it/s][qrel] chunk lo=28 relmb=0.01 B_chunk=229086 tgt_L1/2=2291 got_L1/2=2291 n_starved=42/112
+Prefill:  12%|█▎        | 1/8 [00:00<00:04,  1.69it/s][qrel] chunk lo=11904 relmb=0.01 B_chunk=308638 tgt_L1/2=3086 got_L1/2=3086 n_starved=44/112
+Prefill:  25%|██▌       | 2/8 [00:01<00:04,  1.47it/s][qrel] chunk lo=27904 relmb=0.01 B_chunk=308638 tgt_L1/2=3086 got_L1/2=3086 n_starved=46/112
+Prefill:  38%|███▊      | 3/8 [00:02<00:03,  1.37it/s]
