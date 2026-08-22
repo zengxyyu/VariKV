@@ -52,21 +52,37 @@ class ProMetaPredictor(nn.Module):
         nn.init.normal_(self.head_emb, std=0.02)
         self.d_lat = d_lat
 
-    def latents(self, hidden):
-        """hidden: [N, D] → u: [M, d_lat]。**只吃前缀，未来在此不可见。**"""
+    def pool(self, hidden):
+        """hidden: [N, D] → z: [K, dp]。**离线（一次看全部位置）版本。**
+
+        推理时分块预填走的是 `prometa/pool.py` 的在线版；两者**必须等价**，
+        `prometa/model.py` 与 `prometa/pool.py` 的自测各自对拍过一次
+        （同一个量两条实现必须对拍 —— 本项目铁律）。
+        """
         assert hidden.dim() == 2, hidden.shape
         h = self.proj(hidden)                                  # [N,dp]
         a = torch.softmax(self.pool_q @ h.T / h.shape[-1] ** 0.5, dim=-1)  # [K,N]
-        z = (a @ h).flatten()                                  # [K*dp]
-        u = self.trunk(z).view(self.M, self.d_lat)
-        return u + self.probe_bias
+        return a @ h                                           # [K,dp]
+
+    def from_pooled(self, z):
+        """z: [K, dp]（在线或离线池化的输出）→ q̂: [M, L, Hkv, d]，已 L2 归一化。
+
+        **这是部署路径的唯一入口** —— 分块预填时上下文摘要由
+        `OnlineAttnPool` 增量维护，拿不到完整 hidden。
+        """
+        u = self.trunk(z.flatten().to(self.probe_bias.dtype)).view(self.M, self.d_lat)
+        u = u + self.probe_bias
+        q = self.A(u)[:, None, None, :] + self.head_emb[None]  # [M,L,H,d]
+        return F.normalize(q, dim=-1)
+
+    def latents(self, hidden):
+        """hidden: [N, D] → u: [M, d_lat]（离线路径，供训练与对拍用）。"""
+        z = self.pool(hidden)
+        return self.trunk(z.flatten()).view(self.M, self.d_lat) + self.probe_bias
 
     def forward(self, hidden):
-        """→ q̂: [M, L, Hkv, d]，已 L2 归一化（点积尺度由 1/√d 统一给）。"""
-        u = self.latents(hidden)                               # [M,dl]
-        base = self.A(u)                                       # [M,d]
-        q = base[:, None, None, :] + self.head_emb[None]       # [M,L,H,d]
-        return F.normalize(q, dim=-1)
+        """→ q̂: [M, L, Hkv, d]。离线路径 = `from_pooled(pool(hidden))`。"""
+        return self.from_pooled(self.pool(hidden))
 
     @staticmethod
     def demand(q, keys, n_prefix=None):
@@ -142,15 +158,30 @@ def _selftest():
     assert dvc > 0.99, f"阴性对照没坍缩：cos²={dvc:.4f}"
     print(f"⑥ 阴性对照（强制对称）cos² = {dvc:.4f}（>0.99）　PASS")
 
-    # ⑦ 梯度确实到达全部可训练张量（本项目吃过「loss 在降但 grad 恒零」的亏）
+    # ⑦ **离线 pool 与在线 OnlineAttnPool 必须等价**（同一个量两条实现对拍）
+    import sys as _s, os as _o
+    _s.path.insert(0, _o.path.dirname(_o.path.dirname(_o.path.abspath(__file__))))
+    from prometa.pool import OnlineAttnPool
+    op = OnlineAttnPool(net.pool_q)
+    hp = net.proj(hid)
+    for i in range(0, N, 7):
+        op.update(hp[i:i + 7])
+    e = (op.value() - net.pool(hid)).abs().max().item()
+    assert e < 1e-5, e
+    q_on = net.from_pooled(op.value())
+    e2 = (q_on - net(hid)).abs().max().item()
+    assert e2 < 1e-5, e2
+    print(f"⑦ 在线/离线池化对拍 max|差| = {e:.2e}；q̂ 对拍 {e2:.2e}　PASS")
+
+    # ⑧ 梯度确实到达全部可训练张量（本项目吃过「loss 在降但 grad 恒零」的亏）
     net2 = ProMetaPredictor(D, d, L, H, n_future=M, d_proj=16, n_pool=2, d_lat=8)
     out = net2(hid)
     (out.sum() + diversity_loss(out)).backward()
     dead = [n for n, p in net2.named_parameters()
             if p.grad is None or p.grad.abs().max() == 0]
     assert not dead, f"这些参数没拿到梯度：{dead}"
-    print(f"⑦ {len(list(net2.parameters()))} 个参数张量全部拿到非零梯度　PASS")
-    print("\nprometa/model.py 自测 7 条全过")
+    print(f"⑧ {len(list(net2.parameters()))} 个参数张量全部拿到非零梯度　PASS")
+    print("\nprometa/model.py 自测 8 条全过")
 
 
 if __name__ == "__main__":
