@@ -229,6 +229,54 @@ def audit_footprint(U, thresh=0.5):
     return float(np.mean(js))
 
 
+def audit_questions(recs, enc=None):
+    """**问句质量审计** —— 这才是 selfstudy 值不值钱的判据，不是「生成成功了几条」。
+
+    两个量，都必须报：
+
+    · `grounded`  问句里的实词有多大比例真的出现在**该文档**里。
+      低 ⇒ 生成器在编，或者只会问通用问题。
+    · `cross_doc_J` **同类型、跨文档**的问句 token 集合 Jaccard 均值。
+      **高 ⇒ 生成器退化成模板**（例如每篇的 summary 问句都是
+      「What is the main argument of this text?」）—— 那样未来又不依赖内容了，
+      与合成 shortcut 是同一个病，只是换了个外衣。
+      **这是这一层数据唯一真正的失败模式，必须查。**
+    """
+    import re
+    STOP = set(("what which who whom whose when where why how does do did is are was "
+                "were the a an of in on for to from by with and or as at that this "
+                "these those it its their his her they he she you your text document "
+                "passage article above described mentioned discussed").split())
+    def words(t):
+        return {w for w in re.findall(r"[a-z]{3,}", t.lower())} - STOP
+    per_type, gr = {}, []
+    for r in recs:
+        if r.get("kind") != "selfstudy" or not r.get("futures"):
+            continue
+        dw = words(r.get("ctx_text", ""))
+        for f in r["futures"]:
+            qt = f.get("q_text", "")
+            w = words(qt)
+            if "grounded" in f:
+                # 生成时已算好（上下文可达 12 万 token，**不存进 manifest**）
+                gr.append(float(f["grounded"]))
+            elif dw and w:
+                gr.append(len(w & dw) / len(w))
+            per_type.setdefault(f["kind"], []).append(w)
+    out = dict(n_q=len(gr), grounded=float(np.mean(gr)) if gr else float("nan"))
+    js = {}
+    for t, ws in per_type.items():
+        pair = []
+        for i in range(len(ws)):
+            for j in range(i + 1, min(len(ws), i + 12)):     # 抽样，别 O(n²) 全算
+                u = ws[i] | ws[j]
+                pair.append(len(ws[i] & ws[j]) / len(u) if u else 0.0)
+        js[t] = float(np.mean(pair)) if pair else float("nan")
+    out["cross_doc_J"] = js
+    out["cross_doc_J_mean"] = float(np.nanmean(list(js.values()))) if js else float("nan")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n_docs", type=int, default=200)
@@ -314,13 +362,37 @@ def _selftest():
     assert j_same > 0.9 and j_diff < 0.2, (j_same, j_diff)
     print(f"④ footprint 判据：五问同段 J={j_same:.3f}、各指一段 J={j_diff:.3f}　PASS")
 
-    # ⑤ 划分按文档、同一 context 的未来不跨 split（结构性保证：futures 挂在 rec 上）
+    # ⑤ 问句审计判据的正负对照：模板化生成器必须被抓出来
+    # ⚠ **夹具的区分位必须对度量可见**（同一失效模式本会话已犯三次）：首版用
+    #    `delta0/echo0` 编号区分，而 `[a-z]{3,}` 只取字母、数字被剥掉 ⇒ 两边都变成
+    #    `{delta, echo}`，J 平凡地等于 1，看上去像判据失灵。改用真正不同的实词。
+    TOPIC = ["photosynthesis chloroplast", "renaissance florence", "quicksort pivot",
+             "insulin pancreas", "sonnet iambic", "titration burette",
+             "monsoon precipitation", "blockchain consensus", "myelin axon",
+             "tariff embargo", "sediment stratigraphy", "vaccine adjuvant"]
+    good = [dict(kind="selfstudy",
+                 ctx_text=f"introduction {TOPIC[i]} conclusion",
+                 futures=[dict(kind="summary",
+                               q_text=f"What role does {TOPIC[i]} serve?")])
+            for i in range(12)]
+    bad = [dict(kind="selfstudy",
+                ctx_text=f"introduction {TOPIC[i]} conclusion",
+                futures=[dict(kind="summary", q_text="What is the main argument here?")])
+           for i in range(12)]
+    ag, ab = audit_questions(good), audit_questions(bad)
+    assert ag["cross_doc_J_mean"] < 0.35, ag
+    assert ab["cross_doc_J_mean"] > 0.9, ab
+    assert ag["grounded"] > ab["grounded"], (ag["grounded"], ab["grounded"])
+    print(f"⑤ 问句审计：内容衍生 J={ag['cross_doc_J_mean']:.3f} grounded={ag['grounded']:.2f}；"
+          f"**模板化 J={ab['cross_doc_J_mean']:.3f} grounded={ab['grounded']:.2f}** ⇒ 判据能抓出退化　PASS")
+
+    # ⑥ 划分按文档、同一 context 的未来不跨 split（结构性保证：futures 挂在 rec 上）
     a = argparse.Namespace(n_docs=20, mix="synth:0.5,continuation:0.5",
                            bands="8-16k:1.0", frac_train=0.8, frac_val=0.1,
                            corpus_seed=1, pool_skip=68, max_ctx=128000,
                            window=4096, n_fact=3, n_joint=2, horizon=256)
-    print("⑤ 划分/去重需要真语料，见 `--n_docs 20` 的实跑（本自测不下载数据）")
-    print("\nprometa/dataset.py 自测 4 条（零 GPU 部分）全过")
+    print("⑥ 划分/去重需要真语料，见 `--n_docs 20` 的实跑（本自测不下载数据）")
+    print("\nprometa/dataset.py 自测 5 条（零 GPU 部分）全过")
 
 
 if __name__ == "__main__":
