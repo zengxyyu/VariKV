@@ -56,7 +56,10 @@ def parse():
                    help="每篇取几个 chunk 训练（等距覆盖首/中/尾）")
     p.add_argument("--n_fact", type=int, default=3)
     p.add_argument("--n_joint", type=int, default=2)
-    p.add_argument("--span", default="qa", choices=["q", "qa"])
+    # **默认 Q-only**（外部复核指出，采纳）：`qa` 的答案里含 `TAG=<value>`，
+    # 而 `<value>` 与插进上下文的事实**字符串完全相同** ⇒ 教师 query 直接命中
+    # 目标位置，会强化合成检索捷径。Q+A 作为消融，不作主结果。
+    p.add_argument("--span", default="q", choices=["q", "qa"])
     p.add_argument("--n_probe", type=int, default=0,
                    help="Student 的 probe 数；0 = 跟随教师的 M")
     p.add_argument("--d_proj", type=int, default=128)
@@ -67,6 +70,8 @@ def parse():
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--epochs", type=int, default=3)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--val_seed", type=int, default=987654,
+                   help="**验证任务的 rng，不含 epoch** ⇒ 跨 epoch 是同一把尺子")
     p.add_argument("--out", default="varikv/prometa_s0.pt")
     p.add_argument("--ablate_span", action="store_true",
                    help="同一篇上同时抽 q 与 qa 两套标签并报一致性，然后退出")
@@ -127,8 +132,16 @@ def main():
           f"train[0:{n_tr}] / val[{n_tr}:{a.n_docs}]（不 shuffle）", flush=True)
 
     def one_doc(di, epoch, train=True):
-        """→ (loss_val, trivial_val, n_used, ds_stats)"""
-        rng = random.Random((a.seed, epoch, di).__hash__())
+        """→ (demand_val, trivial_val, n_used, ds_stats)
+
+        ⚠ **验证的 rng 里不许有 `epoch`**（2026-08-22，外部复核指出，采纳）。
+        留出**文档**（doc 8,9）确实从未训练过，但若验证任务每个 epoch 重新抽
+        key/value/插入位置/格式模板，跨 epoch 的 val 曲线**就不是同一把尺子**，
+        不能用来说「没有过拟合」。训练侧保留 `epoch`（那是有益的数据增广），
+        **验证侧固定**。
+        """
+        rng = (random.Random((a.seed, epoch, di).__hash__()) if train
+               else random.Random((a.val_seed, di).__hash__()))
         ids = enc(docs[di])
         ctx, futures, meta = build_task(enc, ids, a.max_ctx, a.window,
                                         a.n_fact, rng, n_joint=a.n_joint)
@@ -144,13 +157,19 @@ def main():
                                    prefill_chunk=a.chunk, verbose=False)
 
         ds = demand_structure(U_by[pick[len(pick) // 2]])
-        tot, triv, cnt = 0.0, 0.0, 0
+        tot, triv, cnt, dvs = 0.0, 0.0, 0, 0.0
         for lo, hi in pick:
             Us = to_dist(torch.as_tensor(U_by[(lo, hi)], device=model.device))
             pool_end = min(hi + a.window, info["n_prefix"])
             if train:
                 Uh, q = student_demand(net, kv, lo, hi, pool_end, a.pool_layer)
-                loss = match_loss(Us, Uh) + a.lam_div * diversity_loss(q)
+                # **demand 与 div 必须分开记**（外部复核指出，采纳）：训练侧
+                # 之前打印的是 `demand + λ·div`，验证侧只有 `demand`，两者被
+                # 直接并排比较且都拿「平凡解」当参照 —— 而平凡解只是 `demand`
+                # 的基线。现在两边都只用 `demand` 做学习曲线，`div` 单独报。
+                dem = match_loss(Us, Uh)
+                dv = diversity_loss(q)
+                loss = dem + a.lam_div * dv
                 opt.zero_grad(set_to_none=True)
                 loss.backward()
                 gn = torch.nn.utils.clip_grad_norm_(net.parameters(), 1.0)
@@ -160,22 +179,23 @@ def main():
             else:
                 with torch.no_grad():
                     Uh, q = student_demand(net, kv, lo, hi, pool_end, a.pool_layer)
-                    loss = match_loss(Us, Uh)
+                    dem = match_loss(Us, Uh)
+                    dv = diversity_loss(q)
                 gn = torch.tensor(0.0)
             # 纪律①：平凡解参照 —— Student 输出均匀分布时的损失
             n = hi - lo
             with torch.no_grad():
                 triv_l = float((np.log(n) + (Us * torch.log(
                     Us.clamp_min(1e-12))).sum(-1)).mean())
-            tot += float(loss); triv += triv_l; cnt += 1
+            tot += float(dem); triv += triv_l; dvs += float(dv); cnt += 1
             print(f"  doc{di} chunk[{lo},{hi}) n={n} pool_end={pool_end} "
-                  f"loss={float(loss):.4f} 平凡解={triv_l:.4f} "
-                  f"(相对降低 {1 - float(loss)/max(triv_l,1e-9):+.1%}) "
-                  f"|g|={float(gn):.3e}", flush=True)
-            del Us, Uh, q, loss
+                  f"demand={float(dem):.4f} 平凡解={triv_l:.4f} "
+                  f"(相对降低 {1 - float(dem)/max(triv_l,1e-9):+.1%}) "
+                  f"div={float(dv):.4f} |g|={float(gn):.3e}", flush=True)
+            del Us, Uh, q, dem, dv
         del U_by, kv
         torch.cuda.empty_cache()
-        return tot / cnt, triv / cnt, cnt, ds
+        return tot / cnt, triv / cnt, cnt, ds, dvs / cnt
 
     if a.ablate_span:
         # **Q-only vs Q+A**：教师用真答案是否构成泄漏，用数字回答，不用措辞
@@ -212,9 +232,13 @@ def main():
         va = [one_doc(di, ep, False) for di in range(n_tr, a.n_docs)]
         va = [x for x in va if x]
         f = lambda xs, i: float(np.mean([x[i] for x in xs])) if xs else float("nan")
+        # 学习曲线**只看 demand**；div 单独报（它与平凡解不可比）
         ds = tr[0][3] if tr else {}
-        print(f"[epoch {ep}] train {f(tr,0):.4f} (平凡 {f(tr,1):.4f}) | "
-              f"val {f(va,0):.4f} (平凡 {f(va,1):.4f}) | "
+        print(f"[epoch {ep}] train demand {f(tr,0):.4f} (平凡 {f(tr,1):.4f}, "
+              f"相对 {1-f(tr,0)/max(f(tr,1),1e-9):+.1%}) | "
+              f"**val demand {f(va,0):.4f} (平凡 {f(va,1):.4f}, "
+              f"相对 {1-f(va,0)/max(f(va,1),1e-9):+.1%})** | "
+              f"div train {f(tr,4):.4f} val {f(va,4):.4f} | "
               f"教师需求结构 J(mean,max)={ds.get('J_mean_max',float('nan')):.4f} "
               f"shared={ds.get('shared_frac',float('nan')):.4f} "
               f"conc_only_mean={ds.get('conc_only_mean',float('nan')):.4f} "

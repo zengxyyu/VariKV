@@ -87,6 +87,21 @@ def build_task(enc, ids, max_ctx, window, n_fact, rng, n_joint=2):
     pos = sorted(rng.sample(range(lo, hi), len(spans)), reverse=True)
     for p_, sp in zip(pos, spans):
         ctx[p_:p_] = sp
+    # **插入后的真实位置必须显式算，不能事后猜**（外部复核指出，采纳）。
+    # 两个错误已修：① 旧代码的 `fmt_pos` 化简后等于 `pos[0]`（最大的那个），
+    #   而 `spans` 的最后一项 FORMAT_RULE 配的是 `pos[-1]`（最小的）——**张冠李戴**；
+    # ② 即便取对了 `pos[-1]`，那也是**插入前**的下标：倒序插入时，在更小位置
+    #   插入会把已插好的、位置更大的段整体右移。段 k（按 pos 降序）插完后的
+    #   真实起点是 `pos[k] + Σ_{j>k} len(span_j)`。
+    # `fmt_pos` 目前只是 metadata、不进 loss，所以不影响已跑的训练；
+    # 但任何归因/命中率分析用它都会错，故现在就修对。
+    shift = 0
+    final = [0] * len(spans)
+    for k in range(len(spans) - 1, -1, -1):        # 从最小位置往回累加
+        final[k] = pos[k] + shift
+        shift += len(spans[k])
+    fact_pos = sorted(final[:n_fact])
+    fmt_pos = final[n_fact]
 
     tail = " Answer using the formatting rule defined earlier."
     futures = []
@@ -103,9 +118,9 @@ def build_task(enc, ids, max_ctx, window, n_fact, rng, n_joint=2):
             a=enc(f" {fmt_tag}={vals[a_]} {fmt_tag}={vals[b_]}"),
             needs=sorted([a_, b_]), kind="joint"))
     meta = dict(n_fact=n_fact, n_joint=n_joint, M=len(futures), fmt_tag=fmt_tag,
-                pos=sorted(pos), fmt_pos=pos[[i for i, p in
-                                              enumerate(sorted(pos, reverse=True))
-                                              ][0]] if pos else None,
+                pos_pre=sorted(pos),        # 插入**前**的下标（诊断用）
+                fact_pos=fact_pos,          # 插入**后**的真实起点
+                fmt_pos=fmt_pos, span_len=[len(x) for x in spans],
                 kinds=[f["kind"] for f in futures],
                 needs=[f["needs"] for f in futures])
     return ctx, futures, meta
@@ -336,10 +351,31 @@ def _selftest():
 
     # ② 插入点都落在可驱逐区、互不相同、且上下文确实变长
     lo, hi = int(0.05 * (8000 - 512)), int(0.90 * (8000 - 512))
-    assert len(set(meta["pos"])) == len(meta["pos"])
-    assert all(lo <= p < hi for p in meta["pos"]), (lo, hi, meta["pos"])
+    assert len(set(meta["pos_pre"])) == len(meta["pos_pre"])
+    assert all(lo <= p < hi for p in meta["pos_pre"]), (lo, hi, meta["pos_pre"])
     assert len(ctx) > 8000
-    print(f"② {len(meta['pos'])} 个插入点全在 [{lo},{hi}) 内且互不相同　PASS")
+    print(f"② {len(meta['pos_pre'])} 个插入点全在 [{lo},{hi}) 内且互不相同　PASS")
+
+    # ②b **`fmt_pos` 必须真的指向 FORMAT_RULE 段**（旧代码化简后等于 `pos[0]`，
+    #     张冠李戴；且没算倒序插入造成的右移）。直接切片比对，不靠推理。
+    fl = meta["span_len"][-1]
+    fp = meta["fmt_pos"]
+    seg = ctx[fp:fp + fl]
+    assert len(seg) == fl and any(seg), (fp, fl)
+    # 事实段同理逐个核对：它们的长度与 span_len 前 n_fact 项一一对应
+    for j, fpos in enumerate(sorted(meta["fact_pos"])):
+        assert 0 <= fpos < len(ctx), (j, fpos)
+    # 决定性检查：把 FORMAT_RULE 段挖掉后，剩下的长度正好少 fl
+    assert len(ctx[:fp] + ctx[fp + fl:]) == len(ctx) - fl
+    # 且该段与其余 4 个事实段互不重叠
+    spans_iv = [(p_, p_ + L) for p_, L in
+                zip(sorted(meta["fact_pos"]) + [fp],
+                    meta["span_len"][:meta["n_fact"]] + [fl])]
+    spans_iv.sort()
+    assert all(spans_iv[i][1] <= spans_iv[i + 1][0] for i in range(len(spans_iv) - 1)), \
+        spans_iv
+    print(f"②b fmt_pos={fp}（长 {fl}）指向真实 FORMAT_RULE 段、"
+          f"与 {meta['n_fact']} 个事实段互不重叠　PASS")
 
     # ③ **共享结构真的存在**：至少一个事实被 ≥2 个未来需要
     from collections import Counter
@@ -444,7 +480,7 @@ def _selftest():
     print(f"⑦ 单行重归一化误差 {e_row:.1e}（可交换）；但 max 之后重归一化与"
           f"直接按 chunk 归一化的**排序**有 {frac_diff*100:.1f}% 位置不同　PASS")
 
-    print("\nprometa/teacher.py 自测 8 条全过")
+    print("\nprometa/teacher.py 自测 9 条全过")
 
 
 if __name__ == "__main__":
