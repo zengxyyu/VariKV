@@ -108,6 +108,11 @@ def parse():
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--epochs", type=int, default=3)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--shuffle_labels", action="store_true",
+                   help="**未来打乱阴性对照**（外部复核提出，采纳）：给上下文 C_i 配"
+                        "**别的文档**的教师标签 U*_j。若 loss 几乎不变 ⇒ **教师靶子"
+                        "根本没和上下文绑定**。这比致盲对照更直接：致盲问「Student "
+                        "有没有用上下文」，打乱问「上下文里到底有没有可用的信息」。")
     p.add_argument("--no_context", action="store_true",
                    help="**上下文致盲对照**：把池化摘要置零 ⇒ probe 变成常数。"
                         "与完整 Student 的差 = 上下文路径的全部贡献。"
@@ -250,7 +255,7 @@ def main():
     print(f"[train] 语料 {a.corpus} 固定 {a.n_docs} 篇（{sum(len(d) for d in docs):,} token），**按位置**切 "
           f"train[0:{n_tr}] / val[{n_tr}:{a.n_docs}]（不 shuffle）", flush=True)
 
-    def one_doc(di, epoch, train=True):
+    def one_doc(di, epoch, train=True):   # noqa: C901
         """→ (demand_val, trivial_val, n_used, ds_stats)
 
         ⚠ **验证的 rng 里不许有 `epoch`**（2026-08-22，外部复核指出，采纳）。
@@ -274,6 +279,29 @@ def main():
             0, len(usable) - 1, min(a.n_chunk, len(usable))).round().astype(int))]
         U_by, kv, info = extract_U(model, ctx, futures, pick, span=a.span,
                                    prefill_chunk=a.chunk, verbose=False)
+        if a.shuffle_labels:
+            # **未来打乱阴性对照**：把本篇的教师标签换成**另一篇文档**的。
+            # ⚠ 只换标签，上下文与 Student 的输入**一字不动** ⇒ 单变量。
+            #
+            # 两个实现要点（首版两处都写错了，记下来）：
+            # ① 必须换**别的文档**的标签，不是「同一篇上一个 epoch」的 —— 后者
+            #    只是换了一组随机注入的事实，仍然来自同一篇上下文，测不到东西；
+            # ② 跨文档的 chunk 宽度不一定相同（首块 11,876、整块 16,000、末块残），
+            #    形状对不上就会**静默不换** ⇒ 跑出来是普通训练却冒充成对照。
+            #    所以按**宽度**建库，并**硬性断言这一篇至少换成功一次**。
+            swapped = 0
+            for r in pick:
+                w = U_by[r].shape[-1]
+                src = _label_bank.get(w)
+                if src is not None and src[0] != di and src[1].shape == U_by[r].shape:
+                    U_by[r] = src[1]
+                    swapped += 1
+                _label_bank[w] = (di, U_by[r].copy() if swapped == 0 else src[1])
+            assert swapped > 0 or di == 0 or epoch == 0, \
+                f"doc{di} epoch{epoch}：打乱对照一次都没换成功（宽度没配上）"
+            if swapped:
+                print(f"  [shuffle] doc{di} 换掉 {swapped}/{len(pick)} 个 chunk 的标签",
+                      flush=True)
 
         ds = demand_structure(U_by[pick[len(pick) // 2]])
         tot, triv, cnt, dvs = 0.0, 0.0, 0, 0.0
@@ -355,6 +383,8 @@ def main():
         return
 
     _step0 = [True]
+    # 打乱对照的标签库：**按 chunk 宽度**索引 → (来源文档号, U 数组)
+    _label_bank = {}
     t0 = time.time()
     for ep in range(a.epochs):
         tr = [one_doc(di, ep, True) for di in range(n_tr)]
