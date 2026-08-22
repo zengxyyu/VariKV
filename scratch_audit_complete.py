@@ -76,6 +76,23 @@ EXEMPT = {
     # 留着一条永远为真的例外，等于给那个 tag 开了一个再也不会响的警报。
 }
 
+# ── 前缀例外（2026-08-22 加）───────────────────────────────────────────────
+# 逐个列 tag 在这里行不通：ProMeta 的 Oracle 臂按 (β, γ, combine, panel) 组合生成，
+# tag 由 `scratch_prometa_oracle_eval.py` 自动拼，会不断出现新的。
+# **这一族的正当性与「dump 专用」不同，理由必须单列**：
+#   它们**确实被引用了分数**，但是**故意 --num 40**，且
+#   ① 文档每次引用都显式写 n=40；
+#   ② 它们只与**同一批 40 条样本**上的其它臂互比（γ=0 零点 / 地板 / scalar），
+#      配对 bootstrap 取交集，从不与 n=100 的格并列；
+#   ③ 有构造性零点 `γ=0` 与 `__g8base` 在这 40 条上逐样本 max|Δ|=0.000000。
+# ⇒ 「n 必须等于该 panel 满量」这条规则对它们不适用；真正要守的是
+#    「同一比较里各臂样本集相同」，那由配对取交集**构造性**保证。
+EXEMPT_PREFIX = {
+    "_pmo": ("Oracle 参照臂，故意 --num 40，只与同 40 条上的臂互比",
+             "n=40"),
+    "_pmd": ("Oracle 匹配分解臂，故意 --num 40，同上", "n=40"),
+}
+
 
 def scan(ds):
     """→ {tag: {ratio: set(sample_idx)}}，同时返回 {tag: set(sample_idx)}（目录层）。"""
@@ -126,6 +143,19 @@ def main():
         print(f"   {tag:<12} {'OK  ' if ok else '**FAIL**'} {why}")
         if not ok:
             print(f"                说明句已从文档消失：{quote!r}")
+    exempt_pref = []
+    for pre, (why, quote) in sorted(EXEMPT_PREFIX.items()):
+        ok = quote in doc
+        fail += (not ok)
+        if ok:
+            exempt_pref.append(pre)
+        print(f"   {pre + '*':<12} {'OK  ' if ok else '**FAIL**'} {why}")
+
+    def is_exempt(tag):
+        # ⚠ 这里必须写 `tag in valid_exempt`，**不能**再调 `is_exempt` ——
+        # 首版用正则批量替换 `X in valid_exempt → is_exempt(X)` 时把函数体自己
+        # 也替换了，造成无限递归（RecursionError）。批量替换要排除定义处。
+        return tag in valid_exempt or any(tag.startswith(p) for p in exempt_pref)
 
     print("\n== 1. 覆盖情况 ==")
     real = {t for t in cited if any(t in dirmap[ds] for ds in FULL_N)}
@@ -154,7 +184,7 @@ def main():
             n, full = len(dirmap[ds][tag]), FULL_N[ds]
             if n == full:
                 continue
-            ex = tag in valid_exempt
+            ex = is_exempt(tag)
             ifl, fin = (False, None) if ex else inflight_ok(tag)
             ok = ex or ifl
             n2 += (not ok)
@@ -171,7 +201,7 @@ def main():
     print("\n== 3. ratio 键层：被引用的 tag，其每个 ratio 的样本数 ==")
     n3 = 0
     for tag in sorted(real):
-        if tag in valid_exempt or inflight_ok(tag)[0]:
+        if is_exempt(tag) or inflight_ok(tag)[0]:
             continue
         for ds in FULL_N:
             rr = ratmap[ds].get(tag)
