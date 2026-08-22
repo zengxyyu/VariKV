@@ -155,6 +155,8 @@ def main():
     ap.add_argument("--model", default="Qwen/Qwen2.5-7B-Instruct-1M")
     ap.add_argument("--win", type=int, default=16000, help="单窗口取材长度")
     ap.add_argument("--limit", type=int, default=0, help=">0 时只处理前 N 条（冒烟）")
+    ap.add_argument("--shard", type=int, default=0, help="本分片编号（0-based）")
+    ap.add_argument("--nshard", type=int, default=1, help="总分片数；多卡并行用")
     ap.add_argument("--retries", type=int, default=2,
                    help="单个类型生成失败（含类型不符）的重试次数")
     ap.add_argument("--seed", type=int, default=7)
@@ -181,6 +183,11 @@ def main():
     todo = [r for r in recs if r["kind"] == "selfstudy" and not r["futures"]]
     if a.limit:
         todo = todo[:a.limit]
+    if a.nshard > 1:
+        # **按 id 取模分片**（不是按位置切片）⇒ 每个分片的长度/split 组成都均衡，
+        # 而且与 `--limit` 组合时行为仍然确定。
+        todo = [r for r in todo if r["id"] % a.nshard == a.shard]
+        print(f"[selfstudy] 分片 {a.shard}/{a.nshard}：本片 {len(todo)} 条", flush=True)
     print(f"[selfstudy] 待生成 {len(todo)} / 共 {len(recs)} 条", flush=True)
 
     ok, fail = 0, 0
@@ -217,13 +224,20 @@ def main():
         else:
             r["ss_ok"] = False
             fail += 1
+        if n_ < 2 and futs:      # 头两条把问句打出来，便于早期肉眼判退化
+            print(f"  [样例 doc{r['id']} band={r['band']}]", flush=True)
+            for f in futs:
+                print(f"     {f['kind']:<11} g={f['grounded']:.2f}  {f['q_text'][:110]}",
+                      flush=True)
         if (n_ + 1) % 10 == 0 or n_ + 1 == len(todo):
             print(f"[selfstudy] {n_+1}/{len(todo)}  成功 {ok} 失败 {fail}", flush=True)
 
+    # 分片模式只写**本片处理过的**记录，避免多个分片互相覆盖；由 merge 合并
+    dump = todo if a.nshard > 1 else recs
     with open(a.out, "w") as f:
-        for r in recs:
+        for r in dump:
             f.write(json.dumps(r) + "\n")
-    print(f"\n写出 {len(recs)} 条 → {a.out}（selfstudy 成功 {ok} / 失败 {fail}）")
+    print(f"\n写出 {len(dump)} 条 → {a.out}（selfstudy 成功 {ok} / 失败 {fail}）")
 
     # ── 质量闸 ────────────────────────────────────────────────────────────
     done = [r for r in recs if r.get("ss_ok")]

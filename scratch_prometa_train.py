@@ -35,6 +35,7 @@ import time
 
 import numpy as np
 import torch
+from collections import Counter as _Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -245,7 +246,20 @@ def main():
     sys_len = int(model.sys_prompt_ids.shape[1])
     enc = lambda s: model.encode(s)[0].tolist()
 
-    Mt = a.n_fact + a.n_joint
+    # ⚠ **Ms 必须从数据的唯一真源派生**（2026-08-22 审计发现，第④类错）。
+    # 原写法 `Mt = a.n_fact + a.n_joint` 是**内造语料**的参数，与 manifest 无关；
+    # 它现在等于 5 纯属与 manifest 的 max M 撞上。若某次 manifest 只有 M=3，
+    # Ms 仍是 5 ⇒ 两个 probe 从头到尾没被任何真实未来监督过，却参与推理决策。
+    _MANI_PRE = None
+    if a.manifest:
+        import json as _json
+        _MANI_PRE = [r for r in (_json.loads(l) for l in open(a.manifest)) if r["futures"]]
+        Mt = max(len(r["futures"]) for r in _MANI_PRE)
+        _mh = _Counter(len(r["futures"]) for r in _MANI_PRE)
+        print(f"[train] Mt 由 manifest 派生：max M = {Mt}（分布 {dict(sorted(_mh.items()))}）",
+              flush=True)
+    else:
+        Mt = a.n_fact + a.n_joint
     Ms = a.n_probe or Mt
     assert Ms >= Mt, (Ms, Mt)
     net = ProMetaPredictor(Hkv * dh, dh, L, Hkv, n_future=Ms, d_proj=a.d_proj,
@@ -255,25 +269,43 @@ def main():
     print(f"[train] L={L} Hkv={Hkv} d={dh} sys_len={sys_len} | "
           f"Mt={Mt} Ms={Ms} | Student {npar:,} 参数 | seed={a.seed}", flush=True)
 
-    MANI = None
+    MANI = _MANI_PRE          # **同一份对象**，不重读（读两遍就有两份可能不一致的真源）
     if a.manifest:
-        import json as _json
-        MANI = [_json.loads(l) for l in open(a.manifest)]
-        MANI = [r for r in MANI if r["futures"]]      # 未来为空的（selfstudy 未生成）跳过
         docs = MANI
-        from collections import Counter as _C
+        _C = _Counter
         _c = _C((r["split"], r["kind"]) for r in MANI)
         _m = _C(len(r["futures"]) for r in MANI)
         print(f"[train] **走正式 manifest 路径** {a.manifest}：{len(MANI)} 条可用"
               f"（有未来的），组成 {dict(_c)}，每条未来数 {dict(sorted(_m.items()))}",
               flush=True)
         assert MANI, "manifest 里没有一条带未来的记录（selfstudy 还没生成？）"
+        # ⚠ **span 一致性硬闸**（2026-08-22 审计发现）。manifest 里只有 synth 的
+        # future 带答案（250/920），selfstudy 与 continuation 的 `a` 是空的。
+        # 于是 `--span qa` 会让 synth 用「问+答」当教师查询、其余用「只问」——
+        # **同一个数据集里两套标签定义**，跨 kind 的损失不可加。静默发生、
+        # 日志里看不出来（第⑤类错：理论声明与实现不一致）。宁可拒绝启动。
+        _na = sum(1 for r in MANI for f in r["futures"] if f["a"])
+        _nq = sum(len(r["futures"]) for r in MANI)
+        assert a.span == "q" or _na in (0, _nq), (
+            f"--span {a.span} 但 manifest 里只有 {_na}/{_nq} 个 future 带答案 ⇒ "
+            f"标签定义会随 kind 而变。要么 --span q，要么把所有 future 补齐答案。")
+        print(f"[train] span={a.span}；future 带答案 {_na}/{_nq}"
+              f"（{'一致' if a.span=='q' or _na in (0,_nq) else '不一致'}）", flush=True)
     else:
         docs = build_corpus(a, enc)
         assert len(docs) == a.n_docs, f"语料只有 {len(docs)} 篇，要 {a.n_docs}"
     n_tr = a.n_docs - a.n_val
-    print(f"[train] 语料 {a.corpus} 固定 {a.n_docs} 篇（{sum(len(d) for d in docs):,} token），**按位置**切 "
-          f"train[0:{n_tr}] / val[{n_tr}:{a.n_docs}]（不 shuffle）", flush=True)
+    if MANI is not None:
+        # ⚠ manifest 路径下 `docs` 是**记录 dict**，`len(d)` 数的是键数不是 token；
+        # `n_tr`/`a.n_docs` 更是内造语料的量，与 manifest 无关（划分见下方 `split` 字段）。
+        # 旧版把这两样直接打进日志 ⇒ 一条**由代码而非数据生成的判词**，已修。
+        _nt = sum(len(r["ctx"]) for r in MANI)
+        _bt = _C(r["band"] for r in MANI)
+        print(f"[train] manifest 语料 {len(MANI)} 条（{_nt:,} token，band {dict(sorted(_bt.items()))}），"
+              f"划分**由记录自带的 `split` 字段决定**，与 --n_docs/--n_val 无关", flush=True)
+    else:
+        print(f"[train] 语料 {a.corpus} 固定 {a.n_docs} 篇（{sum(len(d) for d in docs):,} token），**按位置**切 "
+              f"train[0:{n_tr}] / val[{n_tr}:{a.n_docs}]（不 shuffle）", flush=True)
 
     def one_doc(di, epoch, train=True):   # noqa: C901
         """→ (demand_val, trivial_val, n_used, ds_stats)
@@ -308,7 +340,15 @@ def main():
             0, len(usable) - 1, min(a.n_chunk, len(usable))).round().astype(int))]
         U_by, kv, info = extract_U(model, ctx, futures, pick, span=a.span,
                                    prefill_chunk=a.chunk, verbose=False)
-        if a.shuffle_labels:
+        # ⚠ **只在训练侧打乱，验证侧永远用真标签**（2026-08-22 审计改，原为两侧都打乱）。
+        #    两侧都打乱测的是「打乱后的学习问题好不好解」——常数预测器与真正的
+        #    逐文档学习器**都会显示改善**，区分不了，等于白跑。真正的判据是
+        #    「**用打乱标签训练出来的模型，还能不能预测真实需求**」：
+        #      仍 +13% ⇒ 标签内容无所谓 ⇒ 那 13% 是与文档无关的通用结构；
+        #      掉到 ~0 ⇒ 训练确实依赖这一篇自己的标签。
+        #    附带修掉一条 val→train 信息流：原来验证文档的 U 也会进标签库、
+        #    再被发给训练文档当「打乱标签」。
+        if a.shuffle_labels and train:
             # **未来打乱阴性对照**：把本篇的教师标签换成**另一篇文档**的。
             # ⚠ 只换标签，上下文与 Student 的输入**一字不动** ⇒ 单变量。
             #
@@ -318,19 +358,45 @@ def main():
             # ② 跨文档的 chunk 宽度不一定相同（首块 11,876、整块 16,000、末块残），
             #    形状对不上就会**静默不换** ⇒ 跑出来是普通训练却冒充成对照。
             #    所以按**宽度**建库，并**硬性断言这一篇至少换成功一次**。
-            swapped = 0
+            # ③（2026-08-22 修，真机崩在这里）首版写成
+            #    `_label_bank[w] = (di, U_by[r].copy() if swapped == 0 else src[1])`
+            #    有**两个**错：(a) 某宽度**首次出现**（`src is None`）而本篇更早的
+            #    chunk 已换过时，走 else 分支取 `None[1]` ⇒ TypeError 直接崩；
+            #    (b) `swapped != 0` 时存进库的是**换完之后**的标签（别人的），
+            #    于是标签会在文档间接力传递，第三篇拿到的仍是第一篇的 ⇒ 对照被稀释。
+            #    正确做法：**先留本篇原始标签**，换与不换都只把原始的存进库。
+            # ④ 内存：一条 U 是 [M,L,H,w]，w=16000 时 fp32 约 36 MB。按宽度建库、
+            #    末块宽度几乎篇篇不同 ⇒ 200 篇能堆到 GB 级。加 FIFO 上限，
+            #    且**重复插入会刷新到队尾** ⇒ 占绝大多数的 16000 宽永远在库里。
+            # ⑤ **宽度结构性配不上**（2026-08-22 真机冒烟抓到，崩在 epoch1）。
+            #    单 chunk 文档的宽度 = `n_ctx − 4096`，**篇篇唯一**；实测全量
+            #    训练集只有 62.6% 的 chunk 落在共同宽度上（11876 首块 / 16000 中块），
+            #    其余 37.4% 永远配不上 ⇒ 旧的 per-doc 硬断言必崩，而放宽成
+            #    「配不上就不换」又会把对照稀释成 63% 强度且**不可见**。
+            #    改成：同宽**精确换**；否则从**更宽**的捐赠者裁到目标宽度并
+            #    重新归一化（裁出来仍是合法分布、且确实来自别的文档）；
+            #    三个计数全部打进日志，断言下放到 **epoch 级**。
             for r in pick:
                 w = U_by[r].shape[-1]
-                src = _label_bank.get(w)
-                if src is not None and src[0] != di and src[1].shape == U_by[r].shape:
-                    U_by[r] = src[1]
-                    swapped += 1
-                _label_bank[w] = (di, U_by[r].copy() if swapped == 0 else src[1])
-            assert swapped > 0 or di == 0 or epoch == 0, \
-                f"doc{di} epoch{epoch}：打乱对照一次都没换成功（宽度没配上）"
-            if swapped:
-                print(f"  [shuffle] doc{di} 换掉 {swapped}/{len(pick)} 个 chunk 的标签",
-                      flush=True)
+                orig = U_by[r]                     # ← 换之前先留住，换完就取不到了
+                cand = [(dw, d_, u_) for dw, lst in _label_bank.items()
+                        for d_, u_ in lst if d_ != di and dw >= w]
+                if cand:
+                    dw, _d, u = min(cand, key=lambda t: t[0])   # 最接近的更宽者
+                    if dw == w:
+                        U_by[r] = u; _shuf_cnt["exact"] += 1
+                    else:
+                        c = u[..., :w].astype("float64")
+                        U_by[r] = (c / np.maximum(c.sum(-1, keepdims=True), 1e-30)
+                                   ).astype(u.dtype)
+                        _shuf_cnt["crop"] += 1
+                else:
+                    _shuf_cnt["none"] += 1
+                lst = [t for t in _label_bank.pop(w, []) if t[0] != di]
+                lst.append((di, orig.copy()))
+                _label_bank[w] = lst[-2:]          # 每宽最多留 2 个不同来源
+                while len(_label_bank) > 8:
+                    _label_bank.pop(next(iter(_label_bank)))
 
         ds = demand_structure(U_by[pick[len(pick) // 2]])
         tot, triv, cnt, dvs = 0.0, 0.0, 0, 0.0
@@ -426,6 +492,7 @@ def main():
     _step0 = [True]
     # 打乱对照的标签库：**按 chunk 宽度**索引 → (来源文档号, U 数组)
     _label_bank = {}
+    _shuf_cnt = {"exact": 0, "crop": 0, "none": 0}
     t0 = time.time()
     if MANI is not None:
         idx_tr = [i for i, r in enumerate(MANI) if r["split"] == "train"]
@@ -435,7 +502,21 @@ def main():
     else:
         idx_tr, idx_va = list(range(n_tr)), list(range(n_tr, a.n_docs))
     for ep in range(a.epochs):
-        tr = [one_doc(di, ep, True) for di in idx_tr]
+        # **训练顺序按 (seed, epoch) 打乱**（2026-08-22 审计加）。逐 chunk 就是一步
+        # SGD，固定顺序既是一个跨种子共有的混淆，又让「跨种子散布」只反映初始化
+        # 方差、系统性低估真实方差。验证侧顺序**不打乱**（顺序不影响均值，且要可比）。
+        _ord = list(idx_tr)
+        random.Random((a.seed, ep, 0x5eed).__hash__()).shuffle(_ord)
+        for _k in _shuf_cnt: _shuf_cnt[_k] = 0
+        tr = [one_doc(di, ep, True) for di in _ord]
+        if a.shuffle_labels:
+            _sw = _shuf_cnt["exact"] + _shuf_cnt["crop"]
+            _tt = _sw + _shuf_cnt["none"]
+            print(f"  [shuffle] epoch{ep}：换掉 {_sw}/{_tt} = {_sw/max(_tt,1):.1%} 个 chunk 的标签"
+                  f"（精确同宽 {_shuf_cnt['exact']}、裁剪自更宽 {_shuf_cnt['crop']}、"
+                  f"无捐赠者 {_shuf_cnt['none']}）", flush=True)
+            assert ep == 0 or _sw / max(_tt, 1) >= 0.5, (
+                f"打乱对照只换掉 {_sw}/{_tt} ⇒ 强度不足 50%，这个阴性对照说明不了问题")
         tr = [x for x in tr if x]
         va = [one_doc(di, ep, False) for di in idx_va]
         va = [x for x in va if x]
