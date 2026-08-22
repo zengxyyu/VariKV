@@ -74,7 +74,12 @@ def parse():
     #    而那 10 篇本身也是同一族语料的拼接）。要真正突破这个天花板，只能换语料
     #    （RestoreKV 用 LongAlpaca 500 篇 + PG-19 50 本 + Tulu-3 FLAN 1500 例）。
     p.add_argument("--corpus", default="fineweb_10k_cat",
-                   choices=["fineweb_10k_cat", "mix"])
+                   choices=["fineweb_10k_cat", "mix", "pool"])
+    p.add_argument("--pool_band", default="10000,30000",
+                   help="`pool` 取哪个长度 band（token）。10k–30k 有 4,328 篇可用")
+    p.add_argument("--pool_skip", type=int, default=68,
+                   help="与 load_fineweb 返回的 68 篇完全不相交（cat 那 5 篇是"
+                        "同 band 前 ~40 篇拼的，只跳 34 仍会重叠）")
     p.add_argument("--len_mix", default="8000:0.25,16000:0.35,32000:0.25,110000:0.15",
                    help="`mix` 的长度分层：`目标token:权重` 逗号分隔。"
                         "默认照 RestoreKV/LookaheadKV 的做法以短为主、保留 15% 长样本")
@@ -158,6 +163,17 @@ def build_corpus(a, enc):
     换 `--seed` 不会改动划分（`--split_seed` 那个坑：篇数一变划分全变）。
     """
     from data.load import load_fineweb
+    if a.corpus == "pool":
+        # **绕开 1M 上限**：独立文档的真天花板是 4,328 篇（见 teacher.load_fineweb_pool）
+        from prometa.teacher import load_fineweb_pool
+        lo_, hi_ = (int(x) for x in a.pool_band.split(","))
+        txt = load_fineweb_pool(a.n_docs, lo_, hi_, skip=a.pool_skip)
+        out = [enc(t) for t in txt]
+        L = [len(x) for x in out]
+        print(f"[corpus] pool：{len(out)} 篇**真正独立**的文档（band "
+              f"[{lo_:,},{hi_:,})，跳过前 {a.pool_skip} 篇），token "
+              f"{min(L):,}-{max(L):,} 合计 {sum(L):,}", flush=True)
+        return out
     if a.corpus != "mix":
         return [enc(d["context"]) for d in load_fineweb(a.corpus)][:a.n_docs]
     shorts = [enc(d["context"]) for d in load_fineweb("fineweb_10k")]

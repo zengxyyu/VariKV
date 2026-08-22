@@ -126,6 +126,46 @@ def build_task(enc, ids, max_ctx, window, n_fact, rng, n_joint=2):
     return ctx, futures, meta
 
 
+def load_fineweb_pool(n_docs, min_len=10000, max_len=30000, skip=68, shard=0):
+    """绕开 `data/load.py:load_fineweb` 的 **1M token 上限**，直接取任意多篇。
+
+    **为什么需要它**（2026-08-22 查明）：`load_fineweb` 的循环末尾有
+    `if total > 10**6: break` —— 于是 `fineweb_10k` 只返回 **68 篇**。
+    那是**加载器的预算上限**，不是数据量上限。同一个 parquet 分片实测：
+
+        分片共 726,000 篇；10k–30k band **4,328 篇 / 63.5M token**、
+        30k–60k 278 篇、60k–100k 46 篇、100k–125k 8 篇。
+
+    ⇒ **独立文档的天花板是 4,328 而不是 68。** 先前「拼接买到组合多样性、
+    独立底文只有 68 篇」那条限制**因此作废** —— 不需要换语料就能拿到几千篇
+    真正独立的文档。（要更多还可以换 `shard`，FineWeb-Edu 有很多个分片。）
+
+`skip=68`：与 `load_fineweb("fineweb_10k")` 返回的那 68 篇**完全不相交**。
+    为什么是 68 而不是 34：门控确实只用了 `fineweb_10k` 前 29 + `fineweb_10k_cat`
+    前 5，**但后者是同一个 band 里的文档拼出来的** —— `load.py` 的 `cat` 分支
+    在同一串 `valid` 下标上累加到 100k 才产出一篇，5 篇 ≈ 消耗掉 band 里前 ~40 篇。
+    所以只跳 34 仍会与门控见过的内容重叠（实测 skip=34 时与那 68 篇重叠 34 篇）。
+    取 68 一刀切最省事。⚠ 这不是防评测污染（FineWeb 与全部评测集本来就零重叠，
+    见 `EVAL_PROTOCOL.md`），只是避免「Student 学的正好是冻结门控见过的那几篇」
+    这种解释上的麻烦。
+
+    ⚠ **band 是按 parquet 自带的 `token_count` 筛的，那不是 Qwen 分词器**。
+    实测用 Qwen 重新编码后范围是 9,263–31,930（略溢出 [10000,30000)）。
+    不影响使用，但报长度时要用重新编码的值。
+    """
+    import numpy as np
+    from datasets import load_dataset
+    ds = load_dataset("HuggingFaceFW/fineweb-edu",
+                      data_files=f"sample/10BT/{shard:03d}_00000.parquet",
+                      split="train")
+    L = np.array(ds.data.column("token_count"))
+    idx = np.arange(len(L))[(L >= min_len) & (L < max_len)]
+    assert len(idx) >= skip + n_docs, \
+        f"band [{min_len},{max_len}) 只有 {len(idx)} 篇，要 skip {skip} + {n_docs}"
+    sel = idx[skip:skip + n_docs]
+    return [ds[int(i)]["text"].strip() for i in sel]
+
+
 def demand_structure(U, rho=0.05):
     """→ 需求结构统计。**教师语料与评测面板都要报，用于反循环性检查。**
 
