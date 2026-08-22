@@ -51,7 +51,14 @@ sys.path.insert(0, os.path.join(HERE, "external/FastKVzip/prefill"))
 
 def load_cells(ds, tag, model="qwen2.5-7b-instruct-1m"):
     """→ {ratio: {sample_idx: [每题得分]}}，判分复用上游 `results.metric`。"""
-    from results.metric import include_score
+    from results.metric import f1_score, include_score
+    # **判分必须按 panel 派发**（`results/metric.py:187-215` 的分支）：
+    # `scbench_qa_eng` 是 `max(f1_score, include_score)`，**连续值**；
+    # 只用 `include_score` 会给出一个不是该 panel 指标的数（第④类错）。
+    def _score(pred, ref):
+        if "qa_eng" in ds:
+            return float(max(f1_score(pred, ref), include_score(pred, ref)))
+        return float(include_score(pred, ref))
     root = os.path.join(HERE, "external/FastKVzip/prefill/results", ds)
     pat = os.path.join(root, f"*_{model}_*{tag}_*", "output-pair.json")
     files = sorted(glob.glob(pat))
@@ -66,7 +73,7 @@ def load_cells(ds, tag, model="qwen2.5-7b-instruct-1m"):
             for entry in d[k]:
                 r = float(entry[0][0])
                 rec = entry[1]
-                s = float(include_score(rec["pruned"], rec["answer"]))
+                s = _score(rec["pruned"], rec["answer"])
                 out.setdefault(r, {}).setdefault(idx, []).append(s)
     return out
 
@@ -97,6 +104,14 @@ def main():
             print(f"{r:>6} {len(keep):>5} {M:>3}   样本不足 8 条，跳过（功效不够）")
             continue
         A = np.array([keep[i] for i in sorted(keep)], float)     # [n, M]
+        # **二值性硬闸**（外部复核指出，采纳）：`Binomial(M,p)` 只有在得分
+        # 严格 0/1 时才是正确的零模型。连续得分（如 qa_eng 的 f1）下
+        # `M·p(1−p)` 不是 Var(K)，整张表会读错。
+        uq = np.unique(A)
+        if not set(uq.tolist()) <= {0.0, 1.0}:
+            print(f"{r:>6} {A.shape[0]:>5} {M:>3}   **得分非二值**"
+                  f"（unique 前 5 个 {uq[:5]}）⇒ Binomial 零模型不适用，跳过")
+            continue
         n = A.shape[0]
         p = A.mean()
         k = A.sum(1)

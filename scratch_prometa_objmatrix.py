@@ -33,7 +33,9 @@
   L_worst = max_m Σ_{i∉S} U_{m,i}                        最小化（最坏损失）
   W_minmax= min_m Σ_{i∈S} U_{m,i}                        最大化（平权福利）
   W_pf    = Σ_m log(ε + Σ_{i∈S} U_{m,i})                 最大化（比例公平）
-            **它对 S 单调且次模** ⇒ 贪心有 (1−1/e) 保证。
+            **它对 S 单调且次模** ⇒ **exact-marginal** 贪心有 (1−1/e) 保证。
+            ⚠ 首版实现用的是连续梯度 `Σ_m U/(ε+t_m)`，**那没有这个保证**；
+            已改成 `Σ_m log1p(U/(ε+t_m))`，即精确的 `Δ_i`。
 
 **预注册的三条自检**（判据本身要能被证伪）：
   ① `mean` 规则在 `L_mean` 上必须**恰好最优**（那是个线性目标，top-B 即精确解）；
@@ -64,7 +66,14 @@ def greedy(U, B, kind, eps):
     sel = []
     for _ in range(B):
         if kind == "pf":
-            g = (U / (eps + t)[:, None]).sum(0)          # ∂/∂x_i Σ log(ε+F_m)
+            # **必须是真实的离散边际增益**，不是连续梯度（外部复核指出，采纳）：
+            #     Δ_i = Σ_m [ log(ε+t_m+U_{m,i}) − log(ε+t_m) ]
+            # 只有 exact-marginal 贪心才有单调次模的 (1−1/e) 保证；梯度式
+            #     g_i = Σ_m U_{m,i}/(ε+t_m)
+            # 是它的一阶近似（`log(1+x) ≤ x`，所以梯度式**系统性高估**大 U 的项），
+            # 二者只在 `U ≪ ε+t` 时接近。首版写了「有 (1−1/e) 保证」而实现是梯度式
+            # —— 那是理论与实现不一致，属第⑤类错。
+            g = np.log1p(U / (eps + t)[:, None]).sum(0)
         else:                                            # minmax
             g = (t[:, None] + U).min(0)
         g = np.where(avail, g, -np.inf)
