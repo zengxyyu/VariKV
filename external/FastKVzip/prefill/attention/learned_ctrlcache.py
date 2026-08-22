@@ -382,6 +382,28 @@ class LearnedControlRetainCache(RetainCache):
                           f" B_chunk={int(b0.sum())} tgt_L1/2={_tg:.0f}"
                           f" got_L1/2={float(_dlt.abs().sum())/2:.0f}"
                           f" n_starved={int((b0==0).sum())}/{int(b0.numel())}", flush=True)
+                if os.environ.get("VARIKV_QUOTA_PREPROJ"):
+                    # **预投影到可达集**（2026-08-22）。动机：`project_quota` 的裁剪
+                    # 把落在**零配额头**上的分量清零、其余照常通过 ⇒ **有效方向 ≠
+                    # 名义方向**（kv 表实测可实现率仅 0.236、名义动 111 头实际 56）。
+                    # 这里先把请求变成可行的，再交给 project_quota，于是「裁剪」不再
+                    # 悄悄改写方向。
+                    #   ① 裁剪 `d_h ← max(d_h, −b0_h)`（不能给出比自己拥有的多）；
+                    #   ② 再平衡：①只削负侧 ⇒ Σd>0，把**正侧**整体缩放回去使 Σd=0。
+                    #      只缩正侧 ⇒ 不会重新引入不可行的负值。
+                    # CPU 2000 次随机试验验过三条不变量：Σd=0、逐头可行、
+                    # 缩放因子 ∈ (0,1]（见 `scratch_preproj_test.py`）。
+                    with torch.no_grad():
+                        _b0f = b0.float()
+                        _dlt = torch.maximum(_dlt, -_b0f)
+                        _ng = float((-_dlt.clamp(max=0)).sum())
+                        _ps = float(_dlt.clamp(min=0).sum())
+                        _sc2 = (_ng / _ps) if _ps > 0 else 1.0
+                        _dlt = torch.where(_dlt > 0, _dlt * _sc2, _dlt)
+                        print(f"[preproj] chunk lo={lo} 正侧缩放={_sc2:.4f}"
+                              f" 裁掉的请求={float((_b0f == 0).sum()):.0f} 个零配额头"
+                              f" 投影后 L1/2={float(_dlt.abs().sum()) / 2:.0f}"
+                              f" Σ={float(_dlt.sum()):+.3e}", flush=True)
                 bt = project_quota(b0, _dlt, n, _qm, L, H,
                                    sc=sc, alpha_eff=_ae)
                 if _rel:
