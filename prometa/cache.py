@@ -58,7 +58,11 @@ from prometa.model import ProMetaPredictor
 from prometa.pool import OnlineAttnPool
 from prometa.risk import entropic_risk_torch
 
-COMBINE = ("resid", "replace")
+# 前两个走**分数**通路（改 `self.score` 再交给上游阈值化）；
+# 后三个走**掩码**通路（先让上游算出基线掩码，再在同一预算下重建本块 `valid`）。
+# 后三个的存在理由见 `_pm_rebuild_mask` 的 docstring：**匹配动作空间的分解**。
+COMBINE = ("resid", "replace", "tokonly", "quotaonly", "oracleboth")
+MASK_MODES = ("tokonly", "quotaonly", "oracleboth")
 
 
 def _z(x, eps=1e-6):
@@ -107,6 +111,25 @@ def prometa_scores(net, pool, key_cache, lo, hi, beta):
     return out
 
 
+def _topb_per_head(x, b):
+    """逐 (层,头) 取 top-`b[l,h]`（b 可逐头不同）。x: [L,H,n]，b: [L,H] long。"""
+    n = x.shape[-1]
+    order = torch.argsort(x, dim=-1, descending=True)
+    rank = torch.empty_like(order)
+    rank.scatter_(-1, order, torch.arange(n, device=x.device).expand_as(order))
+    return rank < b.unsqueeze(-1).clamp(0, n)
+
+
+def _global_topb(x, B):
+    """全局（跨层头）取 top-B。x: [L,H,n] → bool 同形。"""
+    flat = x.reshape(-1)
+    B = int(max(0, min(B, flat.numel())))
+    m = torch.zeros_like(flat, dtype=torch.bool)
+    if B:
+        m[torch.topk(flat, B).indices] = True
+    return m.view_as(x)
+
+
 def make_prometa_cache(base_cls):
     """工厂：给任意 `RetainCache` 子类套上 ProMeta。**不改上游文件。**"""
 
@@ -138,6 +161,8 @@ def make_prometa_cache(base_cls):
             if (getattr(self, "pm_net", None) is None
                     and getattr(self, "pm_oracle", None) is None):
                 return True
+            if self.pm_combine in MASK_MODES:
+                return False          # 掩码通路没有 γ，也就没有构造性零点
             return self.pm_combine == "resid" and self.pm_gamma == 0.0
 
         def _pm_R(self, lo, hi):
@@ -165,11 +190,79 @@ def make_prometa_cache(base_cls):
             new = V[:, seen:, :].permute(1, 0, 2).reshape(N - seen, -1)
             self.pm_pool.update(self.pm_net.proj(new.to(self.pm_net.proj.weight.dtype)))
 
+        def _pm_rebuild_mask(self, lo, hi):
+            """**匹配动作空间的分解**（2026-08-22 加，外部复核指出必要性，采纳）。
+
+            此前只有 `resid`/`replace` 两条**分数**通路，而它们都对 `R` 做了
+            **逐头标准化** ⇒ 未来需求的**跨头幅值**被抹掉 ⇒ 那条通路在结构上
+            几乎只能做**头内重排**，做不了「给某个头更多配额」。
+            于是「地板(改配额) +43.00★ vs Oracle 残差(改分数) +3.50 ns」
+            **是两个不同动作空间的比较**，不能直接推出「价值在配额」。
+
+            这里把 oracle 信息的作用**拆成两半、预算严格匹配**：
+
+              tokonly    配额 = 基线的 `b_h`（**逐头精确保持**），序 = oracle
+                         ⇒ 「只换留哪个 token，未来信息值多少？」
+              quotaonly  配额 = oracle 的全局 top-B 折算出的 `b_h`，序 = 基线 `s⁰`
+                         ⇒ 「只换每个头拿多少，未来信息值多少？」
+              oracleboth 两者都用 oracle ⇒ 上界
+
+            ⚠ **这三条一律用未标准化的 `R`**（`standardized=False`）。标准化正是
+            抹掉跨头幅值的那一步；配额通道要的恰恰是它。
+            """
+            v = self.valid[..., -(hi - lo):]
+            vv = v[:, 0] if v.dim() == 4 else v            # [L,H,n]
+            b0 = vv.sum(-1)                                # [L,H] 基线逐头配额
+            Btot = int(b0.sum().item())
+            U = self.pm_oracle.get((lo, hi))
+            assert U is not None, f"oracle 表里没有 chunk ({lo},{hi})"
+            R = entropic_risk_torch(U.float().to(vv.device), self.pm_beta,
+                                    standardized=False)    # **保留跨头幅值**
+            s0 = torch.stack(self.score, 0)[:, 0, :, lo:hi].float()
+            m = self.pm_combine
+            if m == "tokonly":
+                new = _topb_per_head(R, b0)
+            elif m == "quotaonly":
+                bq = _global_topb(R, Btot).sum(-1)         # oracle 折算出的逐头配额
+                new = _topb_per_head(s0, bq)
+            else:                                          # oracleboth
+                new = _global_topb(R, Btot)
+            # **预算硬闸**：tokonly 逐头精确守恒；另两个全局精确守恒
+            if m == "tokonly":
+                assert torch.equal(new.sum(-1), b0), "tokonly 必须逐头精确守恒配额"
+            else:
+                assert int(new.sum().item()) == Btot, \
+                    f"预算不守恒：{int(new.sum().item())} != {Btot}"
+            tgt = self.valid[..., -(hi - lo):]
+            if tgt.dim() == 4:
+                tgt[:, 0] = new
+            else:
+                tgt[...] = new
+            j = float((vv & new).sum().item()) / max(float((vv | new).sum().item()), 1.0)
+            return dict(J_vs_base=j, Btot=Btot,
+                        quota_moved=float((new.sum(-1) - b0).abs().sum().item()) / 2)
+
         def prune_chunk(self, ratio: float, evict_range=tuple, level: str = "pair"):
             if self._pm_noop():
                 return super().prune_chunk(ratio, evict_range, level)
 
             lo, hi = evict_range
+            # ── 掩码通路：先让上游算出基线掩码，再在同一预算下重建本块 ──
+            if self.pm_combine in MASK_MODES:
+                out = super().prune_chunk(ratio, evict_range, level)
+                with torch.no_grad():
+                    st = self._pm_rebuild_mask(lo, hi)
+                st.update(lo=lo, n=hi - lo)
+                self.pm_stats.append(st)
+                if self.pm_verbose:
+                    print(f"[prometa] chunk lo={lo} n={hi-lo} mode={self.pm_combine} "
+                          f"beta={self.pm_beta} src=ORACLE Btot={st['Btot']} "
+                          f"**J(base,arm)={st['J_vs_base']:.4f}** "
+                          f"配额搬动={st['quota_moved']:.0f} "
+                          f"kept={self.valid.float().mean():.4f}", flush=True)
+                self.pm_nchunk += 1
+                return out
+
             with torch.no_grad():
                 R = self._pm_R(lo, hi)
                 s0 = torch.stack(self.score, 0)[:, 0, :, lo:hi].float()  # [L,H,n]
@@ -342,7 +435,47 @@ def _selftest():
         assert "oracle 表里没有" in str(ex), ex
     print(f"⑧ oracle 臂 _pm_R 对拍 max|差| = {e8:.2e}；缺 chunk 时硬报错　PASS")
 
-    print("\nprometa/cache.py 自测 8 条（CPU 部分）全过")
+    # ⑨ **掩码通路三个 mode 的不变量**（这是「匹配动作空间」这件事的全部依据）
+    class _Dummy2:
+        pass
+    C2 = make_prometa_cache(_Dummy2)
+    o3 = C2.__new__(C2)
+    L2, H2, n2, M2 = 5, 3, 200, 4
+    torch.manual_seed(7)
+    s0b = torch.randn(L2, H2, n2) * torch.linspace(0.3, 3.0, L2 * H2).view(L2, H2, 1) \
+        + torch.linspace(-2, 2, L2 * H2).view(L2, H2, 1)
+    base = _topb_per_head(s0b, torch.randint(3, 40, (L2, H2)))
+    o3.valid = base.clone()[None].permute(1, 0, 2, 3).permute(0, 1, 2, 3)
+    o3.valid = base.unsqueeze(1).clone()                 # [L,1,H,n]
+    o3.score = [s0b[l].unsqueeze(0).clone() for l in range(L2)]   # [1,H,n] each
+    Uo2 = torch.rand(M2, L2, H2, n2) ** 3
+    o3.pm_oracle = {(0, n2): Uo2}
+    o3.pm_beta, o3.pm_verbose = 0.0, False
+    b0 = base.sum(-1)
+    res = {}
+    for mode in ("tokonly", "quotaonly", "oracleboth"):
+        o3.valid = base.unsqueeze(1).clone()
+        o3.pm_combine = mode
+        st = C2._pm_rebuild_mask(o3, 0, n2)
+        new = o3.valid[:, 0]
+        res[mode] = (new, st)
+        assert int(new.sum()) == int(b0.sum()), (mode, int(new.sum()), int(b0.sum()))
+    # tokonly：逐头配额必须**逐位**等于基线；且序应来自 oracle
+    assert torch.equal(res["tokonly"][0].sum(-1), b0)
+    assert res["tokonly"][1]["quota_moved"] == 0.0
+    # quotaonly：配额必须**动了**，而头内保留集必须是 s0 的 top-b（序来自基线）
+    bq = res["quotaonly"][0].sum(-1)
+    assert res["quotaonly"][1]["quota_moved"] > 0, "quotaonly 没搬配额"
+    assert torch.equal(res["quotaonly"][0], _topb_per_head(s0b, bq)), \
+        "quotaonly 的头内顺序必须仍来自 s0"
+    # 阴性对照：oracleboth 的头内顺序**不**来自 s0（否则三个 mode 没区别）
+    bb = res["oracleboth"][0].sum(-1)
+    assert not torch.equal(res["oracleboth"][0], _topb_per_head(s0b, bb))
+    print(f"⑨ 掩码通路：tokonly 逐头配额逐位守恒（搬动 0）、"
+          f"quotaonly 搬动 {res['quotaonly'][1]['quota_moved']:.0f} 且头内序仍是 s0、"
+          f"oracleboth 头内序不是 s0；三者总预算都精确 = {int(b0.sum())}　PASS")
+
+    print("\nprometa/cache.py 自测 9 条（CPU 部分）全过")
 
 
 if __name__ == "__main__":

@@ -96,7 +96,11 @@ def main():
     ap = argparse.ArgumentParser(add_help=False)
     ap.add_argument("--pm_beta", type=float, default=0.0)
     ap.add_argument("--pm_gamma", type=float, default=0.5)
-    ap.add_argument("--pm_combine", default="resid", choices=["resid", "replace"])
+    ap.add_argument("--pm_combine", default="resid",
+                    choices=["resid", "replace", "tokonly", "quotaonly", "oracleboth"],
+                    help="后三个是**匹配动作空间的分解**（见 prometa/cache.py:"
+                         "_pm_rebuild_mask）：tokonly 只换头内留谁、quotaonly 只换"
+                         "每头拿多少、oracleboth 是上界。γ 对它们无效。")
     ap.add_argument("--tblock", type=int, default=32)
     ap.add_argument("--pm_quiet", action="store_true")
     a, rest = ap.parse_known_args()
