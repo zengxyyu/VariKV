@@ -104,16 +104,23 @@ class ProMetaPredictor(nn.Module):
         return torch.stack(out, 1)                             # [M,L,H,N]
 
 
-def diversity_loss(q):
-    """防 probe 坍缩：`mean_{m≠n} cos²(q̂_m, q̂_n)`（q 已归一化）。
+def diversity_loss(q, margin=0.5):
+    """防 probe 坍缩：`mean_{m≠n} max(cos(q̂_m,q̂_n) − margin, 0)²`。
 
-    **不强制正交** —— 未来之间本来就可能相关；只惩罚「全部相同」。
+    ⚠ **撤回首版的 `mean cos²` 与它的说明（2026-08-22，外部复核指出，我同意）。**
+    首版写「不强制正交」是**错的**，两处：
+      ① 最小化 `cos²` 的唯一零点就是 `cos = 0` ⇒ 它**确实**在强制正交；
+      ② `cos = −1`（反向 probe）也拿满罚 `cos²=1`，可是 `softmax(q·k)` 与
+         `softmax(−q·k)` 给出的**排序几乎相反** —— 那是**最大**的多样性，
+         不是坍缩。首版会主动把这种解推开。
+    改成**单边 hinge、作用在有符号的 `cos` 上**：只惩罚「过度相似」，
+    对正交与反向都零罚。`margin` 是唯一超参，默认 0.5。
     """
     v = F.normalize(q.flatten(1), dim=-1)                      # [M, L*H*d]
     s = v @ v.T
     M = v.shape[0]
     off = ~torch.eye(M, dtype=torch.bool, device=v.device)
-    return s[off].pow(2).mean()
+    return (s[off] - margin).clamp_min(0).pow(2).mean()
 
 
 def _selftest():
@@ -145,8 +152,8 @@ def _selftest():
 
     # ⑤ probe 初始就不同（不是从对称鞍点出发）
     dv = diversity_loss(q).item()
-    assert dv < 0.99, f"初始化就坍缩了：cos²={dv:.4f}"
-    print(f"⑤ 初始多样性 cos² = {dv:.4f}（<0.99）　PASS")
+    assert dv < 0.24, f"初始化就坍缩了：hinge={dv:.4f}"
+    print(f"⑤ 初始多样性 hinge = {dv:.4f}（<0.24，即 cos<0.99）　PASS")
 
     # ⑥ 阴性对照：把 probe_bias 清零 + trunk 输出常数 ⇒ 必须坍缩，diversity_loss≈1
     with torch.no_grad():
@@ -155,8 +162,18 @@ def _selftest():
             p.zero_()
     qc = net(hid)
     dvc = diversity_loss(qc).item()
-    assert dvc > 0.99, f"阴性对照没坍缩：cos²={dvc:.4f}"
-    print(f"⑥ 阴性对照（强制对称）cos² = {dvc:.4f}（>0.99）　PASS")
+    assert dvc > 0.24, f"阴性对照没坍缩：hinge={dvc:.4f}"
+    # **反向 probe 必须零罚** —— 这正是首版 cos² 罚满的那种解。
+    # 用 M=2 隔离出「那一对」的贡献；混在 M=5 里其它对的罚会盖住信号
+    # （首版这条自测就是这么写错的：0.00695 vs 0.02500，比值 0.28 而非 ~0）。
+    d_same = diversity_loss(torch.stack([q[0], q[0]], 0)).item()
+    d_anti = diversity_loss(torch.stack([q[0], -q[0]], 0)).item()
+    d_orth = diversity_loss(torch.stack([q[0], q[2]], 0)).item()
+    assert abs(d_same - 0.25) < 1e-5, d_same          # (1−margin)² = 0.25
+    assert d_anti == 0.0, d_anti
+    print(f"⑥ 阴性对照（强制对称）hinge = {dvc:.4f}（>0.24）；M=2 隔离：相同 probe "
+          f"{d_same:.4f}（=(1−margin)²）、**反向 {d_anti:.4f}**、近正交 {d_orth:.4f}"
+          f"　PASS")
 
     # ⑦ **离线 pool 与在线 OnlineAttnPool 必须等价**（同一个量两条实现对拍）
     import sys as _s, os as _o

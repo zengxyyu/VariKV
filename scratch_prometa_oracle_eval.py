@@ -11,11 +11,17 @@ ProMeta 的**全部**新颖性等价于一句话：`ρ_β`（β>0，偏向最坏
 （`FINDINGS_DENOISING.md`）。⇒ 必须用**真实任务分数**再判一次。
 
 本脚本把 **oracle 未来效用**（用样本自带的真实 question/answer 算）直接当保留分
-注入驱逐通路，扫 β。它是**任何 Student 的上界**：
+注入驱逐通路，扫 β。
 
-  · Student 只能看前缀，oracle 看了未来查询 ⇒ **按定义泄漏**，只能标 Oracle；
-  · 若 oracle 在任务分数上 `β=0 ≈ β>0`，则**任何** Student 都不可能靠 β 赢
-    ⇒ ProMeta 线整条停，且是在训练之前停的。
+**⚠ 它是「特权信息参照臂」，不是任务分数的上界（2026-08-22 撤回上一版措辞）。**
+上一版写「它是任何 Student 的上界」并据此写下判据「若 oracle 上 β=0≈β>0，
+则任何 Student 都不可能靠 β 赢」—— **两句都过强**。理由是本仓库自己测过的
+那件事：**保真度与任务效用会背离**（`FINDINGS_DENOISING.md`：恢复得越忠实、
+Retr.MultiHop 分数越低）。一个**有偏**的 Student 完全可能因为正则化或
+任务对齐的偏置，在下游**超过**用真值 `U` 的 oracle。
+⇒ 正确说法是 **privileged-information comparator / upper-information
+reference**，不是 task-performance upper bound。
+⇒ 判据也要相应放宽（见下）。
 
 ────────────────────────────────────────────────────────────────────────────
 怎么做到零 upstream 改动
@@ -164,8 +170,8 @@ def main():
     else:
         rest += ["--tag", suf]
     print(f"[oracle-eval] cfg={cfg} chunk={chunk} window={window}\n"
-          f"[oracle-eval] ⚠ 这是**上界臂**：用了未来查询，按定义泄漏，"
-          f"只能与其他 Oracle 臂互比、不能当方法\n"
+          f"[oracle-eval] ⚠ **特权信息参照臂**（不是任务分数上界）：用了未来查询、"
+          f"按定义泄漏，只能与其他 Oracle 臂互比、不能当方法\n"
           f"[oracle-eval] 透传：{' '.join(rest)}", flush=True)
     sys.argv = ["eval_chunk.py"] + rest
     runpy.run_path(os.path.join(PREFILL, "eval_chunk.py"), run_name="__main__")

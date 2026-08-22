@@ -67,15 +67,16 @@ def pairwise_kl(Us, Uh):
     return kl.flatten(2).mean(-1)
 
 
-def match_loss(Us, Uh, return_perm=False):
+def match_loss(Us, Uh, return_perm=False, allow_extra=False):
     """置换不变的需求损失。允许 **Student 的 probe 数 ≥ teacher 的未来数**。
 
         L = min_{单射 π: [Mt] → [Ms]}  (1/Mt) Σ_m KL(U*_m ‖ Û_{π(m)})
 
-    `Ms > Mt` 时用**单射**而不是双射（DETR 式集合预测）：Student 可以携带比
-    任何一条训练样本的未来数更多的 probe，多出来的那些本步不吃需求梯度，
-    只由 `diversity_loss` 约束。这解除了「Student 的 M 必须等于教师任务的 M」
-    这个本来毫无必要的耦合。
+    ⚠ **`Ms > Mt` 默认被禁止**（`allow_extra=True` 才放行）。理由不是数学，
+    是**训练与推理不一致**：没匹配上的 probe 在训练里只吃 diversity loss，
+    推理时 `ρ_β` 却把全部 `Ms` 个 probe 都算进决策 —— 一个从未被任何真实
+    未来监督过的方向可以改变驱逐结果。要真正支持变长 M，必须同时让推理端
+    只用被监督的子集，那还没实现。
 
     ⚠ 枚举量是 `Ms!/(Ms−Mt)!`；`Ms≤8` 时最多 40320，可以接受。
     """
@@ -83,13 +84,25 @@ def match_loss(Us, Uh, return_perm=False):
     assert Ms >= Mt, f"Student 的 probe 数 {Ms} < teacher 的未来数 {Mt}"
     assert Ms <= 8, f"Ms={Ms} 太大，全枚举不现实；改用 scipy 匈牙利"
     assert Us.shape[1:] == Uh.shape[1:], (Us.shape, Uh.shape)
+    if Ms != Mt:
+        # **默认禁止 Ms > Mt（外部复核指出的真实逻辑缺口，2026-08-22）**：
+        # 没被任何真实未来匹配上的 probe 在训练里只吃 diversity loss，
+        # **但推理时 `ρ_β` 会把全部 Ms 个 probe 都算进去** ⇒
+        # 一个从未被监督过的方向可以改变驱逐决策。这不是性能问题，是
+        # 「训练与推理不是同一个函数」。要开必须显式传 `allow_extra=True`
+        # 并同时把推理端限制到被监督的子集 —— 那还没实现。
+        assert allow_extra, (
+            f"Ms={Ms} > Mt={Mt}：未被监督的 probe 仍会参与推理决策，"
+            f"默认禁止。第一版请锁 Ms=Mt。")
     C = pairwise_kl(Us, Uh)                       # [Mt, Ms]
-    rows = torch.arange(Mt)
-    best, bestp = None, None
-    for p in itertools.permutations(range(Ms), Mt):
-        v = C[rows, torch.tensor(p)].mean()
-        if best is None or v.item() < best.item():
-            best, bestp = v, p
+    rows = torch.arange(Mt, device=C.device)
+    # **不要在枚举里 `.item()`** —— 每次都是一次 GPU→CPU 同步，M=5 就是 120 次。
+    # 把全部置换的代价堆成一个张量，一次 `min`。
+    perms = list(itertools.permutations(range(Ms), Mt))
+    idx = torch.tensor(perms, device=C.device)                 # [P, Mt]
+    vals = C[rows.unsqueeze(0).expand(len(perms), Mt), idx].mean(-1)   # [P]
+    k = int(torch.argmin(vals.detach()))
+    best, bestp = vals[k], perms[k]
     return (best, bestp) if return_perm else best
 
 
@@ -146,18 +159,25 @@ def _selftest():
     # ⑥ total_loss 的两项都非零且可分
     import sys, os
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from prometa.model import ProMetaPredictor
+    from prometa.model import ProMetaPredictor, diversity_loss
     net = ProMetaPredictor(64, 8, L, H, n_future=M, d_proj=16, n_pool=2, d_lat=8)
     q = net(torch.randn(N, 64))
     keys = [torch.randn(1, H, N, 8) for _ in range(L)]
     Uh = ProMetaPredictor.demand(q, keys)
     tl, parts = total_loss(Us, Uh, q, lam_div=0.1)
-    assert parts["demand"] > 0 and parts["div"] > 0
+    # **改成 hinge 之后 div 在随机初始化下通常恰为 0**（没有一对 cos 超过
+    # margin）—— 那是**正确行为**，不是失败：它只在 probe 真的靠拢时才发力。
+    # 所以这里断言 div ≥ 0，另用一个坍缩输入验证它确实会发力。
+    assert parts["demand"] > 0 and parts["div"] >= 0, parts
+    qcol = q[:1].expand(M, *q.shape[1:]).contiguous()
+    assert diversity_loss(qcol).item() > 0.2, "坍缩时 div 必须发力"
     tl.backward()
     dead = [n for n, p in net.named_parameters()
             if p.grad is None or p.grad.abs().max() == 0]
     assert not dead, f"这些参数没梯度：{dead}"
-    print(f"⑥ total_loss demand={parts['demand']:.4f} div={parts['div']:.4f}、"
+    print(f"⑥ total_loss demand={parts['demand']:.4f} div={parts['div']:.4f}"
+          f"（hinge，随机初始化下常为 0；坍缩输入给 "
+          f"{diversity_loss(qcol).item():.4f}）、"
           f"{len(list(net.parameters()))} 个张量全有梯度　PASS")
 
     # ⑦ **Ms > Mt（单射匹配）**：多出来的 probe 不该改变最优损失
@@ -165,9 +185,15 @@ def _selftest():
     v_eq, p_eq = match_loss(Us4, Us4.clone(), return_perm=True)
     pad = torch.softmax(torch.randn(3, L, H, N), -1)
     Uh7 = torch.cat([pad[:2], Us4, pad[2:]], 0)                 # Ms=7 含全部 4 个真值
-    v_in, p_in = match_loss(Us4, Uh7, return_perm=True)
+    try:
+        match_loss(Us4, Uh7)
+        raise SystemExit("Ms>Mt 默认应被拦住（未被监督的 probe 会参与推理）")
+    except AssertionError as ex:
+        assert "默认禁止" in str(ex), ex
+    v_in, p_in = match_loss(Us4, Uh7, return_perm=True, allow_extra=True)
     assert v_in.item() < 1e-8 and list(p_in) == [2, 3, 4, 5], (v_in.item(), p_in)
-    print(f"⑦ Ms=7 > Mt=4 单射匹配：loss={v_in.item():.2e}、选中 {p_in}（期望 (2,3,4,5)）　PASS")
+    print(f"⑦ Ms=7 > Mt=4 **默认被断言拦住**；显式 allow_extra 后单射匹配 "
+          f"loss={v_in.item():.2e}、选中 {p_in}（期望 (2,3,4,5)）　PASS")
 
     # ⑧ `to_dist` 与非分布输入的守卫
     raw = torch.rand(3, 2, 2, 9) * 7 + 0.1
