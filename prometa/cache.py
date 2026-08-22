@@ -111,9 +111,16 @@ def make_prometa_cache(base_cls):
     """工厂：给任意 `RetainCache` 子类套上 ProMeta。**不改上游文件。**"""
 
     class ProMetaCache(base_cls):
-        def pm_init(self, net: ProMetaPredictor, *, beta=1.0, gamma=1.0,
-                    combine="resid", pool_layer=14, verbose=True):
-            self.pm_net = net.eval()
+        def pm_init(self, net, *, beta=1.0, gamma=1.0,
+                    combine="resid", pool_layer=14, verbose=True, oracle=None):
+            """`net` 是 Student；`oracle` 是 `{(lo,hi): U[M,L,Hkv,n]}` 的**上界臂**。
+
+            **Oracle 臂用未来查询算 `U` ⇒ 按定义泄漏**，它只能当任何 Student 的
+            上界报，绝不能当方法。二者互斥（传了 oracle 就不看 net）。
+            """
+            assert (net is None) != (oracle is None), "net 与 oracle 恰给一个"
+            self.pm_oracle = oracle
+            self.pm_net = net.eval() if net is not None else None
             self.pm_beta = float(beta)
             self.pm_gamma = float(gamma)
             assert combine in COMBINE, combine
@@ -128,8 +135,22 @@ def make_prometa_cache(base_cls):
         def _pm_noop(self):
             """`resid` + `gamma==0` 是**构造性零点**：短路回基线，一次浮点都不多做。
             `replace` 没有零点（它按定义就换掉了形状），不允许短路。"""
-            return (getattr(self, "pm_net", None) is None
-                    or (self.pm_combine == "resid" and self.pm_gamma == 0.0))
+            if (getattr(self, "pm_net", None) is None
+                    and getattr(self, "pm_oracle", None) is None):
+                return True
+            return self.pm_combine == "resid" and self.pm_gamma == 0.0
+
+        def _pm_R(self, lo, hi):
+            """本块的风险分 `R: [L,Hkv,hi-lo]`。Oracle 臂与 Student 臂唯一的分岔点。"""
+            if self.pm_oracle is not None:
+                U = self.pm_oracle.get((lo, hi))
+                assert U is not None, \
+                    f"oracle 表里没有 chunk ({lo},{hi})；表里有 {sorted(self.pm_oracle)[:4]}…"
+                return entropic_risk_torch(U.float().to(self.key_cache[0].device),
+                                           self.pm_beta)
+            self._pm_update_pool()
+            return prometa_scores(self.pm_net, self.pm_pool, self.key_cache,
+                                  lo, hi, self.pm_beta)
 
         def _pm_update_pool(self):
             """用 `value_cache[pool_layer]` 的**新增部分**更新在线池化。"""
@@ -150,9 +171,7 @@ def make_prometa_cache(base_cls):
 
             lo, hi = evict_range
             with torch.no_grad():
-                self._pm_update_pool()
-                R = prometa_scores(self.pm_net, self.pm_pool, self.key_cache,
-                                   lo, hi, self.pm_beta)
+                R = self._pm_R(lo, hi)
                 s0 = torch.stack(self.score, 0)[:, 0, :, lo:hi].float()  # [L,H,n]
                 s = combine_scores(s0, R, self.pm_gamma, self.pm_combine)
                 # 写回本块切片（各 chunk 的 evict_range 互不相交，安全）
@@ -181,9 +200,10 @@ def make_prometa_cache(base_cls):
                           kept=float(self.valid.float().mean()))
                 self.pm_stats.append(st)
             if self.pm_verbose:
+                src = "ORACLE" if self.pm_oracle is not None else \
+                    f"student(pool_layer={self.pm_pool_layer},n={self.pm_pool.n})"
                 print(f"[prometa] chunk lo={lo} n={hi-lo} beta={self.pm_beta} "
-                      f"gamma={self.pm_gamma} combine={self.pm_combine} "
-                      f"pool_layer={self.pm_pool_layer} pooled_n={self.pm_pool.n} "
+                      f"gamma={self.pm_gamma} combine={self.pm_combine} src={src} "
                       f"R(mean={st['R_mean']:.4e} std={st['R_std']:.4e}) "
                       f"**J(base,prometa)@k={k}={agree:.4f}** "
                       f"kept={st['kept']:.4f}", flush=True)
@@ -292,7 +312,7 @@ def _selftest():
         pass
     C = make_prometa_cache(Dummy)
     o = C.__new__(C)
-    o.pm_net = None
+    o.pm_net = None; o.pm_oracle = None
     assert C._pm_noop(o)
     o.pm_net, o.pm_combine, o.pm_gamma = net, "resid", 0.0
     assert C._pm_noop(o)
@@ -300,9 +320,29 @@ def _selftest():
     assert not C._pm_noop(o)
     o.pm_combine, o.pm_gamma = "replace", 0.0
     assert not C._pm_noop(o), "replace 没有零点，不许短路"
-    print("⑦ _pm_noop：未装网络/resid@γ=0 短路；resid@γ>0 与 replace 不短路　PASS")
+    o.pm_net, o.pm_oracle, o.pm_combine, o.pm_gamma = None, {}, "resid", 0.5
+    assert not C._pm_noop(o), "oracle 臂也应当进分支"
+    print("⑦ _pm_noop：未装网络/resid@γ=0 短路；resid@γ>0、replace、oracle 臂"
+          "都不短路　PASS")
 
-    print("\nprometa/cache.py 自测 7 条（CPU 部分）全过")
+    # ⑧ oracle 臂的 `_pm_R` 与直接算 risk 对拍，且缺表时必须报错（不许静默跑成基线）
+    o2 = C.__new__(C)
+    o2.pm_net, o2.pm_beta = None, 1.7
+    Uo = torch.rand(5, Lc, Hc, 12)
+    o2.pm_oracle = {(3, 15): Uo}
+    o2.key_cache = [torch.zeros(1, Hc, 20, d)]
+    Rg = C._pm_R(o2, 3, 15)
+    from prometa.risk import entropic_risk as _er
+    e8 = float(np.abs(_er(Uo.numpy(), 1.7) - Rg.numpy()).max())
+    assert e8 < 1e-4, e8
+    try:
+        C._pm_R(o2, 0, 12)
+        raise SystemExit("缺表没报错 —— 会静默跑成别的东西")
+    except AssertionError as ex:
+        assert "oracle 表里没有" in str(ex), ex
+    print(f"⑧ oracle 臂 _pm_R 对拍 max|差| = {e8:.2e}；缺 chunk 时硬报错　PASS")
+
+    print("\nprometa/cache.py 自测 8 条（CPU 部分）全过")
 
 
 if __name__ == "__main__":
