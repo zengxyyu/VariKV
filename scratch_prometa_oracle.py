@@ -26,7 +26,15 @@
 不是模型真实的注意力权重。换一种归一化会改变绝对值，但**不改变同一
 (层,头) 内的排序**，而本探针的所有判据都只用排序。
 
-    .venv/bin/python scratch_prometa_oracle.py --idx 0 --n 4
+**⚠ 面板选择会左右判据 A，方向与直觉相反，必须两个都跑**：若未来**互不相交**，
+则 `mean = max/M` 是单调变换、排序必然相同 ⇒ 判据 A 平凡判否。分歧只可能来自
+「被单个未来强需要」与「被全部未来弱需要」两类位置并存。
+⇒ `scbench_kv`（5 个互不相交的 key 查找）**对判据 A 偏悲观**；
+`scbench_qa_eng`（同一文档上 5 个自然语言问题，共享背景 + 各自证据）
+**是分歧最可能出现的面板**。**只在一个面板上得到结论都不算。**
+
+    .venv/bin/python scratch_prometa_oracle.py -d scbench_kv     --idx 0 --n 4
+    .venv/bin/python scratch_prometa_oracle.py -d scbench_qa_eng --idx 0 --n 4
 """
 import argparse
 import os
@@ -113,6 +121,11 @@ def main():
 
         # 5 个真实未来（scbench 自带）；prob=False 只生成答案文本，不做额外 forward
         inputs, _ = dataset.generate_answer(idx, kv, prob=False)
+        # ⚠ 不变量（补）：`generate_answer` 内部对每个 question 调 `model.generate`，
+        # 后者 `update_cache=False` 并以 `kv.slice(seen_token_prev)` 回滚。若哪天默认
+        # 变了，前缀会被 5 次生成污染，而 U 仍然算得出来 —— 静默失败。
+        assert int(kv.key_cache[0].shape[-2]) == n_prefix, \
+            f"generate_answer 改动了前缀：{kv.key_cache[0].shape[-2]} != {n_prefix}"
         tags = [t for t in inputs["eval_task"]]
         assert len(tags) >= 2, f"样本 {idx} 只有 {len(tags)} 个未来，本探针需要多个"
 
