@@ -99,14 +99,15 @@ def prometa_scores(net, pool, key_cache, lo, hi, beta):
     **整个函数在 `no_grad` 下**：ProMeta 的推理路径永远不需要梯度。
     """
     z = pool.value()                                       # [K,dp]
-    q = net.from_pooled(z).detach()                        # [M,L,Hkv,d]
-    M, L, H, d = q.shape
+    q = net.from_pooled(z).detach()                        # [M,R,L,Hkv,d]
+    M, R, L, H, d = q.shape
     dev = key_cache[0].device
     out = torch.empty(L, H, hi - lo, device=dev, dtype=torch.float32)
     for l in range(L):
         K = key_cache[l][0][:, lo:hi, :].to(q.dtype)       # [H,n,d]
-        U = torch.softmax(
-            torch.einsum("mhd,hnd->mhn", q[:, l], K) / d ** 0.5, dim=-1)
+        # ⚠ **必须走 `demand_layer` 这一个真源** —— 部署、训练、`model.demand`
+        #    三处若各写一遍 max_r + 重归一化，迟早不一致（第④类错）。
+        U = ProMetaPredictor.demand_layer(q[:, :, l], K)   # [M,H,n]
         out[l] = entropic_risk_torch(U, beta).to(out.dtype)
     return out
 
@@ -397,13 +398,18 @@ def _selftest():
     pool.update(net.proj(torch.randn(Nc, Hc * d)))
     Rr = prometa_scores(net, pool, kc, 5, 25, 1.3)
     assert Rr.shape == (Lc, Hc, 20), Rr.shape
-    q = net.from_pooled(pool.value())
-    Uref = torch.softmax(
-        torch.einsum("mhd,hnd->mhn", q[:, 1], kc[1][0][:, 5:25]) / d ** 0.5, -1)
+    # ⑥ 与 numpy risk 对拍。**参照必须在这里独立写一遍 max_r + 重归一化**
+    #    —— 若照抄 `demand_layer`，两边同时错就查不出来（对拍的意义就没了）。
+    q = net.from_pooled(pool.value())                          # [M,R,L,H,d]
+    pr = torch.softmax(
+        torch.einsum("mrhd,hnd->mrhn", q[:, :, 1], kc[1][0][:, 5:25]) / d ** 0.5, -1)
+    Uref = pr.amax(1)
+    Uref = Uref / Uref.sum(-1, keepdim=True)
     Rref = entropic_risk(Uref.detach().numpy(), 1.3)
     e = float(np.abs(Rref - Rr[1].numpy()).max())
     assert e < 1e-4, e
-    print(f"⑥ prometa_scores 与 numpy risk 对拍 max|差| = {e:.2e}　PASS")
+    print(f"⑥ prometa_scores 与独立写的 max_r+重归一化+numpy risk 对拍 "
+          f"max|差| = {e:.2e}（R={q.shape[1]}）　PASS")
 
     # ⑦ `_pm_noop` 的三种情形
     class Dummy:

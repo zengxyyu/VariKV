@@ -117,6 +117,13 @@ def parse():
     p.add_argument("--d_lat", type=int, default=64)
     p.add_argument("--pool_layer", type=int, default=14)
     p.add_argument("--lam_div", type=float, default=0.1)
+    p.add_argument("--n_atoms", type=int, default=8,
+                   help="每个未来的检索 atom 数。教师是 max_{t,g} 的包络，Student 用 "
+                        "max_r 与之同族。R=8 由 scratch_prometa_arch.py 定："
+                        "真实 level=pair 全局掩码 J@0.1 R=1 0.6414 → R=8 0.7204 → "
+                        "R=16 0.7360（R=16 只多 +0.016 却参数翻倍）")
+    p.add_argument("--lam_atom", type=float, default=0.1,
+                   help="atom 多样性权重。硬 max 下没赢过的 atom 梯度恒零会静默死掉")
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--epochs", type=int, default=3)
     p.add_argument("--seed", type=int, default=0)
@@ -169,13 +176,16 @@ def student_demand(net, kv, lo, hi, pool_end, pool_layer, no_context=False):
         V = kv.value_cache[pool_layer][0][:, :pool_end, :]      # [Hkv,n,d]
         flat = V.permute(1, 0, 2).reshape(pool_end, -1).to(net.proj.weight.dtype)
         q = net.from_pooled(net.pool(flat))                     # [Ms,L,Hkv,d]
-    Ms, L, H, d = q.shape
-    out = []
+    from prometa.model import ProMetaPredictor
+    Ms, R, L, H, d = q.shape
+    out, use = [], []
     for l in range(L):
         K = kv.key_cache[l][0][:, lo:hi, :].to(q.dtype)
-        out.append(torch.softmax(
-            torch.einsum("mhd,hnd->mhn", q[:, l], K) / d ** 0.5, dim=-1))
-    return torch.stack(out, 1), q                               # [Ms,L,H,n]
+        u, w = ProMetaPredictor.demand_layer(q[:, :, l], K, ret_usage=True)
+        out.append(u); use.append(w)
+    # 第三个返回值是 **atom 利用率**：硬 max 下没赢过的 atom 梯度恒零，
+    # 会静默死掉；不打印它就等于没有运行时证据（本仓库铁律）。
+    return torch.stack(out, 1), q, torch.stack(use, 0).mean(0)   # [Ms,L,H,n]
 
 
 def build_corpus(a, enc):
@@ -244,7 +254,8 @@ def main():
     np.random.seed(a.seed)
     from data.load import load_fineweb
     from model import ModelKVzip
-    from prometa.model import ProMetaPredictor, diversity_loss
+    from prometa.model import (ProMetaPredictor, diversity_loss,
+                               atom_diversity_loss)
     from prometa.teacher import (build_task, chunk_ranges, demand_structure,
                                  extract_U)
     from prometa.train import match_loss, to_dist
@@ -289,7 +300,8 @@ def main():
     Ms = a.n_probe or Mt
     assert Ms >= Mt, (Ms, Mt)
     net = ProMetaPredictor(Hkv * dh, dh, L, Hkv, n_future=Ms, d_proj=a.d_proj,
-                           n_pool=a.n_pool, d_lat=a.d_lat).to(model.device).float()
+                           n_pool=a.n_pool, d_lat=a.d_lat,
+                           n_atoms=a.n_atoms).to(model.device).float()
     opt = torch.optim.AdamW(net.parameters(), lr=a.lr)
     npar = sum(p.numel() for p in net.parameters())
     print(f"[train] L={L} Hkv={Hkv} d={dh} sys_len={sys_len} | "
@@ -411,9 +423,11 @@ def main():
                 #    被裁+重归一化后会向平凡解靠，那时 val 变差可能是截断伪影而不是
                 #    「标签换错了」。一个 62.6% 但**每次都干净**的置换，比一个 100%
                 #    里混着 37% 双变量改动的置换更有说服力（对照一次只变一个变量）。
-                lo_w = w if a.shuffle_mode == "exact" else 0
-                cand = [(dw, d_, u_) for dw, lst in _label_bank.items()
-                        for d_, u_ in lst if d_ != di and dw >= w and dw >= lo_w]
+                # ⚠ 首版写成 `dw >= w and dw >= lo_w`（`lo_w = w`）—— **两个条件等价，
+                #    exact 模式完全没生效**，真机冒烟打出「精确同宽 0、裁剪自更宽 2」
+                #    才看出来。这就是「每加一个 mode 必须同时加运行时日志」的用处。
+                cand = [(dw, d_, u_) for dw, lst in _label_bank.items() for d_, u_ in lst
+                        if d_ != di and (dw == w if a.shuffle_mode == "exact" else dw >= w)]
                 if cand:
                     dw, _d, u = min(cand, key=lambda t: t[0])   # 最接近的更宽者
                     if dw == w:
@@ -433,12 +447,13 @@ def main():
 
         ds = demand_structure(U_by[pick[len(pick) // 2]])
         tot, triv, cnt, dvs = 0.0, 0.0, 0, 0.0
+        _use_acc = []
         for lo, hi in pick:
             Us = to_dist(torch.as_tensor(U_by[(lo, hi)], device=model.device))
             pool_end = min(hi + a.window, info["n_prefix"])
             if train:
-                Uh, q = student_demand(net, kv, lo, hi, pool_end, a.pool_layer,
-                                       no_context=a.no_context)
+                Uh, q, use = student_demand(net, kv, lo, hi, pool_end, a.pool_layer,
+                                            no_context=a.no_context)
                 # **demand 与 div 必须分开记**（外部复核指出，采纳）：训练侧
                 # 之前打印的是 `demand + λ·div`，验证侧只有 `demand`，两者被
                 # 直接并排比较且都拿「平凡解」当参照 —— 而平凡解只是 `demand`
@@ -452,7 +467,8 @@ def main():
                 #    每条未来数的直方图，保证这一点可查。
                 dem = match_loss(Us, Uh, allow_extra=a.allow_mixed_M)
                 dv = diversity_loss(q)
-                loss = dem + a.lam_div * dv
+                da = atom_diversity_loss(q)
+                loss = dem + a.lam_div * dv + a.lam_atom * da
                 opt.zero_grad(set_to_none=True)
                 loss.backward()
                 gn = torch.nn.utils.clip_grad_norm_(net.parameters(), 1.0)
@@ -474,10 +490,11 @@ def main():
                 opt.step()
             else:
                 with torch.no_grad():
-                    Uh, q = student_demand(net, kv, lo, hi, pool_end, a.pool_layer,
-                                           no_context=a.no_context)
+                    Uh, q, use = student_demand(net, kv, lo, hi, pool_end, a.pool_layer,
+                                                no_context=a.no_context)
                     dem = match_loss(Us, Uh, allow_extra=a.allow_mixed_M)
                     dv = diversity_loss(q)
+                    da = atom_diversity_loss(q)
                 gn = torch.tensor(0.0)
             # 纪律①：平凡解参照 —— Student 输出均匀分布时的损失
             n = hi - lo
@@ -485,14 +502,18 @@ def main():
                 triv_l = float((np.log(n) + (Us * torch.log(
                     Us.clamp_min(1e-12))).sum(-1)).mean())
             tot += float(dem); triv += triv_l; dvs += float(dv); cnt += 1
+            _use_acc.append(use.detach().cpu().numpy())
             print(f"  doc{di} chunk[{lo},{hi}) n={n} pool_end={pool_end} "
                   f"demand={float(dem):.4f} 平凡解={triv_l:.4f} "
                   f"(相对降低 {1 - float(dem)/max(triv_l,1e-9):+.1%}) "
-                  f"div={float(dv):.4f} |g|={float(gn):.3e}", flush=True)
-            del Us, Uh, q, dem, dv
+                  f"div={float(dv):.4f} atomdiv={float(da):.4f} "
+                  f"atom用量={'/'.join(f'{float(x):.2f}' for x in use)} "
+                  f"|g|={float(gn):.3e}", flush=True)
+            del Us, Uh, q, dem, dv, use
         del U_by, kv
         torch.cuda.empty_cache()
-        return tot / cnt, triv / cnt, cnt, ds, dvs / cnt
+        return (tot / cnt, triv / cnt, cnt, ds, dvs / cnt,
+                np.mean(_use_acc, 0) if _use_acc else np.zeros(1))
 
     if a.ablate_span:
         # **Q-only vs Q+A**：教师用真答案是否构成泄漏，用数字回答，不用措辞
@@ -563,6 +584,10 @@ def main():
               f"**val demand {f(va,0):.4f} (平凡 {f(va,1):.4f}, "
               f"相对 {1-f(va,0)/max(f(va,1),1e-9):+.1%})** | "
               f"div train {f(tr,4):.4f} val {f(va,4):.4f} | "
+              # **atom 死亡是静默的** —— 最小用量掉到 ~0 就说明那个 atom 从没赢过
+              # 任何位置、梯度恒零，R=8 已经退化。必须逐 epoch 可查。
+              f"**atom用量 {'/'.join(f'{x:.3f}' for x in (np.mean([t[5] for t in tr], 0) if tr else [0]))}"
+              f"（最小 {min(np.mean([t[5] for t in tr], 0)) if tr else 0:.3f}）** | "
               f"教师需求结构 J(mean,max)={ds.get('J_mean_max',float('nan')):.4f} "
               f"shared={ds.get('shared_frac',float('nan')):.4f} "
               f"conc_only_mean={ds.get('conc_only_mean',float('nan')):.4f} "
@@ -573,7 +598,8 @@ def main():
                         args=vars(a), epoch=ep,
                         arch=dict(hidden_dim=Hkv * dh, head_dim=dh, n_layers=L,
                                   n_kv_heads=Hkv, n_future=Ms, d_proj=a.d_proj,
-                                  n_pool=a.n_pool, d_lat=a.d_lat),
+                                  n_pool=a.n_pool, d_lat=a.d_lat,
+                                  n_atoms=a.n_atoms),
                         model=a.model, teacher=dict(corpus=a.corpus, span=a.span,
                                                     n_fact=a.n_fact,
                                                     n_joint=a.n_joint)), a.out)
