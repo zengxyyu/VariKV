@@ -414,6 +414,16 @@ class LearnedControlRetainCache(RetainCache):
                     # 而非方向差异。这一行把实际量打出来，判据才闭合。
                     _re = float((bt.float() - b0.float()).abs().sum()) / 2.0
                     _rq = float(_dlt.abs().sum()) / 2.0
+                    # **名义方向 vs 有效方向的直接测量**（2026-08-22）。
+                    # `project_quota` 在 ρ=0.1 上能搬到 244 且可行，而严格投影到
+                    # 可达集后表自己的方向只支持 17 ⇒ **它搬的那 244 多半不在表的
+                    # 方向上**。cos 就是判这一条：≈1 ⇒ 裁剪只缩幅；≈0 ⇒ 实际执行的
+                    # 是另一个方向，那张表的「方向」并不是产生 +29.40 的东西。
+                    _a = (bt.float() - b0.float()).flatten()
+                    _bq = _dlt.float().flatten()
+                    _cos = float((_a @ _bq) / (_a.norm() * _bq.norm() + 1e-30))
+                    print(f"[align] chunk lo={lo} **cos(实际, 请求)={_cos:+.4f}**"
+                          f" 实际 L1/2={_re:.0f} 请求 L1/2={_rq:.0f}", flush=True)
                     print(f"[qreal] chunk lo={lo} 请求 L1/2={_rq:.0f}"
                           f" **实际 L1/2={_re:.0f}** 可实现={_re / max(_rq, 1e-9):.4f}"
                           f" 动的头={int(((bt.float() - b0.float()).abs() > 0.5).sum())}"
