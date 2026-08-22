@@ -56,10 +56,20 @@ def floor_stats(tag):
     ng = np.array([int(r[3]) for r in rows], dtype=float)
     lf = np.array([float(r[5]) for r in rows])
     bt = np.array([int(r[6]) for r in rows], dtype=float)
+    # **需求/预算 = b_min·L·H / Btot** —— 跨 panel 比较前必须看这一列。
+    # 2026-08-22 的教训：`b_min=8` 在 Retr.KV 上占预算 0.64%、在 GSM8K@0.1 上
+    # 占 **109%**（不可行，触发 `min(b_min, Btot//(L·H))` 降级 ⇒ 近似均匀分配）。
+    # 同一个绝对数在两类 panel 上是相差 125 倍的干预（第②类错）。
+    bm0 = max(bmin) if bmin else 0
+    ngp = int(ng[0])
+    med_bt = float(np.median(bt))
+    demand = (bm0 * ngp / med_bt) if med_bt > 0 else float("inf")
+    sat = float((bt // max(ngp, 1) < bm0).mean())     # 触发降级的 chunk 占比
     return dict(n_chunks=len(rows), bmin=sorted(bmin),
-                starve_frac=float((st / ng).mean()), n_groups=int(ng[0]),
+                starve_frac=float((st / ng).mean()), n_groups=ngp,
                 lift_total=float(lf.sum()), lift_max=float(lf.max()),
-                lift_frac=float((lf / np.maximum(bt, 1)).mean()))
+                lift_frac=float((lf / np.maximum(bt, 1)).mean()),
+                btot_med=med_bt, demand=demand, sat_frac=sat)
 
 
 def finished(tag):
@@ -149,17 +159,31 @@ def main():
         print()
 
     print("## ② 地板的实际动作（从 `[floor]` 运行时日志读出，非重算）\n")
-    print("| panel | ρ | 饿死头占比 | 抬起总配额 | 占预算 | chunk 数 | b_min |")
-    print("|---|---|---|---|---|---|---|")
+    print("**⚠ 先看「需求/预算」列。** 它 = `b_min·L·H / Btot`（`Btot` 取全 chunk 中位）。"
+          "超过 100% 表示地板**在数学上不可行**，`quota_project` 会降级到 "
+          "`min(b_min, Btot//(L·H))`，干预实际退化成**近似均匀分配** —— "
+          "那样的格**不能与需求 <1% 的格并列比较**，它们跑的不是同一个方法。\n")
+    print("| panel | ρ | `Btot` 中位 | **需求/预算** | 降级 chunk 占比 | 饿死头占比 | "
+          "抬起总配额 | b_min | 制度 |")
+    print("|---|---|---|---|---|---|---|---|---|")
     for r in sorted(rows, key=lambda x: (x["nm"], x["rho"])):
         f = r["fs"]
         if f is None:
-            print(f"| {r['nm']} | {r['rho']} | — 无日志 | — | — | — | — |")
+            print(f"| {r['nm']} | {r['rho']} | — 无日志 | — | — | — | — | — | — |")
             continue
-        print(f"| {r['nm']} | {r['rho']} | {f['starve_frac']:.3f} "
-              f"({f['n_groups']} 组) | {f['lift_total']:.0f} | "
-              f"{f['lift_frac']*100:.3f}% | {f['n_chunks']} | {f['bmin']} |")
-    print()
+        reg = ("**⚠不可行/退化**" if f["demand"] > 1.0 else
+               "**⚠高剂量**" if f["demand"] > 0.05 else "微调")
+        print(f"| {r['nm']} | {r['rho']} | {f['btot_med']:.0f} | "
+              f"**{100*f['demand']:.2f}%** | {f['sat_frac']:.2f} | "
+              f"{f['starve_frac']:.3f} ({f['n_groups']} 组) | {f['lift_total']:.0f} | "
+              f"{f['bmin']} | {reg} |")
+    hi = [r for r in rows if r["fs"] and r["fs"]["demand"] > 0.05]
+    print(f"\n**需求 >5% 的格：{len(hi)}/{len(rows)}** —— "
+          + ("无。全部格同属「微调」制度，可横向比较。"
+             if not hi else
+             "以下格与其余格**不是同一强度的干预**，横向比较无效：" +
+             "、".join(f"{r['nm']}@{r['rho']}({100*r['fs']['demand']:.0f}%)" for r in hi))
+          + "\n")
 
     print("## ③ Δ 对三个**无标签**候选谓词的回归\n")
     print("目标：找一个推理时拿得到的量来决定「何时不干预」。"
