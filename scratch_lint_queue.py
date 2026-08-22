@@ -19,8 +19,34 @@ import os, sys, glob
 
 WINDOW = 4096
 GEOM = {"Qwen/Qwen2.5-7B-Instruct-1M": (28, 4), "Qwen/Qwen3-8B": (36, 8)}
-MODES = {"full", "within", "across", "floor", "floorproj", "pathproj",
-         "floorpath", "maxlift", "floorcov", "-", ""}
+def _derive_modes():
+    """从 `quota_project.py` 的 assert 里解析合法 mode —— **唯一真源**。
+
+    此前这里手抄了一份清单，于是 2026-08-22 新加 `shrink` 时 lint 会把它当
+    非法值拒掉（第④类错：手抄第二份清单）。改成解析源文件的 AST：
+    找 `assert mode in (...)` 那个元组。解析失败**直接抛**，不回退到硬编码 ——
+    静默回退会让「源文件改了 lint 没跟上」再次发生。
+    """
+    import ast as _ast
+    import os as _os
+    src = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
+                        "external/FastKVzip/prefill/attention/quota_project.py")
+    tree = _ast.parse(open(src, encoding="utf-8").read())
+    for node in _ast.walk(tree):
+        if not isinstance(node, _ast.Assert):
+            continue
+        t = node.test
+        if (isinstance(t, _ast.Compare) and isinstance(t.ops[0], _ast.In)
+                and isinstance(t.left, _ast.Name) and t.left.id == "mode"):
+            vals = {e.value for e in t.comparators[0].elts
+                    if isinstance(e, _ast.Constant)}
+            if vals:
+                return vals | {"-", ""}
+    raise RuntimeError("在 quota_project.py 里找不到 `assert mode in (...)`"
+                       " —— 源文件结构变了，必须人工核对，不做静默回退")
+
+
+MODES = _derive_modes()   # **从唯一真源派生**，不手抄第二份（第④类错）
 # 实测 clen（tokenizer 口径见 RESULTS_ABLATION）。键 = (模型简称, 数据集)
 # 上下文长度表。**必须覆盖全部 11 个 panel** —— 缺一个，该行的退化检查就被
 # 静默跳过（脚本会计数并印「不是通过，是没查」，但那行看起来仍是 OK）。

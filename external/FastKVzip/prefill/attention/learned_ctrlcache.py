@@ -460,6 +460,20 @@ class LearnedControlRetainCache(RetainCache):
                           f" n_starved={int((b0==0).sum())}/{int(b0.numel())}"
                           f" L1_b0={float((bt.float()-b0).abs().sum()):.0f}"
                           f" Btot={int(b0.sum())}", flush=True)
+                if _qm == "shrink":
+                    from attention.quota_project import project_quota as _pq
+                    # `req` 与 `real` 缺一不可：`VARIKV_SHRINK_MB` 超过 γ=1 的上限时
+                    # 会被截断，缺了这两个量就分不清「γ 很小」与「被饱和截断」。
+                    _rq = getattr(_pq, "_sh_req", float("nan"))
+                    _rr = getattr(_pq, "_sh_real", float("nan"))
+                    print(f"[shrink] chunk lo={lo}"
+                          f" gamma={getattr(_pq,'_sh_gam',float('nan')):.6f}"
+                          f" half_l1={getattr(_pq,'_sh_half',float('nan')):.0f}"
+                          f" 请求 L1/2={_rq:.0f} **实际 L1/2={_rr:.0f}**"
+                          f" 饱和={'是' if _rq > getattr(_pq,'_sh_half',0.0) + 0.5 else '否'}"
+                          f" n_starved={int((b0 == 0).sum())}/{int(b0.numel())}"
+                          f" 动的头={int(((bt.float() - b0.float()).abs() > 0.5).sum())}"
+                          f" Btot={int(b0.sum())}", flush=True)
                 if _qm == "floor":
                     # **最老的 mode，此前唯一没有运行时日志的** —— 于是 Qwen3 上
                     # 「地板到底抬了几个头、搬了多少预算」只能靠逐样本比分数间接推。

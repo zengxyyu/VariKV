@@ -289,7 +289,8 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
     一个通用修补循环悄悄"修好"同时破坏因果不变量（那正是本项目栽过的坑）。
     """
     assert mode in ("full", "within", "across", "floor", "floorproj",
-                    "pathproj", "floorpath", "maxlift", "floorcov"), mode
+                    "pathproj", "floorpath", "maxlift", "floorcov",
+                    "shrink"), mode
     L, H = int(n_layers), int(n_heads)
     assert b0.numel() == L * H and delta.numel() == L * H
     Btot = int(b0.sum().item())
@@ -304,6 +305,54 @@ def project_quota(b0, delta, n, mode, n_layers, n_heads, sc=None, alpha_eff=None
         project_quota._ml_lift = getattr(project_quota, "_ml_lift", 0.0) + lift
         project_quota._ml_n = getattr(project_quota, "_ml_n", 0) + 1
         return q
+
+    if mode == "shrink":
+        # **「向均匀收缩」—— 地板的匹配搬动量对照。** 也不用 `delta` 的方向。
+        #
+        #     b = (1 − γ)·b⁰ + γ·(B/(L·H))
+        #
+        # 为什么需要它：外部复核提出把地板升级成 `max U(b) + λΣlog(b_h+ε)`，
+        # 并称地板是该障碍的硬极限。**那是错的** —— `Σlog` 在 `Σb=B` 下的最优是
+        # `b_h = B/(L·H)`，所以 λ 从 0 到 ∞ 插值的是**竞争 ↔ 均匀**，
+        # 不是竞争 ↔ 地板。地板只抬底部、不动顶部，是**另一条路径**。
+        # 两条路径共享「均匀」这个端点，中间完全不同。
+        # 于是唯一能分辨「收益来自救活饿死的头」还是「收益只是向均匀回归」的
+        # 办法，是在**搬动量严格匹配**下对比两条路径。这个 mode 就是那条对照。
+        #
+        # 两种参数化，**必须且只能给一个**（给两个就有两套真源，第④类错）：
+        #   `VARIKV_SHRINK_GAMMA` —— 直接给 γ ∈ [0,1]
+        #   `VARIKV_SHRINK_MB`    —— 给目标搬动量 ½‖Δb‖₁，逐 chunk 反解 γ
+        # 后者才是匹配实验要用的：地板的 M_b 随 chunk 变，固定 γ 匹配不上。
+        #
+        # 预算守恒是**构造性**的：Σ(b⁰ − unif) = Σb⁰ − B = 0，故 Σb = B。
+        _g_env = os.environ.get("VARIKV_SHRINK_GAMMA")
+        _m_env = os.environ.get("VARIKV_SHRINK_MB")
+        assert (_g_env is None) != (_m_env is None), (
+            "shrink 必须且只能给 VARIKV_SHRINK_GAMMA 或 VARIKV_SHRINK_MB 之一"
+            f"（收到 GAMMA={_g_env!r} MB={_m_env!r}）")
+        _unif = float(Btot) / float(L * H)
+        _dev = b0.float() - _unif                       # Σ_dev = 0
+        _half = float(_dev.abs().sum()) / 2.0           # γ=1 时的搬动量
+        if _m_env is not None:
+            _tm = float(_m_env)
+            assert _tm >= 0.0, f"VARIKV_SHRINK_MB 不能为负：{_tm}"
+            # **饱和必须可见**：请求量超过 γ=1 能给的上限时截断到 1，
+            # 并把请求/实际都打进日志，否则「没搬够」会被读成「搬了这么多还没用」。
+            _gam = 0.0 if _half <= 0.0 else min(1.0, _tm / _half)
+        else:
+            _gam = float(_g_env)
+            assert 0.0 <= _gam <= 1.0, f"γ 必须在 [0,1]：{_gam}"
+        t = b0.float() - _gam * _dev                    # = (1−γ)b⁰ + γ·unif
+        t = t.clamp(0, n)
+        bt = rebalance(t.round().long().clamp(0, n), t, Btot, n)
+        # **运行时诊断**（本项目铁律：每加一个 mode 必须同时加日志）。
+        # 少了它就无法分辨「γ 很小」与「γ 被饱和截断」。
+        project_quota._sh_gam = _gam
+        project_quota._sh_half = _half
+        project_quota._sh_req = (float(_m_env) if _m_env is not None
+                                 else _gam * _half)
+        project_quota._sh_real = float((bt.float() - b0.float()).abs().sum()) / 2.0
+        return bt
 
     if mode in ("floor", "floorproj", "pathproj", "floorpath", "floorcov"):
         # **防饿死对照**：完全不用 `delta` 的方向，只强制 b_g ≥ b_min，
