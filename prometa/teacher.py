@@ -45,8 +45,20 @@ sys.path.insert(0, os.path.join(HERE, "external/FastKVzip/prefill"))
 sys.path.insert(0, HERE)        # 直接 `python prometa/teacher.py` 时也能 import prometa.*
 
 HEX = "0123456789abcdef"
-FORMAT_RULE = (" Formatting rule: every answer must be written as "
-               "ANSWER=<value> with no spaces. ")
+# **全共享段必须随机化**（2026-08-22，外部复核指出，采纳）：固定字符串
+# `Formatting rule: ... ANSWER=<value> ...` 是一个**极易被识别的 shortcut**——
+# Student 可能只学会「看到这串模式就保护它」，而不是「从上下文推断未来需要什么」。
+# 随机化模板、标记词与取值格式后，那条捷径就不再是一个固定的隐藏状态模式。
+# ⚠ 保留「所有未来都引用同一段」这个**结构**（那是要测的东西），
+#   只随机化它的**表面形式**。
+FORMAT_TEMPLATES = [
+    " Formatting rule: every answer must be written as {tag}={{value}} with no spaces. ",
+    " Output convention: report each result in the form {tag}={{value}}, lowercase only. ",
+    " Response protocol: prefix every returned item with {tag}= and nothing else. ",
+    " Answer style guide: each value must appear as {tag}={{value}} on its own. ",
+    " Reporting rule: wrap each retrieved item as {tag}={{value}}, no extra words. ",
+]
+FORMAT_TAGS = ["ANSWER", "RESULT", "VALUE", "OUT", "FOUND", "ITEM"]
 
 
 def build_task(enc, ids, max_ctx, window, n_fact, rng, n_joint=2):
@@ -66,7 +78,9 @@ def build_task(enc, ids, max_ctx, window, n_fact, rng, n_joint=2):
     vals = ["".join(rng.choices(HEX, k=16)) for _ in range(n_fact)]
     spans = [enc(f" The secret key {k} maps to the value {v}. ")
              for k, v in zip(keys, vals)]
-    spans.append(enc(FORMAT_RULE))                       # 最后一段是全共享的
+    fmt_tag = rng.choice(FORMAT_TAGS)
+    fmt_rule = rng.choice(FORMAT_TEMPLATES).format(tag=fmt_tag)
+    spans.append(enc(fmt_rule))                          # 最后一段是全共享的（表面形式随机）
 
     lo, hi = int(0.05 * (len(ctx) - window)), int(0.90 * (len(ctx) - window))
     assert hi - lo > len(spans), f"可驱逐区太短：[{lo},{hi}) 放不下 {len(spans)} 段"
@@ -80,15 +94,15 @@ def build_task(enc, ids, max_ctx, window, n_fact, rng, n_joint=2):
         futures.append(dict(
             q=enc(f"\nQuestion: What value does the secret key {keys[j]} "
                   f"map to?{tail}\nAnswer:"),
-            a=enc(f" ANSWER={vals[j]}"), needs=[j], kind="single"))
+            a=enc(f" {fmt_tag}={vals[j]}"), needs=[j], kind="single"))
     for t in range(n_joint):                             # 共享
         a_, b_ = rng.sample(range(n_fact), 2)
         futures.append(dict(
             q=enc(f"\nQuestion: Give the values for the secret keys {keys[a_]} "
                   f"and {keys[b_]}.{tail}\nAnswer:"),
-            a=enc(f" ANSWER={vals[a_]} ANSWER={vals[b_]}"),
+            a=enc(f" {fmt_tag}={vals[a_]} {fmt_tag}={vals[b_]}"),
             needs=sorted([a_, b_]), kind="joint"))
-    meta = dict(n_fact=n_fact, n_joint=n_joint, M=len(futures),
+    meta = dict(n_fact=n_fact, n_joint=n_joint, M=len(futures), fmt_tag=fmt_tag,
                 pos=sorted(pos), fmt_pos=pos[[i for i, p in
                                               enumerate(sorted(pos, reverse=True))
                                               ][0]] if pos else None,
@@ -333,6 +347,17 @@ def _selftest():
     assert max(c.values()) >= 2, c
     print(f"③ 事实被需要次数 {dict(c)} —— 存在共享需求　PASS")
 
+    # ③b **全共享段的表面形式必须随机**（否则是 shortcut）；但结构必须保留
+    tags = set()
+    for sd in range(12):
+        _, f2, m2 = build_task(enc, ids, 8000, 512, n_fact=4,
+                               rng=__import__("random").Random(sd), n_joint=2)
+        tags.add(m2["fmt_tag"])
+        assert all(m2["fmt_tag"].encode()[:1] for _ in [0])
+    assert len(tags) >= 3, f"全共享段没有被随机化：只有 {tags}"
+    print(f"③b 全共享段表面形式随机（12 个种子出现 {len(tags)} 种标记 {sorted(tags)}）"
+          f"，结构保留　PASS")
+
     # ④ **demand_structure 的两个极端对照**（判据本身要能拒）
     #
     # ⚠ **首版夹具造错了，方向还反了 —— 记在这里免得第三次犯。**
@@ -419,7 +444,7 @@ def _selftest():
     print(f"⑦ 单行重归一化误差 {e_row:.1e}（可交换）；但 max 之后重归一化与"
           f"直接按 chunk 归一化的**排序**有 {frac_diff*100:.1f}% 位置不同　PASS")
 
-    print("\nprometa/teacher.py 自测 7 条全过")
+    print("\nprometa/teacher.py 自测 8 条全过")
 
 
 if __name__ == "__main__":
