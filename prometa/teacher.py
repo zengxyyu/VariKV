@@ -42,6 +42,7 @@ import torch
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(HERE, "external/FastKVzip/prefill"))
+sys.path.insert(0, HERE)        # 直接 `python prometa/teacher.py` 时也能 import prometa.*
 
 HEX = "0123456789abcdef"
 FORMAT_RULE = (" Formatting rule: every answer must be written as "
@@ -151,6 +152,158 @@ def demand_structure(U, rho=0.05):
                 M=M, N=N, k=k)
 
 
+
+# ══════════════════════════════ GPU 抽取路径 ══════════════════════════════
+def chunk_ranges(n_total, sys_len, prefill_chunk, window_size):
+    """复现 `model/wrapper.py:_prefill_impl` 的 `evict_range` 序列。
+
+    上游循环（逐字对照过源码）：
+
+        start = sys_len
+        for 每个 chunk:
+            前向
+            end = len(score) - window_size          # len(score) = 已处理的总 token
+            prune_chunk(ratio, (start, end))        # **无条件调用**
+            start = end                             # **无条件赋值**
+
+    ⚠ **这是第二份实现**（第④类错的高发地）。`scratch_prometa_smoke.py`
+    会 monkey-patch 真机的 `prune_chunk` 抓下真实的 `(lo,hi)` 并逐项断言相等；
+    **没跑过那条断言之前，不要相信这个函数**。
+
+    返回 `(all_ranges, usable)`：`all_ranges` 是忠实复现（可能含 `hi<=lo` 的
+    退化项，chunk < window 时真的会出现），`usable` 是过滤后可用于训练/抽取的。
+    """
+    out, start, cum = [], sys_len, 0
+    while cum < n_total:
+        cum = min(cum + prefill_chunk, n_total)
+        out.append((start, cum - window_size))
+        start = cum - window_size
+    usable = [(lo, hi) for lo, hi in out if hi > lo]
+    return out, usable
+
+
+@torch.no_grad()
+def future_utility(key_cache, q_cap, lo, hi, tblock=32, out_np=True):
+    """→ U: [L, Hkv, hi-lo]，**softmax 只在 `[lo,hi)` 上归一化**。
+
+        U[l,h,i] = max_{t, hq∈group(h)}  softmax_{i∈[lo,hi)}( q[hq,t]·K[h,i]/√d )
+
+    **为什么归一化到 chunk 而不是整个前缀**（这一条是设计的关键，别改回去）：
+    Student 在 `prometa/cache.py:prometa_scores` 里就是对 `[lo,hi)` 做 softmax
+    的，因为 `prune_chunk` 那一刻要裁决的候选集**就是** `[lo,hi)`。教师必须
+    定义在同一个支撑上，否则 KL 比的是两个不同支撑上的分布。
+
+    ⚠ **不能靠「先算全前缀、再重归一化」来省事。** 单条 softmax 行确实满足
+    `softmax(z)|_S / Σ_S = softmax(z|_S)`，但本量在归一化**之后**还要对 `t`
+    与组内 query 头取 **max**，而不同 `t` 的归一化常数不同 ⇒
+    `max_t (p_t|_S / Z_t(S))  ≠  (max_t p_t)|_S / Z(S)`。所以必须在抽取时
+    就按 chunk 归一化（自测 ⑦ 用反例验证了这个不等号确实成立）。
+
+    GQA：`kv_head = q_head // (Hq // Hkv)`，组内取 max —— 与 KVzip 族打分器
+    以及 `scratch_prometa_oracle.future_utility` 同一口径（自测 ⑥ 逐位对拍）。
+    """
+    L = len(q_cap)
+    n = hi - lo
+    assert n > 0, (lo, hi)
+    out = []
+    for l in range(L):
+        q = q_cap[l]                                  # [1,Hq,T,d]
+        K = key_cache[l]                              # [1,Hkv,N,d]
+        assert q.dim() == 4 and K.dim() == 4, (q.shape, K.shape)
+        Hq, T, d = q.shape[1], q.shape[2], q.shape[3]
+        Hkv, N = K.shape[1], K.shape[2]
+        assert N >= hi, (N, hi)
+        assert Hq % Hkv == 0, (Hq, Hkv)
+        G = Hq // Hkv
+        Kp = K[0, :, lo:hi, :].float()                # [Hkv,n,d]
+        acc = torch.zeros(Hkv, n, device=Kp.device, dtype=torch.float32)
+        scale = 1.0 / (d ** 0.5)
+        for h in range(Hkv):
+            qh = q[0, h * G:(h + 1) * G].float()      # [G,T,d]
+            for t0 in range(0, T, tblock):
+                a = torch.einsum("gtd,nd->gtn", qh[:, t0:t0 + tblock, :], Kp[h]) * scale
+                a = torch.softmax(a, dim=-1)
+                acc[h] = torch.maximum(acc[h], a.amax(dim=(0, 1)))
+                del a
+        out.append(acc)
+        del Kp, acc
+    U = torch.stack(out, 0)                           # [L,Hkv,n]
+    return U.cpu().numpy() if out_np else U
+
+
+def extract_U(model, ctx_ids, futures, ranges, span="qa", tblock=32,
+              prefill_chunk=16000, verbose=True):
+    """在 GPU 上抽教师标签。→ `(U_by_range, kv, info)`。
+
+    `U_by_range[(lo,hi)]`: np.float32 [M, L, Hkv, hi-lo]。
+    `kv` **原样返回**（满缓存，未驱逐）—— 训练侧要直接用它的 `key_cache` /
+    `value_cache`，不必重跑一次预填（预填是这条路上唯一昂贵的一步）。
+
+    **`span` 是那条必须做的消融**：
+      · `"qa"` —— 未来 = 问句 + **真答案**。教师用特权信息是合法的（蒸馏的
+        定义就是如此，FastKVzip 自己的门控也蒸馏 KVzip 的重构分），但**答案
+        token 的 query 才是真正发生检索的地方**，所以它更接近"未来到底需要
+        什么"。
+      · `"q"`  —— 只用问句。**没有任何特权信息**，若两者给出的标签几乎一致，
+        「泄漏」这条质疑就整条消失，应当优先选它。
+    ⇒ 两个都跑、报一致性，别只跑一个然后声称没泄漏。
+
+    ⚠ **全程 `no_grad` 而不是 `inference_mode`。** `_prefill_impl` 默认包在
+    `inference_mode` 里，那样产出的 K/V 是 **inference tensor**，**永远**不能
+    进 autograd（本仓库 Stage 2b 的 2 号 bug）。训练侧要拿这批 K/V 当常量做
+    前向，所以这里显式走 `varikv_train=True` + `no_grad`。
+    同理**不用 `model._prob`**（它自己带 `@torch.inference_mode()`，且会污染
+    cache：`update()` 把 inference tensor `cat` 进 `key_cache`，`slice()` 回滚
+    后仍是 inference tensor）—— 直接调 `model.__call__(..., update_cache=False)`，
+    它只跑 base model、不算 vocab softmax，更便宜。
+    """
+    assert span in ("q", "qa"), span
+    dev = model.device
+    ctx_t = ctx_ids if torch.is_tensor(ctx_ids) else torch.tensor([ctx_ids], device=dev)
+    if ctx_t.dim() == 1:
+        ctx_t = ctx_t[None]
+    ctx_t = ctx_t.to(dev)
+
+    prev_train = getattr(model, "varikv_train", False)
+    model.varikv_train = True
+    try:
+        with torch.no_grad():
+            kv = model.prefill(ctx_t, prefill_chunk_size=prefill_chunk,
+                               do_score=False, chunk_ratio=1.0)
+    finally:
+        model.varikv_train = prev_train
+    n_prefix = int(kv.key_cache[0].shape[-2])
+    Lk = len(kv.key_cache)
+
+    for lo, hi in ranges:
+        assert 0 <= lo < hi <= n_prefix, (lo, hi, n_prefix)
+
+    acc = {r: [] for r in ranges}
+    with torch.no_grad():
+        for fi, f in enumerate(futures):
+            ids = list(f["q"]) + (list(f["a"]) if span == "qa" else [])
+            t = torch.tensor([ids], device=dev)
+            kv.capture_q, kv._q_cap = True, {}
+            model(t, kv, update_cache=False)
+            kv.capture_q = False
+            # ⚠ 两条不变量：前缀必须原样回滚、每层都要捕到 query
+            assert int(kv.key_cache[0].shape[-2]) == n_prefix, \
+                f"前缀被改动：{kv.key_cache[0].shape[-2]} != {n_prefix}"
+            assert len(kv._q_cap) == Lk, f"只捕到 {len(kv._q_cap)}/{Lk} 层"
+            qc = [kv._q_cap[l] for l in range(Lk)]
+            for lo, hi in ranges:
+                acc[(lo, hi)].append(future_utility(kv.key_cache, qc, lo, hi, tblock))
+            if verbose:
+                print(f"  [teacher] future {fi} span={span} T={qc[0].shape[2]}",
+                      flush=True)
+            kv._q_cap = {}
+            del qc
+
+    U_by_range = {r: np.stack(v, 0).astype(np.float32) for r, v in acc.items()}
+    info = dict(n_prefix=n_prefix, L=Lk, Hkv=int(kv.key_cache[0].shape[1]),
+                M=len(futures), span=span, ranges=list(ranges))
+    return U_by_range, kv, info
+
 def _selftest():
     rng_ = __import__("random").Random(0)
 
@@ -221,7 +374,52 @@ def _selftest():
     assert abs(demand_structure(allm)["shared_frac"] - (1 - 1 / M)) < 1e-9
     print("   ⇒ 互不相交 J≈1（风险维度退化）、混合型 J 明显更低且共享占比更高"
           "　PASS（判据能区分两种语料）")
-    print("\nprometa/teacher.py 自测 4 条全过")
+    # ⑤ `chunk_ranges` 手算对拍（忠实复现上游的无条件赋值）
+    allr, use = chunk_ranges(n_total=40000, sys_len=20, prefill_chunk=16000,
+                             window_size=4096)
+    assert allr == [(20, 11904), (11904, 27904), (27904, 35904)], allr
+    assert use == allr, use
+    # 退化情形：chunk < window ⇒ 第一段 hi < lo，必须出现在 all 里、被 usable 滤掉
+    a2, u2 = chunk_ranges(9000, 20, 2000, 4096)
+    assert a2[0] == (20, -2096) and (20, -2096) not in u2, (a2[:2], u2[:2])
+    print(f"⑤ chunk_ranges 手算对拍（3 段）＋退化情形被正确过滤　PASS")
+
+    # ⑥ **与 `scratch_prometa_oracle.future_utility` 逐位对拍**（同一个量两份实现）
+    import torch as _t
+    _t.manual_seed(0)
+    Lq, Hkv, G, T, d, N = 3, 2, 4, 7, 16, 60
+    kc = [_t.randn(1, Hkv, N, d) for _ in range(Lq)]
+    qc = [_t.randn(1, Hkv * G, T, d) for _ in range(Lq)]
+    mine = future_utility(kc, qc, 0, N, tblock=3)
+    from scratch_prometa_oracle import future_utility as _oracle_fu
+
+    class _Shim:
+        key_cache = kc
+    ref = _oracle_fu(_Shim(), qc, N, 3)
+    e = float(np.abs(mine - ref).max())
+    assert e == 0.0, e
+    print(f"⑥ 与 oracle 实现逐位对拍（lo=0,hi=N）max|差| = {e:.1e}　PASS")
+
+    # ⑦ **反例：不能靠重归一化把全前缀的 U 换算成 chunk 的 U。**
+    #    单条 softmax 行可以（`softmax(z)|_S/ΣS == softmax(z|_S)`），但本量在
+    #    归一化后还要对 t 取 max，而各 t 的 Z_t(S) 不同 ⇒ max 与除法不可交换。
+    lo_, hi_ = 10, 40
+    direct = future_utility(kc, qc, lo_, hi_, tblock=3)              # 正确
+    full = future_utility(kc, qc, 0, N, tblock=3)[:, :, lo_:hi_]
+    renorm = full / np.maximum(full.sum(-1, keepdims=True), 1e-30)
+    # 先验证「单行」确实可以重归一化（证明不等号来自 max 而不是我算错了）
+    row = _t.softmax(qc[0][0, 0, 0] @ kc[0][0, 0].T / d ** 0.5, -1)
+    row_s = _t.softmax(qc[0][0, 0, 0] @ kc[0][0, 0, lo_:hi_].T / d ** 0.5, -1)
+    e_row = float((row[lo_:hi_] / row[lo_:hi_].sum() - row_s).abs().max())
+    assert e_row < 1e-6, e_row
+    # 排序差异才是有决策后果的量
+    rk = lambda x: np.argsort(np.argsort(-x, -1), -1)
+    frac_diff = float((rk(direct) != rk(renorm)).mean())
+    assert frac_diff > 0.05, frac_diff
+    print(f"⑦ 单行重归一化误差 {e_row:.1e}（可交换）；但 max 之后重归一化与"
+          f"直接按 chunk 归一化的**排序**有 {frac_diff*100:.1f}% 位置不同　PASS")
+
+    print("\nprometa/teacher.py 自测 7 条全过")
 
 
 if __name__ == "__main__":

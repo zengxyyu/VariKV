@@ -87,6 +87,33 @@ def taylor_risk(U, beta, axis=0):
     return U.mean(axis=axis) + 0.5 * beta * U.var(axis=axis)
 
 
+def entropic_risk_torch(U, beta, standardized=True):
+    """`entropic_risk` 的 **torch/GPU 版**，语义逐位相同（自测 ⑪ 对拍）。
+
+    **为什么要第二份实现**：推理热路径上 `U` 是 [M, Hkv, n]，每层每块都要算。
+    numpy 版要 `.cpu().numpy()` —— 单个 169k 样本约 78 GB 的 H2D/D2H 搬运。
+    torch 版留在 GPU 上，省掉全部同步点。
+    **本项目铁律「同一个量两条实现必须对拍」在此显式执行**（自测 ⑪，
+    随机形状 + 多个 β + 标准化开关，逐位比较）。
+
+    ⚠ `torch.std` 默认 `unbiased=True`，而 `np.std` 是总体标准差 ⇒
+    **必须 `unbiased=False`**，否则两份实现在小 M 上系统性差 √(M/(M−1))。
+    """
+    import torch
+    U = U.float()
+    if standardized:
+        red = (0,) if U.dim() == 1 else (0, U.dim() - 1)
+        m = U.mean(dim=red, keepdim=True)
+        sd = U.std(dim=red, keepdim=True, unbiased=False).clamp_min(1e-12)
+        U = (U - m) / sd
+    if abs(beta) < BETA_EPS:
+        return U.mean(0)
+    z = beta * U
+    zmax = z.amax(dim=0, keepdim=True)
+    lse = zmax + torch.log(torch.exp(z - zmax).mean(0, keepdim=True))
+    return (lse / beta).squeeze(0)
+
+
 def topb_mask(score, b, axis=-1):
     """沿 `axis` 取 top-b，返回 bool 掩码。并列按索引先后（`stable`）。
 
@@ -181,7 +208,28 @@ def _selftest():
           f"{abs(js_raw[0]-js_raw[1]):.3f}）；标准化后 {js_std[0]:.3f} vs "
           f"{js_std[1]:.3f}（差 {abs(js_std[0]-js_std[1]):.3f}）　PASS")
 
-    print("prometa/risk.py 自测 10 条全过　"
+    # ⑪ **numpy 版与 torch 版逐位对拍**（同一个量两条实现必须对拍）
+    import torch as _t
+    worst = 0.0
+    for shape in [(5, 7, 11), (6, 4, 2, 300), (3, 40)]:
+        X = rng.standard_normal(shape) ** 3 * 3.0 + 1.0
+        for b in (0.0, 0.3, 2.0, -2.0, 50.0):
+            for std_ in (True, False):
+                a_ = entropic_risk(X, b, standardized=std_)
+                b_ = entropic_risk_torch(_t.tensor(X), b, standardized=std_).numpy()
+                worst = max(worst, float(np.abs(a_ - b_).max()))
+    assert worst < 2e-5, worst
+    # 阴性对照：若 torch 端误用无偏标准差，M=3 上必须对不上（√(3/2)=1.225）
+    Y = rng.standard_normal((3, 200))
+    bad = _t.tensor(Y)
+    bad = (bad - bad.mean()) / bad.std(unbiased=True)          # 故意用无偏
+    d_bad = float(np.abs(entropic_risk(Y, 2.0) - _t.logsumexp(2.0 * bad, 0).sub(
+        np.log(3.0)).div(2.0).numpy()).max())
+    assert d_bad > 1e-3, d_bad
+    print(f"⑪ numpy/torch 两份实现对拍 max|差| = {worst:.2e}（fp32 量级）；"
+          f"阴性对照（误用无偏 std）差 {d_bad:.3f}　PASS")
+
+    print("prometa/risk.py 自测 11 条全过　"
           f"（β² 收缩比实测 {r:.1f}×，理论 16×）")
 
 
