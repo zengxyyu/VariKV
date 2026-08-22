@@ -422,8 +422,28 @@ class LearnedControlRetainCache(RetainCache):
                     _a = (bt.float() - b0.float()).flatten()
                     _bq = _dlt.float().flatten()
                     _cos = float((_a @ _bq) / (_a.norm() * _bq.norm() + 1e-30))
+                    # **截断 vs 旋转**：整体 cos 与「实际/请求」几乎逐一相等
+                    # （0.2515 vs 0.236、0.5366 vs 0.601、0.9286 vs 0.881），
+                    # 这正是「实际 = 请求的一个子集、其余清零」会给出的形状 ——
+                    # 与「被旋转到新方向」含义相反，必须分开测：
+                    #   `cos_on`  = 只在**实际真的动了**的坐标上算 cos。
+                    #              ≈1 ⇒ 纯截断（方向没被改，只是少做了）；
+                    #              <1 ⇒ 在动过的坐标上也偏了，才是真旋转。
+                    #   `f_opp`   = 实际搬动量里**与请求反号**的占比。
+                    #              >0 ⇒ project_quota 在往请求的反方向搬，
+                    #              那才叫「替换出另一个方向」。
+                    _m = _a.abs() > 0.5
+                    if int(_m.sum()) > 1:
+                        _x, _y = _a[_m], _bq[_m]
+                        _cos_on = float((_x @ _y) / (_x.norm() * _y.norm() + 1e-30))
+                    else:
+                        _cos_on = float("nan")
+                    _opp = float(_a[(_a * _bq) < 0].abs().sum())
+                    _f_opp = _opp / (float(_a.abs().sum()) + 1e-30)
                     print(f"[align] chunk lo={lo} **cos(实际, 请求)={_cos:+.4f}**"
-                          f" 实际 L1/2={_re:.0f} 请求 L1/2={_rq:.0f}", flush=True)
+                          f" **cos_on={_cos_on:+.4f}** **f_opp={_f_opp:.4f}**"
+                          f" 实际 L1/2={_re:.0f} 请求 L1/2={_rq:.0f}"
+                          f" 动的坐标={int(_m.sum())}/{int(_a.numel())}", flush=True)
                     print(f"[qreal] chunk lo={lo} 请求 L1/2={_rq:.0f}"
                           f" **实际 L1/2={_re:.0f}** 可实现={_re / max(_rq, 1e-9):.4f}"
                           f" 动的头={int(((bt.float() - b0.float()).abs() > 0.5).sum())}"
