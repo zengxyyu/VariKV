@@ -12,7 +12,9 @@
 """
 import json, hashlib, collections, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-P = sys.argv[1] if len(sys.argv) > 1 else "prometa_data/manifest_v1_ss.jsonl"
+_av = [x for x in sys.argv[1:] if not x.startswith("--")]
+P = _av[0] if _av else "prometa_data/manifest_v1_ss.jsonl"
+SPAN = "qa" if "--span=qa" in sys.argv else "q"   # 默认按训练脚本的默认值 q 判
 R = [json.loads(l) for l in open(P)]
 bad = []
 def chk(n, ok, d):
@@ -72,10 +74,13 @@ nn = sum(1 for r in R for f in r["futures"] if f["needs"])
 nq = sum(len(r["futures"]) for r in R)
 byk = collections.Counter(f["kind"] for r in R for f in r["futures"])
 print(f"  {nq} 个 future：a 非空 {na}、needs 非空 {nn}；kind 分布 {dict(sorted(byk.items()))}")
-# 正确表述：`a` **非全空也非全满**（只有 synth 有）⇒ `--span qa` 会让标签定义随
-# kind 而变，只有 `--span q` 自洽。训练脚本已加硬闸拒绝 `--span qa`。
-chk("⑨ span 自洽（a 要么全空要么全满，否则只能 --span q）", na==0 or na==nq,
-    f"a 非空 {na}/{nq}（只有 synth 有）⇒ **必须 --span q**，已在训练脚本加断言")
+# ⚠ **判据本身错过一次**（2026-08-22 外部复核指出，采纳）：首版无条件要求
+# `a` 全空或全满，于是把一个**对 `--span q` 完全健康**的数据集判成失败并 exit 1。
+# `a` 混合只在 `--span qa` 下才是缺陷（那时标签定义会随 kind 变）。
+# 判据必须知道 span 才能判 —— 不知道就只能报告，不能定罪。第①类错。
+chk(f"⑨ span 自洽（当前按 --span={SPAN} 判）", SPAN == "q" or na == 0 or na == nq,
+    f"a 非空 {na}/{nq}（只有 synth 有）；span=q 时只取问句 ⇒ 无影响；"
+    f"span=qa 时标签定义会随 kind 变 ⇒ 训练脚本已加硬闸拒绝")
 
 # ⑩ grounded 与 ss_ok
 g=[f["grounded"] for r in R for f in r["futures"] if r["kind"]=="selfstudy"]

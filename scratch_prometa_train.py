@@ -78,6 +78,11 @@ def parse():
     # 给了它就**完全忽略** --corpus / --n_docs / --n_fact 等内部造数据的参数，
     # 划分也用 manifest 里的 `split` 字段（源文档级、已验证互不相交），
     # 不再按位置切。⚠ 这是「正式版正在用新数据集训练」的唯一判据。
+    p.add_argument("--drop_kinds", default="",
+                   help="逗号分隔，从 manifest 里剔除这些 kind。默认剔除 continuation "
+                        "以保证 M 一致——见 --allow_mixed_M 的说明")
+    p.add_argument("--allow_mixed_M", action="store_true",
+                   help="允许 manifest 里各条记录的未来数不同（Ms>Mt）。**默认关**")
     p.add_argument("--manifest", default="",
                    help="prometa_data/manifest_v1.jsonl。给了就走正式数据路径")
     p.add_argument("--corpus", default="fineweb_10k_cat",
@@ -115,6 +120,11 @@ def parse():
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--epochs", type=int, default=3)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--shuffle_mode", default="exact", choices=["exact", "crop"],
+                   help="exact=只在**同宽**之间换（实测覆盖 62.6%，但每一次换都是"
+                        "纯粹的『同一个量、换个文档』单变量交换）；crop=配不上就从"
+                        "更宽捐赠者裁剪并重新归一化（覆盖 ~100%，但被裁的那 37% "
+                        "同时改变了『来源文档』与『支撑截断』两件事）。**默认 exact**")
     p.add_argument("--shuffle_labels", action="store_true",
                    help="**未来打乱阴性对照**（外部复核提出，采纳）：给上下文 C_i 配"
                         "**别的文档**的教师标签 U*_j。若 loss 几乎不变 ⇒ **教师靶子"
@@ -254,6 +264,22 @@ def main():
     if a.manifest:
         import json as _json
         _MANI_PRE = [r for r in (_json.loads(l) for l in open(a.manifest)) if r["futures"]]
+        if a.drop_kinds:
+            _dk = set(x.strip() for x in a.drop_kinds.split(",") if x.strip())
+            _n0 = len(_MANI_PRE)
+            _MANI_PRE = [r for r in _MANI_PRE if r["kind"] not in _dk]
+            print(f"[train] --drop_kinds {sorted(_dk)}：{_n0} → {len(_MANI_PRE)} 条", flush=True)
+        # ⚠ **混合 M 默认拒绝**（2026-08-22 外部复核指出，采纳）。原先
+        # `allow_extra=(MANI is not None)` 是**无条件开**的，于是 M=1 的
+        # continuation 与 M=5 的其余记录混在一起**静默通过**。问题不在代码能不能跑：
+        # Mt=1 时 `match_loss` 只监督 argmin 那一个 probe，另外 4 个在**这条上下文上**
+        # 没有任何真实未来约束，而推理时 `ρ_β` 会把 5 个 probe 全算进驱逐决策。
+        # 「别的记录会监督到全部 5 个」只保证**参数级**覆盖，不保证**逐上下文**覆盖。
+        _Ms_set = sorted(set(len(r["futures"]) for r in _MANI_PRE))
+        assert a.allow_mixed_M or len(_Ms_set) == 1, (
+            f"manifest 的未来数不一致：{_Ms_set}。Mt<Ms 的记录上，未被匹配的 probe "
+            f"在该上下文没有任何监督却参与推理决策。用 --drop_kinds continuation "
+            f"去掉 M=1 的那类，或显式 --allow_mixed_M 并在结论里写明这条边界。")
         Mt = max(len(r["futures"]) for r in _MANI_PRE)
         _mh = _Counter(len(r["futures"]) for r in _MANI_PRE)
         print(f"[train] Mt 由 manifest 派生：max M = {Mt}（分布 {dict(sorted(_mh.items()))}）",
@@ -379,8 +405,15 @@ def main():
             for r in pick:
                 w = U_by[r].shape[-1]
                 orig = U_by[r]                     # ← 换之前先留住，换完就取不到了
+                # ⚠ **默认只做同宽精确交换**（2026-08-22 外部复核指出，采纳）。
+                #    裁剪兜底能把覆盖率从 62.6% 抬到 ~100%，但被裁的那 37% 同时
+                #    改变了两件事（来源文档 **和** 支撑截断）——尾部质量大的捐赠者
+                #    被裁+重归一化后会向平凡解靠，那时 val 变差可能是截断伪影而不是
+                #    「标签换错了」。一个 62.6% 但**每次都干净**的置换，比一个 100%
+                #    里混着 37% 双变量改动的置换更有说服力（对照一次只变一个变量）。
+                lo_w = w if a.shuffle_mode == "exact" else 0
                 cand = [(dw, d_, u_) for dw, lst in _label_bank.items()
-                        for d_, u_ in lst if d_ != di and dw >= w]
+                        for d_, u_ in lst if d_ != di and dw >= w and dw >= lo_w]
                 if cand:
                     dw, _d, u = min(cand, key=lambda t: t[0])   # 最接近的更宽者
                     if dw == w:
@@ -417,7 +450,7 @@ def main():
                 #    probe 在**别的记录**上都会被监督到，只是不在每一步。
                 #    若数据里全是 M=1，就又会退化成原来的问题 —— 所以下面打印
                 #    每条未来数的直方图，保证这一点可查。
-                dem = match_loss(Us, Uh, allow_extra=(MANI is not None))
+                dem = match_loss(Us, Uh, allow_extra=a.allow_mixed_M)
                 dv = diversity_loss(q)
                 loss = dem + a.lam_div * dv
                 opt.zero_grad(set_to_none=True)
@@ -443,7 +476,7 @@ def main():
                 with torch.no_grad():
                     Uh, q = student_demand(net, kv, lo, hi, pool_end, a.pool_layer,
                                            no_context=a.no_context)
-                    dem = match_loss(Us, Uh, allow_extra=(MANI is not None))
+                    dem = match_loss(Us, Uh, allow_extra=a.allow_mixed_M)
                     dv = diversity_loss(q)
                 gn = torch.tensor(0.0)
             # 纪律①：平凡解参照 —— Student 输出均匀分布时的损失
@@ -515,8 +548,10 @@ def main():
             print(f"  [shuffle] epoch{ep}：换掉 {_sw}/{_tt} = {_sw/max(_tt,1):.1%} 个 chunk 的标签"
                   f"（精确同宽 {_shuf_cnt['exact']}、裁剪自更宽 {_shuf_cnt['crop']}、"
                   f"无捐赠者 {_shuf_cnt['none']}）", flush=True)
-            assert ep == 0 or _sw / max(_tt, 1) >= 0.5, (
-                f"打乱对照只换掉 {_sw}/{_tt} ⇒ 强度不足 50%，这个阴性对照说明不了问题")
+            _floor = 0.5 if a.shuffle_mode == "exact" else 0.9
+            assert ep == 0 or _sw / max(_tt, 1) >= _floor, (
+                f"打乱对照只换掉 {_sw}/{_tt} ⇒ 低于 {_floor:.0%}，说明不了问题。"
+                f"（exact 模式的结构上限约 62.6%，见 DATASET.md 的宽度分布）")
         tr = [x for x in tr if x]
         va = [one_doc(di, ep, False) for di in idx_va]
         va = [x for x in va if x]
