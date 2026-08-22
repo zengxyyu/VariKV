@@ -373,9 +373,12 @@ def main():
     print(f"  证书 S 中位 {agg('S_med'):.2f}（=1 才表示单 atom；>1 即证明目标不在 R=1 族里）")
     print(f"  逐位 argmax 的不同 atom 数（中位）{agg('n_argmax_distinct_med'):.1f} / R0={rows[0]['R0']}")
     _cens = sum(r["n90_censored"] for r in rows); _tot = len(rows) * 112
-    print(f"  贪心覆盖 90% 质量需要的 atom 数（中位）{agg('n_atoms_90_med'):.1f}"
-          f"（上限 {rows[0]['n90_cap']} 轮内没到 90% 的有 {_cens}/{_tot} = {_cens/max(_tot,1):.1%}"
-          f" ⇒ 这部分是**删失值，真值更大**）")
+    if a.skip_greedy:
+        print("  贪心覆盖统计：**本轮 --skip_greedy 未测**（上一轮实测 >32 个 atom，99.6% 删失）")
+    else:
+        print(f"  贪心覆盖 90% 质量需要的 atom 数（中位）{agg('n_atoms_90_med'):.1f}"
+              f"（上限 {rows[0]['n90_cap']} 轮内没到 90% 的有 {_cens}/{_tot} = {_cens/max(_tot,1):.1%}"
+              f" ⇒ 这部分是**删失值，真值更大**）")
     print(f"\n  KL：平凡解 {agg('KL_trivial'):.4f} | **自由 q(R=1) 天花板 {agg('KL_freeq_R1'):.4f}**")
     for R in Rs:
         extra = f"　共享偏移 {agg(f'KL_shared_R{R}'):.4f}" if R > 1 else ""
