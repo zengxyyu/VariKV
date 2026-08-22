@@ -329,7 +329,12 @@ def main():
                              if p_.grad is None or float(p_.grad.abs().max()) == 0]
                     print(f"  [no_context] 零梯度参数（应恰为 proj/pool_q）：{_dead}",
                           flush=True)
-                    assert set(_dead) == {"proj.weight", "pool_q"}, _dead
+                    # ⚠ 首版写成 {"proj.weight","pool_q"}，**漏了 `trunk.0.weight`** ——
+                    # `z=0` 时 `trunk[0]` 算的是 `W0@0 + b0`，而线性层权重的梯度是
+                    # `grad_out ⊗ input`，input 全零 ⇒ `W0` 的梯度也恒为 0。
+                    # 这条断言把整个致盲对照跑崩了（0 个 epoch 完成）。
+                    # `trunk.0.bias` 与 `trunk.2.*` 仍有梯度，所以只多这一个。
+                    assert set(_dead) == {"proj.weight", "pool_q", "trunk.0.weight"}, _dead
                     _step0[0] = False
                 opt.step()
             else:

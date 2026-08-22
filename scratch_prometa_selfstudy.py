@@ -58,10 +58,33 @@ ONE_Q = (
 )
 
 
-def windows_for(ids, qtype, win, rng):
-    """→ 该类型的取材 token 段。**类型决定范围**，这是 footprint 分化的来源。"""
+# 三类 local 问题各自的取材**带**（占全文比例），**互不重叠**。
+# ⚠ 外部复核指出：首版每类独立 `rng.randrange` 取窗，**没有任何互斥约束**，
+#    factual 30–46k / method 34–50k / comparison 28–44k 大面积重合完全可能
+#    ⇒ 我在文档里写的「按构造保证不同 footprint」**不成立**（第⑤类错：
+#    理论声明与实现不一致）。现在按带分配，带内再随机 jitter。
+LOCAL_BANDS = {"factual": (0.08, 0.30), "method": (0.36, 0.58),
+               "comparison": (0.64, 0.92)}
+MULTIHOP_BANDS = ((0.03, 0.20), (0.78, 0.97))
+
+
+def _slice_frac(ids, f0, f1, win, rng):
     n = len(ids)
-    if qtype == "summary":                       # 等距抽样整篇
+    lo, hi = int(f0 * n), int(f1 * n)
+    w = min(win, max(1000, hi - lo))
+    off = rng.randrange(lo, max(lo + 1, hi - w + 1))
+    return ids[off:off + w]
+
+
+def windows_for(ids, qtype, win, rng):
+    """→ 该类型的取材 token 段。**类型决定范围**，这是 footprint 分化的来源。
+
+    · summary   等距抽样整篇（12 段 × 1000 token）
+    · multihop  两个**固定在首尾带**的窗口
+    · 其余三类  各自一个**专属带**内的随机窗口，**三带互不重叠**（见 LOCAL_BANDS）
+    """
+    n = len(ids)
+    if qtype == "summary":
         k, seg = 12, 1000
         if n <= k * seg:
             return ids
@@ -70,16 +93,35 @@ def windows_for(ids, qtype, win, rng):
         for s_ in starts:
             out += ids[s_:s_ + seg]
         return out
-    if qtype == "multihop":                      # 两个相距很远的窗口
-        w = min(win // 2, max(1000, n // 4))
-        if n <= 2 * w + 2000:
-            return ids
-        a0 = rng.randrange(0, n // 3 - w) if n // 3 > w else 0
-        b0 = rng.randrange(2 * n // 3, n - w)
-        return ids[a0:a0 + w] + ids[b0:b0 + w]
-    w = min(win, n)                              # 其余：一个随机窗口
-    off = rng.randrange(0, max(1, n - w + 1))
-    return ids[off:off + w]
+    if qtype == "multihop":
+        (a0, a1), (b0, b1) = MULTIHOP_BANDS
+        half = max(1, win // 2)
+        return (_slice_frac(ids, a0, a1, half, rng)
+                + _slice_frac(ids, b0, b1, half, rng))
+    f0, f1 = LOCAL_BANDS[qtype]
+    return _slice_frac(ids, f0, f1, win, rng)
+
+
+def audit_window_overlap(n=100000, win=16000, seed=0):
+    """自检：三类 local 窗口在**任何** jitter 下都不重叠。判据写成代码。"""
+    import random as _r
+    iv = {}
+    for t in LOCAL_BANDS:
+        lo, hi = LOCAL_BANDS[t]
+        iv[t] = (int(lo * n), int(hi * n))
+    ks = list(iv)
+    for i in range(len(ks)):
+        for j in range(i + 1, len(ks)):
+            a, b = iv[ks[i]], iv[ks[j]]
+            assert a[1] <= b[0] or b[1] <= a[0], (ks[i], ks[j], a, b)
+    # 实际取到的窗口也必须落在带内
+    ids = list(range(n))
+    for t in LOCAL_BANDS:
+        for sd in range(50):
+            seg = windows_for(ids, t, win, _r.Random(sd))
+            lo, hi = iv[t]
+            assert seg[0] >= lo and seg[-1] < hi + win, (t, sd, seg[0], seg[-1], iv[t])
+    return {t: iv[t] for t in iv}
 
 
 @torch.inference_mode()
@@ -113,8 +155,20 @@ def main():
     ap.add_argument("--model", default="Qwen/Qwen2.5-7B-Instruct-1M")
     ap.add_argument("--win", type=int, default=16000, help="单窗口取材长度")
     ap.add_argument("--limit", type=int, default=0, help=">0 时只处理前 N 条（冒烟）")
+    ap.add_argument("--retries", type=int, default=2,
+                   help="单个类型生成失败（含类型不符）的重试次数")
     ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--audit_only", action="store_true",
+                   help="只跑零 GPU 的窗口互斥自检")
     a = ap.parse_args()
+    if a.audit_only:
+        iv = audit_window_overlap()
+        print("三类 local 取材带**互不重叠**（按 10 万 token 折算）：")
+        for t, (lo, hi) in iv.items():
+            print(f"  {t:<12} [{lo:,}, {hi:,})")
+        print("multihop 固定在首尾带", MULTIHOP_BANDS, "；summary 等距抽样整篇")
+        print("PASS")
+        return
 
     from transformers import AutoModelForCausalLM, AutoTokenizer
     tok = AutoTokenizer.from_pretrained(a.model)
@@ -136,22 +190,27 @@ def main():
         ctx_text = tok.decode(ctx[:200000], skip_special_tokens=True)
         futs = []
         for qtype, desc in QTYPES:
-            raw = gen_one(model, tok, ctx, qtype, desc, a.win, rng)
-            got = parse_selfstudy(raw, n=1)
-            if not got:                               # 容错：整行当问句
-                line = raw.splitlines()[0].strip() if raw.strip() else ""
-                line = re.sub(r"^[\W\d]*", "", line)
-                got = [(qtype, line)] if len(line) > 8 else []
-            if not got:
+            q = None
+            for attempt in range(a.retries + 1):
+                raw = gen_one(model, tok, ctx, qtype, desc, a.win, rng)
+                got = parse_selfstudy(raw, n=1)
+                # ⚠ **必须校验类型本身**（外部复核指出，采纳）：`parse_selfstudy`
+                #    接受任何合法 QTYPES，若要 factual 而模型输出 `summary|...`，
+                #    首版会把它**重新标成 factual** —— 标签与内容不符且**不报错**。
+                if got and got[0][0] == qtype and len(got[0][1]) > 8:
+                    q = got[0][1]; break
+            if q is None:
                 continue
-            q = got[0][1]
             futs.append(dict(kind=qtype, q_text=q,
                              q=tok.encode(f"\nQuestion: {q}\nAnswer:",
                                           add_special_tokens=False),
                              a=[], needs=[],
                              grounded=round(grounded_score(q, ctx_text), 4)))
-        # **硬闸：五类至少出 4 类才算成功**，否则这条不进数据集（不许半成品混进去）
-        if len(futs) >= 4:
+        # **硬闸：必须 5/5**（外部复核指出，采纳）。旧的 `>=4` 会产出 M=4 的记录，
+        # 而 Student 那边是 `assert len(futures) == Mt`（Mt=5 固定 probe 数）——
+        # 接进训练时会直接冲突。为几条失败样本把训练代码变复杂不值得，
+        # 缺一类就重试（`--retries`），仍失败就丢掉这条 context。
+        if len(futs) == len(QTYPES):
             r["futures"] = futs
             r["ss_ok"] = True
             ok += 1

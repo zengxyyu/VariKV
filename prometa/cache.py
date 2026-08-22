@@ -211,7 +211,12 @@ def make_prometa_cache(base_cls):
             抹掉跨头幅值的那一步；配额通道要的恰恰是它。
             """
             v = self.valid[..., -(hi - lo):]
-            vv = v[:, 0] if v.dim() == 4 else v            # [L,H,n]
+            # ⚠ **必须 clone**：`v` 是 `self.valid` 的**视图**，下面把新掩码写回
+            # `self.valid` 之后，`vv` 会跟着变 ⇒ `J(base,arm)` 恒等于 1.0000。
+            # 真机日志里已经出现过（`pmd_kv_tokonly` 每个 chunk 都打 J=1.0000），
+            # **干预本身是对的、只有这条诊断坏了** —— 但那正是「用来证明干预活着」
+            # 的那一行，坏了等于没有运行时证据。
+            vv = (v[:, 0] if v.dim() == 4 else v).clone()  # [L,H,n] 基线掩码快照
             b0 = vv.sum(-1)                                # [L,H] 基线逐头配额
             Btot = int(b0.sum().item())
             U = self.pm_oracle.get((lo, hi))

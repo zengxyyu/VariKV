@@ -47,12 +47,25 @@ C. `continuation` **10–20%**：把文档自己的后续 `x_{T+1:T+H}` 当成�
 但每篇还要满缓存预填 + M 次未来前向 + 算 `U*`。所以先小规模判通道，再放量。
 """
 import argparse
+import hashlib
 import json
 import os
 import random
 import sys
 
 import numpy as np
+
+
+def stable_seed(*xs):
+    """**跨进程可复现**的种子。
+
+    ⚠ 不能用 `tuple.__hash__()`：Python 对 **str** 的 `hash()` 默认按
+    `PYTHONHASHSEED` 随机化，含字符串的元组因此**每次启动都不一样**
+    ⇒ 「同 commit + 同 seed ⇒ 同一份数据集」根本不成立（外部复核指出，采纳）。
+    纯 int 元组恰好是确定的，但靠这一点太脆 —— 全部统一走 sha256。
+    """
+    return int.from_bytes(
+        hashlib.sha256("|".join(map(str, xs)).encode()).digest()[:8], "little")
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, HERE)
@@ -101,36 +114,61 @@ def parse_bands(s_):
     return [(lo, hi, w / tot) for lo, hi, w in out]
 
 
-def make_contexts(n_docs, bands, rng_seed, enc, pool_skip=68):
-    """→ [(token_ids, band_idx, built)]。长度不够的 band 用短文**拼接**补足。"""
+def split_sources(n_pool, frac_train, frac_val, enc, pool_skip=68, seed=0):
+    """**先按源文档划分，再各自拼 context** —— 杜绝 source-content leakage。
+
+    ⚠ 这是外部复核指出的最严重的一条，采纳。旧写法是「共同 pool 拼 200 条
+    context → 再按 context 编号切 split」。那样 train 的第 15 条与 val 的第 171 条
+    **可以共享同一篇 FineWeb 底文**（逐位不同，所以去重闸检不出来），
+    Student 在训练里见过的原文会在验证里再出现 ⇒ **它不是真正的 document-level
+    holdout**。现在保证 `S_train ∩ S_val = S_train ∩ S_test = S_val ∩ S_test = ∅`。
+    """
     from prometa.teacher import load_fineweb_pool
-    rng = random.Random((rng_seed, "ctx").__hash__())
-    ws = np.array([w for _, _, w in bands])
-    cum = np.cumsum(ws)
-    # 一次性取足够多的短文（10k–30k 那个 band 有 4,328 篇）
-    need_pool = max(200, n_docs * 4)
-    raw = load_fineweb_pool(need_pool, 10000, 30000, skip=pool_skip)
+    raw = load_fineweb_pool(n_pool, 10000, 30000, skip=pool_skip)
     toks = [enc(t) for t in raw]
-    out, seen = [], set()
-    for i in range(n_docs):
-        r = random.Random((rng_seed, i, "doc").__hash__())
-        bi = int(np.searchsorted(cum, r.random()))
-        lo, hi, _ = bands[bi]
-        tgt = r.randrange(lo, hi)
-        order = list(range(len(toks)))
-        r.shuffle(order)
-        buf, used = [], 0
-        for j in order:
-            buf += toks[j]; used += 1
-            if len(buf) >= tgt + max(2000, tgt // 4):
-                break
-        off = r.randrange(0, max(1, len(buf) - tgt + 1))
-        ctx = buf[off:off + tgt]
-        key = (len(ctx), tuple(ctx[:48]), tuple(ctx[-48:]))
-        assert key not in seen, f"第 {i} 条上下文与已有重复"
-        seen.add(key)
-        out.append((ctx, bi, "single" if used == 1 else "concat"))
-    return out
+    n_tr = int(round(n_pool * frac_train))
+    n_va = int(round(n_pool * frac_val))
+    return {"train": list(range(0, n_tr)),
+            "val": list(range(n_tr, n_tr + n_va)),
+            "test": list(range(n_tr + n_va, n_pool))}, toks
+
+
+def stratified_plan(n, mix, bands, seed):
+    """→ n 个 `(kind, band_idx)`，按 `mix × band` 的联合比例**最大余数法**取整。
+
+    ⚠ 旧写法是逐条独立随机抽 kind/band，再按编号切 split ⇒ train/val/test 的
+    组成比例不保证一致，日后 val loss 的变化可能只是**数据组成不同**造成的。
+    """
+    cells, w = [], []
+    for k, mv in mix.items():
+        for bi, (_, _, bw) in enumerate(bands):
+            cells.append((k, bi)); w.append(mv * bw)
+    w = np.array(w); w = w / w.sum()
+    exact = w * n
+    cnt = np.floor(exact).astype(int)
+    rem = n - cnt.sum()
+    if rem > 0:
+        order = np.argsort(-(exact - cnt))
+        cnt[order[:rem]] += 1
+    plan = [c for c, m in zip(cells, cnt) for _ in range(int(m))]
+    random.Random(seed).shuffle(plan)
+    return plan
+
+
+def build_one_context(src_ids, toks, band, seed):
+    """从**给定 split 的源文档子集**里拼一条 context。→ (ids, used_source_ids, built)"""
+    lo, hi, _ = band
+    r = random.Random(seed)
+    tgt = r.randrange(lo, hi)
+    order = list(src_ids)
+    r.shuffle(order)
+    buf, used = [], []
+    for j in order:
+        buf += toks[j]; used.append(j)
+        if len(buf) >= tgt + max(2000, tgt // 4):
+            break
+    off = r.randrange(0, max(1, len(buf) - tgt + 1))
+    return buf[off:off + tgt], used, ("single" if len(used) == 1 else "concat")
 
 
 def continuation_future(ids, horizon):
@@ -140,40 +178,55 @@ def continuation_future(ids, horizon):
 
 
 def build_manifest(a, enc):
-    """无 GPU 部分：语料 + 划分 + `synth` / `continuation` 两类未来。
+    """无 GPU 部分：**源文档级划分** → 分层分配 → synth / continuation 未来。
 
-    `selfstudy` 的问句留空，由 `add_selfstudy`（需要 GPU）填上。
+    `selfstudy` 的问句留空，由 `scratch_prometa_selfstudy.py`（需要 GPU）填上。
+    每条都记 `source_ids`，便于事后审计 split 是否真的不相交。
     """
     from prometa.teacher import build_task
     bands = parse_bands(a.bands)
     mix = parse_mix(a.mix)
-    ctxs = make_contexts(a.n_docs, bands, a.corpus_seed, enc, a.pool_skip)
+    n_pool = max(300, a.n_docs * 4)
+    splits, toks = split_sources(n_pool, a.frac_train, a.frac_val, enc,
+                                 a.pool_skip, a.corpus_seed)
     n_tr = int(round(a.n_docs * a.frac_train))
     n_va = int(round(a.n_docs * a.frac_val))
-    recs = []
-    for i, (ids, bi, built) in enumerate(ctxs):
-        r = random.Random((a.corpus_seed, i, "fut").__hash__())
-        kind = _pick(mix, r)
-        split = "train" if i < n_tr else ("val" if i < n_tr + n_va else "test")
-        rec = dict(id=i, split=split, band=f"{bands[bi][0]//1000}-{bands[bi][1]//1000}k",
-                   built=built, kind=kind, n_ctx=len(ids))
-        if kind == "synth":
-            ctx, fut, meta = build_task(enc, ids, a.max_ctx, a.window,
-                                        a.n_fact, r, n_joint=a.n_joint)
-            rec["ctx"] = ctx
-            rec["futures"] = [dict(kind=f["kind"], q=f["q"], a=f["a"],
-                                   needs=f["needs"]) for f in fut]
-            rec["meta"] = {k: v for k, v in meta.items() if k != "span_len"}
-        elif kind == "continuation":
-            pre, cont = continuation_future(ids, a.horizon)
-            rec["ctx"] = pre
-            rec["n_ctx"] = len(pre)
-            # 未来 = 文档自己的后续；**没有问句**，整段续写就是 query
-            rec["futures"] = [dict(kind="continuation", q=cont, a=[], needs=[])]
-        else:                                   # selfstudy：问句待填
-            rec["ctx"] = ids
-            rec["futures"] = []                 # add_selfstudy 填
-        recs.append(rec)
+    quota = {"train": n_tr, "val": n_va, "test": a.n_docs - n_tr - n_va}
+    recs, seen, gid = [], set(), 0
+    for split, nsp in quota.items():
+        plan = stratified_plan(nsp, mix, bands, stable_seed(a.corpus_seed, split, "plan"))
+        for j, (kind, bi) in enumerate(plan):
+            ids, used, built = build_one_context(
+                splits[split], toks, bands[bi],
+                stable_seed(a.corpus_seed, split, j, "ctx"))
+            key = (len(ids), tuple(ids[:48]), tuple(ids[-48:]))
+            assert key not in seen, f"{split}#{j} 与已有上下文重复"
+            seen.add(key)
+            r = random.Random(stable_seed(a.corpus_seed, split, j, "fut"))
+            rec = dict(id=gid, split=split, kind=kind, source_ids=used, built=built,
+                       band=f"{bands[bi][0]//1000}-{bands[bi][1]//1000}k", n_ctx=len(ids))
+            gid += 1
+            if kind == "synth":
+                ctx, fut, meta = build_task(enc, ids, a.max_ctx, a.window,
+                                            a.n_fact, r, n_joint=a.n_joint)
+                rec.update(ctx=ctx, n_ctx=len(ctx),
+                           futures=[dict(kind=f["kind"], q=f["q"], a=f["a"],
+                                         needs=f["needs"]) for f in fut],
+                           meta={k: v for k, v in meta.items() if k != "span_len"})
+            elif kind == "continuation":
+                pre, cont = continuation_future(ids, a.horizon)
+                rec.update(ctx=pre, n_ctx=len(pre),
+                           futures=[dict(kind="continuation", q=cont, a=[], needs=[])])
+            else:
+                rec.update(ctx=ids, futures=[])
+            recs.append(rec)
+    # **硬闸：三个 split 的源文档必须两两不相交**
+    ss = {k: set(i for r in recs if r["split"] == k for i in r["source_ids"])
+          for k in quota}
+    for x, y in (("train", "val"), ("train", "test"), ("val", "test")):
+        assert not (ss[x] & ss[y]), f"{x}/{y} 源文档重叠 {len(ss[x] & ss[y])} 篇"
+    print(f"[split] 源文档互不相交 ✓  train {len(ss['train'])} / val {len(ss['val'])}"
+          f" / test {len(ss['test'])} 篇底文", flush=True)
     return recs
 
 
@@ -210,23 +263,28 @@ def parse_selfstudy(text, n=5):
     return uniq[:n]
 
 
-def audit_footprint(U, thresh=0.5):
+def audit_footprint(U, rhos=(0.02, 0.05, 0.10, 0.20)):
     """**未来 footprint 审计**：五个问句是不是指向同一段？
 
-    `U`: [M, L, H, N]。返回未来两两之间保留集的 Jaccard 均值（同预算 top-k）。
+    `U`: [M, L, H, N]。返回 `{ρ: 未来两两保留集 Jaccard 均值}`。
     **≈1 ⇒ 五个问句要的是同一批位置 ⇒ 多未来是假的**，这时类型名再漂亮也没用。
+    ⚠ **必须扫多个 ρ**（外部复核指出，采纳）：footprint 重叠本身依赖预算，
+    只报一个 top-2% 的切点，无法排除「多未来结构是那个 arbitrary cutoff 造出来的」。
     """
     from prometa.risk import topb_mask
     U = np.asarray(U, dtype=np.float64)
     M, L, H, N = U.shape
-    k = max(1, int(round(0.02 * N)))
-    ms = [topb_mask(U[m], k) for m in range(M)]
-    js = []
-    for i in range(M):
-        for j in range(i + 1, M):
-            a_, b_ = ms[i], ms[j]
-            js.append(((a_ & b_).sum(-1) / np.maximum((a_ | b_).sum(-1), 1)).mean())
-    return float(np.mean(js))
+    out = {}
+    for rho in rhos:
+        k = max(1, int(round(rho * N)))
+        ms = [topb_mask(U[m], k) for m in range(M)]
+        js = []
+        for i in range(M):
+            for j in range(i + 1, M):
+                a_, b_ = ms[i], ms[j]
+                js.append(((a_ & b_).sum(-1) / np.maximum((a_ | b_).sum(-1), 1)).mean())
+        out[rho] = float(np.mean(js))
+    return out
 
 
 def audit_questions(recs, enc=None):
@@ -358,9 +416,12 @@ def _selftest():
     diff = rs.random((5, 2, 2, N)) ** 6
     for m_ in range(5):
         diff[m_, :, :, m_ * 80:(m_ + 1) * 80] += 3.0
-    j_same, j_diff = audit_footprint(same), audit_footprint(diff)
-    assert j_same > 0.9 and j_diff < 0.2, (j_same, j_diff)
-    print(f"④ footprint 判据：五问同段 J={j_same:.3f}、各指一段 J={j_diff:.3f}　PASS")
+    js, jd = audit_footprint(same), audit_footprint(diff)
+    assert all(v > 0.9 for v in js.values()), js
+    assert all(v < 0.35 for v in jd.values()), jd
+    print(f"④ footprint 判据（多 ρ）：五问同段 "
+          f"{ {k: round(v,3) for k,v in js.items()} }、"
+          f"各指一段 { {k: round(v,3) for k,v in jd.items()} }　PASS")
 
     # ⑤ 问句审计判据的正负对照：模板化生成器必须被抓出来
     # ⚠ **夹具的区分位必须对度量可见**（同一失效模式本会话已犯三次）：首版用
