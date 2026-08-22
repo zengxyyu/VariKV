@@ -31,13 +31,47 @@ import numpy as np
 BETA_EPS = 1e-6          # |β| 小于它就直接用均值（见 docstring 最后一段）
 
 
-def entropic_risk(U, beta, axis=0):
-    """ρ_β(U) 沿 `axis` 聚合。U 可以是 numpy 数组。
+def standardize(U, axis=0, eps=1e-12):
+    """把 `U` 在「未来 × 位置」联合分布上零均值单位方差化（逐 (层,头) 一组）。
 
-    `beta=0` 精确返回均值（不是近似）；`beta` 极大时返回 max —— 两者都由
-    log-sum-exp 的稳定形式自然给出，不需要分支特判上限。
+    **⚠ 这不是可选的美化，是必需的。** `ρ_β` 平移等变但**非尺度不变**：
+
+        ρ_β(aU + b) = a·ρ_{aβ}(U) + b
+
+    而 `U` 是 169k 个位置上的 softmax，绝大多数值 ~1e-5、峰值 ~0.9，且本模型
+    的逐头尺度 `A_h = σ_h/σ_g` 跨头跨度 **621×**。⇒ **同一个 β 在不同头上是
+    完全不同的风险厌恶强度**（实测 β=5 在尖峰头给 J(mean,ρ_β)=0.656、
+    在弥散头给 0.966，等价强度差 486×）。
+
+    标准化后 `ρ_β(z(U))` 的**排序恒等于** `ρ_{β/s}(U)` 的排序（自测逐位验证），
+    所以这一步**就是**把 β 换成无量纲的 `β̃ = β/s`。⇒ 一个 β 才在全部
+    (层,头) / panel / ratio 上表示同一件事。
+
+    ⚠ 归一化必须在**联合 (未来, 位置)** 上做。若逐位置对未来轴做 z-score，
+    「谁都不要的位置」与「谁都要的位置」会被抹成一样 —— 那会毁掉 level 信息。
     """
     U = np.asarray(U, dtype=np.float64)
+    m = U.mean()
+    sd = U.std()
+    if U.ndim > 1:
+        # 逐 (层,头)：把 axis(未来) 与最后一维(位置) 之外的维度当作头身份
+        red = (axis, U.ndim - 1)
+        m = U.mean(axis=red, keepdims=True)
+        sd = U.std(axis=red, keepdims=True)
+    return (U - m) / np.maximum(sd, eps)
+
+
+def entropic_risk(U, beta, axis=0, standardized=True):
+    """ρ_β(U) 沿 `axis` 聚合。
+
+    `standardized=True`（默认）先做 `standardize` ⇒ **β 无量纲**，见其 docstring。
+    `beta=0` 精确返回均值（不是近似）；`beta` 极大时返回 max。
+    ⚠ 标准化是逐 (层,头) 的仿射变换，**不改变同一头内的排序语义**，
+    但会改变返回值的绝对尺度 —— 只能用来排序，不要当成效用的绝对值。
+    """
+    U = np.asarray(U, dtype=np.float64)
+    if standardized:
+        U = standardize(U, axis=axis)
     if abs(beta) < BETA_EPS:
         return U.mean(axis=axis)
     M = U.shape[axis]
@@ -72,41 +106,43 @@ def topb_mask(score, b, axis=-1):
 def _selftest():
     rng = np.random.default_rng(0)
     U = rng.random((5, 7, 11))
+    # 原有 8 条测的是**未标准化**的纯数学性质，显式关掉；标准化另有 ⑨⑩ 两条。
+    er = lambda x, b, **kw: entropic_risk(x, b, standardized=False, **kw)
 
     # ① β=0 精确等于均值
-    assert np.allclose(entropic_risk(U, 0.0), U.mean(0), atol=0), "β=0 必须精确等于均值"
+    assert np.allclose(er(U, 0.0), U.mean(0), atol=0), "β=0 必须精确等于均值"
 
     # ② β→+∞ 收敛到 max，β→−∞ 收敛到 min
-    hi = entropic_risk(U, 5e3)
-    lo = entropic_risk(U, -5e3)
+    hi = er(U, 5e3)
+    lo = er(U, -5e3)
     assert np.abs(hi - U.max(0)).max() < 1e-3, np.abs(hi - U.max(0)).max()
     assert np.abs(lo - U.min(0)).max() < 1e-3, np.abs(lo - U.min(0)).max()
 
     # ③ 单调不减于 β（风险厌恶越强、分数越高）—— 这是 ρ_β 的基本性质
     bs = [-8, -2, -0.5, 0.0, 0.5, 2, 8]
-    vals = np.stack([entropic_risk(U, b) for b in bs])
+    vals = np.stack([er(U, b) for b in bs])
     assert (np.diff(vals, axis=0) >= -1e-9).all(), "ρ_β 必须随 β 单调不减"
 
     # ④ Jensen：β>0 时 ρ_β ≥ 均值；β<0 时 ≤
-    assert (entropic_risk(U, 1.0) >= U.mean(0) - 1e-12).all()
-    assert (entropic_risk(U, -1.0) <= U.mean(0) + 1e-12).all()
+    assert (er(U, 1.0) >= U.mean(0) - 1e-12).all()
+    assert (er(U, -1.0) <= U.mean(0) + 1e-12).all()
 
     # ⑤ 与二阶展开对拍（小 β），并验证误差随 β² 收缩 —— 这是「不是拍脑袋」的证据
     errs = []
     for b in (0.2, 0.1, 0.05):
-        errs.append(np.abs(entropic_risk(U, b) - taylor_risk(U, b)).max())
+        errs.append(np.abs(er(U, b) - taylor_risk(U, b)).max())
     assert errs[0] > errs[1] > errs[2], errs
     r = errs[0] / max(errs[2], 1e-30)
     assert 8 < r < 32, f"误差应约按 β² 收缩（16×），实测 {r:.1f}×"
 
     # ⑥ 数值稳定：巨大 β 不 overflow、不 NaN
     for b in (1e3, 1e4, -1e4):
-        v = entropic_risk(U * 100, b)
+        v = er(U * 100, b)
         assert np.isfinite(v).all(), (b, v)
 
     # ⑦ 阴性对照：所有未来完全相同时，ρ_β 与 β 无关（方差为 0）
     same = np.repeat(U[:1], 5, axis=0)
-    v0, v1 = entropic_risk(same, 0.0), entropic_risk(same, 50.0)
+    v0, v1 = er(same, 0.0), er(same, 50.0)
     assert np.abs(v0 - v1).max() < 1e-9, np.abs(v0 - v1).max()
 
     # ⑧ topb_mask 计数、并列、边界
@@ -117,7 +153,35 @@ def _selftest():
     assert m[1].tolist() == [True, True, False, False, False], m[1]
     assert topb_mask(s, 0).sum() == 0 and topb_mask(s, 99).all()
 
-    print("prometa/risk.py 自测 8 条全过　"
+    # ⑨ **标准化 ≡ 重标定 β**：ρ_β(z(U)) 与 ρ_{β/s}(U) 的排序必须逐位相同
+    V = np.abs(rng.standard_normal((5, 3000))) ** 3 * 0.7
+    sd = V.std()
+    ra = entropic_risk(V, 2.0, standardized=True)
+    rb = er((V - V.mean()) / sd, 2.0)
+    order = lambda x: np.argsort(np.argsort(-x))
+    assert np.array_equal(order(ra), order(rb)), "标准化不等价于重标定 β"
+    rc = er(V, 2.0 / sd)
+    assert np.array_equal(order(ra), order(rc)), "ρ_β(z(U)) 应与 ρ_{β/s}(U) 同序"
+    print(f"⑨ 标准化 ≡ 把 β 换成 β/s（两条对拍排序逐位相同，s={sd:.4f}）　PASS")
+
+    # ⑩ **阴性对照**：不标准化时，同一个 β 在两个尺度差 500× 的头上给出
+    #    截然不同的「偏离均值」程度；标准化后必须拉齐。
+    def jac(a, b, k):
+        A, B = set(np.argsort(-a)[:k]), set(np.argsort(-b)[:k])
+        return len(A & B) / len(A | B)
+    js_raw, js_std = [], []
+    for sc in (1.0, 0.002):
+        W = np.abs(rng.standard_normal((5, 4000))) ** 3
+        W = W / W.sum(-1, keepdims=True) * 4000 * sc
+        js_raw.append(jac(W.mean(0), er(W, 5.0), 400))
+        js_std.append(jac(W.mean(0), entropic_risk(W, 5.0), 400))
+    assert abs(js_raw[0] - js_raw[1]) > 0.2, js_raw
+    assert abs(js_std[0] - js_std[1]) < 0.1, js_std
+    print(f"⑩ 阴性对照：未标准化 J = {js_raw[0]:.3f} vs {js_raw[1]:.3f}（差 "
+          f"{abs(js_raw[0]-js_raw[1]):.3f}）；标准化后 {js_std[0]:.3f} vs "
+          f"{js_std[1]:.3f}（差 {abs(js_std[0]-js_std[1]):.3f}）　PASS")
+
+    print("prometa/risk.py 自测 10 条全过　"
           f"（β² 收缩比实测 {r:.1f}×，理论 16×）")
 
 

@@ -101,6 +101,10 @@ def make_prometa_cache(base_cls):
                 R = prometa_scores(self.pm_net, self.pm_pool, self.key_cache,
                                    lo, hi, self.pm_beta, self.key_cache[0].device)
                 s0 = torch.stack(self.score, 0)[:, 0, :, lo:hi].float()  # [L,H,n]
+                # `R` 已由 `entropic_risk(standardized=True)` 做过**未来×位置**
+                # 联合标准化（那是为了让 β 无量纲）；这里的 `_z` 是**再做一次
+                # 位置轴上的归一化**，目的不同：让 R 与门控分 `s0` 在**混合时**
+                # 量纲可比。两步都需要，别删任一步。
                 s = (1.0 - self.pm_mix) * _z(s0) + self.pm_mix * _z(R)
                 # 写回本块切片（各 chunk 的 range 互不相交，安全），并留底备诊断
                 if self.pm_score0 is None:
@@ -115,13 +119,16 @@ def make_prometa_cache(base_cls):
                 # **每加一个 mode 必须同时加运行时日志**（本项目铁律）。
                 # 缺了它，「ProMeta 到底动了没有」只能靠比分数间接推 ——
                 # 地板那条线的 66 格空跑就是这么发生的。
-                agree = None
                 with torch.no_grad():
                     from prometa.risk import topb_mask
-                    k = max(1, int(self.valid[..., -(hi - lo):].float().sum().item()
-                                   / (s0.shape[0] * s0.shape[1])))
-                    a = topb_mask(s0.cpu().numpy(), k)
-                    b = topb_mask(_z(R).cpu().numpy(), k)
+                    # `valid` 的维数在不同 cache 子类上不一定相同，**不猜形状**：
+                    # 取本块那一段、按 (层×头) 的个数折算出平均每头保留数。
+                    v = self.valid[..., -(hi - lo):]
+                    n_head = s0.shape[0] * s0.shape[1]
+                    k = max(1, int(round(float(v.float().sum().item()) / n_head)))
+                    k = min(k, hi - lo)
+                    a = topb_mask(s0.detach().cpu().numpy(), k)
+                    b = topb_mask(_z(R).detach().cpu().numpy(), k)
                     agree = float((a & b).sum() / max((a | b).sum(), 1))
                 print(f"[prometa] chunk lo={lo} n={hi-lo} beta={self.pm_beta} "
                       f"mix={self.pm_mix} pool_layer={self.pm_pool_layer} "
