@@ -45,7 +45,40 @@ def parse():
     p = argparse.ArgumentParser()
     p.add_argument("-m", "--model", default="Qwen/Qwen2.5-7B-Instruct-1M")
     p.add_argument("-g", "--gate", default="fastkvzip")
-    p.add_argument("--corpus", default="fineweb_10k_cat")
+    # ── 语料 ─────────────────────────────────────────────────────────────
+    # `cat`：上游现成的 `fineweb_10k_cat` **10 篇** 103k–120k 长文（旧默认）。
+    # `mix`：用 `fineweb_10k` 的 **68 篇短文**（10k–26k）**自己拼**，长度按
+    #        `--len_mix` 分层抽样 ⇒ **可以造任意多条互不相同的上下文，且长短并存**。
+    #
+    # **为什么加它**（2026-08-22，用户指出）：FastKVzip 的门控训练集本身就是
+    # **长短混合**（`feature.py:26`：`fineweb_10k` 前 29 篇 + `fineweb_10k_cat`
+    # 前 5 篇 = 34 篇），**只用长文的是我，不是它**。而 `fineweb_10k_cat` 一共
+    # 就 10 篇，独立上下文数被死死卡在 10。分块技术并不要求训练上下文很长 ——
+    # `chunk_ranges` 对 16k 的短文给 1 段、对 110k 给 7–8 段，形状一样，
+    # Student 的预测靶子恒定是 16000 个位置。**所以长度不是必需，多样性才是。**
+    # ⚠ **措辞更正**：我先前说「这套机制 `scratch_adv_teacher.py` 早就有，
+    #    这里只是接过来」——**不准确**。那里有的是**想法**，实现差三处，
+    #    而且它的约束与我们**不同**：
+    #      · 它按**字符**（`min_chars`）拼，我按 **token** 目标长度**分层抽样**；
+    #      · 它**只造长上下文**，因为它的教师是「反事实配额优势」，**必须让驱逐
+    #        非退化**（`clen > window/ρ = 40,960`）；**ProMeta 的教师是满缓存
+    #        注意力需求，根本不驱逐 ⇒ 这条约束对我们不成立**，这正是我们可以
+    #        长短并存的原因；
+    #      · 它「拼到够长就停、取前缀」，我改成「拼到目标+裕量后随机开窗 + 去重」。
+    #    ⚠ 第三处**不是修它的 bug，是修我自己的**：它只造 ≥40,960 的长文，
+    #    必然拼 3–4 篇，前缀碰撞基本不可能；是我引入短目标（8k/16k < 单篇 10k–29k）
+    #    才让「取前缀」退化成「截断同一篇」，实测 64 条里只有 60 条互不相同。
+    #
+    # ⚠ **必须随数字一起写的限制**：拼接买到的是**组合多样性**，不是**新内容**。
+    #    独立底文的天花板仍是 `fineweb_10k` 的 **68 篇**（外加 `_cat` 的 10 篇，
+    #    而那 10 篇本身也是同一族语料的拼接）。要真正突破这个天花板，只能换语料
+    #    （RestoreKV 用 LongAlpaca 500 篇 + PG-19 50 本 + Tulu-3 FLAN 1500 例）。
+    p.add_argument("--corpus", default="fineweb_10k_cat",
+                   choices=["fineweb_10k_cat", "mix"])
+    p.add_argument("--len_mix", default="8000:0.25,16000:0.35,32000:0.25,110000:0.15",
+                   help="`mix` 的长度分层：`目标token:权重` 逗号分隔。"
+                        "默认照 RestoreKV/LookaheadKV 的做法以短为主、保留 15% 长样本")
+    p.add_argument("--corpus_seed", type=int, default=20260822)
     p.add_argument("--n_docs", type=int, default=10,
                    help="**固定**篇数。划分按位置切，不 shuffle")
     p.add_argument("--n_val", type=int, default=2)
@@ -118,6 +151,55 @@ def student_demand(net, kv, lo, hi, pool_end, pool_layer, no_context=False):
     return torch.stack(out, 1), q                               # [Ms,L,H,n]
 
 
+def build_corpus(a, enc):
+    """→ `n_docs` 条**token id 列表**。`cat` 用现成长文；`mix` 用 68 篇短文自己拼。
+
+    划分仍按**位置**切（`docs[:n_tr]` 训练 / 其余验证），与 `--corpus_seed` 无关 ⇒
+    换 `--seed` 不会改动划分（`--split_seed` 那个坑：篇数一变划分全变）。
+    """
+    from data.load import load_fineweb
+    if a.corpus != "mix":
+        return [enc(d["context"]) for d in load_fineweb(a.corpus)][:a.n_docs]
+    shorts = [enc(d["context"]) for d in load_fineweb("fineweb_10k")]
+    pairs = [x.split(":") for x in a.len_mix.split(",")]
+    tgts = [int(t) for t, _ in pairs]
+    wts = np.array([float(w) for _, w in pairs], dtype=float)
+    wts = wts / wts.sum()
+    out, used, seen = [], set(), set()
+    for i in range(a.n_docs):
+        # ⚠ **必须留出裕量再随机开窗，不能总取前缀**（2026-08-22 干跑抓到）：
+        # 目标 8k/16k **小于一篇底文**（fineweb_10k 是 10k–26k），若像
+        # `scratch_adv_teacher.mix` 那样「拼到 >= tgt 就停、再取前缀」，
+        # 抽到同一篇首文的两条上下文就**逐位完全相同** —— 实测 64 条里只有
+        # 60 条互不相同。改成拼到 `tgt + slack` 后在缓冲区内**随机开窗**，
+        # 并对整条上下文做**去重硬闸**（重复就换种子重抽，最多 20 次）。
+        for attempt in range(20):
+            r = random.Random((a.corpus_seed, i, attempt, "mix").__hash__())
+            tgt = tgts[int(np.searchsorted(np.cumsum(wts), r.random()))]
+            order = list(range(len(shorts)))
+            r.shuffle(order)
+            buf, picked = [], []
+            for j in order:
+                buf += shorts[j]; picked.append(j)
+                if len(buf) >= tgt + max(2000, tgt // 4):
+                    break
+            off = r.randrange(0, max(1, len(buf) - tgt + 1))
+            ctx = buf[off:off + tgt]
+            key = hash(tuple(ctx[:64]) + tuple(ctx[-64:]) + (len(ctx),))
+            if key not in seen:
+                break
+        assert key not in seen, f"第 {i} 条重抽 20 次仍与已有上下文重复"
+        seen.add(key)
+        used.update(picked)
+        out.append(ctx)
+    L = [len(x) for x in out]
+    assert len(seen) == len(out), f"去重硬闸失效：{len(seen)} != {len(out)}"
+    print(f"[corpus] mix：{len(out)} 条**互不相同**，长度 {min(L):,}-{max(L):,}（中位 "
+          f"{int(np.median(L)):,}）；**独立底文只有 {len(shorts)} 篇，用到 {len(used)} 篇** "
+          f"⇒ 拼接买到的是组合多样性、不是新内容", flush=True)
+    return out
+
+
 def main():
     a = parse()
     torch.manual_seed(a.seed)
@@ -146,10 +228,10 @@ def main():
     print(f"[train] L={L} Hkv={Hkv} d={dh} sys_len={sys_len} | "
           f"Mt={Mt} Ms={Ms} | Student {npar:,} 参数 | seed={a.seed}", flush=True)
 
-    docs = [d["context"] for d in load_fineweb(a.corpus)][:a.n_docs]
+    docs = build_corpus(a, enc)
     assert len(docs) == a.n_docs, f"语料只有 {len(docs)} 篇，要 {a.n_docs}"
     n_tr = a.n_docs - a.n_val
-    print(f"[train] 语料 {a.corpus} 固定 {a.n_docs} 篇，**按位置**切 "
+    print(f"[train] 语料 {a.corpus} 固定 {a.n_docs} 篇（{sum(len(d) for d in docs):,} token），**按位置**切 "
           f"train[0:{n_tr}] / val[{n_tr}:{a.n_docs}]（不 shuffle）", flush=True)
 
     def one_doc(di, epoch, train=True):
@@ -163,7 +245,7 @@ def main():
         """
         rng = (random.Random((a.seed, epoch, di).__hash__()) if train
                else random.Random((a.val_seed, di).__hash__()))
-        ids = enc(docs[di])
+        ids = docs[di]                      # 已是 token id 列表
         ctx, futures, meta = build_task(enc, ids, a.max_ctx, a.window,
                                         a.n_fact, rng, n_joint=a.n_joint)
         assert len(futures) == Mt, (len(futures), Mt)
@@ -232,7 +314,7 @@ def main():
         # **Q-only vs Q+A**：教师用真答案是否构成泄漏，用数字回答，不用措辞
         from prometa.risk import topb_mask
         rng = random.Random((a.seed, 0, 0).__hash__())
-        ctx, futures, _ = build_task(enc, enc(docs[0]), a.max_ctx, a.window,
+        ctx, futures, _ = build_task(enc, docs[0], a.max_ctx, a.window,
                                      a.n_fact, rng, n_joint=a.n_joint)
         _, usable = chunk_ranges(sys_len + len(ctx), sys_len, a.chunk, a.window)
         pick = [usable[len(usable) // 2]]
