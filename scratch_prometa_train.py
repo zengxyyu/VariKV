@@ -73,6 +73,12 @@ def parse():
     #    独立底文的天花板仍是 `fineweb_10k` 的 **68 篇**（外加 `_cat` 的 10 篇，
     #    而那 10 篇本身也是同一族语料的拼接）。要真正突破这个天花板，只能换语料
     #    （RestoreKV 用 LongAlpaca 500 篇 + PG-19 50 本 + Tulu-3 FLAN 1500 例）。
+    # ★ **正式路径**：直接读 `prometa/dataset.py` 产出的 manifest。
+    # 给了它就**完全忽略** --corpus / --n_docs / --n_fact 等内部造数据的参数，
+    # 划分也用 manifest 里的 `split` 字段（源文档级、已验证互不相交），
+    # 不再按位置切。⚠ 这是「正式版正在用新数据集训练」的唯一判据。
+    p.add_argument("--manifest", default="",
+                   help="prometa_data/manifest_v1.jsonl。给了就走正式数据路径")
     p.add_argument("--corpus", default="fineweb_10k_cat",
                    choices=["fineweb_10k_cat", "mix", "pool"])
     p.add_argument("--pool_band", default="10000,30000",
@@ -249,8 +255,22 @@ def main():
     print(f"[train] L={L} Hkv={Hkv} d={dh} sys_len={sys_len} | "
           f"Mt={Mt} Ms={Ms} | Student {npar:,} 参数 | seed={a.seed}", flush=True)
 
-    docs = build_corpus(a, enc)
-    assert len(docs) == a.n_docs, f"语料只有 {len(docs)} 篇，要 {a.n_docs}"
+    MANI = None
+    if a.manifest:
+        import json as _json
+        MANI = [_json.loads(l) for l in open(a.manifest)]
+        MANI = [r for r in MANI if r["futures"]]      # 未来为空的（selfstudy 未生成）跳过
+        docs = MANI
+        from collections import Counter as _C
+        _c = _C((r["split"], r["kind"]) for r in MANI)
+        _m = _C(len(r["futures"]) for r in MANI)
+        print(f"[train] **走正式 manifest 路径** {a.manifest}：{len(MANI)} 条可用"
+              f"（有未来的），组成 {dict(_c)}，每条未来数 {dict(sorted(_m.items()))}",
+              flush=True)
+        assert MANI, "manifest 里没有一条带未来的记录（selfstudy 还没生成？）"
+    else:
+        docs = build_corpus(a, enc)
+        assert len(docs) == a.n_docs, f"语料只有 {len(docs)} 篇，要 {a.n_docs}"
     n_tr = a.n_docs - a.n_val
     print(f"[train] 语料 {a.corpus} 固定 {a.n_docs} 篇（{sum(len(d) for d in docs):,} token），**按位置**切 "
           f"train[0:{n_tr}] / val[{n_tr}:{a.n_docs}]（不 shuffle）", flush=True)
@@ -266,10 +286,19 @@ def main():
         """
         rng = (random.Random((a.seed, epoch, di).__hash__()) if train
                else random.Random((a.val_seed, di).__hash__()))
-        ids = docs[di]                      # 已是 token id 列表
-        ctx, futures, meta = build_task(enc, ids, a.max_ctx, a.window,
-                                        a.n_fact, rng, n_joint=a.n_joint)
-        assert len(futures) == Mt, (len(futures), Mt)
+        if MANI is not None:
+            # ★ manifest 路径：上下文与未来都是**固定的**（不再每 epoch 重抽事实）。
+            # 这本身就更干净 —— 数据集冻结、可复现、可挂 sha256。
+            rec = docs[di]
+            ctx = rec["ctx"]
+            futures = [dict(q=f["q"], a=f["a"], kind=f["kind"],
+                            needs=f.get("needs", [])) for f in rec["futures"]]
+            meta = dict(kind=rec["kind"], band=rec["band"], M=len(futures))
+        else:
+            ids = docs[di]                  # 已是 token id 列表
+            ctx, futures, meta = build_task(enc, ids, a.max_ctx, a.window,
+                                            a.n_fact, rng, n_joint=a.n_joint)
+            assert len(futures) == Mt, (len(futures), Mt)
         n_total = sys_len + len(ctx)
         _, usable = chunk_ranges(n_total, sys_len, a.chunk, a.window)
         if not usable:
@@ -315,7 +344,14 @@ def main():
                 # 之前打印的是 `demand + λ·div`，验证侧只有 `demand`，两者被
                 # 直接并排比较且都拿「平凡解」当参照 —— 而平凡解只是 `demand`
                 # 的基线。现在两边都只用 `demand` 做学习曲线，`div` 单独报。
-                dem = match_loss(Us, Uh)
+                # `allow_extra` 只在 manifest 路径开：那里 M 随记录而变
+                # （continuation 只有 1 个未来、synth/selfstudy 有 5 个）。
+                # ⚠ 外部复核原本反对 `Ms>Mt`，理由是「本步没被监督的 probe 在推理
+                #    时仍参与决策」。**在混合 M 的数据上这条反对被化解**：所有 5 个
+                #    probe 在**别的记录**上都会被监督到，只是不在每一步。
+                #    若数据里全是 M=1，就又会退化成原来的问题 —— 所以下面打印
+                #    每条未来数的直方图，保证这一点可查。
+                dem = match_loss(Us, Uh, allow_extra=(MANI is not None))
                 dv = diversity_loss(q)
                 loss = dem + a.lam_div * dv
                 opt.zero_grad(set_to_none=True)
@@ -341,7 +377,7 @@ def main():
                 with torch.no_grad():
                     Uh, q = student_demand(net, kv, lo, hi, pool_end, a.pool_layer,
                                            no_context=a.no_context)
-                    dem = match_loss(Us, Uh)
+                    dem = match_loss(Us, Uh, allow_extra=(MANI is not None))
                     dv = diversity_loss(q)
                 gn = torch.tensor(0.0)
             # 纪律①：平凡解参照 —— Student 输出均匀分布时的损失
@@ -391,10 +427,17 @@ def main():
     # 打乱对照的标签库：**按 chunk 宽度**索引 → (来源文档号, U 数组)
     _label_bank = {}
     t0 = time.time()
+    if MANI is not None:
+        idx_tr = [i for i, r in enumerate(MANI) if r["split"] == "train"]
+        idx_va = [i for i, r in enumerate(MANI) if r["split"] == "val"]
+        print(f"[train] 划分来自 manifest 的 `split` 字段（**源文档级、已验证互不相交**）："
+              f"train {len(idx_tr)} / val {len(idx_va)}", flush=True)
+    else:
+        idx_tr, idx_va = list(range(n_tr)), list(range(n_tr, a.n_docs))
     for ep in range(a.epochs):
-        tr = [one_doc(di, ep, True) for di in range(n_tr)]
+        tr = [one_doc(di, ep, True) for di in idx_tr]
         tr = [x for x in tr if x]
-        va = [one_doc(di, ep, False) for di in range(n_tr, a.n_docs)]
+        va = [one_doc(di, ep, False) for di in idx_va]
         va = [x for x in va if x]
         f = lambda xs, i: float(np.mean([x[i] for x in xs])) if xs else float("nan")
         # 学习曲线**只看 demand**；div 单独报（它与平凡解不可比）
