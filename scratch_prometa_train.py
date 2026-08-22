@@ -70,6 +70,10 @@ def parse():
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--epochs", type=int, default=3)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--no_context", action="store_true",
+                   help="**上下文致盲对照**：把池化摘要置零 ⇒ probe 变成常数。"
+                        "与完整 Student 的差 = 上下文路径的全部贡献。"
+                        "不可分 ⇒ 当前数据上「从上下文预测未来」没有发生。")
     p.add_argument("--val_seed", type=int, default=987654,
                    help="**验证任务的 rng，不含 epoch** ⇒ 跨 epoch 是同一把尺子")
     p.add_argument("--out", default="varikv/prometa_s0.pt")
@@ -78,16 +82,33 @@ def parse():
     return p.parse_args()
 
 
-def student_demand(net, kv, lo, hi, pool_end, pool_layer):
+def student_demand(net, kv, lo, hi, pool_end, pool_layer, no_context=False):
     """Student 在 chunk `[lo,hi)` 上的需求分布 `Û: [Ms,L,Hkv,n]`（带梯度）。
 
     **因果口径与部署逐字一致**：部署时 `prune_chunk((lo,hi))` 被调用的那一刻，
     cache 里正好有 `[0, hi+window)`（上游 `end_idx = len(score) − window`），
     所以摘要只能看到 `pool_end = hi + window`。这里由调用方算好传进来。
     """
-    V = kv.value_cache[pool_layer][0][:, :pool_end, :]          # [Hkv,n,d]
-    flat = V.permute(1, 0, 2).reshape(pool_end, -1).to(net.proj.weight.dtype)
-    q = net.from_pooled(net.pool(flat))                         # [Ms,L,Hkv,d]
+    if no_context:
+        # **上下文致盲对照**（2026-08-22 加）：把池化摘要置零 ⇒
+        # `u = trunk(0) + probe_bias` 与上下文**无关**，Student 退化成一组
+        # **常数** probe。它与完整 Student 的差，就是「上下文路径」的全部贡献。
+        #
+        # 为什么这条必须先跑：Student 的 302,464 个参数里，**上下文相关的那条
+        # 路径（proj + pool_q + trunk）占 279,616 个，而它的输出只有
+        # `u ∈ R^{5×64} = 320` 个数**。训练集只有 8 篇 × 5 chunk = **40 个不同
+        # 的池化输入**（跨 epoch 只重抽注入的事实，10 万 token 的底文不变，
+        # 池化摘要由底文主导）⇒ 40×320 = 12,800 个目标数对 279,616 个参数，
+        # **严重过参数化**。若致盲对照与完整 Student 不可分，那么
+        # 「从上下文预测未来需求」这件事在当前数据上**根本没有发生**，
+        # 此时扩语料是唯一正确的动作；若可分，才说明上下文路径确有信号。
+        z = torch.zeros(net.pool_q.shape[0], net.proj.out_features,
+                        device=net.pool_q.device, dtype=net.probe_bias.dtype)
+        q = net.from_pooled(z)
+    else:
+        V = kv.value_cache[pool_layer][0][:, :pool_end, :]      # [Hkv,n,d]
+        flat = V.permute(1, 0, 2).reshape(pool_end, -1).to(net.proj.weight.dtype)
+        q = net.from_pooled(net.pool(flat))                     # [Ms,L,Hkv,d]
     Ms, L, H, d = q.shape
     out = []
     for l in range(L):
@@ -162,7 +183,8 @@ def main():
             Us = to_dist(torch.as_tensor(U_by[(lo, hi)], device=model.device))
             pool_end = min(hi + a.window, info["n_prefix"])
             if train:
-                Uh, q = student_demand(net, kv, lo, hi, pool_end, a.pool_layer)
+                Uh, q = student_demand(net, kv, lo, hi, pool_end, a.pool_layer,
+                                       no_context=a.no_context)
                 # **demand 与 div 必须分开记**（外部复核指出，采纳）：训练侧
                 # 之前打印的是 `demand + λ·div`，验证侧只有 `demand`，两者被
                 # 直接并排比较且都拿「平凡解」当参照 —— 而平凡解只是 `demand`
@@ -174,11 +196,20 @@ def main():
                 loss.backward()
                 gn = torch.nn.utils.clip_grad_norm_(net.parameters(), 1.0)
                 # 纪律②：本仓库吃过「loss 在降、grad 恒零」的亏
+                # 致盲对照下 proj/pool_q **本就该**零梯度，所以只要求总范数非零
                 assert float(gn) > 0, "梯度范数为 0 —— 图断了，训练是假的"
+                if a.no_context and _step0[0]:
+                    _dead = [n_ for n_, p_ in net.named_parameters()
+                             if p_.grad is None or float(p_.grad.abs().max()) == 0]
+                    print(f"  [no_context] 零梯度参数（应恰为 proj/pool_q）：{_dead}",
+                          flush=True)
+                    assert set(_dead) == {"proj.weight", "pool_q"}, _dead
+                    _step0[0] = False
                 opt.step()
             else:
                 with torch.no_grad():
-                    Uh, q = student_demand(net, kv, lo, hi, pool_end, a.pool_layer)
+                    Uh, q = student_demand(net, kv, lo, hi, pool_end, a.pool_layer,
+                                           no_context=a.no_context)
                     dem = match_loss(Us, Uh)
                     dv = diversity_loss(q)
                 gn = torch.tensor(0.0)
@@ -225,6 +256,7 @@ def main():
         print("Finished.")
         return
 
+    _step0 = [True]
     t0 = time.time()
     for ep in range(a.epochs):
         tr = [one_doc(di, ep, True) for di in range(n_tr)]
