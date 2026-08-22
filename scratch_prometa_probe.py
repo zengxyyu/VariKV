@@ -270,11 +270,23 @@ def main():
         panel = m.group(1) if m else "unknown"
         by_panel.setdefault(panel, []).append(d["U"])
         print(f"{os.path.basename(f)}: U{d['U'].shape} n_prefix={d['n_prefix']}")
-    for panel, Us in by_panel.items():
-        n = min(u.shape[-1] for u in Us)
-        # 沿层轴拼样本：每一行是一个独立的 (样本,层,头) 单元，逐行统计后再平均
-        U = np.concatenate([u[..., :n] for u in Us], axis=1)
-        analyse(U, f"**{panel}**（{len(Us)} 个样本）")
+    for panel, Us in sorted(by_panel.items()):
+        # ⚠ **同一面板内样本的未来数 M 可能不同**（实测 `scbench_qa_eng` 有样本
+        # 是 7 个 question 而非 5）。**不能截断 M** —— 那会改变被测的未来集合、
+        # 让「均值 vs 尾部」的对比在不同样本上问的不是同一个问题。
+        # 正确做法是按 M 分组，各组独立出表。
+        by_m = {}
+        for u in Us:
+            by_m.setdefault(u.shape[0], []).append(u)
+        if len(by_m) > 1:
+            print(f"\n**⚠ {panel} 的样本未来数不齐**："
+                  + "、".join(f"M={m} 有 {len(v)} 个样本" for m, v in sorted(by_m.items()))
+                  + " ⇒ **按 M 分组各自出表，不合并**（截断 M 会改变被测对象）。")
+        for m, group in sorted(by_m.items()):
+            n = min(u.shape[-1] for u in group)
+            # 沿层轴拼样本：每行是一个独立的 (样本,层,头) 单元，逐行统计后再平均
+            U = np.concatenate([u[..., :n] for u in group], axis=1)
+            analyse(U, f"**{panel}**（M={m}，{len(group)} 个样本）")
     if len(by_panel) < 2:
         print("\n**⚠ 只读到一个面板。** 未来**互不相交**时 `mean = max/M` 是单调变换、"
               "排序必然相同 ⇒ 判据 A 会平凡判否；分歧只可能来自「私有强需求」与"
