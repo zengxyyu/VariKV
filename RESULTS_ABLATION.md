@@ -11495,7 +11495,7 @@ Qwen3 侧的剂量是 b1 **+0.30** / b8 **+1.60** / b32 **+2.20**，**单调、�
 
 | 文献 | 核实结论 | 对本项目的威胁 |
 |---|---|---|
-| **K-VEC** 2606.29563（Roy 等，2026-06-28）《Coverage-Driven KV Cache Eviction for Efficient and Improved Inference of LLM》 | 「覆盖率下降限制输入输出间的**互信息**」，**cross-head 与 cross-layer 模块提升跨注意力机制的 token 保留**，LongBench 上同驱逐率最高 +10.35 | **最高**。"cross-head 覆盖"与"别让头饿死"很近。⚠ 摘要看它是 **token 覆盖**不是**逐头最低配额**，但**必须读全文才能定**，未读前不得声称新颖 |
+| **K-VEC** 2606.29563（Roy 等，2026-06-28） | 见下方全文核对 | **已读全文 ⇒ 不构成威胁** |
 | **CONF-KV** 2605.24786（Li & Miao，2026-05-24） | 用 **next-token 置信度**动态调**每步总预算**；含**受保护的近期窗口**与**金字塔逐层预算** | 中。它的不确定性是**生成置信度**、保护是**按新近度**；与"效用不确定性"「按生存」是两个层次，但"protected window + per-layer budget"已被占 |
 | **VarRate** 2607.15498（Esmat 等，2026-07-16） | 明确把 **token 选择的不可逆性**列为结构性缺陷，**给每个 token 非零低秩预算** | 高。**「让一切都保持非零分配」在 token 粒度已被占据**。我们的差异只能是**头/通道粒度的计数预算**，而不是"首次提出不可逆是问题" |
 
@@ -11505,6 +11505,38 @@ Qwen3 侧的剂量是 b1 **+0.30** / b8 **+1.60** / b32 **+2.20**，**单调、�
 **「受保护储备 / 稳态分配」这个框架本身不能当新颖性卖点** —— GraceKV 占了
 「固定预算全局资源分配」、LKV 占了「学逐头预算」、K-VEC 占了「跨头覆盖」、
 VarRate 占了「处处非零」。
+
+### ★ K-VEC 全文已读（2026-08-22）：**它所在的制度里，头饿死在构造上不可能发生**
+
+上一节标了「必须读全文才能定」，现在读了（arXiv HTML v1）。三句原文定性：
+
+| 问题 | 原文 |
+|---|---|
+| 预算怎么分 | **「The budget B is allocated uniformly across H heads」**、「each head h selects the top-B tokens」 |
+| 提没提头饿死 | **「No explicit statement about heads receiving zero budget. The text does not mention head starvation.」** |
+| cross-head 模块到底做什么 | **不动预算**。它算逐头分数标准差 `σ_{ℓ,h} = std(P_{ℓ,h,:})`，取**最低的 δ=3 个头**，把观测窗从 `O=16` 拓到 `O′=32` 重算优先级 ⇒ 这是**打分改动**，不是分配改动 |
+| coverage 定义在什么上 | **全局唯一 token**：`C = |{unique tokens in T}|`，不是头、也不是 (层,头) 通道 |
+
+它的 cross-layer 模块是 `focus_{ℓ,t} = I_{ℓ,t}·(1 − coverage_{ℓ,t})`、
+`P′ = P + λ·focus`（λ=1.0），仍然是 token 层面的新颖性加权。
+另有 β=0.25 的「保护 top-β·B 个 token（`P′=1.0`）」—— 那是**头内**对高分 token
+的保护，与**跨头预算**是两个轴。模型 Llama-3.1-8B + Qwen2.5-7B，16 个 LongBench
+子集，基线 SnapKV / PyramidKV / **AdaKV** / StreamingLLM / HeadKV / GemFilter。
+
+**⇒ 判决**：**头饿死是 `level="pair"` 全局跨头 top-B 的后果**；K-VEC 用逐头均匀 `B`，
+**该现象在它那里构造上不存在**。所以它**不占据**「全局竞争下的通道生存」这条轴。
+
+**而且它给了一个更好的框架位置**（这条是**推导**，不是它的说法）：
+上一节推出的稳态族 `max Σ log b_h  s.t. Σ b_h = B` 的解是 `b_h = B/H`，
+**K-VEC 的分配字面上就是那个 λ→∞ 端点**，而 FastKVzip 的 `level="pair"`
+是 λ=0 端点。⇒ 这条一维族的两端都已有代表性工作，**我们研究的是中间段**。
+这比「我们提出保护性储备」诚实得多，也可写。
+
+**⚠ 但真正贴身的先验仍然是 AdaKV，不是 K-VEC。** 本仓库早已记过：
+FastKVzip 用的 `adakv-layer` 的 `safeguard=0.2` **本身就是一个逐头地板**。
+「若 +25.80 主要只是别把头饿死，整套配额校准理论就塌成一个已被 Ada-KV
+覆盖的启发式」—— 这句话仍然成立，**读 K-VEC 没有减轻它**。
+`_fbm01/02/04` 的 0→1 判据要连着这一条一起读。
 
 ### 采纳与不采纳
 
