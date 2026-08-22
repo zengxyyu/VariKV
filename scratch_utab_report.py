@@ -23,7 +23,13 @@ from scratch_grid_spec import PANELS, RATIOS, NAME, tag as _mktag   # noqa: E402
 
 PANEL = [(d, NAME[d]) for d, _, _, _, _ in PANELS]
 RAT = [r for r, _ in RATIOS]
-UTAB = {d: {r: _mktag(d, r) for r in RAT} for d, _, _, _, _ in PANELS}
+# `--pre` 让同一个生成器同时服务多张表（kv 表 `_uq01`、psyn 表 `_up01`、
+# ρ=0.5 表 `_ur5`）。**只有一份格子清单与一份口径**，不再手抄第二份。
+PRE = "_uq01"
+for _i, _a in enumerate(sys.argv):
+    if _a == "--pre" and _i + 1 < len(sys.argv):
+        PRE = sys.argv[_i + 1]
+UTAB = {d: {r: _mktag(d, r, PRE) for r in RAT} for d, _, _, _, _ in PANELS}
 CTRL = [("取负 −u @Retr.KV", "scbench_kv", 0.1, "_uqneg01r01"),
         ("取负 −u @Retr.KV", "scbench_kv", 0.5, "_uqneg01r05"),
         ("置换 @Retr.KV", "scbench_kv", 0.1, "_uqperm01r01"),
@@ -67,7 +73,7 @@ def fmt(c):
 
 
 def main():
-    print("| panel | ρ | headroom | 基线 | 静态 `u` 表 | **Δ** | 95% CI | n |")
+    print(f"| panel | ρ | headroom | 基线 | 表 `{PRE}` | **Δ** | 95% CI | n |")
     print("|---|---|---|---|---|---|---|---|")
     nstar_pos = nstar_neg = nns = 0
     for ds, nm in PANEL:
@@ -94,6 +100,8 @@ def main():
                   f"[{lo:+.2f}, {hi:+.2f}] | {n} |")
     print(f"\n**统计：显著为正 {nstar_pos} 格 ・ 显著为负 {nstar_neg} 格 ・ "
           f"不可分 {nns} 格。**\n")
+    if PRE != "_uq01":
+        return          # 对照组是给 kv 表登记的，换表时不重复打印
     print("| 对照（只变一个变量） | panel | ρ | Δ | 95% CI | n |")
     print("|---|---|---|---|---|---|")
     for name, ds, r, tag in CTRL:

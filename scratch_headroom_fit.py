@@ -10,7 +10,9 @@ import sys
 
 import numpy as np
 
-TAB = subprocess.run([sys.executable, "scratch_utab_report.py"],
+# 透传 `--pre`，同一份拟合口径服务多张表（kv `_uq01` / psyn `_up01` / r05 `_ur5`）。
+_ARGS = sys.argv[1:]
+TAB = subprocess.run([sys.executable, "scratch_utab_report.py"] + _ARGS,
                      capture_output=True, text=True).stdout
 rows = {}
 for ln in TAB.splitlines():
