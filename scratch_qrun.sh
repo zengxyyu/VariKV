@@ -13,6 +13,10 @@ XENV=${9:-}
 # **⚠ 任何依赖方向的臂（full/within/across/floorproj/pathproj/maxlift）禁止用它。**
 MODEL=${10:-Qwen/Qwen2.5-7B-Instruct-1M}
 CKPT=${11:-../../../varikv/d10_scalar_s0.pt/memoryless.pt}
+# 第 12 个字段：`--idx` 起始样本下标（默认 0，既有 11 字段队列行行为不变）。
+# **留出评测必需**：教师若在样本 [0,K) 上标定，评测就必须从 K 开始，
+# 否则是在标定集上测自己。
+IDX=${12:-0}
 case "$MODEL" in
   *Qwen3*|*qwen3*)
     # **必须精确匹配**：`*floor*` 会连 floorproj / floorpath 一起放行，
@@ -22,6 +26,15 @@ case "$MODEL" in
       *) echo "REFUSE $TAG: Qwen3 用的是未训练打分器，只允许 floor/floorcov（收到 QMODE=$QMODE）" >&2; exit 3 ;;
     esac ;;
 esac
+# ⚠ 守卫（2026-08-22 加）：配额块整块被 learned_ctrlcache.py:328 的
+# `if _qi:` 守住，`_qi = $VARIKV_QUOTA_INJECT`。而本脚本只在 TAB != "-" 时
+# 导出它。于是 `TAB=-` 配任何 QMODE 都会**静默跳过整个干预**，跑出基线并
+# 冒充成方法结果 —— 66 格地板网格已经这样空跑过一次。
+# 不需要方向的 mode（floor 等）正确写法是传全零表 scratch_quota_dbh_zero.npy。
+if [ -n "$QMODE" ] && [ "$QMODE" != "-" ] && [ "$TAB" = "-" ]; then
+  echo "REFUSE $TAG: QMODE=$QMODE 但 TAB=- ⇒ VARIKV_QUOTA_INJECT 不会被导出，配额块整块跳过（跑出来是基线）。不需要方向就传 scratch_quota_dbh_zero.npy" >&2
+  exit 4
+fi
 cd /home/ubuntu/zxy/vlm-memory/external/FastKVzip/prefill
 export CUDA_VISIBLE_DEVICES=$GPU VARIKV_RATIOS=$R
 [ "$TAB" != "-" ] && export VARIKV_QUOTA_INJECT=/home/ubuntu/zxy/vlm-memory/$TAB
@@ -34,7 +47,7 @@ if [ -n "$XENV" ] && [ "$XENV" != "-" ]; then
   for _kv in "${_KVS[@]}"; do [ -n "$_kv" ] && export "$_kv"; done
 fi
 ../../../.venv/bin/python -B eval_chunk.py -m "$MODEL" -g fastkvzip \
-  --num $NUM --prefill_chunk 16000 --window_size 4096 --level pair -d $DS --tag $TAG \
+  --num $NUM --idx $IDX --prefill_chunk 16000 --window_size 4096 --level pair -d $DS --tag $TAG \
   --ctrlm_ckpt "$CKPT" --ctrlm_mode memoryless \
   > /home/ubuntu/zxy/vlm-memory/scratch_ctrl_logs/${TAG#_}.log 2>&1
 echo "DONE $TAG rc=$?" >> /home/ubuntu/zxy/vlm-memory/scratch_ctrl_logs/qrun_done.log
